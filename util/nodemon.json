@@ -1,0 +1,10 @@
+{
+    "watch": ["src"],
+    "ext": "ts",
+    "ignore": ["src/public"],
+    "exec": "ts-node src/start.ts dev",
+    "env": {
+        "PORT": 3001,
+        "NODE_ENV": "development"
+    }
+}
