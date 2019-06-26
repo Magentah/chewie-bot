@@ -1,26 +1,26 @@
 import * as path from 'path';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import * as controllers from './controllers';
+import 'reflect-metadata';
 
 import { Server } from '@overnightjs/core';
 import { Logger } from '@overnightjs/logger';
-import TestController from './controllers/testController';
+import OAuthService from './services/oauthService';
+import { Container } from 'inversify';
+import OAuthController from './controllers/oauthController';
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = 'Server started on port: ';
     private readonly DEV_MESSAGE = 'Express Server is running in development mode.' +
                                    'No front-end is being served';
 
+    private container: Container;
+
     constructor() {
         super(true);
-        this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({ extended: true }));
-        super.addControllers(new TestController());
-        // point to front-end
-        if (process.env.NODE_ENV !== 'production') {
-            this.app.get('*', (req, res) => res.send(this.DEV_MESSAGE));
-        }
+        this.container = new Container();
+        this.setupContainer();
+        this.setupApp();
     }
 
     public start(port: number): void {
@@ -29,16 +29,21 @@ class BotServer extends Server {
         });
     }
 
-    private setupControllers(): void {
-        const controllerInstances = [];
-        for (const name in controllers) {
-            if (controllers.hasOwnProperty(name)) {
-                const Controller = (controllers as any)[name];
-                controllerInstances.push(new Controller());
-            }
-        }
+    private setupContainer(): void {
+        this.container.bind<OAuthService>(OAuthService).toSelf();
+    }
 
-        super.addControllers(controllerInstances);
+    private setupApp(): void {
+
+        const dir = path.join(__dirname, 'client/build');
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({ extended: true }));
+        super.addControllers(new OAuthController(this.container.resolve<OAuthService>(OAuthService)));
+        this.app.set('views', dir);
+        this.app.use(express.static(dir));
+        this.app.get('*', (req, res) => {
+            res.sendFile('index.html', { root: dir });
+        });
     }
 }
 

@@ -4,17 +4,12 @@ import './App.css';
 
 class App extends Component {
     public render() {
-        async function callExpress() {
-            try {
-            const response = await fetch('/api/test/fromReact')
-                                    .then((res) => res.json());
-            alert(`From backend: ${response.message}`);
-            } catch (err) {
-            alert(err);
-            }
-        }
+        async function twitchRedirect() {
+            const response = await fetch('/api/oauth/twitch')
+                                .then((res) => res.json());
 
-        callExpress();
+            window.location.replace(response.url);
+        }
 
         return (
             <div className='App'>
@@ -31,6 +26,7 @@ class App extends Component {
                     >
                     Learn React
                     </a>
+                    <a class-name='App-link' onClick={twitchRedirect}>Connect to Twitch</a>
                 </header>
             </div>
         );

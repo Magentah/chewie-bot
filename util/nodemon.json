@@ -1,10 +1,13 @@
 {
     "watch": ["src"],
     "ext": "ts",
-    "ignore": ["src/public"],
-    "exec": "ts-node src/start.ts dev",
+    "ignore": ["src/public", ".git", "node_modules/**/*"],
     "env": {
-        "PORT": 3001,
         "NODE_ENV": "development"
-    }
+    },
+    "restartable": "rs",
+    "verbose": true,
+    "execMap": {
+        "ts": "node --require ts-node/register"
+      }
 }
