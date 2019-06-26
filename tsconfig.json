@@ -5,6 +5,7 @@
         "strict": true,
         "baseUrl": "./",
         "outDir": "./dist",
+        "rootDir": "./src",
         "sourceMap": true,
         "removeComments": true,
         "experimentalDecorators": true,

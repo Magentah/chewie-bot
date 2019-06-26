@@ -17,8 +17,11 @@ class OAuthController {
     private redirect(req: Request, res: Response) {
         try {
             Logger.Info(`Twitch Redirect: ${JSON.stringify(req.query)}`);
-            this.oauthService.getTwitchAuthToken(req.query);
-            res.status(OK).redirect('/');
+            this.oauthService.getTwitchAuthToken(req.query)
+            .then((result) => {
+                this.oauthService.getTwitchUserInfo()
+                .then((response) => res.status(OK).redirect('/'));
+            });
         } catch (err) {
             Logger.Err(err, true);
             return res.status(BAD_REQUEST).json({
