@@ -8,6 +8,7 @@ import { Logger } from '@overnightjs/logger';
 import OAuthService from './services/oauthService';
 import { Container } from 'inversify';
 import OAuthController from './controllers/oauthController';
+import DatabaseService from './services/databaseService';
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = 'Server started on port: ';
@@ -31,6 +32,7 @@ class BotServer extends Server {
 
     private setupContainer(): void {
         this.container.bind<OAuthService>(OAuthService).toSelf();
+        this.container.bind<DatabaseService>(DatabaseService).toSelf();
     }
 
     private setupApp(): void {

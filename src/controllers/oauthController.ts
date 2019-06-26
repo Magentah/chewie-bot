@@ -17,14 +17,13 @@ class OAuthController {
      * Redirect endpoint for Twitch.tv OAuth
      */
     @Get('twitch/redirect')
-    private redirect(req: Request, res: Response) {
+    private async redirect(req: Request, res: Response) {
         try {
             Logger.Info(`Twitch Redirect: ${JSON.stringify(req.query)}`);
-            this.oauthService.getTwitchAuthToken(req.query)
-            .then((result) => {
-                this.oauthService.getTwitchUserInfo()
-                .then((response) => res.status(OK).redirect('/'));
-            });
+            const authTokenResponse = await this.oauthService.getTwitchAuthToken(req.query);
+            const verifyResponse = await this.oauthService.verifyTwitchOauth();
+            const userInfoResponse = await this.oauthService.getTwitchUserInfo();
+            res.status(OK).redirect('/');
         } catch (err) {
             Logger.Err(err, true);
             return res.status(BAD_REQUEST).json({
