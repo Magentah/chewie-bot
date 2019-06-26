@@ -13,6 +13,9 @@ class OAuthController {
     constructor(@inject(OAuthService) private oauthService: OAuthService) {
     }
 
+    /**
+     * Redirect endpoint for Twitch.tv OAuth
+     */
     @Get('twitch/redirect')
     private redirect(req: Request, res: Response) {
         try {
@@ -30,6 +33,9 @@ class OAuthController {
         }
     }
 
+    /**
+     * Returns the Twitch.tv OAuth authorize URL for use in the client to redirect, as we can't redirect the client from the server.
+     */
     @Get('twitch')
     private twitchAuth(req: Request, res: Response) {
         try {

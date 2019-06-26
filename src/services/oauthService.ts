@@ -32,6 +32,10 @@ class OAuthService {
         this.testDB.run('CREATE TABLE if not exists test(id integer primary key, access_token text)');
     }
 
+    /**
+     * Gets an oauth token from Twitch.tv
+     * @param authResponse Response object from https://id.twitch.tv/oauth2/authorize
+     */
     public getTwitchAuthToken(authResponse: ITwitchRedirectResponse): Promise<any> {
         return new Promise((resolve, reject) => {
             const options = {
@@ -59,6 +63,9 @@ class OAuthService {
         });
     }
 
+    /**
+     * Gets User Info from Twitch.tv
+     */
     public getTwitchUserInfo(): Promise<any> {
         return new Promise((resolve, reject) => {
             Logger.Info('Getting Twitch User Info');
@@ -94,11 +101,18 @@ class OAuthService {
         });
     }
 
+    /**
+     * Gets the Twitch.tv Authorize URL populated with all parameters.
+     */
     public getTwitchAuthUrl(): string {
         const TwitchAuthURL = `${Constants.TwitchAuthUrl}?client_id=${config.twitch.client_id}&redirect_uri=${config.twitch.redirect_uri}&response_type=code&scope=${Constants.TwitchScopes}&claims=${Constants.TwitchClaims}`;
         return TwitchAuthURL;
     }
 
+    /**
+     * Saves the Twitch.tv OAuth token to a test database
+     * @param twitchAuth The response object from https://id.twitch.tv/oauth2/token
+     */
     private saveTwitchAuth(twitchAuth: ITwitchAuthResponse): Promise<any> {
         return new Promise((resolve, reject) => {
             Logger.Info(`Saving Twitch Access Token: ${twitchAuth.access_token}`);
