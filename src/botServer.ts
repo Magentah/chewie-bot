@@ -9,6 +9,7 @@ import OAuthService from './services/oauthService';
 import { Container } from 'inversify';
 import OAuthController from './controllers/oauthController';
 import DatabaseService from './services/databaseService';
+import TwitchService from './services/twitchService';
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = 'Server started on port: ';
@@ -33,6 +34,7 @@ class BotServer extends Server {
     private setupContainer(): void {
         this.container.bind<OAuthService>(OAuthService).toSelf();
         this.container.bind<DatabaseService>(DatabaseService).toSelf();
+        this.container.bind<TwitchService>(TwitchService).toSelf();
     }
 
     private setupApp(): void {
@@ -40,7 +42,7 @@ class BotServer extends Server {
         const dir = path.join(__dirname, 'client/build');
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
-        super.addControllers(new OAuthController(this.container.resolve<OAuthService>(OAuthService)));
+        super.addControllers(new OAuthController(this.container.resolve<OAuthService>(OAuthService), this.container.resolve<TwitchService>(TwitchService)));
         this.app.set('views', dir);
         this.app.use(express.static(dir));
         this.app.get('*', (req, res) => {

@@ -7,10 +7,11 @@ import * as Req from 'request-promise-native';
 import Constants from './../constants';
 import OAuthService from './../services/oauthService';
 import { inject } from 'inversify';
+import TwitchService from './../services/twitchService';
 
 @Controller('api/oauth')
 class OAuthController {
-    constructor(@inject(OAuthService) private oauthService: OAuthService) {
+    constructor(@inject(OAuthService) private oauthService: OAuthService, @inject(TwitchService) private twitchService: TwitchService) {
     }
 
     /**
@@ -23,6 +24,8 @@ class OAuthController {
             const authTokenResponse = await this.oauthService.getTwitchAuthToken(req.query);
             const verifyResponse = await this.oauthService.verifyTwitchOauth();
             const userInfoResponse = await this.oauthService.getTwitchUserInfo();
+            // Test twitch connection
+            await this.twitchService.connect();
             res.status(OK).redirect('/');
         } catch (err) {
             Logger.Err(err, true);

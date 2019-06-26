@@ -24,9 +24,10 @@ class DatabaseService {
         }
     }
 
-    public asyncRun(query: string, ...params: any[]): Promise<any> {
+    public asyncRun(query: string, params?: any[]): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.db !== undefined) {
+                Logger.Info(`${query} // ${params}`);
                 this.db.run(query, params, (err) => {
                     if (err) {
                         reject(err);
@@ -40,7 +41,7 @@ class DatabaseService {
         });
     }
 
-    public asyncGet(query: string, ...params: any[]): Promise<any> {
+    public asyncGet(query: string, params?: any[]): Promise<any> {
         return new Promise((resolve, reject) => {
             if (this.db !== undefined) {
                 this.db.get(query, params, (err, row) => {

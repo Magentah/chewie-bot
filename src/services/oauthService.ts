@@ -5,7 +5,7 @@ import * as Request from 'request-promise-native';
 import * as sqlite from 'sqlite3';
 import DatabaseService from './databaseService';
 import config = require('./../config.json');
-import { promises } from 'fs';
+import { promises, access } from 'fs';
 
 export interface ITwitchAuthResponse {
     access_token: string;
@@ -20,13 +20,20 @@ export interface ITwitchRedirectResponse {
     scope: string;
 }
 
+export interface ITwitchUser {
+    username: string;
+    access_token: string;
+}
+
 @injectable()
 class OAuthService {
+    private twitchUser?: ITwitchUser;
+
     constructor(@inject(DatabaseService) private databaseService: DatabaseService) {
         // Empty
         this.databaseService.initDatabase('test.db');
         Logger.Info('Creating table');
-        this.databaseService.asyncRun('CREATE TABLE if not exists test(id integer primary key, access_token text)');
+        this.databaseService.asyncRun('CREATE TABLE if not exists test(id integer primary key, access_token text, username text)');
         Logger.Info('Table created');
     }
 
@@ -56,10 +63,23 @@ class OAuthService {
         }
     }
 
+    public async getTwitchUser(): Promise<ITwitchUser> {
+        try {
+            if (this.twitchUser !== undefined) {
+                return this.twitchUser;
+            } else {
+                return await this.getTwitchUserInfo();
+            }
+        } catch (err) {
+            Logger.Err(err);
+            throw err;
+        }
+    }
+
     /**
      * Gets User Info from Twitch.tv
      */
-    public async getTwitchUserInfo(): Promise<any> {
+    public async getTwitchUserInfo(): Promise<ITwitchUser> {
         Logger.Info('Getting Twitch User Info');
         let twitchAuthToken: string;
         try {
@@ -76,9 +96,16 @@ class OAuthService {
             };
 
             const userInfoResponse = await Request(options);
+            await this.databaseService.asyncRun('UPDATE test SET username = ? where access_token = ?', [userInfoResponse.preferred_username, twitchAuthToken]);
+            this.twitchUser = {
+                username: userInfoResponse.preferred_username,
+                access_token: twitchAuthToken,
+            };
+            return this.twitchUser;
             Logger.Info(JSON.stringify(userInfoResponse));
         } catch (err) {
             Logger.Err(err);
+            throw err;
         }
     }
 
@@ -91,6 +118,7 @@ class OAuthService {
         try {
             const result = await this.databaseService.asyncGet('SELECT * FROM test');
             const access_token = result.access_token;
+            Logger.Info(`Verifying token: ${access_token}`);
             const options = {
                 method: 'GET',
                 uri: 'https://id.twitch.tv/oauth2/validate',
@@ -124,7 +152,7 @@ class OAuthService {
     private async saveTwitchAuth(twitchAuth: ITwitchAuthResponse): Promise<any> {
         Logger.Info(`Saving Twitch Access Token: ${twitchAuth.access_token}`);
         try {
-            const result = await this.databaseService.asyncRun('INSERT INTO test(access_token) VALUES(?)', [twitchAuth.access_token]);
+            const result = await this.databaseService.asyncRun('INSERT INTO test (access_token) VALUES (?)', [twitchAuth.access_token]);
             Logger.Info(`Added access_token ${twitchAuth.access_token} to test database`);
         } catch (err) {
             Logger.Err(err);
