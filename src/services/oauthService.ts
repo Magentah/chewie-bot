@@ -25,6 +25,8 @@ export interface ITwitchUser {
     access_token: string;
 }
 
+// Twitch OAuth is for logging in users through the front end. For the chatbot oauth, we should be using https://twitchapps.com/tmi/ with the bot account login.
+
 @injectable()
 class OAuthService {
     private twitchUser?: ITwitchUser;
