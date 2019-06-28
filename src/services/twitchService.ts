@@ -2,14 +2,20 @@ import * as tmi from 'tmi.js';
 import { inject, injectable } from 'inversify';
 import OAuthService from './oauthService';
 import { Logger } from '@overnightjs/logger';
+import * as config from './../config.json';
 
 @injectable()
 class TwitchService {
-    private client?: tmi.Client;
+    private client: tmi.Client;
     private options: tmi.Options;
 
     constructor(@inject(OAuthService) private oauthService: OAuthService) {
-        this.options = {
+        this.options = this.setupOptions();
+        this.client = tmi.Client(this.options);
+    }
+
+    private setupOptions(): tmi.Options {
+        return {
             options: {
                 debug: true,
             },
@@ -17,25 +23,30 @@ class TwitchService {
                 reconnect: true,
                 secure: true,
             },
+            identity: {
+                username: config.twitch.username,
+                password: `${config.twitch.oauth}`,
+            },
+            channels: [ `#${config.twitch.username}` ],
         };
     }
 
+    private setupEventHandlers(): void {
+        this.client.on('chat', this.chatEventHandler);
+    }
+
+    private chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
+        Logger.Info(`Chat event: ${channel}:${userstate.username} -- ${message}`);
+    }
+
     public connect(): void {
-        if (this.options === undefined) {
-            this.setupOptions();
-        }
-        this.client = tmi.Client(this.options);
         Logger.Info('Connecting to Twitch.tv with tmi.js');
         this.client.connect();
     }
 
-    private async setupOptions(): Promise<any> {
-        const twitchUser = await this.oauthService.getTwitchUser();
-        this.options.identity = {
-            username: twitchUser.username,
-            password: `oauth:${twitchUser.access_token}`,
-        };
-        this.options.channels = [ `#${twitchUser.username}}`];
+    public disconnect(): void {
+        Logger.Info('Disconnecting from Twitch.tv');
+        this.client.disconnect();
     }
 }
 
