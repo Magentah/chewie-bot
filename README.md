@@ -5,6 +5,8 @@
 
 ### Dev Setup
 - Copy config.example.json to config.json and update with your config details.
+- Install nodejs if you don't already have it.
+- Run `yarn install` to install dependencies.
 
 ### For using static React files
 - Run `yarn build` in the `src/client/` folder and then move the build folder to `dist/client/build`.
