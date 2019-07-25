@@ -12,6 +12,7 @@ class TwitchService {
     constructor(@inject(OAuthService) private oauthService: OAuthService) {
         this.options = this.setupOptions();
         this.client = tmi.Client(this.options);
+        this.setupEventHandlers();
     }
 
     private setupOptions(): tmi.Options {
@@ -32,48 +33,49 @@ class TwitchService {
     }
 
     private setupEventHandlers(): void {
-        this.client.on('action', this.actionEventHandler);
-        this.client.on('anongiftpaidupgrade', this.anonGiftPaidUpgradeEventHandler);
-        this.client.on('ban', this.banEventHandler);
-        this.client.on('chat', this.chatEventHandler);
-        this.client.on('cheer', this.cheerEventHandler);
-        this.client.on('clearchat', this.clearChatEventHandler);
-        this.client.on('connected', this.connectedEventHandler);
-        this.client.on('connecting', this.connectingEventHandler);
-        this.client.on('disconnected', this.disconnectedEventHandler);
-        this.client.on('emoteonly', this.emoteOnlyEventHandler);
-        this.client.on('emotesets', this.emoteSetsEventHandler);
-        this.client.on('followersonly', this.followersOnlyEventHandler);
-        this.client.on('giftpaidupgrade', this.giftPaidUpgradeEventHandler);
-        this.client.on('hosted', this.hostedEventHandler);
-        this.client.on('hosting', this.hostingEventHandler);
-        this.client.on('join', this.joinEventHandler);
-        this.client.on('logon', this.logonEventHandler);
+        // If we don't use arrow functions here, TS breaks because 'this' is redefined, so none of the service properties are available.
+        this.client.on('action', (channel, userstate, message, self) => this.actionEventHandler(channel, userstate, message, self));
+        this.client.on('anongiftpaidupgrade', (channel, username, userstate) => this.anonGiftPaidUpgradeEventHandler(channel, username, userstate));
+        this.client.on('ban', (channel, username, reason) => this.banEventHandler(channel, username, reason));
+        this.client.on('chat', (channel, userstate, message, self) => this.chatEventHandler(channel, userstate, message, self));
+        this.client.on('cheer', (channel, userstate, message) => this.cheerEventHandler(channel, userstate, message));
+        this.client.on('clearchat', (channel) => this.clearChatEventHandler(channel));
+        this.client.on('connected', (address, port) => this.connectedEventHandler(address, port));
+        this.client.on('connecting', (address, port) => this.connectingEventHandler(address, port));
+        this.client.on('disconnected', (reason) => this.disconnectedEventHandler(reason));
+        this.client.on('emoteonly', (channel, enabled) => this.emoteOnlyEventHandler(channel, enabled));
+        this.client.on('emotesets', (sets, objs) => this.emoteSetsEventHandler(sets, objs));
+        this.client.on('followersonly', (channel, enabled, length) => this.followersOnlyEventHandler(channel, enabled, length));
+        this.client.on('giftpaidupgrade', (channel, username, sender, userstate) => this.giftPaidUpgradeEventHandler(channel, username, sender, userstate));
+        this.client.on('hosted', (channel, username, viewers, autohost) => this.hostedEventHandler(channel, username, viewers, autohost));
+        this.client.on('hosting', (channel, target, viewers) => this.hostingEventHandler(channel, target, viewers));
+        this.client.on('join', (channel, username, self) => this.joinEventHandler(channel, username, self));
+        this.client.on('logon', () => this.logonEventHandler());
         // this.client.on('message', channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) combines chat, whisper and action events
-        this.client.on('messagedeleted', this.messageDeletedEventHandler);
-        this.client.on('mod', this.modEventHandler);
-        this.client.on('mods', this.modsEventHandler);
-        this.client.on('notice', this.noticeEventHandler);
-        this.client.on('part', this.partEventHandler);
-        this.client.on('ping', this.pingEventHandler);
-        this.client.on('pong', this.pongEventHandler);
-        this.client.on('r9kbeta', this.r9kBetaEventHandler);
-        this.client.on('raided', this.raidedEventHandler);
+        this.client.on('messagedeleted', (channel, username, deletedMessage, userstate) => this.messageDeletedEventHandler(channel, username, deletedMessage, userstate));
+        this.client.on('mod', (channel, username) => this.modEventHandler(channel, username));
+        this.client.on('mods', (channel, mods) => this.modsEventHandler(channel, mods));
+        this.client.on('notice', (channel, msgid, message) => this.noticeEventHandler(channel, msgid, message));
+        this.client.on('part', (channel, username, self) => this.partEventHandler(channel, username, self));
+        this.client.on('ping', () => this.pingEventHandler());
+        this.client.on('pong', (latency) => this.pongEventHandler(latency));
+        this.client.on('r9kbeta', (channel, enabled) => this.r9kBetaEventHandler(channel, enabled));
+        this.client.on('raided', (channel, username, viewers) => this.raidedEventHandler(channel, username, viewers));
         // this.client.on('raw_message', (messageCloned: { [property: string]: any; }, message: { [property: string]: any; }) => {}); raw messages, probably never actually needed
-        this.client.on('reconnect', this.reconnectEventHandler);
-        this.client.on('resub', this.resubEventHandler);
-        this.client.on('roomstate', this.roomStateEventHandler);
-        this.client.on('serverchange', this.serverChangeEventHandler);
-        this.client.on('slowmode', this.slowModeEventHandler);
-        this.client.on('subgift', this.subGiftEventHandler);
-        this.client.on('submysterygift', this.subMysteryGiftEventHandler);
-        this.client.on('subscribers', this.subscribersEventHandler);
-        this.client.on('subscription', this.subscriptionEventHandler);
-        this.client.on('timeout', this.timeoutEventHandler);
-        this.client.on('unhost', this.unhostEventHandler);
-        this.client.on('unmod', this.unmodEventHandler);
-        this.client.on('vips', this.vipsEventHandler);
-        this.client.on('whisper', this.whisperEventHandler);
+        this.client.on('reconnect', () => this.reconnectEventHandler());
+        this.client.on('resub', (channel, username, months, message, userstate, methods) => this.resubEventHandler(channel, username, months, message, userstate, methods));
+        this.client.on('roomstate', (channel, state) => this.roomStateEventHandler(channel, state));
+        this.client.on('serverchange', (channel) => this.serverChangeEventHandler(channel));
+        this.client.on('slowmode', (channel, enabled, length) => this.slowModeEventHandler(channel, enabled, length));
+        this.client.on('subgift', (channel, username, streakMonths, recipient, methods, userstate) => this.subGiftEventHandler(channel, username, streakMonths, recipient, methods, userstate));
+        this.client.on('submysterygift', (channel, username, numOfSubs, methods, userstate) => this.subMysteryGiftEventHandler(channel, username, numOfSubs, methods, userstate));
+        this.client.on('subscribers', (channel, enabled) => this.subscribersEventHandler(channel, enabled));
+        this.client.on('subscription', (channel, username, methods, message, userstate) => this.subscriptionEventHandler(channel, username, methods, message, userstate));
+        this.client.on('timeout', (channel, username, reason, duration) => this.timeoutEventHandler(channel, username, reason, duration));
+        this.client.on('unhost', (channel, viewers) => this.unhostEventHandler(channel, viewers));
+        this.client.on('unmod', (channel, username) => this.unmodEventHandler(channel, username));
+        this.client.on('vips', (channel, vips) => this.vipsEventHandler(channel, vips));
+        this.client.on('whisper', (from, userstate, message, self) => this.whisperEventHandler(from, userstate, message, self));
     }
 
     private actionEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
@@ -90,6 +92,16 @@ class TwitchService {
 
     private chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
         Logger.Info(`Chat event: ${channel}:${userstate.username} -- ${message}`);
+
+        if (self) {
+            return;
+        }
+
+        if (message.startsWith('!test')) {
+            this.client.say(channel, 'Test Message');
+        } else {
+            this.client.say(channel, 'Other Message');
+        }
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {
