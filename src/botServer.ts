@@ -10,6 +10,7 @@ import { Container } from 'inversify';
 import OAuthController from './controllers/oauthController';
 import DatabaseService from './services/databaseService';
 import TwitchService from './services/twitchService';
+import CacheService from './services/cacheService';
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = 'Server started on port: ';
@@ -35,6 +36,7 @@ class BotServer extends Server {
         this.container.bind<OAuthService>(OAuthService).toSelf();
         this.container.bind<DatabaseService>(DatabaseService).toSelf();
         this.container.bind<TwitchService>(TwitchService).toSelf();
+        this.container.bind<CacheService>(CacheService).toSelf();
     }
 
     private setupApp(): void {
