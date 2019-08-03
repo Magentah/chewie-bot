@@ -11,6 +11,7 @@ import OAuthController from './controllers/oauthController';
 import DatabaseService from './services/databaseService';
 import TwitchService from './services/twitchService';
 import CacheService from './services/cacheService';
+import YoutubeService from './services/youtubeService';
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = 'Server started on port: ';
@@ -30,6 +31,11 @@ class BotServer extends Server {
         this.app.listen(port, () => {
             Logger.Imp(this.SERVER_START_MESSAGE + port);
         });
+
+        // Test things
+        /* const youtubeService = this.container.get<YoutubeService>(YoutubeService);
+        Logger.Info('Testing Youtube API');
+        youtubeService.getSongDetails('https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1'); */
     }
 
     private setupContainer(): void {
@@ -37,6 +43,7 @@ class BotServer extends Server {
         this.container.bind<DatabaseService>(DatabaseService).toSelf();
         this.container.bind<TwitchService>(TwitchService).toSelf();
         this.container.bind<CacheService>(CacheService).toSelf();
+        this.container.bind<YoutubeService>(YoutubeService).toSelf();
     }
 
     private setupApp(): void {

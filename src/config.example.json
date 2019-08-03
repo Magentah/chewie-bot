@@ -5,5 +5,8 @@
         "redirect_uri": "",
         "username": "",
         "oauth": ""
+    },
+    "youtube": {
+        "api_key": ""
     }
 }
