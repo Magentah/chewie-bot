@@ -7,19 +7,8 @@ import DatabaseService from './databaseService';
 import { CacheService, CacheType } from './cacheService';
 import config = require('./../config.json');
 import { promises, access } from 'fs';
-
-export interface ITwitchAuthResponse {
-    access_token: string;
-    expires_in: string;
-    refresh_token: string;
-    scope: string[];
-    token_type: string;
-}
-
-export interface ITwitchRedirectResponse {
-    code: string;
-    scope: string;
-}
+import CryptoHelper from '../helpers/cryptoHelper';
+import { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchIDToken } from '../models/twitchApi';
 
 export interface ITwitchUser {
     username: string;
@@ -31,12 +20,13 @@ export interface ITwitchUser {
 class OAuthService {
     // Populated immediately after authenticating with Twitch
     private twitchUser: ITwitchUser = { username: '' };
+    private nonce: string = '';
 
     constructor(@inject(DatabaseService) private databaseService: DatabaseService, @inject(CacheService) private cacheService: CacheService) {
         // Empty
-        this.databaseService.initDatabase('test.db');
+        this.databaseService.initDatabase('chewiebot.db');
         Logger.Info('Creating table');
-        this.databaseService.asyncRun('CREATE TABLE if not exists test(id integer primary key, refresh_token text, username text)');
+        this.databaseService.asyncRun('CREATE TABLE if not exists user(id integer primary key, id_token text, username text, refresh_token text)');
         Logger.Info('Table created');
     }
 
@@ -54,13 +44,19 @@ class OAuthService {
                 code: authResponse.code,
                 grant_type: 'authorization_code',
                 redirect_uri: config.twitch.redirect_uri,
+                nonce: this.nonce,
             },
             json: true,
         };
 
         try {
             const response = await Request(options);
-            const twitchAuth = await this.saveTwitchAuth(response);
+            if (response.nonce === this.nonce) {
+                const twitchAuth = await this.saveTwitchAuth(response, this.nonce);
+                this.nonce = '';
+            } else {
+                throw new Error('Nonce did not match');
+            }
         } catch (err) {
             Logger.Err(err);
         }
@@ -83,7 +79,6 @@ class OAuthService {
      * Gets User Info from Twitch.tv
      */
     public async getTwitchUserInfo(): Promise<ITwitchUser> {
-        Logger.Info('Getting Twitch User Info');
         try {
             const accessToken = await this.getTwitchAccessToken();
 
@@ -97,7 +92,6 @@ class OAuthService {
             };
 
             const userInfoResponse = await Request(options);
-            Logger.Info(JSON.stringify(userInfoResponse));
             this.twitchUser = {
                 username: userInfoResponse.preferred_username,
 
@@ -115,8 +109,8 @@ class OAuthService {
 
         try {
             // Get refresh token from test database. Only a single user in single table, so just select everything.
-            const result = await this.databaseService.asyncGet('SELECT * FROM test');
-            const refresh_token = result.refresh_token;
+            const result = await this.databaseService.asyncGet('SELECT * FROM user');
+            const refreshToken = await CryptoHelper.decryptString(result.refresh_token);
             const options = {
                 method: 'POST',
                 url: `https://id.twitch.tv/oauth2/token`,
@@ -124,14 +118,14 @@ class OAuthService {
                     client_id: config.twitch.client_id,
                     client_secret: config.twitch.client_secret,
                     grant_type: 'refresh_token',
-                    refresh_token,
+                    refresh_token: refreshToken,
                 },
             };
 
             const refreshResponse = await Request(options);
-            Logger.Info(JSON.stringify(refreshResponse));
 
-            await this.databaseService.asyncRun('UPDATE test SET refresh_token = ? WHERE username = ?', [refresh_token, this.twitchUser.username]);
+            const encryptedRefreshToken = CryptoHelper.encryptString(refreshResponse.refresh_token);
+            await this.databaseService.asyncRun('UPDATE test SET refresh_token = ? WHERE username = ?', [encryptedRefreshToken, this.twitchUser.username]);
 
             // Cache the access token. Default set to 60s TTL. We should be using the refresh token to get a new access token every 30-60s.
             await this.cacheService.set(CacheType.OAuth, Constants.TwitchCacheAccessToken, refreshResponse.access_token);
@@ -150,7 +144,6 @@ class OAuthService {
 
         try {
             const accessToken = await this.getTwitchAccessToken();
-            Logger.Info(accessToken);
             const options = {
                 method: 'GET',
                 uri: 'https://id.twitch.tv/oauth2/validate',
@@ -161,8 +154,6 @@ class OAuthService {
             };
 
             const validateResponse = await Request(options);
-            Logger.Info('Got verification');
-            Logger.Info(JSON.stringify(validateResponse));
         } catch (err) {
             Logger.Err(err);
             throw err;
@@ -173,7 +164,18 @@ class OAuthService {
      * Gets the Twitch.tv Authorize URL populated with all parameters.
      */
     public getTwitchAuthUrl(): string {
-        const TwitchAuthURL = `${Constants.TwitchAuthUrl}?client_id=${config.twitch.client_id}&redirect_uri=${config.twitch.redirect_uri}&response_type=code&scope=${Constants.TwitchScopes}&claims=${Constants.TwitchClaims}`;
+        if (this.nonce.length === 0) {
+            this.nonce = CryptoHelper.generateNonce();
+        }
+
+        const TwitchAuthURL =
+            `${Constants.TwitchAuthUrl}?`
+            + `client_id=${config.twitch.client_id}&`
+            + `redirect_uri=${config.twitch.redirect_uri}&`
+            + `response_type=code&`
+            + `scope=${Constants.TwitchScopes}&`
+            + `claims=${Constants.TwitchClaims}&`
+            + `nonce=${this.nonce}`;
         return TwitchAuthURL;
     }
 
@@ -181,9 +183,11 @@ class OAuthService {
      * Saves the Twitch.tv OAuth refrsh token to a test database and adds the access_token to a cache.
      * @param twitchAuth The response object from https://id.twitch.tv/oauth2/token
      */
-    private async saveTwitchAuth(twitchAuth: ITwitchAuthResponse): Promise<any> {
+    private async saveTwitchAuth(twitchAuth: ITwitchAuthResponse, nonce: string): Promise<any> {
         try {
-            const result = await this.databaseService.asyncRun('INSERT INTO test (refresh_token) VALUES (?)', [twitchAuth.refresh_token]);
+            const idToken = await CryptoHelper.verifyTwitchJWT(twitchAuth.id_token, nonce);
+            const encryptedRefreshToken = CryptoHelper.encryptString(twitchAuth.refresh_token);
+            const result = await this.databaseService.asyncRun('INSERT INTO user (refresh_token, id_token, username) VALUES (?, ?, ?)', [encryptedRefreshToken, idToken.sub, idToken.preferred_username]);
             this.cacheService.set(CacheType.OAuth, Constants.TwitchCacheAccessToken, twitchAuth.access_token);
         } catch (err) {
             Logger.Err(err);
@@ -195,12 +199,9 @@ class OAuthService {
      */
     private async getTwitchAccessToken(): Promise<string> {
         let accessToken = await this.cacheService.get(CacheType.OAuth, Constants.TwitchCacheAccessToken);
-        Logger.Info(`Access token from cache: ${accessToken}`);
         if (!accessToken) {
             accessToken = await this.refreshTwitchToken();
         }
-
-        Logger.Info(`Returning twitch access token ${accessToken}`);
         return accessToken;
     }
 }

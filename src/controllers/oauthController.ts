@@ -20,7 +20,6 @@ class OAuthController {
     @Get('twitch/redirect')
     private async redirect(req: Request, res: Response) {
         try {
-            Logger.Info(`Twitch Redirect: ${JSON.stringify(req.query)}`);
             const authTokenResponse = await this.oauthService.getTwitchAuthToken(req.query);
             const verifyResponse = await this.oauthService.verifyTwitchOauth();
             const userInfoResponse = await this.oauthService.getTwitchUserInfo();
@@ -41,7 +40,6 @@ class OAuthController {
     @Get('twitch')
     private twitchAuth(req: Request, res: Response) {
         try {
-            Logger.Info(`Twitch API Call`);
             const authResponse = res.status(OK).json({
                 url: this.oauthService.getTwitchAuthUrl(),
             });

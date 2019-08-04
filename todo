@@ -1,0 +1,31 @@
+Song Queue and Service:
+    ☐ Request a song through twitch chat with a URL
+        ☐ Youtube URLs
+        ☐ Soundcloud URLs
+        ☐ Spotify URLs
+            This might not actually be possible, need to look in to whether Spotify will allow embedded playing of music 
+            (https://developer.spotify.com/documentation/web-playback-sdk/)
+    ☐ Songs get added to a request queue
+    ☐ Request queue has details on each song requested 
+        Who requested, how it was requested, donated amount if donation, how long ago it was requested, whether it's been played or not, etc
+    ☐ Toggle whether a song has been played or not
+    ☐ Change sort order of songs
+    ☐ Add to and remove from the queue manually 
+    ☐ Display song queue to users on the front end
+        This should be read-only for everyone except broadcaster and moderators.
+
+Commands:
+    ☐ Automatically detect commands without having to manually add every time
+        Don't want to have to add a command every time a new one is created like how DI works,
+        Will probably end up watching and parsing a folder for commands based on file names.
+    ☐ Flexible command system
+        Ideally the system that handles executing whatever command needed doesn't need to know what the
+        command actually is or what it does. Everyone command can have an execute() function that the system
+        will call. The system can store each command in a map, providing an easy way to access each command.
+        ☐ Make necessary services available to commands
+            This probably needs to be through a service locator or something. Ideally there should only be a few
+            services that commands have direct access to (e.g. using a SongService instead of directly using url specific services)
+
+Authentication:
+    ☐ Refactor user login with Twitch.tv OAuth so that it actually works for multiple users. Currently only really works for a single user locally.
+        ☐ Database refactoring to store user data. Don't want to pull from Twitch.tv API every time. Will need to refresh Twitch.tv data on some set interval.

@@ -13,6 +13,8 @@ import TwitchService from './services/twitchService';
 import CacheService from './services/cacheService';
 import YoutubeService from './services/youtubeService';
 
+import CryptoHelper from './helpers/cryptoHelper';
+
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = 'Server started on port: ';
     private readonly DEV_MESSAGE = 'Express Server is running in development mode.' +

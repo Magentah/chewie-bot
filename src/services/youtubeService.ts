@@ -12,7 +12,6 @@ export class YoutubeService {
 
     public async getSongDetails(url: string): Promise<IYoutubeSong | undefined> {
         const id = this.parseUrl(url);
-        Logger.Info(id);
         const options = {
             method: 'GET',
             url: Constants.YoutubeVideoUrl,
