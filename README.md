@@ -9,9 +9,7 @@
 - Run `yarn install` to install dependencies.
 
 ### For using static React files
-- Run `yarn build` in the `src/client/` folder and then move the build folder to `dist/client/build`.
-- Run `yarn tsc` to build typescript.
-- Run `node ./dist/start.js` to run the app using the static React files.
+- Run `yarn start-static` in the root folder.
 
 ### Contributing
 - Make a new branch for the changes you want to make
