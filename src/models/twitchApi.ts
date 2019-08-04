@@ -12,6 +12,16 @@ export interface ITwitchRedirectResponse {
     scope: string;
 }
 
+export interface ITwitchCacheValue {
+    idToken: string;
+    accessToken: string;
+}
+
+export interface ITwitchUser {
+    id: string;
+    username: string;
+}
+
 export interface ITwitchIDToken {
     // Token Issuer (twitch)
     iss: string;

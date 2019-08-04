@@ -21,8 +21,7 @@ class OAuthController {
     private async redirect(req: Request, res: Response) {
         try {
             const authTokenResponse = await this.oauthService.getTwitchAuthToken(req.query);
-            const verifyResponse = await this.oauthService.verifyTwitchOauth();
-            const userInfoResponse = await this.oauthService.getTwitchUserInfo();
+            const verifyResponse = await this.oauthService.verifyTwitchOauth(authTokenResponse.username);
             // Test twitch connection
             await this.twitchService.connect();
             res.status(OK).redirect('/');

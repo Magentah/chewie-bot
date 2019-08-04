@@ -29,3 +29,9 @@ Commands:
 Authentication:
     ☐ Refactor user login with Twitch.tv OAuth so that it actually works for multiple users. Currently only really works for a single user locally.
         ☐ Database refactoring to store user data. Don't want to pull from Twitch.tv API every time. Will need to refresh Twitch.tv data on some set interval.
+    ✔ Update authentication so that it's correctly using nonces, refresh tokens, etc. @done(19-08-04 15:51)
+
+Logging:
+    ☐ Change the logger to something else that's got a bit more functionality (probably Winston)
+    ☐ Add log filtering based on content types (commands, twitch, database, etc)
+    ☐ Add config value to change log levels.

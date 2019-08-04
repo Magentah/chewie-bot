@@ -24,7 +24,7 @@ class DatabaseService {
         }
     }
 
-    public asyncRun(query: string, params?: any[]): Promise<any> {
+    public asyncRun(query: string, params?: any[]): Promise<boolean> {
         return new Promise((resolve, reject) => {
             if (this.db !== undefined) {
                 Logger.Info(`${query} // ${params}`);
@@ -32,7 +32,7 @@ class DatabaseService {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve();
+                        resolve(true);
                     }
                 });
             } else {
