@@ -1,10 +1,10 @@
 import { injectable } from 'inversify';
 import * as Request from 'request-promise-native';
 import config = require('./../config.json');
-import Constants from '../constants.js';
+import Constants from '../constants';
 import { Logger } from '@overnightjs/logger';
 import { IYoutubeSong, IYoutubeVideoListResponse } from '../models/youtubeSong';
-import APIResponseParser from '../helpers/parser.js';
+import APIResponseParser from '../helpers/parser';
 
 @injectable()
 export class YoutubeService {
