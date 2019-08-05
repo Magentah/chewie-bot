@@ -2,9 +2,6 @@ import { OK, BAD_REQUEST } from 'http-status-codes';
 import { Controller, Get } from '@overnightjs/core';
 import { Logger } from '@overnightjs/logger';
 import { Request, Response } from 'express';
-import * as Req from 'request-promise-native';
-
-import Constants from './../constants';
 import OAuthService from './../services/oauthService';
 import { inject } from 'inversify';
 import TwitchService from './../services/twitchService';

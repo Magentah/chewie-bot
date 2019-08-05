@@ -15,7 +15,7 @@ export class CacheService {
         this.caches.set(CacheType.OAuth, new NodeCache({ stdTTL: 60, deleteOnExpire: true, checkperiod: 600 }));
     }
 
-    public async set(cacheType: CacheType, key: any, value: any) {
+    public set(cacheType: CacheType, key: any, value: any) {
         const cache = this.caches.get(cacheType);
         if (cache) {
             cache.set(key, value, (err: any, success: any) => {
@@ -29,7 +29,7 @@ export class CacheService {
         }
     }
 
-    public async get(cacheType: CacheType, key: any): Promise<any> {
+    public get(cacheType: CacheType, key: any): any {
         const cache = this.caches.get(cacheType);
         if (cache) {
             const value = cache.get(key);

@@ -1,4 +1,4 @@
-import { injectable, inject } from 'inversify';
+import { injectable } from 'inversify';
 import { Command } from '../commands/command';
 import TwitchChatParser from '../helpers/twitchChatParser';
 import CommandNotExist from '../errors/commandNotExist';
@@ -19,20 +19,10 @@ export class CommandService {
      */
     private findCommands(): void {
         Object.keys(Commands).forEach((val, index) => {
-            this.addCommand(
-                val.substr(0, val.toLowerCase().indexOf('command')).toLowerCase(),
-                // Add a new instance of the command so that we can call functions on it. Adding without new won't work as it's just a type name otherwise
-                new (Object.values(Commands)[index])());
+            const commandName = val.substr(0, val.toLowerCase().indexOf('command'));
+            const command = new (Object.values(Commands)[index])();
+            this.commands.set(commandName.toLowerCase(), command);
         });
-    }
-
-    /**
-     * Add a command to the command map
-     * @param commandName Lowercase name for the command
-     * @param command Instance of the command object
-     */
-    private addCommand(commandName: string, command: Command): void {
-        this.commands.set(commandName.toLowerCase(), command);
     }
 
     /**

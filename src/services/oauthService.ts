@@ -2,16 +2,13 @@ import { Logger } from '@overnightjs/logger';
 import Constants from './../constants';
 import { injectable, inject } from 'inversify';
 import * as Request from 'request-promise-native';
-import * as sqlite from 'sqlite3';
 import DatabaseService from './databaseService';
 import { CacheService, CacheType } from './cacheService';
 import config = require('./../config.json');
-import { promises, access } from 'fs';
 import CryptoHelper from '../helpers/cryptoHelper';
-import { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchIDToken, ITwitchCacheValue, ITwitchUser } from '../models/twitchApi';
+import { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchUser } from '../models/twitchApi';
 
 // Twitch OAuth is for logging in users through the front end. For the chatbot oauth, we should be using https://twitchapps.com/tmi/ with the bot account login.
-
 @injectable()
 class OAuthService {
     // Populated immediately after authenticating with Twitch
@@ -54,7 +51,7 @@ class OAuthService {
                 } else {
                     Logger.Err(`Nonce did not match. Expected: ${this.nonce} -- Got: ${response.nonce}`);
                     this.nonce = '';
-                    reject(`Nonce did not match. Expected: ${this.nonce} -- Got: ${response.nonce}`);
+                    reject(`Nonce did not match.`);
                 }
             } catch (err) {
                 Logger.Err(err);
@@ -64,13 +61,17 @@ class OAuthService {
         });
     }
 
+    /**
+     * Refresh the OAuth access token for a user.
+     * @param username The username to refresh the access token for.
+     */
     public async refreshTwitchToken(username: string): Promise<string> {
         Logger.Info('Refreshing Twitch.tv OAuth token.');
 
         try {
             // Get refresh token from test database. Only a single user in single table, so just select everything.
             const result = await this.databaseService.asyncGet('SELECT * FROM user WHERE username = ?', [username]);
-            const refreshToken = await CryptoHelper.decryptString(result.refresh_token);
+            const refreshToken = CryptoHelper.decryptString(result.refresh_token);
             const options = {
                 method: 'POST',
                 url: `https://id.twitch.tv/oauth2/token`,
@@ -85,10 +86,10 @@ class OAuthService {
             const refreshResponse = await Request(options);
 
             const encryptedRefreshToken = CryptoHelper.encryptString(refreshResponse.refresh_token);
-            await this.databaseService.asyncRun('UPDATE test SET refresh_token = ? WHERE username = ?', [encryptedRefreshToken, username]);
+            this.databaseService.asyncRun('UPDATE test SET refresh_token = ? WHERE username = ?', [encryptedRefreshToken, username]);
 
             // Cache the access token. Default set to 60s TTL. We should be using the refresh token to get a new access token every 30-60s.
-            await this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${username}`, refreshResponse.access_token);
+            this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${username}`, refreshResponse.access_token);
             return refreshResponse.access_token;
         } catch (err) {
             Logger.Err(err);
@@ -97,9 +98,10 @@ class OAuthService {
     }
 
     /**
-     * Verifies the Twitch.tv OAuth token.
+     * Verifies the Twitch.tv OAuth token for a user.
+     * @param username The username to verify the OAuth token for.
      */
-    public async verifyTwitchOauth(username: string): Promise<any> {
+    public async verifyTwitchOauth(username: string): Promise<boolean> {
         Logger.Info('Verifying OAuth token');
 
         try {
@@ -114,9 +116,10 @@ class OAuthService {
             };
 
             const validateResponse = await Request(options);
+            return true;    // If request is successful, verification was a success
         } catch (err) {
             Logger.Err(err);
-            throw err;
+            return false;
         }
     }
 
@@ -151,9 +154,9 @@ class OAuthService {
 
                 const userExists = await this.databaseService.asyncGet('SELECT * FROM user WHERE id_token = ?', [idToken.sub]);
                 if (userExists) {
-                    const result = await this.databaseService.asyncRun('UPDATE user SET refresh_token = ? WHERE id_token = ?', [encryptedRefreshToken, idToken.sub]);
+                    this.databaseService.asyncRun('UPDATE user SET refresh_token = ? WHERE id_token = ?', [encryptedRefreshToken, idToken.sub]);
                 } else {
-                    const result = await this.databaseService.asyncRun('INSERT INTO user (refresh_token, id_token, username) VALUES (?, ?, ?)', [encryptedRefreshToken, idToken.sub, idToken.preferred_username]);
+                    this.databaseService.asyncRun('INSERT INTO user (refresh_token, id_token, username) VALUES (?, ?, ?)', [encryptedRefreshToken, idToken.sub, idToken.preferred_username]);
                 }
                 this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${idToken.preferred_username}`, twitchAuth.access_token);
                 resolve({
@@ -169,10 +172,11 @@ class OAuthService {
     }
 
     /**
-     * Gets the Twitch.tv OAuth token from the cache. If the TTL has expired, refreshes the access token before returning.
+     * Gets a Twitch.tv OAuth token for a user from the cache. If the TTL has expired, refreshes the access token before returning.
+     * @param username The username to get the access token for.
      */
     private async getTwitchAccessToken(username: string): Promise<string> {
-        let accessToken = await this.cacheService.get(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${username}`);
+        let accessToken = this.cacheService.get(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${username}`);
         if (!accessToken) {
             accessToken = await this.refreshTwitchToken(username);
         }

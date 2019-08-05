@@ -1,5 +1,5 @@
 import { Command } from '../command';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import TwitchService from '../../services/twitchService';
 import { BotContainer } from '../../inversify.config';
 

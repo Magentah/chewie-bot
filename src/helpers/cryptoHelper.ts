@@ -1,11 +1,8 @@
 import * as Crypto from 'crypto';
 import * as Config from '../config.json';
-import { VerifyOptions, verify } from 'jsonwebtoken';
+import {  verify } from 'jsonwebtoken';
 import { CertSigningKey, RsaSigningKey } from 'jwks-rsa';
 import * as jwks from 'jwks-rsa';
-import * as Request from 'request-promise-native';
-import { Logger } from '@overnightjs/logger';
-import { client } from 'tmi.js';
 import { ITwitchIDToken } from '../models/twitchApi';
 import Constants from '../constants';
 
@@ -13,7 +10,6 @@ export class CryptoHelper {
     private static algorithm: string = 'aes-256-cbc';
     private static secret: string = Config.secret_key;
     private static nonceSize: number = 16;
-    private static tagSize: number = 16;
     private static keySize: number = 32;
     private static pbkdf2SaltSize: number = 16;
     private static pbkdf2Iterations: number = 32767;

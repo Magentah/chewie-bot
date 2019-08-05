@@ -1,8 +1,6 @@
 import * as sqlite from 'sqlite3';
 import { Logger } from '@overnightjs/logger';
-import { injectable, inject } from 'inversify';
-
-
+import { injectable } from 'inversify';
 
 @injectable()
 class DatabaseService {
@@ -24,7 +22,7 @@ class DatabaseService {
         }
     }
 
-    public asyncRun(query: string, params?: any[]): Promise<boolean> {
+    public async asyncRun(query: string, params?: any[]): Promise<boolean> {
         return new Promise((resolve, reject) => {
             if (this.db !== undefined) {
                 Logger.Info(`${query} // ${params}`);

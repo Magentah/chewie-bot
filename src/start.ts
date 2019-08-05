@@ -1,5 +1,4 @@
 import BotServer from './botServer';
-import { IConfig } from './config';
 
 if (process.argv[2] !== 'test') {
     const server = new BotServer();
