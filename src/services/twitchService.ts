@@ -2,7 +2,7 @@ import * as tmi from 'tmi.js';
 import { inject, injectable } from 'inversify';
 import OAuthService from './oauthService';
 import CommandService from './commandService';
-import { Logger } from '@overnightjs/logger';
+import { Logger, LogType } from '../logger';
 import * as config from './../config.json';
 
 @injectable()
@@ -12,7 +12,7 @@ export class TwitchService {
     private isConnected: boolean;
 
     constructor(@inject(OAuthService) private oauthService: OAuthService, @inject(CommandService) private commandService: CommandService) {
-        Logger.Info('TwitchService Constructor');
+        Logger.info(LogType.Twitch, 'TwitchService Constructor');
         this.isConnected = false;
         this.options = this.setupOptions();
         this.client = tmi.Client(this.options);
@@ -99,7 +99,7 @@ export class TwitchService {
     }
 
     private chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
-        Logger.Info(`Chat event: ${channel}:${userstate.username} -- ${message}`);
+        Logger.info(LogType.Twitch, `Chat event: ${channel}:${userstate.username} -- ${message}`);
 
         if (self) {
             return;
@@ -117,7 +117,7 @@ export class TwitchService {
     }
 
     private connectedEventHandler(address: string, port: number) {
-        Logger.Info(`Connected to address: ${address}:${port}`);
+        Logger.info(LogType.Twitch, `Connected to address: ${address}:${port}`);
         this.isConnected = true;
     }
 
@@ -254,12 +254,12 @@ export class TwitchService {
     }
 
     public connect(): void {
-        Logger.Info('Connecting to Twitch.tv with tmi.js');
+        Logger.info(LogType.Twitch, 'Connecting to Twitch.tv with tmi.js');
         this.client.connect();
     }
 
     public disconnect(): void {
-        Logger.Info('Disconnecting from Twitch.tv');
+        Logger.info(LogType.Twitch, 'Disconnecting from Twitch.tv');
         this.client.disconnect();
     }
 }

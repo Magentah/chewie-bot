@@ -25,9 +25,14 @@ Commands:
         ✔ Make necessary services available to commands @done(19-08-05 16:31)
             This probably needs to be through a service locator or something. Ideally there should only be a few
             services that commands have direct access to (e.g. using a SongService instead of directly using url specific services)
+    ☐ Able to add text commands through chat.
+    ☐ Restrict commands based on user levels.
 
 Events:
     ☐ Add event system, needs to handle bankheists, raffles, RPS, etc.
+        ☐ Timer system - able to set a time for an event to allow registrations, then getting the results at the end of the timer.
+        ☐ Registration - allow users to register for an active event. There may be several different active events at a time.
+        ☐ Win conditions - Able to set win conditions / rewards for each event type
 
 Authentication:
     ☐ Refactor user login with Twitch.tv OAuth so that it actually works for multiple users. Currently only really works for a single user locally.
@@ -35,9 +40,13 @@ Authentication:
     ✔ Update authentication so that it's correctly using nonces, refresh tokens, etc. @done(19-08-04 15:51)
 
 Logging:
-    ☐ Change the logger to something else that's got a bit more functionality (probably Winston)
-    ☐ Add log filtering based on content types (commands, twitch, database, etc)
+    ☐ Change the logger to something else that's got a bit more functionality (probably Winston).
+    ☐ Add log filtering based on content types (commands, twitch, database, etc).
     ☐ Add config value to change log levels.
 
 Database:
-    ☐ Update database service to use an ORM instead of using raw SQL queries for everything
+    ☐ Update database service to use an ORM instead of using raw SQL queries for everything.
+
+Users:
+    ☐ User levels for access and vip status.
+    ☐ Tracking vip status based on donation amounts / subscription levels.

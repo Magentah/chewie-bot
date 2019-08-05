@@ -1,4 +1,4 @@
-import { Logger } from '@overnightjs/logger';
+import { Logger, LogType } from '../logger';
 import Constants from './../constants';
 import { injectable, inject } from 'inversify';
 import * as Request from 'request-promise-native';
@@ -17,9 +17,9 @@ class OAuthService {
     constructor(@inject(DatabaseService) private databaseService: DatabaseService, @inject(CacheService) private cacheService: CacheService) {
         // Empty
         this.databaseService.initDatabase('chewiebot.db');
-        Logger.Info('Creating table');
+        Logger.notice(LogType.Database, 'Creating table');
         this.databaseService.asyncRun('CREATE TABLE if not exists user(id integer primary key, id_token text, username text, refresh_token text)');
-        Logger.Info('Table created');
+        Logger.notice(LogType.Database, 'Table created');
     }
 
     /**
@@ -49,12 +49,12 @@ class OAuthService {
                     this.nonce = '';
                     resolve(twitchAuth);
                 } else {
-                    Logger.Err(`Nonce did not match. Expected: ${this.nonce} -- Got: ${response.nonce}`);
+                    Logger.err(LogType.OAuth, `Nonce did not match. Expected: ${this.nonce} -- Got: ${response.nonce}`);
                     this.nonce = '';
                     reject(`Nonce did not match.`);
                 }
             } catch (err) {
-                Logger.Err(err);
+                Logger.err(LogType.OAuth, err);
                 this.nonce = '';
                 reject(err);
             }
@@ -66,7 +66,7 @@ class OAuthService {
      * @param username The username to refresh the access token for.
      */
     public async refreshTwitchToken(username: string): Promise<string> {
-        Logger.Info('Refreshing Twitch.tv OAuth token.');
+        Logger.info(LogType.OAuth, 'Refreshing Twitch.tv OAuth token.');
 
         try {
             // Get refresh token from test database. Only a single user in single table, so just select everything.
@@ -92,7 +92,7 @@ class OAuthService {
             this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${username}`, refreshResponse.access_token);
             return refreshResponse.access_token;
         } catch (err) {
-            Logger.Err(err);
+            Logger.err(LogType.OAuth, err);
             throw err;
         }
     }
@@ -102,7 +102,7 @@ class OAuthService {
      * @param username The username to verify the OAuth token for.
      */
     public async verifyTwitchOauth(username: string): Promise<boolean> {
-        Logger.Info('Verifying OAuth token');
+        Logger.info(LogType.OAuth, 'Verifying OAuth token');
 
         try {
             const accessToken = await this.getTwitchAccessToken(username);
@@ -118,7 +118,7 @@ class OAuthService {
             const validateResponse = await Request(options);
             return true;    // If request is successful, verification was a success
         } catch (err) {
-            Logger.Err(err);
+            Logger.err(LogType.OAuth, err);
             return false;
         }
     }
@@ -165,7 +165,7 @@ class OAuthService {
                 });
 
             } catch (err) {
-                Logger.Err(err);
+                Logger.err(LogType.OAuth, err);
                 reject(err);
             }
         });

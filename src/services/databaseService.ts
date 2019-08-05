@@ -1,5 +1,5 @@
 import * as sqlite from 'sqlite3';
-import { Logger } from '@overnightjs/logger';
+import { Logger, LogType } from '../logger';
 import { injectable } from 'inversify';
 
 @injectable()
@@ -13,10 +13,10 @@ class DatabaseService {
 
     public initDatabase(path: string): void {
         if (this.db === undefined) {
-            Logger.Info(`Initializing database: ${path}`);
+            Logger.notice(LogType.Database, `Initializing database: ${path}`);
             this.db = new sqlite.Database(path, (err) => {
                 if (err) {
-                    Logger.Err(err);
+                    Logger.err(LogType.Database, err.message);
                 }
             });
         }
@@ -25,7 +25,7 @@ class DatabaseService {
     public async asyncRun(query: string, params?: any[]): Promise<boolean> {
         return new Promise((resolve, reject) => {
             if (this.db !== undefined) {
-                Logger.Info(`${query} // ${params}`);
+                Logger.info(LogType.Database, `${query} // ${params}`);
                 this.db.run(query, params, (err) => {
                     if (err) {
                         reject(err);

@@ -9,5 +9,9 @@
     "youtube": {
         "api_key": ""
     },
-    "secret_key": ""
+    "secret_key": "",
+    "log": {
+        "levels": "syslog",
+        "level": "info"
+    }
 }

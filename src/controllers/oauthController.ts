@@ -1,6 +1,6 @@
 import { OK, BAD_REQUEST } from 'http-status-codes';
 import { Controller, Get } from '@overnightjs/core';
-import { Logger } from '@overnightjs/logger';
+import { Logger, LogType } from '../logger';
 import { Request, Response } from 'express';
 import OAuthService from './../services/oauthService';
 import { inject } from 'inversify';
@@ -23,7 +23,7 @@ class OAuthController {
             await this.twitchService.connect();
             res.status(OK).redirect('/');
         } catch (err) {
-            Logger.Err(err, true);
+            Logger.err(LogType.Twitch, err);
             return res.status(BAD_REQUEST).json({
                 message: err.message,
             });
@@ -40,7 +40,7 @@ class OAuthController {
                 url: this.oauthService.getTwitchAuthUrl(),
             });
         } catch (err) {
-            Logger.Err(err, true);
+            Logger.err(LogType.Twitch, err);
             return res.status(BAD_REQUEST).json({
                 message: err.message,
             });

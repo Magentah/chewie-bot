@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { Command } from '../commands/command';
 import TwitchChatParser from '../helpers/twitchChatParser';
 import CommandNotExist from '../errors/commandNotExist';
-import { Logger } from '@overnightjs/logger';
+import { Logger, LogType } from '../logger';
 import * as Commands from '../commands/commandScripts';
 
 @injectable()
@@ -53,7 +53,7 @@ export class CommandService {
                 this.executeCommand(commandName, channel);
             } catch (err) {
                 if (err instanceof CommandNotExist) {
-                    Logger.Info(`${err.name} -- ${err.message}`);
+                    Logger.err(LogType.Command, `${err.name} -- ${err.message}`);
                 } else {
                     throw err;
                 }
