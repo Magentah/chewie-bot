@@ -1,18 +1,26 @@
 import * as tmi from 'tmi.js';
 import { inject, injectable } from 'inversify';
 import OAuthService from './oauthService';
+import CommandService from './commandService';
 import { Logger } from '@overnightjs/logger';
 import * as config from './../config.json';
 
 @injectable()
-class TwitchService {
+export class TwitchService {
     private client: tmi.Client;
     private options: tmi.Options;
+    private isConnected: boolean;
 
-    constructor(@inject(OAuthService) private oauthService: OAuthService) {
+    constructor(@inject(OAuthService) private oauthService: OAuthService, @inject(CommandService) private commandService: CommandService) {
+        Logger.Info('TwitchService Constructor');
+        this.isConnected = false;
         this.options = this.setupOptions();
         this.client = tmi.Client(this.options);
         this.setupEventHandlers();
+    }
+
+    public sendMessage(channel: string, message: string): void {
+        this.client.say(channel, message);
     }
 
     private setupOptions(): tmi.Options {
@@ -97,11 +105,7 @@ class TwitchService {
             return;
         }
 
-        if (message.startsWith('!test')) {
-            this.client.say(channel, 'Test Message');
-        } else {
-            this.client.say(channel, 'Other Message');
-        }
+        this.commandService.handleMessage(channel, message);
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {
@@ -113,7 +117,8 @@ class TwitchService {
     }
 
     private connectedEventHandler(address: string, port: number) {
-        // Empty
+        Logger.Info(`Connected to address: ${address}:${port}`);
+        this.isConnected = true;
     }
 
     private connectingEventHandler(address: string, port: number) {

@@ -4,7 +4,7 @@ import config = require('./../config.json');
 import Constants from '../constants';
 import { Logger } from '@overnightjs/logger';
 import { IYoutubeSong, IYoutubeVideoListResponse } from '../models/youtubeSong';
-import APIResponseParser from '../helpers/parser';
+import APIResponseParser from '../helpers/apiResponseParser';
 
 @injectable()
 export class YoutubeService {

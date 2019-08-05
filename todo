@@ -15,16 +15,19 @@ Song Queue and Service:
         This should be read-only for everyone except broadcaster and moderators.
 
 Commands:
-    ☐ Automatically detect commands without having to manually add every time
+    ✔ Automatically detect commands without having to manually add every time @done(19-08-05 16:31)
         Don't want to have to add a command every time a new one is created like how DI works,
         Will probably end up watching and parsing a folder for commands based on file names.
-    ☐ Flexible command system
+    ✔ Flexible command system @done(19-08-05 16:31)
         Ideally the system that handles executing whatever command needed doesn't need to know what the
         command actually is or what it does. Everyone command can have an execute() function that the system
         will call. The system can store each command in a map, providing an easy way to access each command.
-        ☐ Make necessary services available to commands
+        ✔ Make necessary services available to commands @done(19-08-05 16:31)
             This probably needs to be through a service locator or something. Ideally there should only be a few
             services that commands have direct access to (e.g. using a SongService instead of directly using url specific services)
+
+Events:
+    ☐ Add event system, needs to handle bankheists, raffles, RPS, etc.
 
 Authentication:
     ☐ Refactor user login with Twitch.tv OAuth so that it actually works for multiple users. Currently only really works for a single user locally.
@@ -35,3 +38,6 @@ Logging:
     ☐ Change the logger to something else that's got a bit more functionality (probably Winston)
     ☐ Add log filtering based on content types (commands, twitch, database, etc)
     ☐ Add config value to change log levels.
+
+Database:
+    ☐ Update database service to use an ORM instead of using raw SQL queries for everything
