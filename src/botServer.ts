@@ -32,6 +32,8 @@ class BotServer extends Server {
         Logger.Info('Testing Youtube API');
         youtubeService.getSongDetails('https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1'); */
 
+        Logger.err(LogType.ServerInfo, new Error('Test Error'));
+
     }
 
     private setupApp(): void {

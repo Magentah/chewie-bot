@@ -40,9 +40,12 @@ Authentication:
     ✔ Update authentication so that it's correctly using nonces, refresh tokens, etc. @done(19-08-04 15:51)
 
 Logging:
-    ☐ Change the logger to something else that's got a bit more functionality (probably Winston).
-    ☐ Add log filtering based on content types (commands, twitch, database, etc).
-    ☐ Add config value to change log levels.
+    ✔ Change the logger to something else that's got a bit more functionality (probably Winston). @done(19-08-06 01:44)
+    ✔ Add log filtering based on content types (commands, twitch, database, etc). @done(19-08-06 01:44)
+    ✔ Add config value to change log levels. @done(19-08-06 01:44)
+    ☐ Update logger to allow passing Error objects
+    ☐ Investigate automatically setting logtype and if it's possible or not. 
+        Something like setting a logtype for the current class in constructor/decorator that is stored in logger maybe
 
 Database:
     ☐ Update database service to use an ORM instead of using raw SQL queries for everything.

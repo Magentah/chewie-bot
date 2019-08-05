@@ -1,6 +1,7 @@
 import * as Winston from 'winston';
-const { combine, timestamp, label, prettyPrint, colorize } = Winston.format;
+const { combine, timestamp, label, prettyPrint } = Winston.format;
 import config = require('./config.json');
+import { Format } from 'logform';
 
 export enum LogType {
     Command = 'Command',
@@ -24,49 +25,53 @@ export enum LogLevel {
 
 export class Logger {
     private static logger: Map<LogType, Winston.Logger>;
-    private static logFormat: any;
 
     public static init() {
         this.logger = new Map<LogType, Winston.Logger>();
         this.setupLoggers();
     }
 
-    private static log(type: LogType, level: LogLevel, message: string) {
+    private static log(type: LogType, level: LogLevel, message: string | Error) {
         if (this.logger.has(type)) {
             const logger = this.logger.get(type) as Winston.Logger;
-            logger.log(level, message, type);
+            if (typeof message === 'string' || message instanceof String) {
+                logger.log(level, message as string, type);
+            } else {
+                const err = message as Error;
+                logger.log(level, err.message, { type, name: err.name, stack: err.stack });
+            }
         }
     }
 
-    public static emerg(type: LogType, message: string) {
+    public static emerg(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Emergency, message);
     }
 
-    public static alert(type: LogType, message: string) {
+    public static alert(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Alert, message);
     }
 
-    public static critical(type: LogType, message: string) {
+    public static critical(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Critical, message);
     }
 
-    public static err(type: LogType, message: string) {
+    public static err(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Error, message);
     }
 
-    public static warn(type: LogType, message: string) {
+    public static warn(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Warning, message);
     }
 
-    public static notice(type: LogType, message: string) {
+    public static notice(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Notice, message);
     }
 
-    public static info(type: LogType, message: string) {
+    public static info(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Info, message);
     }
 
-    public static debug(type: LogType, message: string) {
+    public static debug(type: LogType, message: string | Error) {
         this.log(type, LogLevel.Debug, message);
     }
 
