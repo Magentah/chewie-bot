@@ -12,6 +12,16 @@
     "secret_key": "",
     "log": {
         "levels": "syslog",
-        "level": "info"
+        "level": "info",
+        "enabledLogs": {
+            "cache": true,
+            "command": true,
+            "database": true,
+            "oauth": true,
+            "songs": true,
+            "twitch": true,
+            "server": true,
+            "serverinfo": true
+        }
     }
 }

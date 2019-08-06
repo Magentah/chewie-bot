@@ -9,7 +9,7 @@ import OAuthService from './services/oauthService';
 import OAuthController from './controllers/oauthController';
 import TwitchService from './services/twitchService';
 
-import { Logger, LogLevel, LogType } from './logger';
+import { Logger, LogType } from './logger';
 
 
 class BotServer extends Server {
@@ -31,8 +31,6 @@ class BotServer extends Server {
         /* const youtubeService = this.container.get<YoutubeService>(YoutubeService);
         Logger.Info('Testing Youtube API');
         youtubeService.getSongDetails('https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1'); */
-
-        Logger.err(LogType.ServerInfo, new Error('Test Error'));
 
     }
 

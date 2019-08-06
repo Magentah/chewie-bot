@@ -1,7 +1,6 @@
 import * as Winston from 'winston';
 const { combine, timestamp, label, prettyPrint } = Winston.format;
 import config = require('./config.json');
-import { Format } from 'logform';
 
 export enum LogType {
     Command = 'Command',
@@ -10,9 +9,11 @@ export enum LogType {
     Cache = 'Cache',
     Database = 'Database',
     OAuth = 'OAuth',
+    Youtube = 'Youtube',
+    Server = 'Server',
 }
 
-export enum LogLevel {
+enum LogLevel {
     Emergency = 'emerg',
     Alert = 'alert',
     Critical = 'crit',
@@ -31,8 +32,21 @@ export class Logger {
         this.setupLoggers();
     }
 
+    private static logTypeEnabled(type: LogType): boolean {
+        const lowerCaseType = type.toLowerCase();
+        if (this.isEnabledLogKey(config.log.enabledLogs, lowerCaseType)) {
+            return config.log.enabledLogs[lowerCaseType];
+        } else {
+            return false;
+        }
+    }
+
+    private static isEnabledLogKey<T extends object>(obj: T, key: keyof any): key is keyof T {
+        return key in obj;
+    }
+
     private static log(type: LogType, level: LogLevel, message: string | Error) {
-        if (this.logger.has(type)) {
+        if (this.logger.has(type) && this.logTypeEnabled(type)) {
             const logger = this.logger.get(type) as Winston.Logger;
             if (typeof message === 'string' || message instanceof String) {
                 logger.log(level, message as string, type);
@@ -94,7 +108,7 @@ export class Logger {
 
         options = this.setLogLevels(options);
         options = this.setLogFormat(options, type);
-        options = this.setLogTransports(options);
+        options = this.setLogTransports(options, type);
 
         return options;
     }
@@ -118,7 +132,14 @@ export class Logger {
         return options;
     }
 
-    private static setLogTransports(options: Winston.LoggerOptions): Winston.LoggerOptions {
+    private static setLogTransports(options: Winston.LoggerOptions, type: LogType): Winston.LoggerOptions {
+        // Different format for files as colorize adds unicode characters
+        const fileFormat = combine(
+            label({ label: type }),
+            timestamp(),
+            prettyPrint({ colorize: false }),
+        );
+
         options.transports = [
             new Winston.transports.Console({
                 handleExceptions: true,
@@ -126,6 +147,7 @@ export class Logger {
             new Winston.transports.File({
                 filename: 'errors.log',
                 level: 'error',
+                format: fileFormat,
             }),
         ];
 

@@ -43,9 +43,10 @@ Logging:
     ✔ Change the logger to something else that's got a bit more functionality (probably Winston). @done(19-08-06 01:44)
     ✔ Add log filtering based on content types (commands, twitch, database, etc). @done(19-08-06 01:44)
     ✔ Add config value to change log levels. @done(19-08-06 01:44)
-    ☐ Update logger to allow passing Error objects
-    ☐ Investigate automatically setting logtype and if it's possible or not. 
+    ✔ Update logger to allow passing Error objects @done(19-08-06 02:05)
+    ✘ Investigate automatically setting logtype and if it's possible or not. @cancelled(19-08-07 08:07)
         Something like setting a logtype for the current class in constructor/decorator that is stored in logger maybe
+        Not worth the effort to set logtype automatically based on calling class for now, easy enough to just pass the type.
 
 Database:
     ☐ Update database service to use an ORM instead of using raw SQL queries for everything.
