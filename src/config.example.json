@@ -23,5 +23,8 @@
             "server": true,
             "serverinfo": true
         }
+    },
+    "database": {
+        "path": "chewiebot.db"
     }
 }

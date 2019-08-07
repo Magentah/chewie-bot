@@ -12,7 +12,6 @@ export class TwitchService {
     private isConnected: boolean;
 
     constructor(@inject(OAuthService) private oauthService: OAuthService, @inject(CommandService) private commandService: CommandService) {
-        Logger.info(LogType.Twitch, 'TwitchService Constructor');
         this.isConnected = false;
         this.options = this.setupOptions();
         this.client = tmi.Client(this.options);

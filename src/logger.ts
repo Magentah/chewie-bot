@@ -32,6 +32,10 @@ export class Logger {
         this.setupLoggers();
     }
 
+    /**
+     * Check whether a LogType is enabled for logging.
+     * @param type LogType to check
+     */
     private static logTypeEnabled(type: LogType): boolean {
         const lowerCaseType = type.toLowerCase();
         if (this.isEnabledLogKey(config.log.enabledLogs, lowerCaseType)) {
@@ -41,10 +45,21 @@ export class Logger {
         }
     }
 
+    /**
+     * Type guarding to get a property from an imported .json file
+     * @param obj Imported json object
+     * @param key Key to get from the json object
+     */
     private static isEnabledLogKey<T extends object>(obj: T, key: keyof any): key is keyof T {
         return key in obj;
     }
 
+    /**
+     * Logs a message
+     * @param type The LogType of the log - used to filter logs by type. Types can be enabled or disabled in config.json
+     * @param level The log severity.
+     * @param message Message to log. Can also be an Error object.
+     */
     private static log(type: LogType, level: LogLevel, message: string | Error) {
         if (this.logger.has(type) && this.logTypeEnabled(type)) {
             const logger = this.logger.get(type) as Winston.Logger;
@@ -89,6 +104,10 @@ export class Logger {
         this.log(type, LogLevel.Debug, message);
     }
 
+    /**
+     * Iterate through all keys in LogType and setup a separate logger for each type.
+     * Used to separate logs based on type.
+     */
     private static setupLoggers() {
         Object.keys(LogType).forEach((val) => {
             this.logger.set(val as LogType, this.setupCommandLogger(val as LogType));

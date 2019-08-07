@@ -2,7 +2,7 @@ import { Logger, LogType } from '../logger';
 import Constants from './../constants';
 import { injectable, inject } from 'inversify';
 import * as Request from 'request-promise-native';
-import DatabaseService from './databaseService';
+import Users from './../database/users';
 import { CacheService, CacheType } from './cacheService';
 import config = require('./../config.json');
 import CryptoHelper from '../helpers/cryptoHelper';
@@ -14,12 +14,8 @@ class OAuthService {
     // Populated immediately after authenticating with Twitch
     private nonce: string = '';
 
-    constructor(@inject(DatabaseService) private databaseService: DatabaseService, @inject(CacheService) private cacheService: CacheService) {
+    constructor(@inject(Users) private users: Users, @inject(CacheService) private cacheService: CacheService) {
         // Empty
-        this.databaseService.initDatabase('chewiebot.db');
-        Logger.notice(LogType.Database, 'Creating table');
-        this.databaseService.asyncRun('CREATE TABLE if not exists user(id integer primary key, id_token text, username text, refresh_token text)');
-        Logger.notice(LogType.Database, 'Table created');
     }
 
     /**
@@ -27,7 +23,7 @@ class OAuthService {
      * @param authResponse Response object from https://id.twitch.tv/oauth2/authorize
      */
     public async getTwitchAuthToken(authResponse: ITwitchRedirectResponse): Promise<ITwitchUser> {
-        return new Promise<any>(async (resolve, reject) => {
+        return new Promise<ITwitchUser>(async (resolve, reject) => {
             const options = {
                 method: 'POST',
                 uri: 'https://id.twitch.tv/oauth2/token',
@@ -70,8 +66,8 @@ class OAuthService {
 
         try {
             // Get refresh token from test database. Only a single user in single table, so just select everything.
-            const result = await this.databaseService.asyncGet('SELECT * FROM user WHERE username = ?', [username]);
-            const refreshToken = CryptoHelper.decryptString(result.refresh_token);
+            const user = await this.users.get(username);
+            const refreshToken = CryptoHelper.decryptString(user.refreshToken);
             const options = {
                 method: 'POST',
                 url: `https://id.twitch.tv/oauth2/token`,
@@ -86,7 +82,8 @@ class OAuthService {
             const refreshResponse = await Request(options);
 
             const encryptedRefreshToken = CryptoHelper.encryptString(refreshResponse.refresh_token);
-            this.databaseService.asyncRun('UPDATE test SET refresh_token = ? WHERE username = ?', [encryptedRefreshToken, username]);
+            user.refreshToken = encryptedRefreshToken;
+            await this.users.update(user);
 
             // Cache the access token. Default set to 60s TTL. We should be using the refresh token to get a new access token every 30-60s.
             this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${username}`, refreshResponse.access_token);
@@ -152,11 +149,19 @@ class OAuthService {
                 const idToken = await CryptoHelper.verifyTwitchJWT(twitchAuth.id_token, nonce);
                 const encryptedRefreshToken = CryptoHelper.encryptString(twitchAuth.refresh_token);
 
-                const userExists = await this.databaseService.asyncGet('SELECT * FROM user WHERE id_token = ?', [idToken.sub]);
-                if (userExists) {
-                    this.databaseService.asyncRun('UPDATE user SET refresh_token = ? WHERE id_token = ?', [encryptedRefreshToken, idToken.sub]);
+                let user = await this.users.get(idToken.preferred_username);
+                if (user) {
+                    user.refreshToken = encryptedRefreshToken;
+                    await this.users.update(user);
                 } else {
-                    this.databaseService.asyncRun('INSERT INTO user (refresh_token, id_token, username) VALUES (?, ?, ?)', [encryptedRefreshToken, idToken.sub, idToken.preferred_username]);
+                    user = {
+                        username: idToken.preferred_username,
+                        idToken: idToken.sub,
+                        refreshToken: encryptedRefreshToken,
+                        points: 0,
+                        vipExpiry: undefined,
+                    };
+                    await this.users.add(user);
                 }
                 this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${idToken.preferred_username}`, twitchAuth.access_token);
                 resolve({
