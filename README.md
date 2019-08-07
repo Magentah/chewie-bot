@@ -7,9 +7,18 @@
 ### Dev Setup
 
 - Copy config.example.json to config.json and update with your config details.
+  #### Twitch
   - You can get your Twitch OAuth token from [https://twitchapps.com/tmi/](https://twitchapps.com/tmi/).
   - You will need to setup a Twitch App at [https://dev.twitch.tv/console](https://dev.twitch.tv/console). You will then need to copy your client_id and client_secret for the app to the config.
   - The redirect url should be `http://localhost:3000/api/oauth/twitch/redirect` by default.
+  #### Youtube
+  - You can setup a Google project at [https://console.developers.google.com](https://console.developers.google.com). You will then need to enable the Youtube Data V3 API for you project, and copy the API key to the config.
+  #### Database
+  - The path is from the root directory. By default the database is `chewiebot.db` in the root directory.
+  #### Logging
+  - You can enable or disable logging on each of the systems by setting true or false.
+  - The level is the lowest level that will be output.
+  - Levels can be syslog or npm. npm may break currently though.
 - Install nodejs if you don't already have it.
 - Install Yarn from [https://yarnpkg.com/en/docs/install#windows-stable](https://yarnpkg.com/en/docs/install#windows-stable).
 - Run `yarn install` to install dependencies.
