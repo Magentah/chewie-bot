@@ -7,8 +7,11 @@
 ### Dev Setup
 
 - Copy config.example.json to config.json and update with your config details.
+  - You can get your Twitch OAuth token from [https://twitchapps.com/tmi/](https://twitchapps.com/tmi/).
+  - You will need to setup a Twitch App at [https://dev.twitch.tv/console](https://dev.twitch.tv/console). You will then need to copy your client_id and client_secret for the app to the config.
+  - The redirect url should be `http://localhost:3000/api/oauth/twitch/redirect` by default.
 - Install nodejs if you don't already have it.
-- Install Yarn from [here](https://yarnpkg.com/en/docs/install#windows-stable).
+- Install Yarn from [https://yarnpkg.com/en/docs/install#windows-stable](https://yarnpkg.com/en/docs/install#windows-stable).
 - Run `yarn install` to install dependencies.
 
 ### For using static React files
