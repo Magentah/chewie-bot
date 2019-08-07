@@ -8,6 +8,7 @@
 
 - Copy config.example.json to config.json and update with your config details.
 - Install nodejs if you don't already have it.
+- Install Yarn from [here](https://yarnpkg.com/en/docs/install#windows-stable).
 - Run `yarn install` to install dependencies.
 
 ### For using static React files
