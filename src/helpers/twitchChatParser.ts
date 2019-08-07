@@ -1,3 +1,7 @@
+// There's no type declarations for this, but we only need it to parse chat command arguments and it's easy enough to use without them.
+// tslint:disable-next-line: no-var-requires
+const parser = require('minimist-string');
+
 export class TwitchChatParser {
     /**
      * Helper function to check whether a message contains a command.
@@ -24,6 +28,19 @@ export class TwitchChatParser {
         } else {
             return undefined;
         }
+    }
+
+    public static getCommandArgs(message: string): string[] | undefined {
+        if (TwitchChatParser.hasCommand(message)) {
+            if (message.indexOf(' ') > -1) {
+                // parser will return an object and can have kvp args, but they should never happen for chat commands.
+                // just in case, we remove all -- as they're used to indicate arg names.
+                message = message.replace('--', '');
+                const args = parser(message.slice(message.indexOf(' ')).trim());
+                return args._ as string[];
+            }
+        }
+        return undefined;
     }
 }
 

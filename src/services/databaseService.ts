@@ -49,17 +49,10 @@ export class DatabaseService {
 
     public async initDatabase(): Promise<void> {
         Logger.info(LogType.Database, 'Creating database tables');
-        Logger.info(LogType.Database, `${Tables.UserLevels} being created.`);
         await this.createUserLevelTable();
-        Logger.info(LogType.Database, `${Tables.ModLevels} being created.`);
         await this.createModLevelTable();
-        Logger.info(LogType.Database, `${Tables.Users} being created.`);
         await this.createUserTable();
-        Logger.info(LogType.Database, `${Tables.DonationTypes} being created.`);
-        await this.createDonationTypesTable();
-        Logger.info(LogType.Database, `${Tables.Donations} being created.`);
         await this.createDonationsTable();
-        Logger.info(LogType.Database, `${Tables.TextCommands} being created.`);
         await this.createTextCommandsTable();
         this.isInit = true;
     }
@@ -72,6 +65,7 @@ export class DatabaseService {
         return new Promise<void>(async (resolve, reject) => {
             const hasUserLevelTable = await this.hasTable(Tables.UserLevels);
             if (!hasUserLevelTable) {
+                Logger.info(LogType.Database, `${Tables.UserLevels} being created.`);
                 await this.db.schema.createTable(Tables.UserLevels, (table) => {
                     table.increments('id').primary().notNullable();
                     table.string('name').notNullable().unique();
@@ -87,8 +81,8 @@ export class DatabaseService {
     private async createModLevelTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             const hasModLevelTable = await this.hasTable(Tables.ModLevels);
-            Logger.info(LogType.Database, `modlevel ${hasModLevelTable}`);
             if (!hasModLevelTable) {
+                Logger.info(LogType.Database, `${Tables.ModLevels} being created.`);
                 await this.db.schema.createTable(Tables.ModLevels, (table) => {
                     table.increments('id').primary().notNullable();
                     table.string('name').notNullable().unique();
@@ -105,6 +99,7 @@ export class DatabaseService {
         return new Promise<void>(async (resolve, reject) => {
             const hasUserTable = await this.hasTable(Tables.Users);
             if (!hasUserTable) {
+                Logger.info(LogType.Database, `${Tables.Users} being created.`);
                 await this.db.schema.createTable(Tables.Users, (table) => {
                     table.increments('id').primary().notNullable();
                     table.integer('modLevel').unsigned();
@@ -129,8 +124,10 @@ export class DatabaseService {
         return new Promise<void>(async (resolve, reject) => {
             const hasTextCommandsTable = await this.hasTable(Tables.TextCommands);
             if (!hasTextCommandsTable) {
+                Logger.info(LogType.Database, `${Tables.TextCommands} being created.`);
                 await this.db.schema.createTable(Tables.TextCommands, (table) => {
                     table.increments('id').primary().notNullable();
+                    table.string('commandName').notNullable();
                     table.string('message').notNullable();
                     table.boolean('modRequired').notNullable();
                     table.integer('minimumModLevel').unsigned();
@@ -144,26 +141,11 @@ export class DatabaseService {
         });
     }
 
-    private async createDonationTypesTable(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const hasDonationTypesTable = await this.hasTable(Tables.DonationTypes);
-            if (!hasDonationTypesTable) {
-                await this.db.schema.createTable(Tables.DonationTypes, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.string('name').notNullable().unique();
-                    Logger.info(LogType.Database, `${Tables.DonationTypes} table created.`);
-                    resolve();
-                });
-            } else {
-                resolve();
-            }
-        });
-    }
-
     private async createDonationsTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             const hasDonationsTable = await this.hasTable(Tables.Donations);
             if (!hasDonationsTable) {
+                Logger.info(LogType.Database, `${Tables.Donations} being created.`);
                 await this.db.schema.createTable(Tables.Donations, (table) => {
                     table.increments('id').primary().notNullable();
                     table.string('username').notNullable();

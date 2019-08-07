@@ -1,15 +1,16 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { Command } from '../commands/command';
 import TwitchChatParser from '../helpers/twitchChatParser';
 import CommandNotExist from '../errors/commandNotExist';
 import { Logger, LogType } from '../logger';
 import * as Commands from '../commands/commandScripts';
+import TextCommands from '../database/textCommands';
 
 @injectable()
 export class CommandService {
     private commands: Map<string, Command>;
 
-    constructor() {
+    constructor(@inject(TextCommands) private textCommands: TextCommands) {
         this.commands = new Map<string, Command>();
         this.findCommands();
     }
@@ -30,13 +31,21 @@ export class CommandService {
      * @param commandName The command name to execute
      * @param channel The channel the execute the command in
      */
-    private executeCommand(commandName: string, channel: string): void {
+    private async executeCommand(commandName: string, channel: string, ...args: string[]): Promise<void> {
         if (this.commands.has(commandName)) {
             const command = this.commands.get(commandName);
             if (command) {
-                command.execute(channel);
+                command.execute(channel, ...args);
             } else {
                 throw new CommandNotExist(`The command ${command} doesn't exist.`);
+            }
+        } else {
+            const textCommand = await this.textCommands.get(commandName);
+            if (textCommand) {
+                if (this.commands.has('text')) {
+                    const command = this.commands.get('text') as Command;
+                    command.execute(channel, textCommand.message);
+                }
             }
         }
     }
@@ -50,7 +59,12 @@ export class CommandService {
         const commandName = TwitchChatParser.getCommandName(message);
         if (commandName) {
             try {
-                this.executeCommand(commandName, channel);
+                const args = TwitchChatParser.getCommandArgs(message);
+                if (args) {
+                    this.executeCommand(commandName, channel, ...args);
+                } else {
+                    this.executeCommand(commandName, channel);
+                }
             } catch (err) {
                 if (err instanceof CommandNotExist) {
                     Logger.err(LogType.Command, `${err.name} -- ${err.message}`);

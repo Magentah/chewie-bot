@@ -25,8 +25,14 @@ Commands:
         ✔ Make necessary services available to commands @done(19-08-05 16:31)
             This probably needs to be through a service locator or something. Ideally there should only be a few
             services that commands have direct access to (e.g. using a SongService instead of directly using url specific services)
-    ☐ Able to add text commands through chat.
+    ✔ Able to add text commands through chat. @done(19-08-08 01:30)
     ☐ Restrict commands based on user levels.
+    ✔ Investigate a better way to handle command arguments, parsing them, etc @done(19-08-08 02:01)
+        Will need to change to single args with spaces being wrapped in quotes.
+    ☐ Add an "internal" property for commands (e.g. TextCommand) that are only to be used by the bot.
+        Would prevent users from using these commands at all, but keeps things separated a bit in terms of structure.
+        Means that the CommandService never has to know how to do anything except call a commands execute function.
+        Still not entirely sure about this at the moment, but it seems like the simplest option at the moment.
 
 Events:
     ☐ Add event system, needs to handle bankheists, raffles, RPS, etc.
@@ -49,7 +55,10 @@ Logging:
         Not worth the effort to set logtype automatically based on calling class for now, easy enough to just pass the type.
 
 Database:
-    ☐ Update database service to use an ORM instead of using raw SQL queries for everything.
+    ✔ Update database service to use an ORM instead of using raw SQL queries for everything. @started(19-08-07 17:45) @done(19-08-08 01:30) @lasted(7h45m43s)
+        ✔ Add repos for tables, add functions to interact with tables. @started(19-08-07 17:45) @done(19-08-08 01:30) @lasted(7h45m50s)
+            This has been started with the Users table, but need to add all the other tables as well. Users table probably also needs some extra functions
+            to handle other needs as for now it's just get, add, update a user.
 
 Users:
     ☐ User levels for access and vip status.
