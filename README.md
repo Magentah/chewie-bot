@@ -18,7 +18,7 @@
 ### Running locally
 
 - Run `yarn start-dev` in the root folder to run without debugging enabled.
-- Run `yarn start-debug` in the root folder to run with debugging enabled.
+- Run `yarn start-debug` in the root folder to run with debugging enabled. This will allow you to attach to the nodemon process with a debugger, such as VSCode.
 
 ### Contributing
 
