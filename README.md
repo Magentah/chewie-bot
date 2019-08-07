@@ -7,6 +7,8 @@
 ### Dev Setup
 
 - Copy config.example.json to config.json and update with your config details.
+  ### Secret Key
+  - This needs to be a 32 character random string, used for encryption/decryption.
   #### Twitch
   - You can get your Twitch OAuth token from [https://twitchapps.com/tmi/](https://twitchapps.com/tmi/).
   - You will need to setup a Twitch App at [https://dev.twitch.tv/console](https://dev.twitch.tv/console). You will then need to copy your client_id and client_secret for the app to the config.
