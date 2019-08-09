@@ -1,7 +1,8 @@
 import { injectable, inject } from 'inversify';
 import { Command } from '../commands/command';
 import TwitchChatParser from '../helpers/twitchChatParser';
-import CommandNotExist from '../errors/commandNotExist';
+import CommandNotExistError from '../errors/commandNotExist';
+import CommandInternalError from '../errors/commandInternal';
 import { Logger, LogType } from '../logger';
 import * as Commands from '../commands/commandScripts';
 import TextCommands from '../database/textCommands';
@@ -34,10 +35,12 @@ export class CommandService {
     private async executeCommand(commandName: string, channel: string, ...args: string[]): Promise<void> {
         if (this.commands.has(commandName)) {
             const command = this.commands.get(commandName);
-            if (command) {
+            if (command && !command.isInternal()) {
                 command.execute(channel, ...args);
+            } else if (command && command.isInternal()) {
+                throw new CommandInternalError(`The command ${command} is an internal command that has been called through a chat command.`);
             } else {
-                throw new CommandNotExist(`The command ${command} doesn't exist.`);
+                throw new CommandNotExistError(`The command ${command} doesn't exist.`);
             }
         } else {
             const textCommand = await this.textCommands.get(commandName);
@@ -66,7 +69,9 @@ export class CommandService {
                     this.executeCommand(commandName, channel);
                 }
             } catch (err) {
-                if (err instanceof CommandNotExist) {
+                if (err instanceof CommandNotExistError) {
+                    Logger.err(LogType.Command, `${err.name} -- ${err.message}`);
+                } else if (err instanceof CommandInternalError) {
                     Logger.err(LogType.Command, `${err.name} -- ${err.message}`);
                 } else {
                     throw err;

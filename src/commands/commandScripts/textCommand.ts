@@ -8,6 +8,7 @@ import { BotContainer } from '../../inversify.config';
 export class TextCommand extends Command {
     constructor() {
         super();
+        this.isInternalCommand = true;
     }
     public execute(channel: string, message: string): void {
         BotContainer.get(TwitchService).sendMessage(channel, message);

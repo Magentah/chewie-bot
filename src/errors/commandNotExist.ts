@@ -1,8 +1,8 @@
-export class CommandNotExist extends Error {
+export class CommandNotExistError extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'CommandNotExist';
     }
 }
 
-export default CommandNotExist;
+export default CommandNotExistError;
