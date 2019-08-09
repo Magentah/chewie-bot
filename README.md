@@ -6,7 +6,7 @@
 
 ### Dev Setup
 
-- Copy config.example.json to config.json and update with your config details.
+- In the /src/ folder, copy config.example.json to config.json and update with your config details.
   ### Secret Key
   - This needs to be a 32 character random string, used for encryption/decryption.
   #### Twitch
@@ -23,7 +23,7 @@
   - Levels can be syslog or npm. npm may break currently though.
 - Install nodejs if you don't already have it.
 - Install Yarn from [https://yarnpkg.com/en/docs/install#windows-stable](https://yarnpkg.com/en/docs/install#windows-stable).
-- Run `yarn install` to install dependencies.
+- Run `yarn setup` to install dependencies.
 
 ### For using static React files
 
@@ -33,6 +33,10 @@
 
 - Run `yarn start-dev` in the root folder to run without debugging enabled.
 - Run `yarn start-debug` in the root folder to run with debugging enabled. This will allow you to attach to the nodemon process with a debugger, such as VSCode.
+
+### Accessing the site
+
+- Open a browser to `localhost:3000`.
 
 ### Contributing
 
