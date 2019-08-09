@@ -2,15 +2,16 @@ import { injectable } from 'inversify';
 import * as Request from 'request-promise-native';
 import config = require('./../config.json');
 import Constants from '../constants';
-import { IYoutubeSong, IYoutubeVideoListResponse } from '../models/youtubeSong';
+import { IYoutubeSong, IYoutubeVideoListResponse } from '../models/youtubeApiResult';
 import APIResponseParser from '../helpers/apiResponseParser';
+import * as moment from 'moment';
+import Logger, { LogType } from '../logger';
 
 @injectable()
 export class YoutubeService {
     private apiKey: string = config.youtube.api_key;
 
-    public async getSongDetails(url: string): Promise<IYoutubeSong | undefined> {
-        const id = this.parseUrl(url);
+    public async getSongDetails(id: string): Promise<IYoutubeSong | undefined> {
         const options = {
             method: 'GET',
             url: Constants.YoutubeVideoUrl,
@@ -23,35 +24,17 @@ export class YoutubeService {
 
         const detailResponse = APIResponseParser.parse<IYoutubeVideoListResponse>(await Request(options));
         if (detailResponse.pageInfo.totalResults > 0) {
+            Logger.info(LogType.Youtube, `Retrieved details for youtube id ${id} from Youtube Data API`);
             return detailResponse.items[0];
         } else {
+            Logger.err(LogType.Youtube, `Attempted to get details for invalid youtube id ${id}`);
             return undefined;
         }
     }
 
-    /**
-     * Parses a Youtube URL to get the video ID. This is used in Youtube Data API calls to get details about the video.
-     * @param url Youtube URL
-     */
-    private parseUrl(url: string): string {
-        // https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1
-
-        if (url.indexOf('youtu.be') > -1) {
-            // Short Youtube URL
-            const id = url.slice(url.lastIndexOf('/'), url.indexOf('?'));
-            return id;
-        } else if (url.indexOf('youtube') > -1) {
-            if (url.indexOf('&') > -1) {
-                const id = url.slice(url.indexOf('?v=') + 3, url.indexOf('&'));
-                return id;
-            } else {
-                const id = url.slice(url.indexOf('?v=') + 2);
-                return id;
-            }
-        } else {
-            // Not a youtube url.
-            throw new Error('URL is not a valid YouTube URL.');
-        }
+    public getSongDuration(song: IYoutubeSong): moment.Duration {
+        const duration = moment.duration(song.contentDetails.duration);
+        return duration;
     }
 }
 

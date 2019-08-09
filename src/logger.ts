@@ -11,6 +11,7 @@ export enum LogType {
     OAuth = 'OAuth',
     Youtube = 'Youtube',
     Server = 'Server',
+    Song = 'Song',
 }
 
 enum LogLevel {

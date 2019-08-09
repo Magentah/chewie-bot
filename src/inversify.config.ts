@@ -11,6 +11,7 @@ import TextCommands from './database/textCommands';
 import Donations from './database/donations';
 import UserLevels from './database/userLevels';
 import ModLevels from './database/modLevels';
+import SongService from './services/songService';
 
 const botContainer = new Container();
 
@@ -23,6 +24,7 @@ botContainer.bind<TwitchService>(TwitchService).toSelf().inSingletonScope();
 botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
 botContainer.bind<YoutubeService>(YoutubeService).toSelf().inSingletonScope();
 botContainer.bind<CommandService>(CommandService).toSelf().inSingletonScope();
+botContainer.bind<SongService>(SongService).toSelf().inSingletonScope();
 
 botContainer.bind<Users>(Users).toSelf();
 botContainer.bind<UserLevels>(UserLevels).toSelf();

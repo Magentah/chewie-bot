@@ -104,7 +104,11 @@ export class TwitchService {
             return;
         }
 
-        this.commandService.handleMessage(channel, message);
+        if (userstate.username) {
+            this.commandService.handleMessage(channel, userstate.username,  message);
+        } else {
+            this.commandService.handleMessage(channel, 'Anonymous', message);
+        }
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {

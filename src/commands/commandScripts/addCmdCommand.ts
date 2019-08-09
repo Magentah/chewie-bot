@@ -8,7 +8,7 @@ export class AddCmdCommand extends Command {
         super();
     }
 
-    public async execute(channel: string, commandName: string, message: string): Promise<void> {
+    public async execute(channel: string, username: string, commandName: string, message: string): Promise<void> {
         let command = await BotContainer.get(TextCommands).get(commandName);
         if (!command) {
             command = {

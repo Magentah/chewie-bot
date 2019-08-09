@@ -29,7 +29,7 @@ Commands:
     ☐ Restrict commands based on user levels.
     ✔ Investigate a better way to handle command arguments, parsing them, etc @done(19-08-08 02:01)
         Will need to change to single args with spaces being wrapped in quotes.
-    ☐ Add an "internal" property for commands (e.g. TextCommand) that are only to be used by the bot.
+    ✔ Add an "internal" property for commands (e.g. TextCommand) that are only to be used by the bot. @done(19-08-09 15:07)
         Would prevent users from using these commands at all, but keeps things separated a bit in terms of structure.
         Means that the CommandService never has to know how to do anything except call a commands execute function.
         Still not entirely sure about this at the moment, but it seems like the simplest option at the moment.

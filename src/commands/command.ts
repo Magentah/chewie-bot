@@ -1,6 +1,6 @@
 export abstract class Command {
     protected isInternalCommand: boolean = false;
-    public execute(channel: string, ...args: any[]): void {
+    public execute(channel: string, username: string, ...args: any[]): void {
         // Empty
     }
 

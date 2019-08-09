@@ -32,11 +32,11 @@ export class CommandService {
      * @param commandName The command name to execute
      * @param channel The channel the execute the command in
      */
-    private async executeCommand(commandName: string, channel: string, ...args: string[]): Promise<void> {
+    private async executeCommand(commandName: string, channel: string, username: string, ...args: string[]): Promise<void> {
         if (this.commands.has(commandName)) {
             const command = this.commands.get(commandName);
             if (command && !command.isInternal()) {
-                command.execute(channel, ...args);
+                command.execute(channel, username, ...args);
             } else if (command && command.isInternal()) {
                 throw new CommandInternalError(`The command ${command} is an internal command that has been called through a chat command.`);
             } else {
@@ -47,7 +47,7 @@ export class CommandService {
             if (textCommand) {
                 if (this.commands.has('text')) {
                     const command = this.commands.get('text') as Command;
-                    command.execute(channel, textCommand.message);
+                    command.execute(channel, username, textCommand.message);
                 }
             }
         }
@@ -58,15 +58,15 @@ export class CommandService {
      * @param channel The channel the message comes from.
      * @param message The message to parse for a command.
      */
-    public handleMessage(channel: string, message: string): void {
+    public handleMessage(channel: string, username: string, message: string): void {
         const commandName = TwitchChatParser.getCommandName(message);
         if (commandName) {
             try {
                 const args = TwitchChatParser.getCommandArgs(message);
                 if (args) {
-                    this.executeCommand(commandName, channel, ...args);
+                    this.executeCommand(commandName, channel, username, ...args);
                 } else {
-                    this.executeCommand(commandName, channel);
+                    this.executeCommand(commandName, channel, username);
                 }
             } catch (err) {
                 if (err instanceof CommandNotExistError) {

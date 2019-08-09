@@ -6,7 +6,7 @@ export class TestCommand extends Command {
     constructor() {
         super();
     }
-    public execute(channel: string): void {
+    public execute(channel: string, username: string): void {
         BotContainer.get(TwitchService).sendMessage(channel, 'Test message from a command!');
     }
 }

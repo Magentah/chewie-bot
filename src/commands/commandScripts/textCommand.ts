@@ -10,7 +10,7 @@ export class TextCommand extends Command {
         super();
         this.isInternalCommand = true;
     }
-    public execute(channel: string, message: string): void {
+    public execute(channel: string, username: string,  message: string): void {
         BotContainer.get(TwitchService).sendMessage(channel, message);
     }
 }

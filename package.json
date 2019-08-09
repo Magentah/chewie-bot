@@ -40,6 +40,7 @@
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.6.0",
     "minimist-string": "^1.0.2",
+    "moment": "^2.24.0",
     "node-cache": "^4.2.1",
     "request": "^2.88.0",
     "sqlite3": "^4.0.9",
