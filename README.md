@@ -32,10 +32,12 @@
 ### Running locally
 
 #### Non Debug Mode
-- If it's the first time to run the project, or there have been changes to the client source, run `yarn start-dev:build` in the root folder to build `src/client` before starting the server. Run `yarn start-dev` in the root folder to start without building the client source. This will start without enabling debug.
+- `yarn start-dev:build` --- This will build the client files before starting the node server. Use this if it's the first time starting the project, or changes have been made to the client folder.
+- `yarn start-dev` --- This will start the node server without building the client files. Use this if you've already used the build variant and there has been no changes made to the client folder.
 
 #### Debug Mode
-- If it's the first time to run the project, or there have been changes to the client source, run `yarn start-debug:build` in the root folder to build `src/client` before starting the server. Run `yarn start-debug` in the root folder to start without building the client source. This will start with debugging enabled, allowing you to attach a debugger to the nodemon process (through VSCode for example).
+- `yarn start-debug:build` --- This will build the client files before starting the node server with the `--inspect` flag. Use this if it's the first time starting the project, or changes have been made to the client folder. The `--inspect` flag will allow you to attach a debugger to the process (for example, VSCodes debugger).
+- `yarn start-debug` --- This will start the node server with the `--inspect` flag without building the client files. Use this if you've already used the build variant and there has been no changes made to the client folder.
 
 ### Accessing the site
 
