@@ -6,7 +6,7 @@
 
 ### Dev Setup
 
-- In the /src/ folder, copy config.example.json to config.json and update with your config details.
+- In the `/src/` folder, copy `config.example.json` to `config.json` and update with your config details.
   ### Secret Key
   - This needs to be a 32 character random string, used for encryption/decryption.
   #### Twitch
