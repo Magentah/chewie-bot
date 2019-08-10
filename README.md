@@ -32,7 +32,8 @@
 ### Running locally
 
 - If it's the first time to run the project, or there have been changes to the client source, run `yarn start-dev:build` in the root folder to build `src/client` before starting the server. Run `yarn start-dev` in the root folder to start without building the client source. This will start without enabling debug.
--If it's the first time to run the project, or there have been changes to the client source, run `yarn start-debug:build` in the root folder to build `src/client` before starting the server. Run `yarn start-debug` in the root folder to start without building the client source. This will start with debugging enabled, allowing you to attach a debugger to the nodemon process (through VSCode for example).
+
+- If it's the first time to run the project, or there have been changes to the client source, run `yarn start-debug:build` in the root folder to build `src/client` before starting the server. Run `yarn start-debug` in the root folder to start without building the client source. This will start with debugging enabled, allowing you to attach a debugger to the nodemon process (through VSCode for example).
 
 ### Accessing the site
 
