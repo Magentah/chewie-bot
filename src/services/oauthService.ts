@@ -1,12 +1,14 @@
 import { Logger, LogType } from '../logger';
 import Constants from './../constants';
-import { injectable, inject } from 'inversify';
+import { injectable, inject, id } from 'inversify';
 import * as Request from 'request-promise-native';
 import Users from './../database/users';
 import { CacheService, CacheType } from './cacheService';
 import config = require('./../config.json');
 import CryptoHelper from '../helpers/cryptoHelper';
 import { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchUser } from '../models/twitchApi';
+import UserLevels, { IUserLevel } from '../database/userLevels';
+import VIPLevels from '../database/vipLevels';
 
 // Twitch OAuth is for logging in users through the front end. For the chatbot oauth, we should be using https://twitchapps.com/tmi/ with the bot account login.
 @injectable()
@@ -14,7 +16,7 @@ class OAuthService {
     // Populated immediately after authenticating with Twitch
     private nonce: string = '';
 
-    constructor(@inject(Users) private users: Users, @inject(CacheService) private cacheService: CacheService) {
+    constructor(@inject(Users) private users: Users, @inject(UserLevels) private userLevels: UserLevels, @inject(VIPLevels) private vipLevels: VIPLevels,  @inject(CacheService) private cacheService: CacheService) {
         // Empty
     }
 
@@ -154,12 +156,22 @@ class OAuthService {
                     user.refreshToken = encryptedRefreshToken;
                     await this.users.update(user);
                 } else {
+                    // hacky for now
+                    let userLevel: IUserLevel;
+                    if (idToken.preferred_username.toLowerCase() === 'magentafall') {
+                        userLevel = await this.userLevels.get('Broadcaster');
+                    } else {
+                        userLevel = await this.userLevels.get('Viewer');   // TODO: Change to constant
+                    }
+                    const vipLevel = await this.vipLevels.get('None');  // TODO: Change to constant
                     user = {
                         username: idToken.preferred_username,
                         idToken: idToken.sub,
                         refreshToken: encryptedRefreshToken,
                         points: 0,
                         vipExpiry: undefined,
+                        userLevelKey: userLevel.id,
+                        vipLevelKey: vipLevel.id,
                     };
                     await this.users.add(user);
                 }

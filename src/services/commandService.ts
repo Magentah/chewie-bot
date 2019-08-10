@@ -6,12 +6,13 @@ import CommandInternalError from '../errors/commandInternal';
 import { Logger, LogType } from '../logger';
 import * as Commands from '../commands/commandScripts';
 import TextCommands from '../database/textCommands';
+import Users, { IUser } from '../database/users';
 
 @injectable()
 export class CommandService {
     private commands: Map<string, Command>;
 
-    constructor(@inject(TextCommands) private textCommands: TextCommands) {
+    constructor(@inject(TextCommands) private textCommands: TextCommands, @inject(Users) private users: Users) {
         this.commands = new Map<string, Command>();
         this.findCommands();
     }
@@ -32,11 +33,11 @@ export class CommandService {
      * @param commandName The command name to execute
      * @param channel The channel the execute the command in
      */
-    private async executeCommand(commandName: string, channel: string, username: string, ...args: string[]): Promise<void> {
+    private async executeCommand(commandName: string, channel: string, user: IUser, ...args: string[]): Promise<void> {
         if (this.commands.has(commandName)) {
             const command = this.commands.get(commandName);
             if (command && !command.isInternal()) {
-                command.execute(channel, username, ...args);
+                command.execute(channel, user, ...args);
             } else if (command && command.isInternal()) {
                 throw new CommandInternalError(`The command ${command} is an internal command that has been called through a chat command.`);
             } else {
@@ -47,7 +48,7 @@ export class CommandService {
             if (textCommand) {
                 if (this.commands.has('text')) {
                     const command = this.commands.get('text') as Command;
-                    command.execute(channel, username, textCommand.message);
+                    command.execute(channel, user, textCommand.message);
                 }
             }
         }
@@ -58,15 +59,16 @@ export class CommandService {
      * @param channel The channel the message comes from.
      * @param message The message to parse for a command.
      */
-    public handleMessage(channel: string, username: string, message: string): void {
+    public async handleMessage(channel: string, username: string, message: string): Promise<void> {
         const commandName = TwitchChatParser.getCommandName(message);
         if (commandName) {
             try {
+                const user = await this.users.get(username);
                 const args = TwitchChatParser.getCommandArgs(message);
                 if (args) {
-                    this.executeCommand(commandName, channel, username, ...args);
+                    this.executeCommand(commandName, channel, user, ...args);
                 } else {
-                    this.executeCommand(commandName, channel, username);
+                    this.executeCommand(commandName, channel, user);
                 }
             } catch (err) {
                 if (err instanceof CommandNotExistError) {

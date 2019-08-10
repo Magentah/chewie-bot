@@ -10,7 +10,7 @@ import Users from './database/users';
 import TextCommands from './database/textCommands';
 import Donations from './database/donations';
 import UserLevels from './database/userLevels';
-import ModLevels from './database/modLevels';
+import VIPLevels from './database/vipLevels';
 import SongService from './services/songService';
 
 const botContainer = new Container();
@@ -28,7 +28,7 @@ botContainer.bind<SongService>(SongService).toSelf().inSingletonScope();
 
 botContainer.bind<Users>(Users).toSelf();
 botContainer.bind<UserLevels>(UserLevels).toSelf();
-botContainer.bind<ModLevels>(ModLevels).toSelf();
+botContainer.bind<VIPLevels>(VIPLevels).toSelf();
 botContainer.bind<Donations>(Donations).toSelf();
 botContainer.bind<TextCommands>(TextCommands).toSelf();
 export { botContainer as BotContainer };

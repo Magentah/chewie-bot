@@ -7,11 +7,11 @@ import { response } from 'express';
 export enum Tables {
     Users = 'users',
     UserLevels = 'userLevels',
-    ModLevels = 'modLevels',
     TextCommands = 'textCommands',
     Quotes = 'quotes',
     Donations = 'donations',
     DonationTypes = 'donationTypes',
+    VIPLevels = 'vipLevels',
 }
 
 @injectable()
@@ -50,10 +50,11 @@ export class DatabaseService {
     public async initDatabase(): Promise<void> {
         Logger.info(LogType.Database, 'Creating database tables');
         await this.createUserLevelTable();
-        await this.createModLevelTable();
+        await this.createVIPLevelTable();
         await this.createUserTable();
         await this.createDonationsTable();
         await this.createTextCommandsTable();
+        await this.populateDatabase();
         this.isInit = true;
     }
 
@@ -69,6 +70,7 @@ export class DatabaseService {
                 await this.db.schema.createTable(Tables.UserLevels, (table) => {
                     table.increments('id').primary().notNullable();
                     table.string('name').notNullable().unique();
+                    table.integer('rank').notNullable();
                     Logger.info(LogType.Database, `${Tables.UserLevels} table created.`);
                     resolve();
                 });
@@ -78,15 +80,16 @@ export class DatabaseService {
         });
     }
 
-    private async createModLevelTable(): Promise<void> {
+    private async createVIPLevelTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasModLevelTable = await this.hasTable(Tables.ModLevels);
-            if (!hasModLevelTable) {
-                Logger.info(LogType.Database, `${Tables.ModLevels} being created.`);
-                await this.db.schema.createTable(Tables.ModLevels, (table) => {
+            const hasVIPLevelTable = await this.hasTable(Tables.VIPLevels);
+            if (!hasVIPLevelTable) {
+                Logger.info(LogType.Database, `${Tables.VIPLevels} being created.`);
+                await this.db.schema.createTable(Tables.VIPLevels, (table) => {
                     table.increments('id').primary().notNullable();
                     table.string('name').notNullable().unique();
-                    Logger.info(LogType.Database, `${Tables.ModLevels} table created.`);
+                    table.integer('rank').notNullable();
+                    Logger.info(LogType.Database, `${Tables.VIPLevels} table created.`);
                     resolve();
                 });
             } else {
@@ -102,10 +105,10 @@ export class DatabaseService {
                 Logger.info(LogType.Database, `${Tables.Users} being created.`);
                 await this.db.schema.createTable(Tables.Users, (table) => {
                     table.increments('id').primary().notNullable();
-                    table.integer('modLevel').unsigned();
-                    table.foreign('modLevel').references(`${Tables.ModLevels}.id`);
-                    table.integer('userLevel').unsigned();
-                    table.foreign('userLevel').references(`${Tables.UserLevels}.id`);
+                    table.integer('vipLevelKey').unsigned();
+                    table.foreign('vipLevelKey').references(`${Tables.VIPLevels}.id`);
+                    table.integer('userLevelKey').unsigned();
+                    table.foreign('userLevelKey').references(`${Tables.UserLevels}.id`);
                     table.string('username').notNullable().unique();
                     table.string('refreshToken').notNullable().unique();
                     table.string('idToken').notNullable().unique();
@@ -129,9 +132,8 @@ export class DatabaseService {
                     table.increments('id').primary().notNullable();
                     table.string('commandName').notNullable();
                     table.string('message').notNullable();
-                    table.boolean('modRequired').notNullable();
-                    table.integer('minimumModLevel').unsigned();
-                    table.foreign('minimumModLevel').references(`${Tables.ModLevels}.id`);
+                    table.integer('minimumUserLevelKey').unsigned();
+                    table.foreign('minimumUserLevelKey').references(`${Tables.UserLevels}.id`);
                     Logger.info(LogType.Database, `${Tables.TextCommands} table created.`);
                     resolve();
                 });
@@ -158,6 +160,34 @@ export class DatabaseService {
                 });
             } else {
                 resolve();
+            }
+        });
+    }
+
+    private async populateDatabase(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            const userLevelsAdded = await this.db(Tables.UserLevels).select();
+            if (userLevelsAdded.length === 0) {
+                const userLevels = [
+                    { name: 'Viewer', rank: 1 },
+                    { name: 'Subscriber', rank: 2 },
+                    { name: 'Moderator', rank: 3 },
+                    { name: 'Bot', rank: 4 },
+                    { name: 'Broadcaster', rank: 5 },
+                ];
+                await this.db(Tables.UserLevels).insert(userLevels);
+                Logger.info(LogType.Database, `${Tables.UserLevels} populated with initial data.`);
+            }
+            const vipLevelsAdded = await this.db(Tables.VIPLevels).select();
+            if (vipLevelsAdded.length === 0) {
+                const vipLevels = [
+                    { name: 'None', rank: 1 },
+                    { name: 'Bronze', rank: 2 },
+                    { name: 'Silver', rank: 3 },
+                    { name: 'Gold', rank: 4 },
+                ];
+                await this.db(Tables.VIPLevels).insert(vipLevels);
+                Logger.info(LogType.Database, `${Tables.VIPLevels} populated with initial data.`);
             }
         });
     }

@@ -4,6 +4,7 @@ import OAuthService from './oauthService';
 import CommandService from './commandService';
 import { Logger, LogType } from '../logger';
 import * as config from './../config.json';
+import Users from '../database/users';
 
 @injectable()
 export class TwitchService {
@@ -11,7 +12,7 @@ export class TwitchService {
     private options: tmi.Options;
     private isConnected: boolean;
 
-    constructor(@inject(OAuthService) private oauthService: OAuthService, @inject(CommandService) private commandService: CommandService) {
+    constructor(@inject(OAuthService) private oauthService: OAuthService, @inject(CommandService) private commandService: CommandService, @inject(Users) private users: Users) {
         this.isConnected = false;
         this.options = this.setupOptions();
         this.client = tmi.Client(this.options);
@@ -97,18 +98,14 @@ export class TwitchService {
         // Empty
     }
 
-    private chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
+    private async chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
         Logger.info(LogType.Twitch, `Chat event: ${channel}:${userstate.username} -- ${message}`);
 
         if (self) {
             return;
         }
 
-        if (userstate.username) {
-            this.commandService.handleMessage(channel, userstate.username,  message);
-        } else {
-            this.commandService.handleMessage(channel, 'Anonymous', message);
-        }
+        this.commandService.handleMessage(channel, userstate.usernane, message);
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {

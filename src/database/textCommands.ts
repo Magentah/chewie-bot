@@ -5,7 +5,6 @@ export interface ITextCommand {
     id?: number;
     commandName: string;
     message: string;
-    modRequired: boolean;
     minimumModLevel?: number;
 }
 
