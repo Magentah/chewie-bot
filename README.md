@@ -23,7 +23,7 @@
   - Levels can be syslog or npm. npm may break currently though.
 - Install nodejs if you don't already have it.
 - Install Yarn from [https://yarnpkg.com/en/docs/install#windows-stable](https://yarnpkg.com/en/docs/install#windows-stable).
-- Run `yarn setup` to install dependencies.
+- Run `yarn install` to install dependencies.
 
 ### For using static React files
 
