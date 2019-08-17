@@ -4,23 +4,46 @@ import OAuthService from './oauthService';
 import CommandService from './commandService';
 import { Logger, LogType } from '../logger';
 import * as config from './../config.json';
-import Users from '../database/users';
+import * as Request from 'request-promise-native';
+import { ITwitchChatList } from 'src/models/twitchApi';
+import UserService from './userService';
 
 @injectable()
 export class TwitchService {
     private client: tmi.Client;
     private options: tmi.Options;
     private isConnected: boolean;
+    private channelUserList: Map<string, ITwitchChatList>;
 
-    constructor(@inject(OAuthService) private oauthService: OAuthService, @inject(CommandService) private commandService: CommandService, @inject(Users) private users: Users) {
-        this.isConnected = false;
-        this.options = this.setupOptions();
-        this.client = tmi.Client(this.options);
-        this.setupEventHandlers();
+    constructor(
+        @inject(CommandService) private commandService: CommandService,
+        @inject(UserService) private users: UserService) {
+            this.isConnected = false;
+            this.channelUserList = new Map<string, ITwitchChatList>();
+            this.options = this.setupOptions();
+            this.client = tmi.Client(this.options);
+            this.setupEventHandlers();
     }
 
     public sendMessage(channel: string, message: string): void {
         this.client.say(channel, message);
+    }
+
+    /**
+     * Get the chat list for a channel.
+     * @param channel The channel name to get the chat list for.
+     */
+    private async getChatList(channel: string): Promise<void> {
+        // https://tmi.twitch.tv/group/user/:channel_name/chatters
+        const options = {
+            method: 'GET',
+            uri: `https://tmi.twitch.tv/group/user/${channel}/chatters`,
+            json: true,
+        };
+
+        const chatList = await Request(options);
+        this.channelUserList.set(channel, chatList);
+        this.users.addUsersFromChatList(chatList);
     }
 
     private setupOptions(): tmi.Options {
@@ -154,7 +177,10 @@ export class TwitchService {
     }
 
     private joinEventHandler(channel: string, username: string, self: boolean) {
-        // Empty
+        Logger.info(LogType.Twitch, `JOIN:: ${username}`);
+        if (self) {
+            this.getChatList(channel);
+        }
     }
 
     private logonEventHandler() {
@@ -178,7 +204,7 @@ export class TwitchService {
     }
 
     private partEventHandler(channel: string, username: string, self: boolean) {
-        // Empty
+        Logger.info(LogType.Twitch, `PART:: ${username}`);
     }
 
     private pingEventHandler() {

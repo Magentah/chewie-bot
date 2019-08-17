@@ -1,8 +1,8 @@
 import { Command } from '../command';
-import TextCommands from './../../database/textCommands';
+import TextCommandsRepository from './../../database/textCommands';
 import TwitchService from './../../services/twitchService';
 import { BotContainer } from '../../inversify.config';
-import { IUser } from '../../database/users';
+import { IUser } from '../../models/user';
 
 export class DelCmdCommand extends Command {
     constructor() {
@@ -10,7 +10,7 @@ export class DelCmdCommand extends Command {
     }
 
     public async execute(channel: string, user: IUser, commandName: string): Promise<void> {
-        const deleted = await BotContainer.get(TextCommands).delete(commandName);
+        const deleted = await BotContainer.get(TextCommandsRepository).delete(commandName);
         if (deleted) {
             await BotContainer.get(TwitchService).sendMessage(channel, `!${commandName} has been removed!`);
         }

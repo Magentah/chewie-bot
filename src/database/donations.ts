@@ -1,17 +1,9 @@
 import { inject, injectable } from 'inversify';
 import DatabaseService, { Tables } from '../services/databaseService';
-
-export interface IDonation {
-    id?: number;
-    username: string;
-    date: Date;
-    type: string;
-    message?: string;
-    amount: number;
-}
+import { IDonation } from '../models/donation';
 
 @injectable()
-export class Donations {
+export class DonationsRepository {
     constructor(@inject(DatabaseService) private databaseService: DatabaseService) {
         // Empty
     }
@@ -26,4 +18,4 @@ export class Donations {
     }
 }
 
-export default Donations;
+export default DonationsRepository;

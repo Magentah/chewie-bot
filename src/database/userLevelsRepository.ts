@@ -1,15 +1,10 @@
 import { inject, injectable } from 'inversify';
 import DatabaseService, { Tables } from '../services/databaseService';
 import Logger, { LogType } from '../logger';
-
-export interface IUserLevel {
-    id?: number;
-    name: string;
-    rank: number;
-}
+import { IUserLevel } from './../models/userLevel';
 
 @injectable()
-export class UserLevels {
+export class UserLevelsRepository {
     constructor(@inject(DatabaseService) private databaseService: DatabaseService) {
         // Empty
     }
@@ -25,4 +20,4 @@ export class UserLevels {
     }
 }
 
-export default UserLevels;
+export default UserLevelsRepository;

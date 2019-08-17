@@ -1,7 +1,7 @@
 import { Command } from '../command';
 import TwitchService from '../../services/twitchService';
 import { BotContainer } from '../../inversify.config';
-import { IUser } from '../../database/users';
+import { IUser } from '../../models/user';
 
 export class TestCommand extends Command {
     constructor() {

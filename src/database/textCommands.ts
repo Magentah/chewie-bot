@@ -1,15 +1,9 @@
-import { inject, interfaces, injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import DatabaseService, { Tables } from '../services/databaseService';
-
-export interface ITextCommand {
-    id?: number;
-    commandName: string;
-    message: string;
-    minimumModLevel?: number;
-}
+import { ITextCommand } from '../models/textCommand';
 
 @injectable()
-export class TextCommands {
+export class TextCommandsRepository {
     constructor(@inject(DatabaseService) private databaseService: DatabaseService) {
         // Empty
     }
@@ -50,4 +44,4 @@ export class TextCommands {
     }
 }
 
-export default TextCommands;
+export default TextCommandsRepository;

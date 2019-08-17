@@ -7,7 +7,7 @@
   "scripts": {
     "setup": "yarn install && cd src/client && yarn install",
     "start-dev:build": "cd src/client && yarn build && cd ../.. && nodemon --config \"./util/nodemon.json\"/ src/start.ts",
-    "start-dev": "nodemon --config \".util/nodemon.json\"/ src/start/ts",
+    "start-dev": "nodemon --config \".util/nodemon.json\"/ src/start.ts",
     "start-debug:build": "cd src/client && yarn build && cd ../.. && nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
     "start-debug": "nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
     "tsc": "tsc",

@@ -1,14 +1,9 @@
 import { inject, injectable } from 'inversify';
 import DatabaseService, { Tables } from '../services/databaseService';
-
-export interface IVIPLevel {
-    id?: number;
-    name: string;
-    rank: number;
-}
+import { IVIPLevel } from './../models/vipLevel';
 
 @injectable()
-export class VIPLevels {
+export class VIPLevelsRepository {
     constructor(@inject(DatabaseService) private databaseService: DatabaseService) {
         // Empty
     }
@@ -23,4 +18,4 @@ export class VIPLevels {
     }
 }
 
-export default VIPLevels;
+export default VIPLevelsRepository;

@@ -2,7 +2,7 @@ import { Command } from '../command';
 import { BotContainer } from '../../inversify.config';
 import SongService from '../../services/songService';
 import TwitchService from '../../services/twitchService';
-import { IUser } from '../../database/users';
+import { IUser } from '../../models/user';
 
 export class AddSongCommand extends Command {
     constructor() {

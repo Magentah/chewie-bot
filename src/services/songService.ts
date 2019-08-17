@@ -33,7 +33,7 @@ export class SongService {
 
     /**
      * Parses a URL to get the video source and ID. This is used in API calls to get details about the video.
-     * @param url Video URL to parse
+     * @param {string} url Video URL to parse
      */
     private parseUrl(url: string): ISong {
         // https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1

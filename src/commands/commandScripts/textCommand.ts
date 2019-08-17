@@ -1,7 +1,7 @@
 import { Command } from '../command';
 import TwitchService from '../../services/twitchService';
 import { BotContainer } from '../../inversify.config';
-import { IUser } from '../../database/users';
+import { IUser } from '../../models/user';
 
 // I think it's better to have a "command" to handle all text commands instead of having the
 // command service directly call the twitchservice.sendmessage with the text command.

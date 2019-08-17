@@ -110,10 +110,11 @@ export class DatabaseService {
                     table.integer('userLevelKey').unsigned();
                     table.foreign('userLevelKey').references(`${Tables.UserLevels}.id`);
                     table.string('username').notNullable().unique();
-                    table.string('refreshToken').notNullable().unique();
-                    table.string('idToken').notNullable().unique();
+                    table.string('refreshToken').unique();
+                    table.string('idToken').unique();
                     table.decimal('points').notNullable();
                     table.dateTime('vipExpiry');
+                    table.boolean('hasLogin').notNullable();
                     Logger.info(LogType.Database, `${Tables.Users} table created.`);
                     resolve();
                 });

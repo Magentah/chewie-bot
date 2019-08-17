@@ -38,3 +38,18 @@ export interface ITwitchIDToken {
     // Additional claim for preferred username.
     preferred_username: string;
 }
+
+export interface ITwitchChatList {
+    chatter_count: number;
+    chatters: ITwitchChatters;
+}
+
+export interface ITwitchChatters {
+    broadcaster: string[];
+    vips: string[];
+    moderators: string[];
+    staff: string[];
+    admins: string[];
+    global_mods: string[];
+    viewers: string[];
+}
