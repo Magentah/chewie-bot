@@ -1,32 +1,47 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from "react";
+import logo from "./logo.svg";
+// import chewiesLogo from "."
+import { Image, Button } from "react-bootstrap";
+import "./App.css";
 
 class App extends Component {
     public render() {
+        const twitchButtonStyle = {
+            backgroundColor: "#9147ff"
+        };
         async function twitchRedirect() {
-            const response = await fetch('/api/oauth/twitch')
-                                .then((res) => res.json());
+            const response = await fetch("/api/oauth/twitch").then(res =>
+                res.json()
+            );
 
             window.location.replace(response.url);
         }
 
         return (
-            <div className='App'>
-                <header className='App-header'>
-                    <img src={logo} className='App-logo' alt='logo' />
+            <div className="App">
+                <header className="App-header">
+                    {/* <img src={logo} className="App-logo" alt="logo" /> */}
+                    <Image
+                        src={"/assets/chewie_logo.jpg"}
+                        alt="logo"
+                        roundedCircle
+                    />
+                    <div style={{ marginTop: "10px" }}>
+                        {" "}
+                        Welcome Dango Devs!
+                    </div>
                     <p>
-                    Edit <code>src/App.tsx</code> and save to reload.
+                        Any modification to <code>{"src/client/**"}</code> can
+                        be reloaded by{" "}
+                        <code>{"cd src/client && yarn build"}</code>
                     </p>
-                    <a
-                    className='App-link'
-                    href='https://reactjs.org'
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    >
-                    Learn React
-                    </a>
-                    <a class-name='App-link' onClick={twitchRedirect}>Connect to Twitch</a>
+                    <Button style={twitchButtonStyle} onClick={twitchRedirect}>
+                        <Image
+                            src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
+                            style={{ width: "30px" }}
+                        />{" "}
+                        Connect to Twitch!
+                    </Button>
                 </header>
             </div>
         );
