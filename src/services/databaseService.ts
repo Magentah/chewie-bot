@@ -14,6 +14,8 @@ export enum Tables {
     VIPLevels = 'vipLevels',
 }
 
+export type DatabaseProvider = () => Promise<DatabaseService>;
+
 @injectable()
 export class DatabaseService {
     private readonly UNDEFINED_DATABASE = 'Database has not been initialized.';
@@ -51,11 +53,14 @@ export class DatabaseService {
         Logger.info(LogType.Database, 'Creating database tables');
         await this.createUserLevelTable();
         await this.createVIPLevelTable();
-        await this.createUserTable();
+        await this.createUserTable()
         await this.createDonationsTable();
         await this.createTextCommandsTable();
         await this.populateDatabase();
+
         this.isInit = true;
+        console.log("OK BOOMER")
+
     }
 
     private async hasTable(tableName: string): Promise<boolean> {
@@ -64,36 +69,47 @@ export class DatabaseService {
 
     private async createUserLevelTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasUserLevelTable = await this.hasTable(Tables.UserLevels);
-            if (!hasUserLevelTable) {
-                Logger.info(LogType.Database, `${Tables.UserLevels} being created.`);
-                await this.db.schema.createTable(Tables.UserLevels, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.string('name').notNullable().unique();
-                    table.integer('rank').notNullable();
-                    Logger.info(LogType.Database, `${Tables.UserLevels} table created.`);
+            try {
+                const hasUserLevelTable = await this.hasTable(Tables.UserLevels);
+                if (!hasUserLevelTable) {
+                    Logger.info(LogType.Database, `${Tables.UserLevels} being created.`);
+                    await this.db.schema.createTable(Tables.UserLevels, (table) => {
+                        table.increments('id').primary().notNullable();
+                        table.string('name').notNullable().unique();
+                        table.integer('rank').notNullable();
+                        Logger.info(LogType.Database, `${Tables.UserLevels} table created.`);
+                        resolve();
+                    });
+                } else {
                     resolve();
-                });
-            } else {
-                resolve();
+                }
+            } catch (e) {
+                Logger.err(LogType.Database, `[creatUserLevelTable] ERR: ${e.message} `);
+                reject(e);
             }
+
         });
     }
 
     private async createVIPLevelTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasVIPLevelTable = await this.hasTable(Tables.VIPLevels);
-            if (!hasVIPLevelTable) {
-                Logger.info(LogType.Database, `${Tables.VIPLevels} being created.`);
-                await this.db.schema.createTable(Tables.VIPLevels, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.string('name').notNullable().unique();
-                    table.integer('rank').notNullable();
-                    Logger.info(LogType.Database, `${Tables.VIPLevels} table created.`);
+            try {
+                const hasVIPLevelTable = await this.hasTable(Tables.VIPLevels);
+                if (!hasVIPLevelTable) {
+                    Logger.info(LogType.Database, `${Tables.VIPLevels} being created.`);
+                    await this.db.schema.createTable(Tables.VIPLevels, (table) => {
+                        table.increments('id').primary().notNullable();
+                        table.string('name').notNullable().unique();
+                        table.integer('rank').notNullable();
+                        Logger.info(LogType.Database, `${Tables.VIPLevels} table created.`);
+                        resolve();
+                    });
+                } else {
                     resolve();
-                });
-            } else {
-                resolve();
+                }
+            } catch (e) {
+                Logger.err(LogType.Database, `[createVIPLevelTable] ERR: ${e.message}`);
+                reject(e);
             }
         });
     }
@@ -166,29 +182,35 @@ export class DatabaseService {
     }
 
     private async populateDatabase(): Promise<void> {
+        console.log("populateDatabase");
         return new Promise<void>(async (resolve, reject) => {
             const userLevelsAdded = await this.db(Tables.UserLevels).select();
-            if (userLevelsAdded.length === 0) {
-                const userLevels = [
-                    { name: 'Viewer', rank: 1 },
-                    { name: 'Subscriber', rank: 2 },
-                    { name: 'Moderator', rank: 3 },
-                    { name: 'Bot', rank: 4 },
-                    { name: 'Broadcaster', rank: 5 },
-                ];
-                await this.db(Tables.UserLevels).insert(userLevels);
-                Logger.info(LogType.Database, `${Tables.UserLevels} populated with initial data.`);
-            }
-            const vipLevelsAdded = await this.db(Tables.VIPLevels).select();
-            if (vipLevelsAdded.length === 0) {
-                const vipLevels = [
-                    { name: 'None', rank: 1 },
-                    { name: 'Bronze', rank: 2 },
-                    { name: 'Silver', rank: 3 },
-                    { name: 'Gold', rank: 4 },
-                ];
-                await this.db(Tables.VIPLevels).insert(vipLevels);
-                Logger.info(LogType.Database, `${Tables.VIPLevels} populated with initial data.`);
+            try {
+                if (userLevelsAdded.length === 0) {
+                    const userLevels = [
+                        { name: 'Viewer', rank: 1 },
+                        { name: 'Subscriber', rank: 2 },
+                        { name: 'Moderator', rank: 3 },
+                        { name: 'Bot', rank: 4 },
+                        { name: 'Broadcaster', rank: 5 },
+                    ];
+                    await this.db(Tables.UserLevels).insert(userLevels);
+                    Logger.info(LogType.Database, `${Tables.UserLevels} populated with initial data.`);
+                }
+                const vipLevelsAdded = await this.db(Tables.VIPLevels).select();
+                if (vipLevelsAdded.length === 0) {
+                    const vipLevels = [
+                        { name: 'None', rank: 1 },
+                        { name: 'Bronze', rank: 2 },
+                        { name: 'Silver', rank: 3 },
+                        { name: 'Gold', rank: 4 },
+                    ];
+                    await this.db(Tables.VIPLevels).insert(vipLevels);
+                    Logger.info(LogType.Database, `${Tables.VIPLevels} populated with initial data.`);
+                }
+                return resolve();
+            } catch (e){
+                return reject(e);
             }
         });
     }

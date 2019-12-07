@@ -1,11 +1,13 @@
 import { inject, injectable } from 'inversify';
-import DatabaseService, { Tables } from '../services/databaseService';
+import DatabaseService, { Tables, DatabaseProvider } from '../services/databaseService';
 import { ITextCommand } from '../models/textCommand';
 
 @injectable()
 export class TextCommandsRepository {
-    constructor(@inject(DatabaseService) private databaseService: DatabaseService) {
+    constructor(@inject(DatabaseService) private databaseService: DatabaseService,
+                @inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
         // Empty
+        console.log("TextCommandRepo", databaseProvider);
     }
 
     public async get(commandName: string): Promise<ITextCommand> {

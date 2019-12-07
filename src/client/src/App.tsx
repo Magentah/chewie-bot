@@ -35,12 +35,18 @@ class App extends Component {
                         be reloaded by{" "}
                         <code>{"cd src/client && yarn build"}</code>
                     </p>
-                    <Button style={twitchButtonStyle} onClick={twitchRedirect}>
+                    <Button
+                        variant="light"
+                        style={twitchButtonStyle}
+                        onClick={twitchRedirect}
+                    >
                         <Image
                             src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
                             style={{ width: "30px" }}
                         />{" "}
-                        Connect to Twitch!
+                        <span style={{ color: "white" }}>
+                            Connect to Twitch!
+                        </span>
                     </Button>
                 </header>
             </div>

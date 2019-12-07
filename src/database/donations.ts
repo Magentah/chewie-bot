@@ -1,10 +1,11 @@
 import { inject, injectable } from 'inversify';
-import DatabaseService, { Tables } from '../services/databaseService';
+import DatabaseService, { Tables, DatabaseProvider } from '../services/databaseService';
 import { IDonation } from '../models/donation';
 
 @injectable()
 export class DonationsRepository {
-    constructor(@inject(DatabaseService) private databaseService: DatabaseService) {
+    constructor(@inject(DatabaseService) private databaseService: DatabaseService,
+                @inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
         // Empty
     }
 

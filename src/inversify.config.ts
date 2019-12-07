@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Container } from 'inversify';
 import OAuthService from './services/oauthService';
-import DatabaseService from './services/databaseService';
+import DatabaseService, {DatabaseProvider} from './services/databaseService';
 import TwitchService from './services/twitchService';
 import CacheService from './services/cacheService';
 import YoutubeService from './services/youtubeService';
@@ -17,10 +17,30 @@ import UserService from './services/userService';
 const botContainer = new Container();
 
 botContainer.bind<OAuthService>(OAuthService).toSelf().inSingletonScope();
-botContainer.bind<DatabaseService>(DatabaseService).toSelf().inSingletonScope().onActivation((context, service) => {
-    service.initDatabase();
-    return service;
+botContainer.bind<DatabaseService>(DatabaseService).toSelf().inSingletonScope();
+// .onActivation((context, service) => {
+//     service.initDatabase(); // caveat - initDB is asynchronously called, may not be initialized on use.
+//     return service;
+// });
+
+botContainer.bind<DatabaseProvider>("DatabaseProvider").toProvider(context => {
+    return () => {
+        return new Promise<DatabaseService>(async (resolve, reject) => {
+            console.log("-------dbprovder---- get db service");
+            try{
+                const dbService: DatabaseService = context.container.get<DatabaseService>(DatabaseService);
+     
+                await dbService.initDatabase();
+                console.log("dbService.nitialize", dbService.isInitialized);
+                return resolve(dbService);
+            } catch(e){
+                console.log("what")
+                return reject(e);
+            }  
+        })
+    }
 });
+// botContainer.bind<DatabaseService>(DatabaseService).
 botContainer.bind<TwitchService>(TwitchService).toSelf().inSingletonScope();
 botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
 botContainer.bind<YoutubeService>(YoutubeService).toSelf().inSingletonScope();
