@@ -10,6 +10,7 @@ export class DonationsRepository {
     }
 
     public async get(username: string): Promise<IDonation[]> {
+        const databaseService = this.databaseProvider();
         const userLevel = await this.databaseService.getQueryBuilder(Tables.TextCommands).where({ username });
         return userLevel as IDonation[];
     }

@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import * as NodeCache from 'node-cache';
-import { Logger, LogType } from '../logger';
+import { Logger, LogType } from '../logger';    
 
 export enum CacheType {
     OAuth,

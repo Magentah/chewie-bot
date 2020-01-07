@@ -50,17 +50,16 @@ export class DatabaseService {
     private isInit: boolean = false;
 
     public async initDatabase(): Promise<void> {
-        Logger.info(LogType.Database, 'Creating database tables');
-        await this.createUserLevelTable();
-        await this.createVIPLevelTable();
-        await this.createUserTable()
-        await this.createDonationsTable();
-        await this.createTextCommandsTable();
-        await this.populateDatabase();
-
-        this.isInit = true;
-        console.log("OK BOOMER")
-
+        if (!this.isInit){
+            Logger.info(LogType.Database, 'Creating database tables');
+            await this.createUserLevelTable();
+            await this.createVIPLevelTable();
+            await this.createUserTable()
+            await this.createDonationsTable();
+            await this.createTextCommandsTable();
+            await this.populateDatabase();
+            this.isInit = true;
+        }   
     }
 
     private async hasTable(tableName: string): Promise<boolean> {

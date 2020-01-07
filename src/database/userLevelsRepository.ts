@@ -11,13 +11,15 @@ export class UserLevelsRepository {
     }
 
     public async get(name: string): Promise<IUserLevel> {
-        console.log("-======", this.databaseProvider);
-        let databaseService = await this.databaseProvider().then(databaseService => { 
-            console.log("db-provider---------", databaseService)
-            return databaseService;
-        });
+        // let databaseService = await this.databaseProvider().then(databaseService => { 
+        //     return databaseService;
+        // });
+        let databaseService = await this.databaseProvider();
+        console.log("==============", databaseService);
         console.log("dbservice-userlevels", databaseService.getQueryBuilder);
+        console.log("----------");
         Logger.info(LogType.Database, this.databaseService.getQueryBuilder(Tables.UserLevels).first().where({ name }).toSQL().sql);
+        console.log("----------");
         const userLevel = await this.databaseService.getQueryBuilder(Tables.UserLevels).first().where({ name });
         return userLevel as IUserLevel;
     }

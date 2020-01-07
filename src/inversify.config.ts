@@ -18,23 +18,15 @@ const botContainer = new Container();
 
 botContainer.bind<OAuthService>(OAuthService).toSelf().inSingletonScope();
 botContainer.bind<DatabaseService>(DatabaseService).toSelf().inSingletonScope();
-// .onActivation((context, service) => {
-//     service.initDatabase(); // caveat - initDB is asynchronously called, may not be initialized on use.
-//     return service;
-// });
 
 botContainer.bind<DatabaseProvider>("DatabaseProvider").toProvider(context => {
     return () => {
         return new Promise<DatabaseService>(async (resolve, reject) => {
-            console.log("-------dbprovder---- get db service");
             try{
                 const dbService: DatabaseService = context.container.get<DatabaseService>(DatabaseService);
-     
                 await dbService.initDatabase();
-                console.log("dbService.nitialize", dbService.isInitialized);
                 return resolve(dbService);
             } catch(e){
-                console.log("what")
                 return reject(e);
             }  
         })
