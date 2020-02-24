@@ -18,10 +18,6 @@ const botContainer = new Container();
 
 botContainer.bind<OAuthService>(OAuthService).toSelf().inSingletonScope();
 botContainer.bind<DatabaseService>(DatabaseService).toSelf().inSingletonScope();
-// .onActivation((context, service) => {
-//     service.initDatabase(); // caveat - initDB is asynchronously called, may not be initialized on use.
-//     return service;
-// });
 
 botContainer.bind<DatabaseProvider>("DatabaseProvider").toProvider(context => {
     return () => {
