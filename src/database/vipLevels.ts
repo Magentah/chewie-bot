@@ -1,19 +1,10 @@
 import { inject, injectable } from 'inversify';
-<<<<<<< HEAD
 import { Tables, DatabaseProvider } from '../services/databaseService';
-=======
-import DatabaseService, { Tables, DatabaseProvider } from '../services/databaseService';
->>>>>>> 4a5ebff5151ef3b9986e95a79943047b45dc9fc5
 import { IVIPLevel } from './../models/vipLevel';
 
 @injectable()
 export class VIPLevelsRepository {
-<<<<<<< HEAD
     constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
-=======
-    constructor(@inject(DatabaseService) private databaseService: DatabaseService,
-                @inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
->>>>>>> 4a5ebff5151ef3b9986e95a79943047b45dc9fc5
         // Empty
     }
 

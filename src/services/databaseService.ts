@@ -50,12 +50,7 @@ export class DatabaseService {
     private isInit: boolean = false;
 
     public async initDatabase(): Promise<void> {
-<<<<<<< HEAD
         if (!this.isInitialized()) {
-=======
-        if (!this.isInit){
-            Logger.info(LogType.Database, 'Creating database tables');
->>>>>>> 4a5ebff5151ef3b9986e95a79943047b45dc9fc5
             await this.createUserLevelTable();
             await this.createVIPLevelTable();
             await this.createUserTable()
@@ -63,11 +58,7 @@ export class DatabaseService {
             await this.createTextCommandsTable();
             await this.populateDatabase();
             this.isInit = true;
-<<<<<<< HEAD
         }
-=======
-        }   
->>>>>>> 4a5ebff5151ef3b9986e95a79943047b45dc9fc5
     }
 
     private async hasTable(tableName: string): Promise<boolean> {
