@@ -1,44 +1,46 @@
 import { inject, injectable } from 'inversify';
-import DatabaseService, { Tables, DatabaseProvider } from '../services/databaseService';
+import { Tables, DatabaseProvider } from '../services/databaseService';
 import { ITextCommand } from '../models/textCommand';
 
 @injectable()
 export class TextCommandsRepository {
-    constructor(@inject(DatabaseService) private databaseService: DatabaseService,
-                @inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
+    constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
         // Empty
-        console.log("TextCommandRepo", databaseProvider);
     }
 
     public async get(commandName: string): Promise<ITextCommand> {
-        const userLevel = await this.databaseService.getQueryBuilder(Tables.TextCommands).first().where({ commandName });
+        const databaseService = await this.databaseProvider();
+        const userLevel = await databaseService.getQueryBuilder(Tables.TextCommands).first().where({ commandName });
         return userLevel as ITextCommand;
     }
 
     public async add(command: ITextCommand): Promise<void> {
-        await this.databaseService.getQueryBuilder(Tables.TextCommands).insert(command);
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(Tables.TextCommands).insert(command);
     }
 
     // TS function overloading is weird. Need to declare all functions, then have a single implementation to handle all definitions.
     public async update(command: ITextCommand): Promise<void>;
     public async update(commandName: string, message: string): Promise<void>;
     public async update(command: any, message?: string): Promise<void> {
+        const databaseService = await this.databaseProvider();
         if (message && typeof command === 'string') {
-            await this.databaseService.getQueryBuilder(Tables.TextCommands).update({ message }).where({ commandName: command });
+            await databaseService.getQueryBuilder(Tables.TextCommands).update({ message }).where({ commandName: command });
         } else {
-            await this.databaseService.getQueryBuilder(Tables.TextCommands).update({ command }).where({ id: command.id });
+            await databaseService.getQueryBuilder(Tables.TextCommands).update({ command }).where({ id: command.id });
         }
     }
 
     public async delete(command: ITextCommand | string): Promise<boolean> {
+        const databaseService = await this.databaseProvider();
         if (typeof command === 'string') {
             const toDelete = await this.get(command);
             if (toDelete) {
-                await this.databaseService.getQueryBuilder(Tables.TextCommands).delete().where({ id: toDelete.id });
+                await databaseService.getQueryBuilder(Tables.TextCommands).delete().where({ id: toDelete.id });
                 return true;
             }
         } else if (command.id && this.get(command.commandName)) {
-            await this.databaseService.getQueryBuilder(Tables.TextCommands).delete().where({ id: command.id });
+            await databaseService.getQueryBuilder(Tables.TextCommands).delete().where({ id: command.id });
             return true;
         }
 

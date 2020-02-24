@@ -108,6 +108,7 @@ class OAuthService {
 
     /**
      * Verifies the Twitch.tv OAuth token for a user.
+     * Refer to https://dev.twitch.tv/docs/authentication for more information.
      * @param {string} username The username to verify the OAuth token for.
      */
     public async verifyTwitchOauth(username: string): Promise<boolean> {
@@ -149,6 +150,8 @@ class OAuthService {
             + `scope=${Constants.TwitchScopes}&`
             + `claims=${Constants.TwitchClaims}&`
             + `nonce=${this.nonce}`;
+            
+        Logger.info(LogType.Server, `Twitch Auth URL: ${TwitchAuthURL}`);
         return TwitchAuthURL;
     }
 
@@ -170,7 +173,7 @@ class OAuthService {
                 } else {
                     // hacky for now
                     let userLevel: IUserLevel;
-                    if (idToken.preferred_username.toLowerCase() === 'magentafall') {
+                    if (idToken.preferred_username.toLowerCase() === config.twitch.username) {
                         userLevel = await this.userLevels.get('Broadcaster');
                     } else {
                         userLevel = await this.userLevels.get('Viewer');   // TODO: Change to constant

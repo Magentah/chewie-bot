@@ -26,21 +26,17 @@ botContainer.bind<DatabaseService>(DatabaseService).toSelf().inSingletonScope();
 botContainer.bind<DatabaseProvider>("DatabaseProvider").toProvider(context => {
     return () => {
         return new Promise<DatabaseService>(async (resolve, reject) => {
-            console.log("-------dbprovder---- get db service");
             try{
                 const dbService: DatabaseService = context.container.get<DatabaseService>(DatabaseService);
-     
                 await dbService.initDatabase();
-                console.log("dbService.nitialize", dbService.isInitialized);
                 return resolve(dbService);
             } catch(e){
-                console.log("what")
                 return reject(e);
             }  
         })
     }
 });
-// botContainer.bind<DatabaseService>(DatabaseService).
+
 botContainer.bind<TwitchService>(TwitchService).toSelf().inSingletonScope();
 botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
 botContainer.bind<YoutubeService>(YoutubeService).toSelf().inSingletonScope();
