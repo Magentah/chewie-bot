@@ -42,6 +42,9 @@ export class UserService {
      */
     public async addUsersFromChatList(chatList: ITwitchChatList): Promise<void> {
         // Create a single array of all usernames combined from the various usertypes on the twitch chat list type
+        if (!chatList.chatters) {
+            return;
+        }
         const combinedChatList = Object.keys(chatList.chatters).reduce((chatterList, key) => {
             const chatters = (chatList.chatters as any)[key] as string[];
             chatterList.push((chatList.chatters as any)[key]);
