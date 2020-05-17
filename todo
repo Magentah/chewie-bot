@@ -46,6 +46,11 @@ Events:
         ☐ Timer system - able to set a time for an event to allow registrations, then getting the results at the end of the timer.
         ☐ Registration - allow users to register for an active event. There may be several different active events at a time.
         ☐ Win conditions - Able to set win conditions / rewards for each event type
+    ☐ Raffles
+        ☐ Allow setup of a raffle with timer to automatically close the raffle to new entrants.
+        ☐ After closing, mod / broadcaster can get a winner. Options to have winners only win once or not.
+        ☐ Option to have winners be unable to enter another raffle for x time.
+        ☐ Option to have winners given access to other commands for limited time (e.g. until next raffle, command is used successfully, etc)
 
 Authentication:
     ☐ Refactor user login with Twitch.tv OAuth so that it actually works for multiple users. Currently only really works for a single user locally.
