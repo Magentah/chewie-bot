@@ -5,13 +5,13 @@
   "author": "Magentah <Magentah@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
-    "setup": "yarn install && cd src/client && yarn install",
-    "start-dev:build": "cd src/client && yarn build && cd ../.. && nodemon --config \"./util/nodemon.json\"/ src/start.ts",
+    "setup": "yarn install && cd ../client && yarn install",
+    "start-dev:build": "cd ../client && yarn build && cd ../server && nodemon --config \"./util/nodemon.json\"/ src/start.ts",
     "start-dev": "nodemon --config \".util/nodemon.json\"/ src/start.ts",
-    "start-debug:build": "cd src/client && yarn build && cd ../.. && nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
+    "start-debug:build": "cd ../client && yarn build && cd ../server && nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
     "start-debug": "nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
     "tsc": "tsc",
-    "start-static": "cd src/client && yarn build && cd .. && copyfiles \"client/build/**/*\" ../dist/ && cd .. && yarn tsc && node ./dist/start.js"
+    "start-static": "cd ../client && yarn build && cd ../server && copyfiles \"../client/build/**/*\" ../dist/ && cd .. && yarn tsc && node ./dist/start.js"
   },
   "devDependencies": {
     "@types/express": "^4.17.0",

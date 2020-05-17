@@ -36,7 +36,7 @@ class BotServer extends Server {
 
     private setupApp(): void {
 
-        const dir = path.join(__dirname, 'client/build');
+        const dir = path.join(__dirname, '../../client/build');
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
         super.addControllers(new OAuthController(BotContainer.get(OAuthService), BotContainer.get(TwitchService)));

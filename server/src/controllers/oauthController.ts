@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import OAuthService from './../services/oauthService';
 import { inject } from 'inversify';
 import TwitchService from './../services/twitchService';
+import { ITwitchRedirectResponse } from '../models/twitchApi';
 
 @Controller('api/oauth')
 class OAuthController {
@@ -17,7 +18,7 @@ class OAuthController {
     @Get('twitch/redirect')
     private async redirect(req: Request, res: Response) {
         try {
-            const authTokenResponse = await this.oauthService.getTwitchAuthToken(req.query);
+            const authTokenResponse = await this.oauthService.getTwitchAuthToken(req.query as unknown as ITwitchRedirectResponse);
             const verifyResponse = await this.oauthService.verifyTwitchOauth(authTokenResponse.username);
             // Test twitch connection
             await this.twitchService.connect();
