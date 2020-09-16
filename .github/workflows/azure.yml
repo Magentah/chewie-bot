@@ -42,7 +42,7 @@ jobs:
       - name: Update config
         uses: microsoft/variable-substitution@v1
         with: 
-          files: '../server/src/config.json/'
+          files: './server/src/config.json'
         env:  
           twitch.client_id: ${{ secrets.twitchClientId }}
           twitch.client_secret: ${{ secrets.twitchClientSecret }}
