@@ -20,9 +20,9 @@ on:
       - master
 
 env:
-  AZURE_WEBAPP_NAME: chewiebot        # set this to your application's name
-  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '12.x'                # set this to the node version to use
+  AZURE_WEBAPP_NAME: chewiebot # set this to your application's name
+  AZURE_WEBAPP_PACKAGE_PATH: "." # set this to the path to your web app project, defaults to the repository root
+  NODE_VERSION: "12.x" # set this to the node version to use
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/action
 
@@ -31,22 +31,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@master
+      - uses: actions/checkout@master
 
-    - name: Set up Node.js version
-      uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
+      - name: Set up Node.js version
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
 
-    - name: npm install, build, and test
-      run: |
-        yarn setup
-        yarn build
+      - name: npm install, build, and test
+        run: |
+          pushd /server
+          yarn setup
+          yarn build
+          popd
 
-    - name: 'Deploy to Azure Web App'
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'chewiebotserver'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.azureWebAppPublishProfile }}
-        package: .
+      - name: "Deploy to Azure Web App"
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "chewiebotserver"
+          slot-name: "production"
+          publish-profile: ${{ secrets.azureWebAppPublishProfile }}
+          package: .
