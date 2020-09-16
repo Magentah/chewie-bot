@@ -48,5 +48,5 @@ jobs:
       with:
         app-name: 'chewiebotserver'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_18cdfa2808fd4b0183d785786994818d }}
+        publish-profile: ${{ secrets.azureWebAppPublishProfile }}
         package: .
