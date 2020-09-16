@@ -11,7 +11,8 @@
     "start-debug:build": "cd ../client && yarn build && cd ../server && nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
     "start-debug": "nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
     "tsc": "tsc",
-    "start-static": "cd ../client && yarn build && cd ../server && copyfiles \"../client/build/**/*\" ../dist/ && cd .. && yarn tsc && node ./dist/start.js"
+    "start-static": "cd ../client && yarn build && cd ../server && copyfiles \"../client/build/**/*\" ../dist/ && cd .. && yarn tsc && node ./dist/start.js",
+    "build": "cd ../client && yarn build && cd ../server && copyfiles \"../client/build/**/*\" ../dist/ && cd .. && yarn"
   },
   "devDependencies": {
     "@types/express": "^4.17.0",
