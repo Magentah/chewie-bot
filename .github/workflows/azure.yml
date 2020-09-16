@@ -18,6 +18,7 @@ on:
   push:
     branches:
       - master
+        
 
 env:
   AZURE_WEBAPP_NAME: chewiebot # set this to your application's name
@@ -37,6 +38,19 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "12.x"
+          
+      - name: Update config
+        uses: microsoft/variable-substitution@v1
+        with: 
+          files: '../server/config.json/'
+        env:  
+          twitch.client_id: ${{ secret.twitchClientId }}
+          twitch.client_secret: ${{ secret.twitchClientSecret }}
+          twitch.redirect_uri: ${{ secret.twitchRedirectUri }}
+          twitch.username: ${{ secret.twitchUsername }}
+          twitch.oauth: ${{ secret.twitchOauth }}
+          youtube.api: ${{ secret.youtubeApi }}
+          secretKey: ${{ secret.botSecretKey }}
 
       - name: npm install, build, and test
         run: |
