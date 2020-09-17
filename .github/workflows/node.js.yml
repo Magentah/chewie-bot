@@ -65,6 +65,11 @@ jobs:
       - name: Yarn Setup and Build
         uses: JimCronqvist/action-ssh@0.1.1
         with:
-          command: cd chewiebot/server && yarn setup && yarn build
+          command: |
+            cd chewiebot/server
+            yarn setup
+            yarn build
+            nohup node dist/start.js > ../logs/output.log
           hosts: ${{ secrets.sshUsername}}@${{ secrets.sshHost }}
           privateKey: ${{ secrets.sshKey }}
+        
