@@ -1,30 +1,37 @@
 {
-  "twitch": {
-    "client_id": "",
-    "client_secret": "",
-    "redirect_uri": "",
-    "username": "",
-    "oauth": ""
-  },
-  "youtube": {
-    "api_key": ""
-  },
-  "secret_key": "",
-  "log": {
-    "levels": "syslog",
-    "level": "info",
-    "enabledLogs": {
-      "cache": true,
-      "command": true,
-      "database": true,
-      "oauth": true,
-      "songs": true,
-      "twitch": true,
-      "server": true,
-      "serverinfo": true
+    "twitch": {
+        "clientId": "",
+        "clientSecret": "",
+        "redirectUri": "",
+        "username": "",
+        "oauth": ""
+    },
+    "youtube": {
+        "apiKey": ""
+    },
+    "secretKey": "",
+    "log": {
+        "levels": "syslog",
+        "level": "info",
+        "enabledLogs": {
+            "cache": true,
+            "command": true,
+            "database": true,
+            "oauth": true,
+            "songs": true,
+            "twitch": true,
+            "server": true,
+            "serverinfo": true
+        }
+    },
+    "database": {
+        "client": "sqlite3",
+        "version": "",
+        "connection": {
+            "name": "chewiebot.db",
+            "host": "",
+            "username": "",
+            "password": ""
+        }
     }
-  },
-  "database": {
-    "path": "chewiebot.db"
-  }
 }

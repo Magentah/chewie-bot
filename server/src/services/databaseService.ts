@@ -1,8 +1,10 @@
-import config = require("./../config.json");
+import { IConfig } from "../config";
 import { Logger, LogType } from "../logger";
 import { injectable } from "inversify";
 import * as knex from "knex";
-import { response } from "express";
+import * as c from "./../config.json";
+
+const config: IConfig = (c as unknown) as IConfig;
 
 export enum Tables {
     Users = "users",
@@ -16,12 +18,25 @@ export enum Tables {
 
 @injectable()
 export class DatabaseService {
-    private readonly UNDEFINED_DATABASE = "Database has not been initialized.";
+    constructor() {
+        // Swap connection information if the client is mysql.
+        // MySQL is used in azure, sqlite for localhost.
+        if (this.dbConfig.client === "mysql") {
+            this.dbConfig.connection = {
+                host: config.database.connection.host,
+                user: config.database.connection.user,
+                password: config.database.connection.password,
+                database: config.database.connection.name,
+            };
+        }
+
+        this.db = knex(this.dbConfig);
+    }
 
     private dbConfig: knex.Config = {
-        client: "sqlite",
+        client: config.database.client,
         connection: {
-            filename: config.database.path,
+            filename: config.database.connection.name,
         },
         debug: true,
         migrations: {
@@ -44,7 +59,7 @@ export class DatabaseService {
         },
     };
 
-    private db: knex = knex(this.dbConfig);
+    private db: knex;
     private isInit: boolean = false;
 
     public async initDatabase(): Promise<void> {

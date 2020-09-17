@@ -1,15 +1,15 @@
 {
     "twitch": {
-        "client_id": "",
-        "client_secret": "",
-        "redirect_uri": "",
+        "clientId": "",
+        "clientSecret": "",
+        "redirectUri": "",
         "username": "",
         "oauth": ""
     },
     "youtube": {
-        "api_key": ""
+        "apiKey": ""
     },
-    "secret_key": "",
+    "secretKey": "",
     "log": {
         "levels": "syslog",
         "level": "info",
@@ -25,6 +25,13 @@
         }
     },
     "database": {
-        "path": "chewiebot.db"
+        "client": "sqlite3",
+        "version": "",
+        "connection": {
+            "name": "chewiebot.db",
+            "host": "",
+            "username": "",
+            "password": ""
+        }
     }
 }

@@ -3,10 +3,13 @@ import { inject, injectable } from "inversify";
 import OAuthService from "./oauthService";
 import CommandService from "./commandService";
 import { Logger, LogType } from "../logger";
-import * as config from "./../config.json";
+import * as c from "./../config.json";
+import { IConfig } from "../config";
 import * as Request from "request-promise-native";
 import { ITwitchChatList } from "src/models/twitchApi";
 import UserService from "./userService";
+
+const config: IConfig = (c as unknown) as IConfig;
 
 @injectable()
 export class TwitchService {

@@ -1,6 +1,9 @@
 import * as Winston from "winston";
 const { combine, timestamp, label, prettyPrint } = Winston.format;
-import config = require("./config.json");
+import * as c from "./config.json";
+import { IConfig } from "./config";
+
+const config: IConfig = (c as unknown) as IConfig;
 
 export enum LogType {
     Command = "Command",
@@ -51,10 +54,7 @@ export class Logger {
      * @param obj Imported json object
      * @param key Key to get from the json object
      */
-    private static isEnabledLogKey<T extends object>(
-        obj: T,
-        key: keyof any
-    ): key is keyof T {
+    private static isEnabledLogKey<T extends object>(obj: T, key: keyof any): key is keyof T {
         return key in obj;
     }
 
@@ -64,11 +64,7 @@ export class Logger {
      * @param level The log severity.
      * @param message Message to log. Can also be an Error object.
      */
-    private static log(
-        type: LogType,
-        level: LogLevel,
-        message: string | Error
-    ) {
+    private static log(type: LogType, level: LogLevel, message: string | Error) {
         if (this.logger.has(type) && this.logTypeEnabled(type)) {
             const logger = this.logger.get(type) as Winston.Logger;
             if (typeof message === "string" || message instanceof String) {
@@ -122,10 +118,7 @@ export class Logger {
      */
     private static setupLoggers() {
         Object.keys(LogType).forEach((val) => {
-            this.logger.set(
-                val as LogType,
-                this.setupCommandLogger(val as LogType)
-            );
+            this.logger.set(val as LogType, this.setupCommandLogger(val as LogType));
         });
     }
 
@@ -147,9 +140,7 @@ export class Logger {
         return options;
     }
 
-    private static setLogLevels(
-        options: Winston.LoggerOptions
-    ): Winston.LoggerOptions {
+    private static setLogLevels(options: Winston.LoggerOptions): Winston.LoggerOptions {
         if (!config.log.levels || config.log.levels === "syslog") {
             options.levels = Winston.config.syslog.levels;
         } else if (config.log.levels === "npm") {
@@ -158,29 +149,15 @@ export class Logger {
         return options;
     }
 
-    private static setLogFormat(
-        options: Winston.LoggerOptions,
-        type: LogType
-    ): Winston.LoggerOptions {
-        options.format = combine(
-            label({ label: type }),
-            timestamp(),
-            prettyPrint({ colorize: true })
-        );
+    private static setLogFormat(options: Winston.LoggerOptions, type: LogType): Winston.LoggerOptions {
+        options.format = combine(label({ label: type }), timestamp(), prettyPrint({ colorize: true }));
 
         return options;
     }
 
-    private static setLogTransports(
-        options: Winston.LoggerOptions,
-        type: LogType
-    ): Winston.LoggerOptions {
+    private static setLogTransports(options: Winston.LoggerOptions, type: LogType): Winston.LoggerOptions {
         // Different format for files as colorize adds unicode characters
-        const fileFormat = combine(
-            label({ label: type }),
-            timestamp(),
-            prettyPrint({ colorize: false })
-        );
+        const fileFormat = combine(label({ label: type }), timestamp(), prettyPrint({ colorize: false }));
 
         options.transports = [
             new Winston.transports.Console({

@@ -1,14 +1,17 @@
 import * as Crypto from "crypto";
-import * as Config from "../config.json";
+import * as c from "../config.json";
+import { IConfig } from "../config";
 import { verify } from "jsonwebtoken";
 import { CertSigningKey, RsaSigningKey } from "jwks-rsa";
 import * as jwks from "jwks-rsa";
 import { ITwitchIDToken } from "../models/twitchApi";
 import Constants from "../constants";
 
+const config: IConfig = (c as unknown) as IConfig;
+
 export class CryptoHelper {
     private static algorithm: string = "aes-256-cbc";
-    private static secret: string = Config.secret_key;
+    private static secret: string = config.secretKey;
     private static nonceSize: number = 16;
     private static keySize: number = 32;
     private static pbkdf2SaltSize: number = 16;
@@ -92,7 +95,7 @@ export class CryptoHelper {
                     reject(err);
                 } else {
                     const parsedToken = decoded as ITwitchIDToken;
-                    if (parsedToken.aud !== Config.twitch.client_id && parsedToken.nonce !== nonce) {
+                    if (parsedToken.aud !== config.twitch.clientId && parsedToken.nonce !== nonce) {
                         reject("ID Token failed verification.");
                     } else {
                         resolve(decoded as ITwitchIDToken);
