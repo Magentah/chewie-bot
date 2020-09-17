@@ -45,7 +45,7 @@ jobs:
           remote_host: ${{ secrets.sshHost }}
           remote_user: ${{ secrets.sshUsername }}
           ssh_private_key: ${{ secrets.sshKey }}
-          source: "server/**/*, client/**/*"
+          source: ""
           target: "chewiebot"          
 
       - name: Run SSH command
