@@ -58,7 +58,7 @@ jobs:
           # Hostname or IP address of the server.
           host: ${{ secrets.sshHost }}
           # Username for authentication.
-          username: ${{ secrets.sshUsername
+          username: ${{ secrets.sshUsername }}
           # port:
           # File Location or string that contains a private key for either key-based or hostbased user authentication (OpenSSH format)
           privateKey: ${{ secrets.sshKey }}
