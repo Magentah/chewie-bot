@@ -1,7 +1,7 @@
-import { inject, injectable } from 'inversify';
-import DatabaseService, { Tables } from '../services/databaseService';
-import Logger, { LogType } from '../logger';
-import { IUserLevel } from './../models/userLevel';
+import { inject, injectable } from "inversify";
+import DatabaseService, { Tables } from "../services/databaseService";
+import Logger, { LogType } from "../logger";
+import { IUserLevel } from "./../models/userLevel";
 
 @injectable()
 export class UserLevelsRepository {
@@ -10,7 +10,10 @@ export class UserLevelsRepository {
     }
 
     public async get(name: string): Promise<IUserLevel> {
-        Logger.info(LogType.Database, this.databaseService.getQueryBuilder(Tables.UserLevels).first().where({ name }).toSQL().sql);
+        Logger.info(
+            LogType.Database,
+            this.databaseService.getQueryBuilder(Tables.UserLevels).first().where({ name }).toSQL().sql
+        );
         const userLevel = await this.databaseService.getQueryBuilder(Tables.UserLevels).first().where({ name });
         return userLevel as IUserLevel;
     }

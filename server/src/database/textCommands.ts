@@ -1,6 +1,6 @@
-import { inject, injectable } from 'inversify';
-import DatabaseService, { Tables } from '../services/databaseService';
-import { ITextCommand } from '../models/textCommand';
+import { inject, injectable } from "inversify";
+import DatabaseService, { Tables } from "../services/databaseService";
+import { ITextCommand } from "../models/textCommand";
 
 @injectable()
 export class TextCommandsRepository {
@@ -9,7 +9,10 @@ export class TextCommandsRepository {
     }
 
     public async get(commandName: string): Promise<ITextCommand> {
-        const userLevel = await this.databaseService.getQueryBuilder(Tables.TextCommands).first().where({ commandName });
+        const userLevel = await this.databaseService
+            .getQueryBuilder(Tables.TextCommands)
+            .first()
+            .where({ commandName });
         return userLevel as ITextCommand;
     }
 
@@ -21,15 +24,21 @@ export class TextCommandsRepository {
     public async update(command: ITextCommand): Promise<void>;
     public async update(commandName: string, message: string): Promise<void>;
     public async update(command: any, message?: string): Promise<void> {
-        if (message && typeof command === 'string') {
-            await this.databaseService.getQueryBuilder(Tables.TextCommands).update({ message }).where({ commandName: command });
+        if (message && typeof command === "string") {
+            await this.databaseService
+                .getQueryBuilder(Tables.TextCommands)
+                .update({ message })
+                .where({ commandName: command });
         } else {
-            await this.databaseService.getQueryBuilder(Tables.TextCommands).update({ command }).where({ id: command.id });
+            await this.databaseService
+                .getQueryBuilder(Tables.TextCommands)
+                .update({ command })
+                .where({ id: command.id });
         }
     }
 
     public async delete(command: ITextCommand | string): Promise<boolean> {
-        if (typeof command === 'string') {
+        if (typeof command === "string") {
             const toDelete = await this.get(command);
             if (toDelete) {
                 await this.databaseService.getQueryBuilder(Tables.TextCommands).delete().where({ id: toDelete.id });

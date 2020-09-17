@@ -1,6 +1,6 @@
-import { inject, injectable } from 'inversify';
-import DatabaseService, { Tables } from '../services/databaseService';
-import { IVIPLevel } from './../models/vipLevel';
+import { inject, injectable } from "inversify";
+import DatabaseService, { Tables } from "../services/databaseService";
+import { IVIPLevel } from "./../models/vipLevel";
 
 @injectable()
 export class VIPLevelsRepository {

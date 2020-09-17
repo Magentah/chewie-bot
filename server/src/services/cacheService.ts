@@ -1,6 +1,6 @@
-import { injectable } from 'inversify';
-import * as NodeCache from 'node-cache';
-import { Logger, LogType } from '../logger';
+import { injectable } from "inversify";
+import * as NodeCache from "node-cache";
+import { Logger, LogType } from "../logger";
 
 export enum CacheType {
     OAuth,
@@ -12,7 +12,14 @@ export class CacheService {
 
     constructor() {
         this.caches = new Map();
-        this.caches.set(CacheType.OAuth, new NodeCache({ stdTTL: 60, deleteOnExpire: true, checkperiod: 600 }));
+        this.caches.set(
+            CacheType.OAuth,
+            new NodeCache({
+                stdTTL: 60,
+                deleteOnExpire: true,
+                checkperiod: 600,
+            })
+        );
     }
 
     public set(cacheType: CacheType, key: any, value: any) {

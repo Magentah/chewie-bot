@@ -1,19 +1,23 @@
-import { injectable, inject } from 'inversify';
-import { Command } from '../commands/command';
-import TwitchChatParser from '../helpers/twitchChatParser';
-import CommandNotExistError from '../errors/commandNotExist';
-import CommandInternalError from '../errors/commandInternal';
-import { Logger, LogType } from '../logger';
-import * as Commands from '../commands/commandScripts';
-import TextCommandsRepository from '../database/textCommands';
-import { IUser } from '../models/user';
-import UserService from './userService';
+import { injectable, inject } from "inversify";
+import { Command } from "../commands/command";
+import TwitchChatParser from "../helpers/twitchChatParser";
+import CommandNotExistError from "../errors/commandNotExist";
+import CommandInternalError from "../errors/commandInternal";
+import { Logger, LogType } from "../logger";
+import * as Commands from "../commands/commandScripts";
+import TextCommandsRepository from "../database/textCommands";
+import { IUser } from "../models/user";
+import UserService from "./userService";
 
 @injectable()
 export class CommandService {
     private commands: Map<string, Command>;
 
-    constructor(@inject(TextCommandsRepository) private textCommands: TextCommandsRepository, @inject(UserService) private users: UserService) {
+    constructor(
+        @inject(TextCommandsRepository)
+        private textCommands: TextCommandsRepository,
+        @inject(UserService) private users: UserService
+    ) {
         this.commands = new Map<string, Command>();
         this.findCommands();
     }
@@ -23,7 +27,7 @@ export class CommandService {
      */
     private findCommands(): void {
         Object.keys(Commands).forEach((val, index) => {
-            const commandName = val.substr(0, val.toLowerCase().indexOf('command'));
+            const commandName = val.substr(0, val.toLowerCase().indexOf("command"));
             const command = new (Object.values(Commands)[index])();
             this.commands.set(commandName.toLowerCase(), command);
         });
@@ -41,15 +45,17 @@ export class CommandService {
             if (command && !command.isInternal()) {
                 command.execute(channel, user, ...args);
             } else if (command && command.isInternal()) {
-                throw new CommandInternalError(`The command ${command} is an internal command that has been called through a chat command.`);
+                throw new CommandInternalError(
+                    `The command ${command} is an internal command that has been called through a chat command.`
+                );
             } else {
                 throw new CommandNotExistError(`The command ${command} doesn't exist.`);
             }
         } else {
             const textCommand = await this.textCommands.get(commandName);
             if (textCommand) {
-                if (this.commands.has('text')) {
-                    const command = this.commands.get('text') as Command;
+                if (this.commands.has("text")) {
+                    const command = this.commands.get("text") as Command;
                     command.execute(channel, user, textCommand.message);
                 }
             }

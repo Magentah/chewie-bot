@@ -1,6 +1,6 @@
-import { inject, injectable } from 'inversify';
-import DatabaseService, { Tables } from '../services/databaseService';
-import { IDonation } from '../models/donation';
+import { inject, injectable } from "inversify";
+import DatabaseService, { Tables } from "../services/databaseService";
+import { IDonation } from "../models/donation";
 
 @injectable()
 export class DonationsRepository {

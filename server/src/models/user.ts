@@ -1,5 +1,5 @@
-import { IUserLevel } from './userLevel';
-import { IVIPLevel } from './vipLevel';
+import { IUserLevel } from "./userLevel";
+import { IVIPLevel } from "./vipLevel";
 
 export interface IUser {
     id?: number;

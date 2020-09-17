@@ -1,8 +1,8 @@
-import { Command } from '../command';
-import TextCommandsRepository from './../../database/textCommands';
-import TwitchService from './../../services/twitchService';
-import { BotContainer } from '../../inversify.config';
-import { IUser } from '../../models/user';
+import { Command } from "../command";
+import TextCommandsRepository from "./../../database/textCommands";
+import TwitchService from "./../../services/twitchService";
+import { BotContainer } from "../../inversify.config";
+import { IUser } from "../../models/user";
 
 export class DelCmdCommand extends Command {
     constructor() {

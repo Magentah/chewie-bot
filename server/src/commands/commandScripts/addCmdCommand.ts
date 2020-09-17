@@ -1,17 +1,19 @@
-import { Command } from '../command';
-import TextCommandsRepository from './../../database/textCommands';
-import TwitchService from './../../services/twitchService';
-import { BotContainer } from '../../inversify.config';
-import { IUser } from '../../models/user';
-import UserLevelsRepository from '../../database/userLevelsRepository';
+import { Command } from "../command";
+import TextCommandsRepository from "./../../database/textCommands";
+import TwitchService from "./../../services/twitchService";
+import { BotContainer } from "../../inversify.config";
+import { IUser } from "../../models/user";
+import UserLevelsRepository from "../../database/userLevelsRepository";
 
 export class AddCmdCommand extends Command {
     constructor() {
         super();
         // TODO: make userlevels constants
-        BotContainer.get(UserLevelsRepository).get('Broadcaster').then((userLevel) => {
-            this.minimumUserLevel = userLevel;
-        });
+        BotContainer.get(UserLevelsRepository)
+            .get("Broadcaster")
+            .then((userLevel) => {
+                this.minimumUserLevel = userLevel;
+            });
     }
 
     public async execute(channel: string, user: IUser, commandName: string, message: string): Promise<void> {

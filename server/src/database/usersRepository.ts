@@ -1,7 +1,7 @@
-import { inject, injectable } from 'inversify';
-import { DatabaseService, Tables } from '../services/databaseService';
-import { Logger, LogType } from '../logger';
-import { IUser } from '../models/user';
+import { inject, injectable } from "inversify";
+import { DatabaseService, Tables } from "../services/databaseService";
+import { Logger, LogType } from "../logger";
+import { IUser } from "../models/user";
 
 @injectable()
 export class UsersRepository {
@@ -14,14 +14,26 @@ export class UsersRepository {
      * @param username Username of the user to get
      */
     public async get(username: string): Promise<IUser> {
-        Logger.info(LogType.Database, this.databaseService.getQueryBuilder(Tables.Users).first().where({ username }).toSQL().sql);
+        Logger.info(
+            LogType.Database,
+            this.databaseService.getQueryBuilder(Tables.Users).first().where({ username }).toSQL().sql
+        );
 
         // TODO: Fix this so that it's not 3 queries to get a single user... Raw sql is easy but I'm not sure about how to make the join work correctly
         // using knex yet.
-        const user = await this.databaseService.getQueryBuilder(Tables.Users).first().where('username', 'like', username);
+        const user = await this.databaseService
+            .getQueryBuilder(Tables.Users)
+            .first()
+            .where("username", "like", username);
         if (user) {
-            const userLevel = await this.databaseService.getQueryBuilder(Tables.UserLevels).first().where({ id: user.userLevelKey });
-            const vipLevel = await this.databaseService.getQueryBuilder(Tables.VIPLevels).first().where({ id: user.vipLevelKey });
+            const userLevel = await this.databaseService
+                .getQueryBuilder(Tables.UserLevels)
+                .first()
+                .where({ id: user.userLevelKey });
+            const vipLevel = await this.databaseService
+                .getQueryBuilder(Tables.VIPLevels)
+                .first()
+                .where({ id: user.vipLevelKey });
             user.userLevel = userLevel;
             user.vipLevel = vipLevel;
         }
@@ -34,8 +46,11 @@ export class UsersRepository {
      * @param user Updated user
      */
     public async update(user: IUser): Promise<void> {
-        Logger.debug(LogType.Database, this.databaseService.getQueryBuilder(Tables.Users).update(user).where({ id: user.id }).toSQL().sql);
-        if (!await this.userExists(user)) {
+        Logger.debug(
+            LogType.Database,
+            this.databaseService.getQueryBuilder(Tables.Users).update(user).where({ id: user.id }).toSQL().sql
+        );
+        if (!(await this.userExists(user))) {
             return;
         }
 
@@ -69,7 +84,10 @@ export class UsersRepository {
                 return true;
             }
         } else {
-            const result = await this.databaseService.getQueryBuilder(Tables.Users).first().where('username', 'like', user.username);
+            const result = await this.databaseService
+                .getQueryBuilder(Tables.Users)
+                .first()
+                .where("username", "like", user.username);
             if (result) {
                 return true;
             }

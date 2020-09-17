@@ -1,4 +1,4 @@
-import moment = require('moment');
+import moment = require("moment");
 
 export interface ISong {
     id: number;

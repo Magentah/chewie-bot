@@ -1,27 +1,28 @@
-import { Logger, LogType } from '../logger';
-import Constants from './../constants';
-import { injectable, inject } from 'inversify';
-import * as Request from 'request-promise-native';
-import { CacheService, CacheType } from './cacheService';
-import config = require('./../config.json');
-import CryptoHelper from '../helpers/cryptoHelper';
-import { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchUser } from '../models/twitchApi';
-import UserLevelsRepository from '../database/userLevelsRepository';
-import VIPLevelsRepository from '../database/vipLevels';
-import { IUserLevel } from '../models/userLevel';
-import UserService from './userService';
+import { Logger, LogType } from "../logger";
+import Constants from "./../constants";
+import { injectable, inject } from "inversify";
+import * as Request from "request-promise-native";
+import { CacheService, CacheType } from "./cacheService";
+import config = require("./../config.json");
+import CryptoHelper from "../helpers/cryptoHelper";
+import { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchUser } from "../models/twitchApi";
+import UserLevelsRepository from "../database/userLevelsRepository";
+import VIPLevelsRepository from "../database/vipLevels";
+import { IUserLevel } from "../models/userLevel";
+import UserService from "./userService";
 
 // Twitch OAuth is for logging in users through the front end. For the chatbot oauth, we should be using https://twitchapps.com/tmi/ with the bot account login.
 @injectable()
 class OAuthService {
     // Populated immediately after authenticating with Twitch
-    private nonce: string = '';
+    private nonce: string = "";
 
     constructor(
         @inject(UserService) private users: UserService,
         @inject(UserLevelsRepository) private userLevels: UserLevelsRepository,
         @inject(VIPLevelsRepository) private vipLevels: VIPLevelsRepository,
-        @inject(CacheService) private cacheService: CacheService) {
+        @inject(CacheService) private cacheService: CacheService
+    ) {
         // Empty
     }
 
@@ -32,13 +33,13 @@ class OAuthService {
     public async getTwitchAuthToken(authResponse: ITwitchRedirectResponse): Promise<ITwitchUser> {
         return new Promise<ITwitchUser>(async (resolve, reject) => {
             const options = {
-                method: 'POST',
-                uri: 'https://id.twitch.tv/oauth2/token',
+                method: "POST",
+                uri: "https://id.twitch.tv/oauth2/token",
                 qs: {
                     client_id: config.twitch.client_id,
                     client_secret: config.twitch.client_secret,
                     code: authResponse.code,
-                    grant_type: 'authorization_code',
+                    grant_type: "authorization_code",
                     redirect_uri: config.twitch.redirect_uri,
                     nonce: this.nonce,
                 },
@@ -47,18 +48,18 @@ class OAuthService {
 
             try {
                 const response = await Request(options);
-                if (response.nonce.replace(new RegExp(' ', 'g'), '+') === this.nonce) {
+                if (response.nonce.replace(new RegExp(" ", "g"), "+") === this.nonce) {
                     const twitchAuth = await this.saveTwitchAuth(response, this.nonce);
-                    this.nonce = '';
+                    this.nonce = "";
                     resolve(twitchAuth);
                 } else {
                     Logger.err(LogType.OAuth, `Nonce did not match. Expected: ${this.nonce} -- Got: ${response.nonce}`);
-                    this.nonce = '';
+                    this.nonce = "";
                     reject(`Nonce did not match.`);
                 }
             } catch (err) {
                 Logger.err(LogType.OAuth, err);
-                this.nonce = '';
+                this.nonce = "";
                 reject(err);
             }
         });
@@ -69,7 +70,7 @@ class OAuthService {
      * @param {string} username The username to refresh the access token for.
      */
     public async refreshTwitchToken(username: string): Promise<string> {
-        Logger.info(LogType.OAuth, 'Refreshing Twitch.tv OAuth token.');
+        Logger.info(LogType.OAuth, "Refreshing Twitch.tv OAuth token.");
 
         try {
             // Get refresh token from test database. Only a single user in single table, so just select everything.
@@ -78,12 +79,12 @@ class OAuthService {
             if (user.refreshToken && user.hasLogin) {
                 const refreshToken = CryptoHelper.decryptString(user.refreshToken);
                 const options = {
-                    method: 'POST',
+                    method: "POST",
                     url: `https://id.twitch.tv/oauth2/token`,
                     form: {
                         client_id: config.twitch.client_id,
                         client_secret: config.twitch.client_secret,
-                        grant_type: 'refresh_token',
+                        grant_type: "refresh_token",
                         refresh_token: refreshToken,
                     },
                 };
@@ -95,7 +96,11 @@ class OAuthService {
                 await this.users.updateUser(user);
 
                 // Cache the access token. Default set to 60s TTL. We should be using the refresh token to get a new access token every 30-60s.
-                this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${username}`, refreshResponse.access_token);
+                this.cacheService.set(
+                    CacheType.OAuth,
+                    `${Constants.TwitchCacheAccessToken}.${username}`,
+                    refreshResponse.access_token
+                );
                 return refreshResponse.access_token;
             } else {
                 throw new Error(`${username} does not have OAuth credentials`);
@@ -111,13 +116,13 @@ class OAuthService {
      * @param {string} username The username to verify the OAuth token for.
      */
     public async verifyTwitchOauth(username: string): Promise<boolean> {
-        Logger.info(LogType.OAuth, 'Verifying OAuth token');
+        Logger.info(LogType.OAuth, "Verifying OAuth token");
 
         try {
             const accessToken = await this.getTwitchAccessToken(username);
             const options = {
-                method: 'GET',
-                uri: 'https://id.twitch.tv/oauth2/validate',
+                method: "GET",
+                uri: "https://id.twitch.tv/oauth2/validate",
                 headers: {
                     Authorization: `OAuth ${accessToken}`,
                 },
@@ -125,7 +130,7 @@ class OAuthService {
             };
 
             const validateResponse = await Request(options);
-            return true;    // If request is successful, verification was a success
+            return true; // If request is successful, verification was a success
         } catch (err) {
             Logger.err(LogType.OAuth, err);
             return false;
@@ -142,13 +147,13 @@ class OAuthService {
         }
 
         const TwitchAuthURL =
-            `${Constants.TwitchAuthUrl}?`
-            + `client_id=${config.twitch.client_id}&`
-            + `redirect_uri=${config.twitch.redirect_uri}&`
-            + `response_type=code&`
-            + `scope=${Constants.TwitchScopes}&`
-            + `claims=${Constants.TwitchClaims}&`
-            + `nonce=${this.nonce}`;
+            `${Constants.TwitchAuthUrl}?` +
+            `client_id=${config.twitch.client_id}&` +
+            `redirect_uri=${config.twitch.redirect_uri}&` +
+            `response_type=code&` +
+            `scope=${Constants.TwitchScopes}&` +
+            `claims=${Constants.TwitchClaims}&` +
+            `nonce=${this.nonce}`;
         return TwitchAuthURL;
     }
 
@@ -170,12 +175,12 @@ class OAuthService {
                 } else {
                     // hacky for now
                     let userLevel: IUserLevel;
-                    if (idToken.preferred_username.toLowerCase() === 'magentafall') {
-                        userLevel = await this.userLevels.get('Broadcaster');
+                    if (idToken.preferred_username.toLowerCase() === "magentafall") {
+                        userLevel = await this.userLevels.get("Broadcaster");
                     } else {
-                        userLevel = await this.userLevels.get('Viewer');   // TODO: Change to constant
+                        userLevel = await this.userLevels.get("Viewer"); // TODO: Change to constant
                     }
-                    const vipLevel = await this.vipLevels.get('None');  // TODO: Change to constant
+                    const vipLevel = await this.vipLevels.get("None"); // TODO: Change to constant
                     user = {
                         username: idToken.preferred_username,
                         idToken: idToken.sub,
@@ -188,12 +193,15 @@ class OAuthService {
                     };
                     await this.users.addUser(user);
                 }
-                this.cacheService.set(CacheType.OAuth, `${Constants.TwitchCacheAccessToken}.${idToken.preferred_username}`, twitchAuth.access_token);
+                this.cacheService.set(
+                    CacheType.OAuth,
+                    `${Constants.TwitchCacheAccessToken}.${idToken.preferred_username}`,
+                    twitchAuth.access_token
+                );
                 resolve({
                     id: idToken.sub,
                     username: idToken.preferred_username,
                 });
-
             } catch (err) {
                 Logger.err(LogType.OAuth, err);
                 reject(err);

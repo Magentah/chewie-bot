@@ -1,11 +1,11 @@
-import { injectable } from 'inversify';
-import * as Request from 'request-promise-native';
-import config = require('./../config.json');
-import Constants from '../constants';
-import { IYoutubeSong, IYoutubeVideoListResponse } from '../models/youtubeApiResult';
-import APIResponseParser from '../helpers/apiResponseParser';
-import * as moment from 'moment';
-import Logger, { LogType } from '../logger';
+import { injectable } from "inversify";
+import * as Request from "request-promise-native";
+import config = require("./../config.json");
+import Constants from "../constants";
+import { IYoutubeSong, IYoutubeVideoListResponse } from "../models/youtubeApiResult";
+import APIResponseParser from "../helpers/apiResponseParser";
+import * as moment from "moment";
+import Logger, { LogType } from "../logger";
 
 @injectable()
 export class YoutubeService {
@@ -13,10 +13,10 @@ export class YoutubeService {
 
     public async getSongDetails(id: string): Promise<IYoutubeSong | undefined> {
         const options = {
-            method: 'GET',
+            method: "GET",
             url: Constants.YoutubeVideoUrl,
             qs: {
-                part: 'contentDetails,snippet',
+                part: "contentDetails,snippet",
                 id,
                 key: this.apiKey,
             },

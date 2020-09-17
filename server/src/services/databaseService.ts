@@ -1,31 +1,31 @@
-import config = require('./../config.json');
-import { Logger, LogType } from '../logger';
-import { injectable } from 'inversify';
-import * as knex from 'knex';
-import { response } from 'express';
+import config = require("./../config.json");
+import { Logger, LogType } from "../logger";
+import { injectable } from "inversify";
+import * as knex from "knex";
+import { response } from "express";
 
 export enum Tables {
-    Users = 'users',
-    UserLevels = 'userLevels',
-    TextCommands = 'textCommands',
-    Quotes = 'quotes',
-    Donations = 'donations',
-    DonationTypes = 'donationTypes',
-    VIPLevels = 'vipLevels',
+    Users = "users",
+    UserLevels = "userLevels",
+    TextCommands = "textCommands",
+    Quotes = "quotes",
+    Donations = "donations",
+    DonationTypes = "donationTypes",
+    VIPLevels = "vipLevels",
 }
 
 @injectable()
 export class DatabaseService {
-    private readonly UNDEFINED_DATABASE = 'Database has not been initialized.';
+    private readonly UNDEFINED_DATABASE = "Database has not been initialized.";
 
     private dbConfig: knex.Config = {
-        client: 'sqlite',
+        client: "sqlite",
         connection: {
             filename: config.database.path,
         },
         debug: true,
         migrations: {
-            tableName: 'migrations',
+            tableName: "migrations",
         },
         useNullAsDefault: true,
         log: {
@@ -48,7 +48,7 @@ export class DatabaseService {
     private isInit: boolean = false;
 
     public async initDatabase(): Promise<void> {
-        Logger.info(LogType.Database, 'Creating database tables');
+        Logger.info(LogType.Database, "Creating database tables");
         await this.createUserLevelTable();
         await this.createVIPLevelTable();
         await this.createUserTable();
@@ -68,9 +68,9 @@ export class DatabaseService {
             if (!hasUserLevelTable) {
                 Logger.info(LogType.Database, `${Tables.UserLevels} being created.`);
                 await this.db.schema.createTable(Tables.UserLevels, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.string('name').notNullable().unique();
-                    table.integer('rank').notNullable();
+                    table.increments("id").primary().notNullable();
+                    table.string("name").notNullable().unique();
+                    table.integer("rank").notNullable();
                     Logger.info(LogType.Database, `${Tables.UserLevels} table created.`);
                     resolve();
                 });
@@ -86,9 +86,9 @@ export class DatabaseService {
             if (!hasVIPLevelTable) {
                 Logger.info(LogType.Database, `${Tables.VIPLevels} being created.`);
                 await this.db.schema.createTable(Tables.VIPLevels, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.string('name').notNullable().unique();
-                    table.integer('rank').notNullable();
+                    table.increments("id").primary().notNullable();
+                    table.string("name").notNullable().unique();
+                    table.integer("rank").notNullable();
                     Logger.info(LogType.Database, `${Tables.VIPLevels} table created.`);
                     resolve();
                 });
@@ -104,17 +104,17 @@ export class DatabaseService {
             if (!hasUserTable) {
                 Logger.info(LogType.Database, `${Tables.Users} being created.`);
                 await this.db.schema.createTable(Tables.Users, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.integer('vipLevelKey').unsigned();
-                    table.foreign('vipLevelKey').references(`${Tables.VIPLevels}.id`);
-                    table.integer('userLevelKey').unsigned();
-                    table.foreign('userLevelKey').references(`${Tables.UserLevels}.id`);
-                    table.string('username').notNullable().unique();
-                    table.string('refreshToken').unique();
-                    table.string('idToken').unique();
-                    table.decimal('points').notNullable();
-                    table.dateTime('vipExpiry');
-                    table.boolean('hasLogin').notNullable();
+                    table.increments("id").primary().notNullable();
+                    table.integer("vipLevelKey").unsigned();
+                    table.foreign("vipLevelKey").references(`${Tables.VIPLevels}.id`);
+                    table.integer("userLevelKey").unsigned();
+                    table.foreign("userLevelKey").references(`${Tables.UserLevels}.id`);
+                    table.string("username").notNullable().unique();
+                    table.string("refreshToken").unique();
+                    table.string("idToken").unique();
+                    table.decimal("points").notNullable();
+                    table.dateTime("vipExpiry");
+                    table.boolean("hasLogin").notNullable();
                     Logger.info(LogType.Database, `${Tables.Users} table created.`);
                     resolve();
                 });
@@ -130,11 +130,11 @@ export class DatabaseService {
             if (!hasTextCommandsTable) {
                 Logger.info(LogType.Database, `${Tables.TextCommands} being created.`);
                 await this.db.schema.createTable(Tables.TextCommands, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.string('commandName').notNullable();
-                    table.string('message').notNullable();
-                    table.integer('minimumUserLevelKey').unsigned();
-                    table.foreign('minimumUserLevelKey').references(`${Tables.UserLevels}.id`);
+                    table.increments("id").primary().notNullable();
+                    table.string("commandName").notNullable();
+                    table.string("message").notNullable();
+                    table.integer("minimumUserLevelKey").unsigned();
+                    table.foreign("minimumUserLevelKey").references(`${Tables.UserLevels}.id`);
                     Logger.info(LogType.Database, `${Tables.TextCommands} table created.`);
                     resolve();
                 });
@@ -150,12 +150,12 @@ export class DatabaseService {
             if (!hasDonationsTable) {
                 Logger.info(LogType.Database, `${Tables.Donations} being created.`);
                 await this.db.schema.createTable(Tables.Donations, (table) => {
-                    table.increments('id').primary().notNullable();
-                    table.string('username').notNullable();
-                    table.dateTime('date').notNullable();
-                    table.string('type').notNullable();
-                    table.string('message');
-                    table.decimal('amount').notNullable();
+                    table.increments("id").primary().notNullable();
+                    table.string("username").notNullable();
+                    table.dateTime("date").notNullable();
+                    table.string("type").notNullable();
+                    table.string("message");
+                    table.decimal("amount").notNullable();
                     Logger.info(LogType.Database, `${Tables.Donations} table created.`);
                     resolve();
                 });
@@ -170,11 +170,11 @@ export class DatabaseService {
             const userLevelsAdded = await this.db(Tables.UserLevels).select();
             if (userLevelsAdded.length === 0) {
                 const userLevels = [
-                    { name: 'Viewer', rank: 1 },
-                    { name: 'Subscriber', rank: 2 },
-                    { name: 'Moderator', rank: 3 },
-                    { name: 'Bot', rank: 4 },
-                    { name: 'Broadcaster', rank: 5 },
+                    { name: "Viewer", rank: 1 },
+                    { name: "Subscriber", rank: 2 },
+                    { name: "Moderator", rank: 3 },
+                    { name: "Bot", rank: 4 },
+                    { name: "Broadcaster", rank: 5 },
                 ];
                 await this.db(Tables.UserLevels).insert(userLevels);
                 Logger.info(LogType.Database, `${Tables.UserLevels} populated with initial data.`);
@@ -182,10 +182,10 @@ export class DatabaseService {
             const vipLevelsAdded = await this.db(Tables.VIPLevels).select();
             if (vipLevelsAdded.length === 0) {
                 const vipLevels = [
-                    { name: 'None', rank: 1 },
-                    { name: 'Bronze', rank: 2 },
-                    { name: 'Silver', rank: 3 },
-                    { name: 'Gold', rank: 4 },
+                    { name: "None", rank: 1 },
+                    { name: "Bronze", rank: 2 },
+                    { name: "Silver", rank: 3 },
+                    { name: "Gold", rank: 4 },
                 ];
                 await this.db(Tables.VIPLevels).insert(vipLevels);
                 Logger.info(LogType.Database, `${Tables.VIPLevels} populated with initial data.`);

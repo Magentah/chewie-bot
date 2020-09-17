@@ -1,13 +1,13 @@
-import { injectable, inject } from 'inversify';
-import Song, { ISong, SongSource } from '../models/song';
-import YoutubeService from './youtubeService';
-import InvalidSongUrlError from '../errors/invalidSongUrl';
-import Logger, { LogType } from '../logger';
-import { loggers } from 'winston';
+import { injectable, inject } from "inversify";
+import Song, { ISong, SongSource } from "../models/song";
+import YoutubeService from "./youtubeService";
+import InvalidSongUrlError from "../errors/invalidSongUrl";
+import Logger, { LogType } from "../logger";
+import { loggers } from "winston";
 
 @injectable()
 export class SongService {
-    private songQueue: { [key: string ]: Song } = {};
+    private songQueue: { [key: string]: Song } = {};
     private nextSongId: number = 1;
 
     constructor(@inject(YoutubeService) private youtubeService: YoutubeService) {
@@ -15,16 +15,15 @@ export class SongService {
     }
 
     private parseYoutubeUrl(url: string): string | undefined {
-
-        if (url.indexOf('youtu.be') > -1) {
+        if (url.indexOf("youtu.be") > -1) {
             // Short Youtube URL
-            const id = url.slice(url.lastIndexOf('/'), url.indexOf('?'));
+            const id = url.slice(url.lastIndexOf("/"), url.indexOf("?"));
             return id;
-        } else if (url.indexOf('youtube') > -1) {
-            if (url.indexOf('&') > -1) {
-                return url.slice(url.indexOf('?v=') + 3, url.indexOf('&'));
+        } else if (url.indexOf("youtube") > -1) {
+            if (url.indexOf("&") > -1) {
+                return url.slice(url.indexOf("?v=") + 3, url.indexOf("&"));
             } else {
-                return url.slice(url.indexOf('?v=') + 2);
+                return url.slice(url.indexOf("?v=") + 2);
             }
         } else {
             return undefined;
@@ -46,7 +45,7 @@ export class SongService {
             song.sourceId = id;
         } else {
             // Not a youtube url. Parse other urls in future
-            throw new InvalidSongUrlError('URL is not a valid YouTube URL.');
+            throw new InvalidSongUrlError("URL is not a valid YouTube URL.");
         }
 
         song.id = this.nextSongId++;

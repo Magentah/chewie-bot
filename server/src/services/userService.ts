@@ -1,7 +1,7 @@
-import { injectable, inject } from 'inversify';
-import UsersRepository from '../database/usersRepository';
-import { IUser } from '../models/user';
-import { ITwitchChatList } from '../models/twitchApi';
+import { injectable, inject } from "inversify";
+import UsersRepository from "../database/usersRepository";
+import { IUser } from "../models/user";
+import { ITwitchChatList } from "../models/twitchApi";
 
 @injectable()
 export class UserService {
@@ -15,7 +15,7 @@ export class UserService {
      */
     public async addUser(user: string | IUser): Promise<void> {
         let newUser: IUser = {} as IUser;
-        if (typeof user === 'string') {
+        if (typeof user === "string") {
             newUser = {
                 username: user,
                 points: 0,
