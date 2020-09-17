@@ -18,6 +18,7 @@ on:
   push:
     branches:
       - master
+        
 
 env:
   AZURE_WEBAPP_NAME: chewiebot # set this to your application's name
@@ -28,7 +29,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@master
@@ -37,6 +38,19 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "12.x"
+          
+      - name: Update config
+        uses: microsoft/variable-substitution@v1
+        with: 
+          files: './server/src/config.json'
+        env:  
+          twitch.client_id: ${{ secrets.twitchClientId }}
+          twitch.client_secret: ${{ secrets.twitchClientSecret }}
+          twitch.redirect_uri: ${{ secrets.twitchRedirectUri }}
+          twitch.username: ${{ secrets.twitchUsername }}
+          twitch.oauth: ${{ secrets.twitchOauth }}
+          youtube.api: ${{ secrets.youtubeApi }}
+          secretKey: ${{ secrets.botSecretKey }}
 
       - name: npm install, build, and test
         run: |
@@ -48,7 +62,7 @@ jobs:
       - name: "Deploy to Azure Web App"
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "chewiebotserver"
+          app-name: "chewiebot"
           slot-name: "production"
           publish-profile: ${{ secrets.azureWebAppPublishProfile }}
           package: .
