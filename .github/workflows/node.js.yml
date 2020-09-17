@@ -46,25 +46,4 @@ jobs:
           remote_user: ${{ secrets.sshUsername }}
           ssh_private_key: ${{ secrets.sshKey }}
           source: ""
-          target: "chewiebot"          
-
-      - name: Run SSH command
-        # You may pin to the exact commit or the version.
-        # uses: garygrossgarten/github-action-ssh@82be6a0a8f37f042997000728429fd355f2f5dda
-        uses: garygrossgarten/github-action-ssh@v0.5.0
-        with:
-          # Command to execute on the remote server.
-          command: cd server && yarn setup && yarn build
-          # Hostname or IP address of the server.
-          host: ${{ secrets.sshHost }}
-          # Username for authentication.
-          username: ${{ secrets.sshUsername }}
-          # port:
-          # File Location or string that contains a private key for either key-based or hostbased user authentication (OpenSSH format)
-          privateKey: ${{ secrets.sshKey }}
-          # Password for password-based user authentication.
-          #password: # optional
-          # For an encrypted private key, this is the passphrase used to decrypt it.
-          #passphrase: # optional
-          # Try keyboard-interactive user authentication if primary user authentication method fails.
-          #tryKeyboard: # optional
+          target: "chewiebot"
