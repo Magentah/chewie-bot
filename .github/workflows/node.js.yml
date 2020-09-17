@@ -71,7 +71,7 @@ jobs:
             cd chewiebot/server
             yarn setup
             yarn build
-            nohup node dist/start.js > output.log
+            nohup node dist/start.js > output.log &
           hosts: ${{ secrets.sshUsername}}@${{ secrets.sshHost }}
           privateKey: ${{ secrets.sshKey }}
         
