@@ -15,7 +15,10 @@
         "importHelpers": true,
         "resolveJsonModule": true,
         "types": ["node", "reflect-metadata"],
-        "typeRoots": ["node_modules/@types"]
+        "typeRoots": ["node_modules/@types"],
+        "paths": {
+            "tslib": ["node_modules/tslib/tslib.d.ts"]
+        }
     },
     "include": ["./src/**/*.ts"],
     "exclude": ["./src/**/*.test.ts", "./src/client"]

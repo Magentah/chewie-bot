@@ -4,6 +4,7 @@ import TwitchService from "./../../services/twitchService";
 import { BotContainer } from "../../inversify.config";
 import { IUser } from "../../models/user";
 import UserLevelsRepository from "../../database/userLevelsRepository";
+import { IUserLevel } from "src/models/userLevel";
 
 export class AddCmdCommand extends Command {
     constructor() {
@@ -11,7 +12,7 @@ export class AddCmdCommand extends Command {
         // TODO: make userlevels constants
         BotContainer.get(UserLevelsRepository)
             .get("Broadcaster")
-            .then((userLevel) => {
+            .then((userLevel: IUserLevel) => {
                 this.minimumUserLevel = userLevel;
             });
     }
