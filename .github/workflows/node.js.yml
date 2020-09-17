@@ -39,13 +39,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           
-      - name: SSH Execute Commands
+      - name: Kill and Clean
         # You may pin to the exact commit or the version.
         # uses: JimCronqvist/action-ssh@1c03e01b4ac39da814b45cfd2924c2df0ff1396f
         uses: JimCronqvist/action-ssh@0.1.1
         with:
-          # Command(s) to execute on the remote server.
-          command: rm -rf chewiebot
+          # Kill the current server and delete the folder.
+          command: |
+            pkill node
+            rm -rf chewiebot
           # Hostname or IP address of the remote server(s). Separate multiple servers with a blank space. Example: 'user@mydomain.com:22 user@otherdomain.com:2222'
           hosts: ${{ secrets.sshUsername }}@${{ secrets.sshHost }}
           # The private key (id_rsa) content for authenticating to the SSH server(s). Recommended to store it as a GitHub Secret.
@@ -53,7 +55,7 @@ jobs:
           # Used to view all environment variables in the logs, please note that this could expose sensitive data.
           #debug: # optional
           
-      - name: SCP Files
+      - name: SSH Copy Files
         uses: easingthemes/ssh-deploy@v2.1.4
         with:
           remote_host: ${{ secrets.sshHost }}
@@ -62,7 +64,7 @@ jobs:
           source: ""
           target: "chewiebot"
           
-      - name: Yarn Setup and Build
+      - name: Yarn Setup, Build and Start
         uses: JimCronqvist/action-ssh@0.1.1
         with:
           command: |
