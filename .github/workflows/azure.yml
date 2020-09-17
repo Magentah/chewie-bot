@@ -66,8 +66,3 @@ jobs:
           slot-name: "production"
           publish-profile: ${{ secrets.azureWebAppPublishProfile }}
           package: .
-          
-      - name: Start App
-        run: |
-          pushd server
-          yarn start
