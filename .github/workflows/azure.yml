@@ -29,7 +29,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@master
@@ -62,7 +62,12 @@ jobs:
       - name: "Deploy to Azure Web App"
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "chewiebotserver"
+          app-name: "chewiebot"
           slot-name: "production"
           publish-profile: ${{ secrets.azureWebAppPublishProfile }}
           package: .
+          
+      - name: Start App
+        run: |
+          pushd server
+          yarn start
