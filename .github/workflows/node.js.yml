@@ -35,7 +35,7 @@ jobs:
                       cd chewiebot
                       git pull origin master
                       cd server
-                      echo "${{ secrets.chewieBotConfig }}" > config.json
+                      echo "${{ secrets.chewieBotConfig }}" > src/config.json
                       yarn setup-production
                       yarn build
                       pm2 restart chewiebot
