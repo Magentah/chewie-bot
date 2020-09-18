@@ -38,6 +38,11 @@ jobs:
                       yarn setup-production
                       yarn build
                       pm2 restart chewiebot
+                      export TWITCH_CLIENT_ID="${{ secrets.twitchClientId }}"
+                      export TWITCH_CLIENT_SECRET="${{ secrets.twitchClientSecret }}"
+                      export TWITCH_REDIRECT_URI="${{ secrets.twitchRedirectUri }}"
+                      export YOUTUBE_API="${{ secrets.youtubeApi }}"
+                      
                   # Hostname or IP address of the remote server(s). Separate multiple servers with a blank space. Example: 'user@mydomain.com:22 user@otherdomain.com:2222'
                   hosts: ${{ secrets.sshUsername }}@${{ secrets.sshHost }}
                   # The private key (id_rsa) content for authenticating to the SSH server(s). Recommended to store it as a GitHub Secret.
