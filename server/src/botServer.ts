@@ -14,13 +14,11 @@ import TwitchStrategy from "./strategy/twitchStrategy";
 
 import { Logger, LogType } from "./logger";
 import CryptoHelper from "./helpers/cryptoHelper";
-import * as c from "./config.json";
-import { IConfig } from "./config";
 import Constants from "./constants";
 import UserService from "./services/userService";
 import { IUser } from "./models/user";
 
-const config = (c as unknown) as IConfig;
+import Config from "./config";
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
@@ -47,14 +45,14 @@ class BotServer extends Server {
         passport.use(
             new TwitchStrategy(
                 {
-                    clientID: config.twitch.clientId,
-                    clientSecret: config.twitch.clientSecret,
+                    clientID: Config.twitch.clientId,
+                    clientSecret: Config.twitch.clientSecret,
                     authorizationURL: Constants.TwitchAuthUrl,
                     tokenURL: Constants.TwitchTokenUrl,
-                    callbackURL: config.twitch.redirectUri,
+                    callbackURL: Config.twitch.redirectUri,
                     scope: Constants.TwitchScopes.split(" "),
                     customHeaders: {
-                        "Client-ID": config.twitch.clientId,
+                        "Client-ID": Config.twitch.clientId,
                     },
                 },
                 async (

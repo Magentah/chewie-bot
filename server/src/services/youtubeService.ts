@@ -1,18 +1,16 @@
 import { injectable } from "inversify";
 import * as Request from "request-promise-native";
-import * as c from "./../config.json";
-import { IConfig } from "../config";
 import Constants from "../constants";
 import { IYoutubeSong, IYoutubeVideoListResponse } from "../models/youtubeApiResult";
 import APIResponseParser from "../helpers/apiResponseParser";
 import * as moment from "moment";
 import Logger, { LogType } from "../logger";
 
-const config: IConfig = (c as unknown) as IConfig;
+import Config from "../config";
 
 @injectable()
 export class YoutubeService {
-    private apiKey: string = config.youtube.apiKey;
+    private apiKey: string = Config.youtube.apiKey;
 
     public async getSongDetails(id: string): Promise<IYoutubeSong | undefined> {
         const options = {

@@ -3,8 +3,6 @@ import Constants from "./../constants";
 import { injectable, inject } from "inversify";
 import * as Request from "request-promise-native";
 import { CacheService, CacheType } from "./cacheService";
-import * as c from "./../config.json";
-import { IConfig } from "../config";
 import CryptoHelper from "../helpers/cryptoHelper";
 import { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchUser } from "../models/twitchApi";
 import UserLevelsRepository from "../database/userLevelsRepository";
@@ -12,7 +10,7 @@ import VIPLevelsRepository from "../database/vipLevels";
 import { IUserLevel } from "../models/userLevel";
 import UserService from "./userService";
 
-const config: IConfig = (c as unknown) as IConfig;
+import Config from "../config";
 
 // Twitch OAuth is for logging in users through the front end. For the chatbot oauth, we should be using https://twitchapps.com/tmi/ with the bot account login.
 @injectable()
@@ -39,11 +37,11 @@ class OAuthService {
                 method: "POST",
                 uri: "https://id.twitch.tv/oauth2/token",
                 qs: {
-                    client_id: config.twitch.clientId,
-                    client_secret: config.twitch.clientSecret,
+                    client_id: Config.twitch.clientId,
+                    client_secret: Config.twitch.clientSecret,
                     code: authResponse.code,
                     grant_type: "authorization_code",
-                    redirect_uri: config.twitch.redirectUri,
+                    redirect_uri: Config.twitch.redirectUri,
                     nonce: this.nonce,
                 },
                 json: true,
@@ -85,8 +83,8 @@ class OAuthService {
                     method: "POST",
                     url: `https://id.twitch.tv/oauth2/token`,
                     form: {
-                        client_id: config.twitch.clientId,
-                        client_secret: config.twitch.clientSecret,
+                        client_id: Config.twitch.clientId,
+                        client_secret: Config.twitch.clientSecret,
                         grant_type: "refresh_token",
                         refresh_token: refreshToken,
                     },
@@ -151,8 +149,8 @@ class OAuthService {
 
         const TwitchAuthURL =
             `${Constants.TwitchAuthUrl}?` +
-            `client_id=${config.twitch.clientId}&` +
-            `redirect_uri=${config.twitch.redirectUri}&` +
+            `client_id=${Config.twitch.clientId}&` +
+            `redirect_uri=${Config.twitch.redirectUri}&` +
             `response_type=code&` +
             `scope=${Constants.TwitchScopes}&` +
             `claims=${Constants.TwitchClaims}&` +

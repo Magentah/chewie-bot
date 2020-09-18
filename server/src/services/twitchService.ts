@@ -4,12 +4,10 @@ import OAuthService from "./oauthService";
 import CommandService from "./commandService";
 import { Logger, LogType } from "../logger";
 import * as c from "./../config.json";
-import { IConfig } from "../config";
 import * as Request from "request-promise-native";
 import { ITwitchChatList } from "src/models/twitchApi";
 import UserService from "./userService";
-
-const config: IConfig = (c as unknown) as IConfig;
+import Config from "../config";
 
 @injectable()
 export class TwitchService {
@@ -60,10 +58,10 @@ export class TwitchService {
                 secure: true,
             },
             identity: {
-                username: config.twitch.username,
-                password: `${config.twitch.oauth}`,
+                username: Config.twitch.username,
+                password: `${Config.twitch.oauth}`,
             },
-            channels: [`#${config.twitch.username}`],
+            channels: [`#${Config.twitch.username}`],
         };
     }
 

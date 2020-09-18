@@ -1,10 +1,7 @@
-import { IConfig } from "../config";
 import { Logger, LogType } from "../logger";
 import { injectable } from "inversify";
 import * as knex from "knex";
-import * as c from "./../config.json";
-
-const config: IConfig = (c as unknown) as IConfig;
+import Config from "../config";
 
 export enum Tables {
     Users = "users",
@@ -23,10 +20,10 @@ export class DatabaseService {
         // MySQL is used in azure, sqlite for localhost.
         if (this.dbConfig.client === "mysql") {
             this.dbConfig.connection = {
-                host: config.database.connection.host,
-                user: config.database.connection.user,
-                password: config.database.connection.password,
-                database: config.database.connection.name,
+                host: Config.database.connection.host,
+                user: Config.database.connection.user,
+                password: Config.database.connection.password,
+                database: Config.database.connection.name,
             };
         }
 
@@ -34,9 +31,9 @@ export class DatabaseService {
     }
 
     private dbConfig: knex.Config = {
-        client: config.database.client,
+        client: Config.database.client,
         connection: {
-            filename: config.database.connection.name,
+            filename: Config.database.connection.name,
         },
         debug: true,
         migrations: {

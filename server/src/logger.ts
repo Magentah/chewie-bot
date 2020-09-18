@@ -1,9 +1,7 @@
 import * as Winston from "winston";
 const { combine, timestamp, label, prettyPrint } = Winston.format;
 import * as c from "./config.json";
-import { IConfig } from "./config";
-
-const config: IConfig = (c as unknown) as IConfig;
+import Config from "./config";
 
 export enum LogType {
     Command = "Command",
@@ -42,8 +40,8 @@ export class Logger {
      */
     private static logTypeEnabled(type: LogType): boolean {
         const lowerCaseType = type.toLowerCase();
-        if (this.isEnabledLogKey(config.log.enabledLogs, lowerCaseType)) {
-            return config.log.enabledLogs[lowerCaseType];
+        if (this.isEnabledLogKey(Config.log.enabledLogs, lowerCaseType)) {
+            return Config.log.enabledLogs[lowerCaseType];
         } else {
             return false;
         }
@@ -130,7 +128,7 @@ export class Logger {
 
     private static getLogOptions(type: LogType): Winston.LoggerOptions {
         let options: Winston.LoggerOptions = {
-            level: config.log.level,
+            level: Config.log.level,
         };
 
         options = this.setLogLevels(options);
@@ -141,9 +139,9 @@ export class Logger {
     }
 
     private static setLogLevels(options: Winston.LoggerOptions): Winston.LoggerOptions {
-        if (!config.log.levels || config.log.levels === "syslog") {
+        if (!Config.log.levels || Config.log.levels === "syslog") {
             options.levels = Winston.config.syslog.levels;
-        } else if (config.log.levels === "npm") {
+        } else if (Config.log.levels === "npm") {
             options.levels = Winston.config.npm.levels;
         }
         return options;
@@ -165,7 +163,7 @@ export class Logger {
             }),
             new Winston.transports.File({
                 filename: "errors.log",
-                level: config.log.level,
+                level: Config.log.level,
                 format: fileFormat,
             }),
         ];
