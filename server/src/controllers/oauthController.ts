@@ -7,7 +7,7 @@ import { inject } from "inversify";
 import TwitchService from "./../services/twitchService";
 import { ITwitchRedirectResponse } from "../models/twitchApi";
 
-@Controller("api/oauth")
+@Controller("auth/")
 class OAuthController {
     constructor(
         @inject(OAuthService) private oauthService: OAuthService,
@@ -17,7 +17,7 @@ class OAuthController {
     /**
      * Redirect endpoint for Twitch.tv OAuth
      */
-    @Get("twitch/redirect")
+    /*@Get("twitch/redirect")
     private async redirect(req: Request, res: Response) {
         try {
             const authTokenResponse = await this.oauthService.getTwitchAuthToken(
@@ -33,12 +33,12 @@ class OAuthController {
                 message: err.message,
             });
         }
-    }
+    }*/
 
     /**
      * Returns the Twitch.tv OAuth authorize URL for use in the client to redirect, as we can't redirect the client from the server.
      */
-    @Get("twitch")
+    /*@Get("twitch")
     private twitchAuth(req: Request, res: Response) {
         try {
             const authResponse = res.status(OK).json({
@@ -50,7 +50,7 @@ class OAuthController {
                 message: err.message,
             });
         }
-    }
+    }*/
 }
 
 export default OAuthController;

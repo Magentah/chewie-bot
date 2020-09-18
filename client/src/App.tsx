@@ -4,12 +4,6 @@ import "./App.css";
 
 class App extends Component {
     public render() {
-        async function twitchRedirect() {
-            const response = await fetch("/api/oauth/twitch").then((res) => res.json());
-
-            window.location.replace(response.url);
-        }
-
         return (
             <div className="App">
                 <header className="App-header">
@@ -18,9 +12,9 @@ class App extends Component {
                     <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
                         Learn React
                     </a>
-                    <button class-name="App-link" onClick={twitchRedirect}>
+                    <a class-name="App-link" href="/auth/twitch">
                         Connect to Twitch
-                    </button>
+                    </a>
                 </header>
             </div>
         );

@@ -3,8 +3,7 @@
         "clientId": "",
         "clientSecret": "",
         "redirectUri": "",
-        "username": "",
-        "oauth": ""
+        "username": ""
     },
     "youtube": {
         "apiKey": ""

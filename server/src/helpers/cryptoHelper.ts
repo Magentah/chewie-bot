@@ -18,6 +18,10 @@ export class CryptoHelper {
     private static pbkdf2Iterations: number = 32767;
     private static pbkdf2Name: string = "sha256";
 
+    public static generateSecret(): string {
+        return Crypto.randomBytes(this.keySize).toString("base64");
+    }
+
     public static generateNonce(): string {
         return Crypto.randomBytes(this.keySize).toString("base64");
     }

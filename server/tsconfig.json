@@ -16,6 +16,7 @@
         "resolveJsonModule": true,
         "types": ["node", "reflect-metadata"],
         "typeRoots": ["node_modules/@types"],
+        "allowJs": true,
         "paths": {
             "tslib": ["node_modules/tslib/tslib.d.ts"]
         }
