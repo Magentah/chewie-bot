@@ -165,7 +165,7 @@ export class Logger {
             }),
             new Winston.transports.File({
                 filename: "errors.log",
-                level: "error",
+                level: config.log.level,
                 format: fileFormat,
             }),
         ];
