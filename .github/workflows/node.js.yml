@@ -28,10 +28,10 @@ jobs:
             - name: Deploy
               # You may pin to the exact commit or the version.
               # uses: JimCronqvist/action-ssh@1c03e01b4ac39da814b45cfd2924c2df0ff1396f
-              uses: JimCronqvist/action-ssh@0.1.1
+              uses: appleboy/ssh-action@v0.1.3
               with:
                   # Kill the current server and delete the folder.
-                  command: |
+                  script: |
                       export TWITCH_CLIENT_ID="${{ secrets.twitchClientId }}"
                       export TWITCH_CLIENT_SECRET="${{ secrets.twitchClientSecret }}"
                       export TWITCH_REDIRECT_URI="${{ secrets.twitchRedirectUri }}"
@@ -44,8 +44,9 @@ jobs:
                       pm2 restart chewiebot
                       
                   # Hostname or IP address of the remote server(s). Separate multiple servers with a blank space. Example: 'user@mydomain.com:22 user@otherdomain.com:2222'
-                  hosts: ${{ secrets.sshUsername }}@${{ secrets.sshHost }}
+                  host: ${{ secrets.sshHost }}
+                  username: ${{ secrets.sshUsername }}
                   # The private key (id_rsa) content for authenticating to the SSH server(s). Recommended to store it as a GitHub Secret.
-                  privateKey: ${{ secrets.sshKey }}
+                  key: ${{ secrets.sshKey }}
                   # Used to view all environment variables in the logs, please note that this could expose sensitive data.
                   #debug: # optional
