@@ -31,37 +31,14 @@ jobs:
               uses: appleboy/ssh-action@v0.1.3
               with:
                   # Add environment variables if they don't already exist.
-                  script: |
-                      ex -sc '$a
-                      export TWITCH_CLIENT_ID="${{ secrets.twitchClientId }}"
-                      .
-                      $-,$!uniq
-                      x' /etc/environment
-                      
-                      ex -sc '$a
-                      export TWITCH_CLIENT_SECRET="${{ secrets.twitchClientSecret }}"
-                      .
-                      $-,$!uniq
-                      x' /etc/environment
-                      
-                      ex -sc '$a
-                      export TWITCH_REDIRECT_URI="${{ secrets.twitchRedirectUri }}"
-                      .
-                      $-,$!uniq
-                      x' /etc/environment
-                      
-                      ex -sc '$a
-                      export YOUTUBE_API="${{ secrets.youtubeApi }}"
-                      .
-                      $-,$!uniq
-                      x' /etc/environment
-                      
+                  script: |                     
                       cd chewiebot
                       git pull origin master
                       cd server
+                      echo "${{ secrets.chewieBotConfig }}" > config.json
                       yarn setup-production
                       yarn build
-                      pm2 restart chewiebot --env.NODE_ENV="production" --env.TWITCH_CLIENT_ID="${{ secrets.twitchClientId }}" --env.TWITCH_CLIENT_SECRET="${{ secrets.twitchClientSecret }}" --env.TWITCH_REDIRECT_URI="${{ secrets.twitchRedirectUri }}" --env.YOUTUBE_API="${{ secrets.youtubeApi }}" env.SECRET_KEY="${{ secrets.secretKey }}"
+                      pm2 restart chewiebot
                       
                   # Hostname or IP address of the remote server(s). Separate multiple servers with a blank space. Example: 'user@mydomain.com:22 user@otherdomain.com:2222'
                   host: ${{ secrets.sshHost }}
