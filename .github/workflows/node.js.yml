@@ -30,12 +30,32 @@ jobs:
               # uses: JimCronqvist/action-ssh@1c03e01b4ac39da814b45cfd2924c2df0ff1396f
               uses: appleboy/ssh-action@v0.1.3
               with:
-                  # Kill the current server and delete the folder.
+                  # Add environment variables if they don't already exist.
                   script: |
+                      ex -sc '$a
                       export TWITCH_CLIENT_ID="${{ secrets.twitchClientId }}"
+                      .
+                      $-,$!uniq
+                      x' /etc/environment
+                      
+                      ex -sc '$a
                       export TWITCH_CLIENT_SECRET="${{ secrets.twitchClientSecret }}"
+                      .
+                      $-,$!uniq
+                      x' /etc/environment
+                      
+                      ex -sc '$a
                       export TWITCH_REDIRECT_URI="${{ secrets.twitchRedirectUri }}"
+                      .
+                      $-,$!uniq
+                      x' /etc/environment
+                      
+                      ex -sc '$a
                       export YOUTUBE_API="${{ secrets.youtubeApi }}"
+                      .
+                      $-,$!uniq
+                      x' /etc/environment
+                      
                       cd chewiebot
                       git pull origin master
                       cd server
