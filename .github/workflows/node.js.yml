@@ -61,7 +61,7 @@ jobs:
                       cd server
                       yarn setup-production
                       yarn build
-                      pm2 restart chewiebot
+                      pm2 restart chewiebot --env.NODE_ENV="production" --env.TWITCH_CLIENT_ID="${{ secrets.twitchClientId }}" --env.TWITCH_CLIENT_SECRET="${{ secrets.twitchClientSecret }}" --env.TWITCH_REDIRECT_URI="${{ secrets.twitchRedirectUri }}" --env.YOUTUBE_API="${{ secrets.youtubeApi }}" env.SECRET_KEY="${{ secrets.secretKey }}"
                       
                   # Hostname or IP address of the remote server(s). Separate multiple servers with a blank space. Example: 'user@mydomain.com:22 user@otherdomain.com:2222'
                   host: ${{ secrets.sshHost }}
