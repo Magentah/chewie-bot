@@ -18,11 +18,11 @@ class Config {
         Config.database = config.database;
 
         if (process.env.NODE_ENV === "production") {
-            Config.twitch.clientId = process.env.TWITCH_CLIENT_ID ?? "";
-            Config.twitch.clientSecret = process.env.TWITCH_CLIENT_SECRET ?? "";
-            Config.twitch.redirectUri = process.env.TWITCH_REDIRECT_URI ?? "";
-            Config.youtube.apiKey = process.env.YOUTUBE_API ?? "";
-            Config.secretKey = process.env.SECRET_KEY ?? "";
+            Config.twitch.clientId = Config.twitch.clientId || (process.env.TWITCH_CLIENT_ID ?? "");
+            Config.twitch.clientSecret = Config.twitch.clientSecret || (process.env.TWITCH_CLIENT_SECRET ?? "");
+            Config.twitch.redirectUri = Config.twitch.redirectUri || (process.env.TWITCH_REDIRECT_URI ?? "");
+            Config.youtube.apiKey = Config.youtube.apiKey || (process.env.YOUTUBE_API ?? "");
+            Config.secretKey = Config.secretKey || (process.env.SECRET_KEY ?? "");
         }
     }
 }
