@@ -2,6 +2,7 @@ import * as tmi from 'tmi.js';
 import { inject, injectable } from 'inversify';
 import OAuthService from './oauthService';
 import CommandService from './commandService';
+import TwitchChatParser from './../helpers/twitchChatParser';
 import { Logger, LogType } from '../logger';
 import * as config from './../config.json';
 import * as Request from 'request-promise-native';
@@ -33,17 +34,18 @@ export class TwitchService {
      * Get the chat list for a channel.
      * @param channel The channel name to get the chat list for.
      */
-    private async getChatList(channel: string): Promise<void> {
+    private async getAndSetChatList(channel: string): Promise<void> {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
+        const username = TwitchChatParser.channelToUsername(channel);
         const options = {
             method: 'GET',
-            uri: `https://tmi.twitch.tv/group/user/${channel}/chatters`,
+            uri: `https://tmi.twitch.tv/group/user/${username}/chatters`,
             json: true,
         };
 
         const chatList = await Request(options);
         this.channelUserList.set(channel, chatList);
-        this.users.addUsersFromChatList(chatList);
+        this.users.addUAllUsersFromChatList(chatList);
     }
 
     private setupOptions(): tmi.Options {
@@ -128,7 +130,7 @@ export class TwitchService {
             return;
         }
 
-        this.commandService.handleMessage(channel, userstate.usernane, message);
+        this.commandService.handleMessage(channel, userstate.username, message);
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {
@@ -179,8 +181,11 @@ export class TwitchService {
     private joinEventHandler(channel: string, username: string, self: boolean) {
         Logger.info(LogType.Twitch, `JOIN:: ${username}`);
         if (self) {
-            this.getChatList(channel);
+            this.getAndSetChatList(channel);
+        } else {
+            this.users.addUser(username);
         }
+        this.client.say(channel, `hello ${username}!`);
     }
 
     private logonEventHandler() {

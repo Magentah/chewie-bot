@@ -30,6 +30,10 @@ export class TwitchChatParser {
         }
     }
 
+    /** 
+     * Parses command arguements from an arbitrary message
+     * @param message 
+     */
     public static getCommandArgs(message: string): string[] | undefined {
         if (TwitchChatParser.hasCommand(message)) {
             if (message.indexOf(' ') > -1) {
@@ -41,6 +45,18 @@ export class TwitchChatParser {
             }
         }
         return undefined;
+    }
+
+    /** 
+     * Parses channel strings to username string.
+     * @param channel name of channel (e.g #chewiemelodies)
+     * @param channelSymbol channel Postfix
+     */
+    public static channelToUsername(channel: string | undefined, channelSymbol: string = "#"){
+        if (channel && channel.indexOf(channelSymbol) === 0){
+            return channel.slice(1);
+        }
+        return channel;
     }
 }
 
