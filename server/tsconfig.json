@@ -1,0 +1,26 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "module": "commonjs",
+        "strict": true,
+        "baseUrl": "./",
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "sourceMap": true,
+        "removeComments": true,
+        "experimentalDecorators": true,
+        "target": "es6",
+        "emitDecoratorMetadata": true,
+        "moduleResolution": "node",
+        "importHelpers": true,
+        "resolveJsonModule": true,
+        "types": ["node", "reflect-metadata"],
+        "typeRoots": ["node_modules/@types"],
+        "allowJs": true,
+        "paths": {
+            "tslib": ["node_modules/tslib/tslib.d.ts"]
+        }
+    },
+    "include": ["./src/**/*.ts"],
+    "exclude": ["./src/**/*.test.ts", "./src/client"]
+}
