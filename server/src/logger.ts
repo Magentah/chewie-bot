@@ -1,6 +1,5 @@
 import * as Winston from "winston";
 const { combine, timestamp, label, prettyPrint } = Winston.format;
-import * as c from "./config.json";
 import Config from "./config";
 
 export enum LogType {

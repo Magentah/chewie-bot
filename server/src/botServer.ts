@@ -7,8 +7,6 @@ import * as passport from "passport";
 import { BotContainer } from "./inversify.config";
 
 import { Server } from "@overnightjs/core";
-import OAuthService from "./services/oauthService";
-import OAuthController from "./controllers/oauthController";
 import TwitchService from "./services/twitchService";
 import TwitchStrategy from "./strategy/twitchStrategy";
 
@@ -82,7 +80,7 @@ class BotServer extends Server {
     private setupApp(): void {
         const dir = path.join(__dirname, "../../client/build");
 
-        super.addControllers(new OAuthController(BotContainer.get(OAuthService), BotContainer.get(TwitchService)));
+        super.addControllers(BotContainer.get(TwitchService));
 
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
@@ -105,25 +103,12 @@ class BotServer extends Server {
             }
             next();
         });
-        // tslint:disable-next-line: variable-name
         this.app.get("/", (req, res) => {
             res.sendFile("index.html", { root: dir });
         });
         this.app.get("/auth/twitch", passport.authenticate("twitch"));
-        this.app.get(
-            "/auth/twitch/redirect",
-            // tslint:disable-next-line: variable-name
-            passport.authenticate("twitch", { failureRedirect: "/" }),
-            (res, req) => {
-                req.redirect("/");
-            }
-        );
-        this.app.get("/protected", (req, res) => {
-            if (req.user) {
-                res.send("protected");
-            } else {
-                res.send("login");
-            }
+        this.app.get("/auth/twitch/redirect", passport.authenticate("twitch", { failureRedirect: "/" }), (res, req) => {
+            req.redirect("/");
         });
     }
 }

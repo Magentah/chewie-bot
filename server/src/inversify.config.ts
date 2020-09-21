@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import { Container } from "inversify";
-import OAuthService from "./services/oauthService";
 import DatabaseService from "./services/databaseService";
 import TwitchService from "./services/twitchService";
 import CacheService from "./services/cacheService";
@@ -16,7 +15,6 @@ import UserService from "./services/userService";
 
 const botContainer = new Container();
 
-botContainer.bind<OAuthService>(OAuthService).toSelf().inSingletonScope();
 botContainer
     .bind<DatabaseService>(DatabaseService)
     .toSelf()
