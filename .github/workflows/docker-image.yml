@@ -26,7 +26,7 @@ jobs:
         username: ${{ secrets.dockerUsername }}
         password: ${{ secrets.dockerKey }}
         push: true
-        context: ./server
+        path: ./server
         file: ./server/Dockerfile
         tags: ${{ secrets.dockerUsername }}/chewiebot:server-latest
 
@@ -36,6 +36,6 @@ jobs:
         username: ${{ secrets.dockerUsername }}
         password: ${{ secrets.dockerKey }}
         push: true
-        context: ./client
+        path: ./client
         file: ./client/Dockerfile
         tags: ${{ secrets.dockerUsername }}/chewiebot:client-latest
