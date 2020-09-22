@@ -44,7 +44,7 @@ jobs:
         twitch.clientSecret: ${{ secrets.twitchClientSecret }}
         twitch.redirectUri: ${{ secrets.twitchRedirectUri }}
         youtube.apiKey: ${{ secrets.youtubeApi }}
-        secretKey: ${{ secrets.secretKey }}
+        secretKey: ${{ secrets.botSecretKey }}
     - 
       name: Build Server Docker Image
       uses: docker/build-push-action@v2
