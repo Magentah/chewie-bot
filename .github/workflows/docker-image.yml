@@ -78,7 +78,7 @@ jobs:
           key: ${{ secrets.sshKey }}
           port: 22
           source: "docker-compose.yml,docker-compose.prod.yml"
-          target: "/chewiebot"
+          target: "~/chewiebot"
       -  
         name: Docker pull and run
         uses: appleboy/ssh-action@v0.1.3
