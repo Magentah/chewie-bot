@@ -15,14 +15,13 @@ RUN yarn install --prod
 # copy production node_modules aside
 RUN cp -R node_modules prod_node_modules
 # install ALL node_modules, including 'devDependencies'
-# RUN yarn install
+RUN yarn install
 
 
 # --- Typescript ---
-FROM base AS typescript
+FROM dependencies AS typescript
 WORKDIR /usr/src/chewiebot/server
 # Copy only prod dependencies
-COPY --from=dependencies /usr/src/chewiebot/server/prod_node_modules ./node_modules
 # Copy src
 COPY . .
 # Install and run typescript
@@ -30,10 +29,12 @@ RUN yarn global add typescript -y
 RUN tsc
 
 # --- Production ---
-
 FROM base AS prod
 WORKDIR /usr/src/chewiebot/server
-COPY --from=typescript /usr/src/chewiebot/server .
+COPY --from=typescript /usr/src/chewiebot/server/dist ./dist
+COPY --from=typescript /usr/src/chewiebot/server/src ./src
+COPY --from=dependencies /usr/src/chewiebot/server/prod_node_modules ./node_modules
+
 # Install pm2
 RUN yarn global add pm2 -y
 # Start

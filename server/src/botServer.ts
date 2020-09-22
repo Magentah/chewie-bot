@@ -1,6 +1,8 @@
 import * as path from "path";
 import * as express from "express";
 import * as expressSession from "express-session";
+import * as redis from "redis";
+import * as connectRedis from "connect-redis";
 import * as bodyParser from "body-parser";
 import * as passport from "passport";
 
@@ -17,6 +19,7 @@ import UserService from "./services/userService";
 import { IUser } from "./models/user";
 
 import * as Config from "./config.json";
+const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
@@ -82,6 +85,11 @@ class BotServer extends Server {
 
         super.addControllers(BotContainer.get(TwitchService));
 
+        const redisClient = redis.createClient({
+            url: process.env.REDIS_URL,
+            port: 6379,
+        });
+
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.set("views", dir);
@@ -93,6 +101,7 @@ class BotServer extends Server {
                 saveUninitialized: true,
                 cookie: { httpOnly: true, sameSite: true, secure: false, path: "/" },
                 name: "chewiebot",
+                store: new RedisStore({ client: redisClient }),
             })
         );
         this.app.use(passport.initialize());
