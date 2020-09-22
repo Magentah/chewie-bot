@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [ master ]
 
-jobs:
-  build:
+jobs:  
+  docker-build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -61,3 +61,35 @@ jobs:
         context: ./client
         file: ./client/Dockerfile
         tags: ${{ secrets.dockerUsername }}/chewiebot:client-latest
+        
+         
+  deploy-to-digitalocean:
+    needs: docker-build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        uses: actions/checkout@v2
+      -
+        name: Copy docker-compose.yml
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.sshHost }}
+          username: ${{ secrets.sshUsername }}
+          key: ${{ secrets.sshKey }}
+          port: 22
+          source: "docker-compose.yml,docker-compose.prod.yml"
+          target: "/chewiebot"
+      -  
+        name: Docker pull and run
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.sshHost }}
+          username: ${{ secrets.sshUsername }}
+          key: ${{ secrets.sshKey }}
+          script: |
+            docker login --username ${{ secrets.dockerUsername }} --password ${{ secrets.dockerKey }}
+            mkdir -p chewiebot
+            cd chewiebot
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            
