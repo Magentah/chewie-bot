@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.dockerKey }}
         push: true
         path: ./server
-        file: ./server/Dockerfile
+        dockerfile: ./server/Dockerfile
         tags: ${{ secrets.dockerUsername }}/chewiebot:server-latest
 
     - name: Build Client Docker Image
@@ -37,5 +37,5 @@ jobs:
         password: ${{ secrets.dockerKey }}
         push: true
         path: ./client
-        file: ./client/Dockerfile
+        dockerfile: ./client/Dockerfile
         tags: ${{ secrets.dockerUsername }}/chewiebot:client-latest
