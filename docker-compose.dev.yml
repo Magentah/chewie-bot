@@ -1,0 +1,17 @@
+# docker-compose.yml
+version: "3"
+volumes:
+    node_modules:
+services:
+    ui:
+        build: ./client
+        volumes:
+            - ./client:/usr/src/chewiebot/client
+            - "/usr/src/chewiebot/client/node_modules/"
+    server:
+        build: ./server
+        volumes:
+            - ./server:/usr/src/chewiebot/server
+            - "/usr/src/chewiebot/server/node_modules/"
+        environment:
+            NODE_ENV: development

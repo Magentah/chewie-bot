@@ -1,0 +1,11 @@
+# docker-compose.yml
+version: "3"
+volumes:
+    node_modules:
+services:
+    ui:
+        image: magentafall/chewiebot:client-latest
+    server:
+        image: magentafall/chewiebot:server-latest
+        environment:
+            NODE_ENV: production
