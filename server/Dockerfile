@@ -39,6 +39,7 @@ COPY --from=dependencies /usr/src/chewiebot/server/prod_node_modules ./node_modu
 RUN yarn global add pm2 -y
 # Start
 WORKDIR /usr/src/chewiebot/server/dist
+RUN chown -R node:node .
 EXPOSE 8080
 CMD ["pm2-runtime", "start.js"]
 
