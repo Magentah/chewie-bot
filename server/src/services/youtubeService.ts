@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import * as Request from "request-promise-native";
+import axios from "axios";
 import Constants from "../constants";
 import { IYoutubeSong, IYoutubeVideoListResponse } from "../models/youtubeApiResult";
 import APIResponseParser from "../helpers/apiResponseParser";
@@ -14,16 +14,16 @@ export class YoutubeService {
 
     public async getSongDetails(id: string): Promise<IYoutubeSong | undefined> {
         const options = {
-            method: "GET",
-            url: Constants.YoutubeVideoUrl,
-            qs: {
+            params: {
                 part: "contentDetails,snippet",
                 id,
                 key: this.apiKey,
             },
         };
 
-        const detailResponse = APIResponseParser.parse<IYoutubeVideoListResponse>(await Request(options));
+        const detailResponse = APIResponseParser.parse<IYoutubeVideoListResponse>(
+            await axios.get(Constants.YoutubeVideoUrl, options)
+        );
         if (detailResponse.pageInfo.totalResults > 0) {
             Logger.info(LogType.Youtube, `Retrieved details for youtube id ${id} from Youtube Data API`);
             return detailResponse.items[0];

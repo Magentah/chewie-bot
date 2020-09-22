@@ -2,7 +2,7 @@ import * as tmi from "tmi.js";
 import { inject, injectable } from "inversify";
 import CommandService from "./commandService";
 import { Logger, LogType } from "../logger";
-import * as Request from "request-promise-native";
+import axios from "axios";
 import { ITwitchChatList } from "src/models/twitchApi";
 import UserService from "./userService";
 import * as Config from "../config.json";
@@ -35,15 +35,11 @@ export class TwitchService {
      */
     private async getChatList(channel: string): Promise<void> {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
-        const options = {
-            method: "GET",
-            uri: `https://tmi.twitch.tv/group/user/${channel}/chatters`,
-            json: true,
-        };
 
-        const chatList = await Request(options);
-        this.channelUserList.set(channel, chatList);
-        this.users.addUsersFromChatList(chatList);
+        const { data } = await axios.get(`https://tmi.twitch.tv/group/user/${channel}/chatters`);
+        Logger.info(LogType.Twitch, `GetChatList: ${data}`);
+        this.channelUserList.set(channel, data);
+        this.users.addUsersFromChatList(data);
     }
 
     private setupOptions(): tmi.Options {

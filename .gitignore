@@ -1,5 +1,6 @@
 node_modules
 src/client/node_modules
+.vscode
 
 dist
 *.db
