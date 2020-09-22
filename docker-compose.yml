@@ -1,0 +1,40 @@
+# docker-compose.yml
+version: "3"
+volumes:
+    node_modules:
+services:
+    ui:
+        build: ./client
+        volumes:
+            - ./client:/usr/src/chewiebot/client
+            - "/usr/src/chewiebot/client/node_modules/"
+        ports:
+            - 80:80
+        expose:
+            - 80
+        depends_on:
+            - server
+        container_name: "chewiebot-client"
+    server:
+        build: ./server
+        volumes:
+            - ./server:/usr/src/chewiebot/server
+            - node_modules:/usr/src/chewiebot/server/node_modules/
+        ports:
+            - 8080:8080
+        expose:
+            - 8080
+        environment:
+            - NODE_ENV=development
+            - PORT=8080
+            - REDIS_URL=redis://redis-cache
+        links:
+            - redis
+        depends_on:
+            - redis
+        container_name: "chewiebot-server"
+    redis:
+        image: "redis"
+        container_name: "redis-cache"
+        expose:
+            - 6379

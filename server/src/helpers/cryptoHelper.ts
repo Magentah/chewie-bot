@@ -4,7 +4,7 @@ import { CertSigningKey, RsaSigningKey } from "jwks-rsa";
 import * as jwks from "jwks-rsa";
 import { ITwitchIDToken } from "../models/twitchApi";
 import Constants from "../constants";
-import Config from "../config";
+import * as Config from "../config.json";
 
 export class CryptoHelper {
     private static algorithm: string = "aes-256-cbc";

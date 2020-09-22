@@ -5,7 +5,7 @@ import { Logger, LogType } from "../logger";
 import * as Request from "request-promise-native";
 import { ITwitchChatList } from "src/models/twitchApi";
 import UserService from "./userService";
-import Config from "../config";
+import * as Config from "../config.json";
 
 @injectable()
 export class TwitchService {
@@ -57,7 +57,7 @@ export class TwitchService {
             },
             identity: {
                 username: Config.twitch.username,
-                password: `${Config.twitch.oauth}`,
+                password: `${Config.twitch.username}`, // TODO: Needs to use oauth.
             },
             channels: [`#${Config.twitch.username}`],
         };

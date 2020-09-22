@@ -1,4 +1,4 @@
-import * as c from "./config.json";
+/* import * as c from "./config.json";
 
 class Config {
     public static twitch: ITwitchConfigSection;
@@ -81,3 +81,4 @@ interface IDatabaseSectionConnection {
     password: string;
     name: string;
 }
+ */

@@ -1,7 +1,7 @@
 import { Logger, LogType } from "../logger";
 import { injectable } from "inversify";
 import * as knex from "knex";
-import Config from "../config";
+import * as Config from "../config.json";
 
 export enum Tables {
     Users = "users",
@@ -21,7 +21,7 @@ export class DatabaseService {
         if (this.dbConfig.client === "mysql") {
             this.dbConfig.connection = {
                 host: Config.database.connection.host,
-                user: Config.database.connection.user,
+                user: Config.database.connection.username,
                 password: Config.database.connection.password,
                 database: Config.database.connection.name,
             };

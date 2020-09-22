@@ -6,7 +6,7 @@ import APIResponseParser from "../helpers/apiResponseParser";
 import * as moment from "moment";
 import Logger, { LogType } from "../logger";
 
-import Config from "../config";
+import * as Config from "../config.json";
 
 @injectable()
 export class YoutubeService {

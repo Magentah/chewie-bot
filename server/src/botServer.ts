@@ -16,7 +16,7 @@ import Constants from "./constants";
 import UserService from "./services/userService";
 import { IUser } from "./models/user";
 
-import Config from "./config";
+import * as Config from "./config.json";
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
@@ -106,9 +106,20 @@ class BotServer extends Server {
         this.app.get("/", (req, res) => {
             res.sendFile("index.html", { root: dir });
         });
-        this.app.get("/auth/twitch", passport.authenticate("twitch"));
-        this.app.get("/auth/twitch/redirect", passport.authenticate("twitch", { failureRedirect: "/" }), (res, req) => {
-            req.redirect("/");
+        this.app.get("/api/auth/twitch", passport.authenticate("twitch"));
+        this.app.get(
+            "/api/auth/twitch/redirect",
+            passport.authenticate("twitch", { failureRedirect: "/" }),
+            (res, req) => {
+                req.redirect("/");
+            }
+        );
+        this.app.get("/api/protected", (res, req) => {
+            if (res.user) {
+                req.send("Protected");
+            } else {
+                req.send("Locked");
+            }
         });
     }
 }

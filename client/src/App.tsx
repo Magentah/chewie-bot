@@ -12,7 +12,7 @@ class App extends Component {
                     <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
                         Learn React
                     </a>
-                    <a class-name="App-link" href="/auth/twitch">
+                    <a class-name="App-link" href="/api/auth/twitch">
                         Connect to Twitch
                     </a>
                 </header>
