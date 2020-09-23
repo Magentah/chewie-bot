@@ -5,6 +5,11 @@
         "redirectUri": "",
         "username": ""
     },
+    "streamlabs": {
+        "clientId": "",
+        "clientSecret": "",
+        "redirectUri": ""
+    },
     "youtube": {
         "apiKey": ""
     },

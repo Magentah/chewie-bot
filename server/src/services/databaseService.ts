@@ -127,6 +127,8 @@ export class DatabaseService {
                     table.decimal("points").notNullable();
                     table.dateTime("vipExpiry");
                     table.boolean("hasLogin").notNullable();
+                    table.string("streamlabsToken");
+                    table.string("streamlabsRefresh");
                     Logger.info(LogType.Database, `${Tables.Users} table created.`);
                     resolve();
                 });

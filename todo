@@ -1,5 +1,12 @@
 System:
-    ☐ Separate login from bot twitch connection. Login is for the site, bot connection is entirely through the config and doesn't need a login. @created(19-08-09 16:30)
+    ✘ Separate login from bot twitch connection. Login is for the site, bot connection is entirely through the config and doesn't need a login. @created(19-08-09 16:30) @cancelled(20-09-22 12:36)
+        Changed my thoughts about this. No authentication will be done through config. Everything will be done programmatically for authentication.
+    ☐ Add system to add second account as bot account for a user. @created(20-09-22 12:34)
+        This would be linking a bot account to a users account. Would go through the same authentication, but would probably have to do it in a browser without any cookies, 
+        otherwise twitch will just send back authentication for the current user..
+
+Integrations:
+    ☐ Streamlabs for donation alerts @created(20-09-23 11:31)
 
 Song Queue and Service:
     ☐ Request a song through twitch chat with a URL
@@ -56,6 +63,8 @@ Authentication:
     ☐ Refactor user login with Twitch.tv OAuth so that it actually works for multiple users. Currently only really works for a single user locally.
         ☐ Database refactoring to store user data. Don't want to pull from Twitch.tv API every time. Will need to refresh Twitch.tv data on some set interval.
     ✔ Update authentication so that it's correctly using nonces, refresh tokens, etc. @done(19-08-04 15:51)
+    ✔ Twitch Login system. @created(20-09-22 12:33) @done(20-09-22 12:34)
+    ✔ Session handling with Redis @created(20-09-22 12:34) @done(20-09-22 12:34)
 
 Logging:
     ✔ Change the logger to something else that's got a bit more functionality (probably Winston). @done(19-08-06 01:44)
@@ -71,6 +80,8 @@ Database:
         ✔ Add repos for tables, add functions to interact with tables. @started(19-08-07 17:45) @done(19-08-08 01:30) @lasted(7h45m50s)
             This has been started with the Users table, but need to add all the other tables as well. Users table probably also needs some extra functions
             to handle other needs as for now it's just get, add, update a user.
+    ✔ Add Redis for caching @created(20-09-22 12:38) @done(20-09-22 12:38)
+    ☐ Use Redis for storing user auth data @created(20-09-22 12:38)
 
 Users:
     ☐ Add users from chat - currently only adds users when clicking the button on the react page. @created(19-08-10 16:07)
@@ -89,3 +100,5 @@ UI:
     ☐ User info, also able to update user info @created(19-08-09 16:27)
     ☐ Points config stuff @created(19-08-09 16:27)
     ☐ View commands, config for commands (e.g. points required to use, user level restrictions) @created(19-08-09 16:27)
+    ☐ Editable Song List @created(20-09-22 14:31)
+        Songs that Chewie has memorised and people can request easily

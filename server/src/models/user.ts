@@ -13,4 +13,6 @@ export interface IUser {
     userLevelKey?: number;
     userLevel?: IUserLevel;
     hasLogin: boolean;
+    streamlabsToken?: string;
+    streamlabsRefresh?: string;
 }

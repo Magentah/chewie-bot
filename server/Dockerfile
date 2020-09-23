@@ -35,6 +35,8 @@ COPY --from=typescript /usr/src/chewiebot/server/dist ./dist
 COPY --from=typescript /usr/src/chewiebot/server/src ./src
 COPY --from=dependencies /usr/src/chewiebot/server/prod_node_modules ./node_modules
 
+# Add sqlite3 for checking db
+RUN apk add --no-cache sqlite
 # Install pm2
 RUN yarn global add pm2 -y
 # Start
