@@ -1,24 +1,29 @@
-import React, { Component } from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import React from "react";
+import { HashRouter as Router, Switch, Route } from "react-router-dom";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fab } from "@fortawesome/free-brands-svg-icons";
+import CssBaseLine from "@material-ui/core/CssBaseline";
 
-class App extends Component {
-    public render() {
-        return (
-            <div className="App">
-                <header className="App-header">
-                    <img src={logo} className="App-logo" alt="logo" />
-                    <p>Should change this.</p>
-                    <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-                        Learn React
-                    </a>
-                    <a class-name="App-link" href="/auth/twitch">
-                        Connect to Twitch
-                    </a>
-                </header>
-            </div>
-        );
-    }
-}
+import Dashboard from "./views/dashboard/Dashboard";
+import Login from "./views/login/Login";
+
+// initialize brand icons
+library.add(fab);
+
+const App: React.FC<{}> = (props) => {
+    return (
+        <Router>
+            <CssBaseLine />
+            <Switch>
+                <Route path="/login">
+                    <Login />
+                </Route>
+                <Route path="/">
+                    <Dashboard />
+                </Route>
+            </Switch>
+        </Router>
+    );
+};
 
 export default App;

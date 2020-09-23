@@ -5,7 +5,7 @@ import * as jwks from "jwks-rsa";
 import { ITwitchIDToken } from "../models/twitchApi";
 import Constants from "../constants";
 import Config from "../config";
-
+console.log("crypto", Config);
 export class CryptoHelper {
     private static algorithm: string = "aes-256-cbc";
     private static secret: string = Config.secretKey;
@@ -36,7 +36,10 @@ export class CryptoHelper {
             this.keySize,
             this.pbkdf2Name
         );
-        const cipherText = Buffer.concat([salt, this.encrypt(Buffer.from(text, "utf8"), key)]);
+        const cipherText = Buffer.concat([
+            salt,
+            this.encrypt(Buffer.from(text, "utf8"), key),
+        ]);
         return cipherText.toString("base64");
     }
 
@@ -47,7 +50,9 @@ export class CryptoHelper {
     public static decryptString(text: string): string {
         const cipherTextAndNonceAndSalt = Buffer.from(text, "base64");
         const salt = cipherTextAndNonceAndSalt.slice(0, this.pbkdf2SaltSize);
-        const cipherAndNonce = cipherTextAndNonceAndSalt.slice(this.pbkdf2SaltSize);
+        const cipherAndNonce = cipherTextAndNonceAndSalt.slice(
+            this.pbkdf2SaltSize
+        );
         const key = Crypto.pbkdf2Sync(
             Buffer.from(this.secret, "utf8"),
             salt,
@@ -76,27 +81,42 @@ export class CryptoHelper {
      * Verifies a Twitch.tv OAuth ID Token and returns the decoded token object.
      * @param token Twitch.tv OAuth ID token to verify and decode.
      */
-    public static async verifyTwitchJWT(token: string, nonce: string): Promise<ITwitchIDToken> {
+    public static async verifyTwitchJWT(
+        token: string,
+        nonce: string
+    ): Promise<ITwitchIDToken> {
         return new Promise<ITwitchIDToken>((resolve, reject) => {
             const jwksClient = jwks({
                 jwksUri: Constants.TwitchJWKUri,
             });
 
             function getKey(header: any, callback: any) {
-                jwksClient.getSigningKey(header.kid, (err, key: CertSigningKey | RsaSigningKey) => {
-                    if ("publicKey" in key) {
-                        callback(undefined, (key as CertSigningKey).publicKey);
-                    } else if ("rsaPublicKey" in key) {
-                        callback(undefined, (key as RsaSigningKey).rsaPublicKey);
+                jwksClient.getSigningKey(
+                    header.kid,
+                    (err, key: CertSigningKey | RsaSigningKey) => {
+                        if ("publicKey" in key) {
+                            callback(
+                                undefined,
+                                (key as CertSigningKey).publicKey
+                            );
+                        } else if ("rsaPublicKey" in key) {
+                            callback(
+                                undefined,
+                                (key as RsaSigningKey).rsaPublicKey
+                            );
+                        }
                     }
-                });
+                );
             }
             verify(token, getKey, undefined, (err, decoded) => {
                 if (err) {
                     reject(err);
                 } else {
                     const parsedToken = decoded as ITwitchIDToken;
-                    if (parsedToken.aud !== Config.twitch.clientId && parsedToken.nonce !== nonce) {
+                    if (
+                        parsedToken.aud !== Config.twitch.clientId &&
+                        parsedToken.nonce !== nonce
+                    ) {
                         reject("ID Token failed verification.");
                     } else {
                         resolve(decoded as ITwitchIDToken);

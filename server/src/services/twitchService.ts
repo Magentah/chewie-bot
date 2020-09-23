@@ -1,9 +1,7 @@
 import * as tmi from "tmi.js";
 import { inject, injectable } from "inversify";
-import OAuthService from "./oauthService";
 import CommandService from "./commandService";
 import { Logger, LogType } from "../logger";
-import * as c from "./../config.json";
 import * as Request from "request-promise-native";
 import { ITwitchChatList } from "src/models/twitchApi";
 import UserService from "./userService";
