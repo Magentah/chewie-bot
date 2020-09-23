@@ -41,6 +41,5 @@ RUN yarn global add pm2 -y
 WORKDIR /usr/src/chewiebot/server/dist
 RUN chown -R node:node .
 EXPOSE 8080
-CMD ["pm2-runtime", "start.js"]
 
 USER node

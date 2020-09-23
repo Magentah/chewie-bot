@@ -15,3 +15,4 @@ services:
             - "/usr/src/chewiebot/server/node_modules/"
         environment:
             NODE_ENV: development
+        command: ["pm2-dev", "start.js", '--node-args="--inspect-brk=0.0.0.0"']

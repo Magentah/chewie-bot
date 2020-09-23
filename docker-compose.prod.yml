@@ -9,3 +9,4 @@ services:
         image: magentafall/chewiebot:server-latest
         environment:
             NODE_ENV: production
+        command: ["pm2-runtime", "start.js"]

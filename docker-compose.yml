@@ -14,6 +14,7 @@ services:
     server:
         ports:
             - 8080:8080
+            - 9229:9229
         expose:
             - 8080
         environment:
