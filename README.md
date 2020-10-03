@@ -6,44 +6,73 @@
 
 ### Dev Setup
 
-- In the `/src/` folder, copy `config.example.json` to `config.json` and update with your config details.
-  ### Secret Key
-  - This needs to be a 32 character random string, used for encryption/decryption.
-  #### Twitch
-  - You can get your Twitch OAuth token from [https://twitchapps.com/tmi/](https://twitchapps.com/tmi/).
-  - You will need to setup a Twitch App at [https://dev.twitch.tv/console](https://dev.twitch.tv/console). You will then need to copy your client_id and client_secret for the app to the config.
-  - The redirect url should be `http://localhost:3000/api/oauth/twitch/redirect` by default.
-  #### Youtube
-  - You can setup a Google project at [https://console.developers.google.com](https://console.developers.google.com). You will then need to enable the Youtube Data V3 API for you project, and copy the API key to the config.
-  #### Database
-  - The path is from the root directory. By default the database is `chewiebot.db` in the root directory.
-  #### Logging
-  - You can enable or disable logging on each of the systems by setting true or false.
-  - The level is the lowest level that will be output.
-  - Levels can be syslog or npm. npm may break currently though.
-- Install nodejs if you don't already have it.
-- Install Yarn from [https://yarnpkg.com/en/docs/install#windows-stable](https://yarnpkg.com/en/docs/install#windows-stable).
-- Run `yarn setup` to install dependencies.
+-   In the `/server/` folder, rename `myconfig.json` to `config.json` and update with your config details.
 
-### For using static React files
+-   ### Secret Key
 
-- Run `yarn start-static` in the root folder to build and run using static react files.
+    -   This needs to be a 32 character random string, used for encryption/decryption.
 
-### Running locally
+-   #### Twitch
+
+    -   You will need to setup a Twitch App at [https://dev.twitch.tv/console](https://dev.twitch.tv/console). You will then need to copy your client_id and client_secret for the app to the config.
+    -   The redirect url should be `http://localhost:3000/api/oauth/twitch/redirect` by default.
+
+-   #### Youtube
+
+    -   You can setup a Google project at [https://console.developers.google.com](https://console.developers.google.com). You will then need to enable the Youtube Data V3 API for you project, and copy the API key to the config.
+
+-   #### Database
+
+    -   The path is from the root directory. By default the database is `chewiebot.db` in the root directory.
+
+-   #### Logging
+
+    -   You can enable or disable logging on each of the systems by setting true or false.
+    -   The level is the lowest level that will be output.
+    -   Levels can be syslog or npm. npm may break currently though.
+
+### Docker
+
+-   Using docker is the recommended way to run the bot. Only Docker using WSL2 has been tested.
+-   In `/client/package.json/`, ensure that `proxy` is set to `http://server:8080`. This is the default, so should only have been changed if you changed it for running with NodeJS.
+-   From the root repository, run `yarn --cwd server setup` and `yarn --cwd server build`. The `setup` command will install node packages for both the server and client. The `build` command will build the typescript files.
+-   To run the site in docker, run `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`. This will take some time the first time as it will build and start the containers using the dev docker config. The dev docker config will build images from local directories and map volumes to `/server/` and `/client/`. The `docker-compose.prod.yml` config will take images from the DockerHub repository and only map a volume for the SQLite database.
+-   Open a browser and navigate to `localhost`.
+-   Docker will pass the `--inspect` flag to node for node debugging when using `docker-compose.dev.yml`.
+-   Updating docker files will require `yarn --cwd server tsc` for rebuilding server files or `yarn --cwd client build` for rebuilding client files.
+    -   I plan on updating this to use the source files at some point, but for now the docker images only use the build files.
+
+### NodeJS
+
+-   Install NodeJS from[https://nodejs.org/en/download/](https://nodejs.org/en/download/).
+-   Install Redis. This requires Docker or WSL to run supported versions of Redis.
+    -   Using WSL you can use `sudo apt install redis-server` to install and `sudo service redis-server restart` to ensure that it's running. Use `sudo service redis-server stop` to stop the Redis server.
+-   Install Yarn from [https://yarnpkg.com/en/docs/install#windows-stable](https://yarnpkg.com/en/docs/install#windows-stable).
+-   Navigate to the `/server/` folder.
+-   Run `yarn setup` to install dependencies. This will setup both the server and client.
+-   In `/client/package.json`, you will need to change `proxy` to `http://localhost:8080`.
+
+#### Running locally
 
 #### Non Debug Mode
-- `yarn start-dev:build` --- This will build the client files before starting the node server. Use this if it's the first time starting the project, or changes have been made to the client folder.
-- `yarn start-dev` --- This will start the node server without building the client files. Use this if you've already used the build variant and there has been no changes made to the client folder.
+
+-   `yarn start-dev:build` --- This will build the client files before starting the node server. Use this if it's the first time starting the project, or changes have been made to the client folder.
+-   `yarn start-dev` --- This will start the node server without building the client files. Use this if you've already used the build variant and there has been no changes made to the client folder.
 
 #### Debug Mode
-- `yarn start-debug:build` --- This will build the client files before starting the node server with the `--inspect` flag. Use this if it's the first time starting the project, or changes have been made to the client folder. The `--inspect` flag will allow you to attach a debugger to the process (for example, VSCodes debugger).
-- `yarn start-debug` --- This will start the node server with the `--inspect` flag without building the client files. Use this if you've already used the build variant and there has been no changes made to the client folder.
+
+-   `yarn start-debug:build` --- This will build the client files before starting the node server with the `--inspect` flag. Use this if it's the first time starting the project, or changes have been made to the client folder. The `--inspect` flag will allow you to attach a debugger to the process (for example, VSCodes debugger).
+-   `yarn start-debug` --- This will start the node server with the `--inspect` flag without building the client files. Use this if you've already used the build variant and there has been no changes made to the client folder.
 
 ### Accessing the site
 
-- Open a browser to `localhost:3000`.
+-   Open a browser to `localhost:8080`.
+
+## Known Issues
+
+-   Client files need rebuilding with how the workflow is currently setup. I plan on updating this at some point.
 
 ### Contributing
 
-- Make a new branch for the changes you want to make
-- Submit a PR from your branch when you've made and tested your changes.
+-   Make a new branch for the changes you want to make
+-   Submit a PR from your branch when you've made and tested your changes.

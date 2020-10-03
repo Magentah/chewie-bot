@@ -33,7 +33,10 @@ services:
             - 6379
         networks:
             - back
-
+        volumes:
+            - redis-data:/redis
+volumes:
+    redis-data:
 networks:
     front:
         driver: bridge

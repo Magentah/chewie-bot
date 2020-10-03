@@ -1,12 +1,14 @@
 # docker-compose.yml
 version: "3"
 volumes:
-    node_modules:
+    chewiebot-db:
 services:
     ui:
         image: magentafall/chewiebot:client-latest
     server:
         image: magentafall/chewiebot:server-latest
+        volumes:
+            - chewiebot-db:/usr/src/chewiebot/server/dist/chewiebot.db
         environment:
             NODE_ENV: production
         command: ["pm2-runtime", "start.js"]
