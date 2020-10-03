@@ -16,4 +16,4 @@ services:
             - "/usr/src/chewiebot/server/node_modules/"
         environment:
             NODE_ENV: development
-        command: ["pm2-runtime", "start.js", '--node-args="--inspect=0.0.0.0"']
+        command: ["pm2-runtime", "start.js", "--watch", '--node-args="--inspect=0.0.0.0"']
