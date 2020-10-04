@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { UsersRepository } from "../database";
+import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList } from "../models";
 
 @injectable()

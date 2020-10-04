@@ -4,9 +4,9 @@ import { Logger, LogType } from "../logger";
 import { TwitchChatParser } from "../helpers";
 import { CommandNotExistError, CommandInternalError } from "../errors";
 import { Command } from "../commands/command";
-import { TextCommandsRepository } from "../database";
+import { TextCommandsRepository } from "../database/textCommands";
 import { IUser } from "../models";
-import { UserService } from "./";
+import { UserService } from "./userService";
 
 @injectable()
 export class CommandService {

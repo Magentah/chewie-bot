@@ -2,7 +2,8 @@ import * as tmi from "tmi.js";
 import * as Config from "../config.json";
 import axios from "axios";
 import { inject, injectable } from "inversify";
-import { CommandService, UserService } from "./";
+import { CommandService } from "./commandService";
+import { UserService } from "./userService";
 import { Logger, LogType } from "../logger";
 import { ITwitchChatList } from "../models";
 

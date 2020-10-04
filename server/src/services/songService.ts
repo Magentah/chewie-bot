@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { YoutubeService } from "./";
+import { YoutubeService } from "./youtubeService";
 import { Logger, LogType } from "../logger";
 import { ISong, SongSource } from "../models";
 import { InvalidSongUrlError } from "../errors";

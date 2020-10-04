@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { DatabaseService, DatabaseTables } from "../services";
+import { DatabaseService, DatabaseTables } from "../services/databaseService";
 import { IVIPLevel } from "./../models";
 
 @injectable()
