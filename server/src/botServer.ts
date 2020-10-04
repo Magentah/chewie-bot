@@ -13,6 +13,8 @@ import { Server } from "@overnightjs/core";
 import { Logger, LogType } from "./logger";
 import { CryptoHelper } from "./helpers";
 import { SongRouter, AuthRouter, setupPassport } from "./routes";
+import { BotContainer } from "./inversify.config";
+import { DatabaseService } from "./services";
 const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
@@ -23,6 +25,7 @@ class BotServer extends Server {
         super(true);
         setupPassport();
         this.setupApp();
+        this.initServices();
     }
 
     public start(port: number): void {
@@ -38,6 +41,10 @@ class BotServer extends Server {
         /* const youtubeService = this.container.get<YoutubeService>(YoutubeService);
         Logger.Info('Testing Youtube API');
         youtubeService.getSongDetails('https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1'); */
+    }
+
+    private initServices(): void {
+        BotContainer.get(DatabaseService).initDatabase();
     }
 
     private setupApp(): void {
