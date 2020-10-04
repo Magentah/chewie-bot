@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
-import { DatabaseService, Tables } from "../services/databaseService";
+import { DatabaseService, DatabaseTables } from "../services";
 import { Logger, LogType } from "../logger";
-import { IUser } from "../models/user";
+import { IUser } from "../models";
 
 @injectable()
 export class UsersRepository {
@@ -16,22 +16,22 @@ export class UsersRepository {
     public async get(username: string): Promise<IUser> {
         Logger.info(
             LogType.Database,
-            this.databaseService.getQueryBuilder(Tables.Users).first().where({ username }).toSQL().sql
+            this.databaseService.getQueryBuilder(DatabaseTables.Users).first().where({ username }).toSQL().sql
         );
 
         // TODO: Fix this so that it's not 3 queries to get a single user... Raw sql is easy but I'm not sure about how to make the join work correctly
         // using knex yet.
         const user = await this.databaseService
-            .getQueryBuilder(Tables.Users)
+            .getQueryBuilder(DatabaseTables.Users)
             .first()
             .where("username", "like", username);
         if (user) {
             const userLevel = await this.databaseService
-                .getQueryBuilder(Tables.UserLevels)
+                .getQueryBuilder(DatabaseTables.UserLevels)
                 .first()
                 .where({ id: user.userLevelKey });
             const vipLevel = await this.databaseService
-                .getQueryBuilder(Tables.VIPLevels)
+                .getQueryBuilder(DatabaseTables.VIPLevels)
                 .first()
                 .where({ id: user.vipLevelKey });
             user.userLevel = userLevel;
@@ -48,7 +48,7 @@ export class UsersRepository {
     public async update(user: IUser): Promise<void> {
         Logger.debug(
             LogType.Database,
-            this.databaseService.getQueryBuilder(Tables.Users).update(user).where({ id: user.id }).toSQL().sql
+            this.databaseService.getQueryBuilder(DatabaseTables.Users).update(user).where({ id: user.id }).toSQL().sql
         );
         if (!(await this.userExists(user))) {
             return;
@@ -56,7 +56,7 @@ export class UsersRepository {
 
         delete user.userLevel;
         delete user.vipLevel;
-        await this.databaseService.getQueryBuilder(Tables.Users).update(user).where({ id: user.id });
+        await this.databaseService.getQueryBuilder(DatabaseTables.Users).update(user).where({ id: user.id });
     }
 
     /**
@@ -68,8 +68,11 @@ export class UsersRepository {
             return;
         }
 
-        Logger.debug(LogType.Database, this.databaseService.getQueryBuilder(Tables.Users).insert(user).toSQL().sql);
-        await this.databaseService.getQueryBuilder(Tables.Users).insert(user);
+        Logger.debug(
+            LogType.Database,
+            this.databaseService.getQueryBuilder(DatabaseTables.Users).insert(user).toSQL().sql
+        );
+        await this.databaseService.getQueryBuilder(DatabaseTables.Users).insert(user);
     }
 
     /**
@@ -79,13 +82,16 @@ export class UsersRepository {
      */
     private async userExists(user: IUser): Promise<boolean> {
         if (user.id && user.id > 0) {
-            const result = await this.databaseService.getQueryBuilder(Tables.Users).first().where({ id: user.id });
+            const result = await this.databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .first()
+                .where({ id: user.id });
             if (result) {
                 return true;
             }
         } else {
             const result = await this.databaseService
-                .getQueryBuilder(Tables.Users)
+                .getQueryBuilder(DatabaseTables.Users)
                 .first()
                 .where("username", "like", user.username);
             if (result) {

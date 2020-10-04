@@ -1,38 +1,31 @@
 import "reflect-metadata";
 import { Container } from "inversify";
-import DatabaseService from "./services/databaseService";
-import TwitchService from "./services/twitchService";
-import CacheService from "./services/cacheService";
-import YoutubeService from "./services/youtubeService";
-import CommandService from "./services/commandService";
-import UsersRepository from "./database/usersRepository";
-import TextCommandsRepository from "./database/textCommands";
-import DonationsRepository from "./database/donations";
-import UserLevelsRepository from "./database/userLevelsRepository";
-import VIPLevelsRepository from "./database/vipLevels";
-import SongService from "./services/songService";
-import UserService from "./services/userService";
+import * as Service from "./services";
+import * as Repository from "./database";
+import * as Controller from "./controllers";
 
 const botContainer = new Container();
 
 botContainer
-    .bind<DatabaseService>(DatabaseService)
+    .bind<Service.DatabaseService>(Service.DatabaseService)
     .toSelf()
     .inSingletonScope()
     .onActivation((context, service) => {
         service.initDatabase();
         return service;
     });
-botContainer.bind<TwitchService>(TwitchService).toSelf().inSingletonScope();
-botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
-botContainer.bind<YoutubeService>(YoutubeService).toSelf().inSingletonScope();
-botContainer.bind<CommandService>(CommandService).toSelf().inSingletonScope();
-botContainer.bind<SongService>(SongService).toSelf().inSingletonScope();
-botContainer.bind<UserService>(UserService).toSelf().inSingletonScope();
+botContainer.bind<Service.TwitchService>(Service.TwitchService).toSelf().inSingletonScope();
+botContainer.bind<Service.CacheService>(Service.CacheService).toSelf().inSingletonScope();
+botContainer.bind<Service.YoutubeService>(Service.YoutubeService).toSelf().inSingletonScope();
+botContainer.bind<Service.CommandService>(Service.CommandService).toSelf().inSingletonScope();
+botContainer.bind<Service.SongService>(Service.SongService).toSelf().inSingletonScope();
+botContainer.bind<Service.UserService>(Service.UserService).toSelf().inSingletonScope();
 
-botContainer.bind<UsersRepository>(UsersRepository).toSelf();
-botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();
-botContainer.bind<VIPLevelsRepository>(VIPLevelsRepository).toSelf();
-botContainer.bind<DonationsRepository>(DonationsRepository).toSelf();
-botContainer.bind<TextCommandsRepository>(TextCommandsRepository).toSelf();
+botContainer.bind<Repository.UsersRepository>(Repository.UsersRepository).toSelf();
+botContainer.bind<Repository.UserLevelsRepository>(Repository.UserLevelsRepository).toSelf();
+botContainer.bind<Repository.VIPLevelsRepository>(Repository.VIPLevelsRepository).toSelf();
+botContainer.bind<Repository.DonationsRepository>(Repository.DonationsRepository).toSelf();
+botContainer.bind<Repository.TextCommandsRepository>(Repository.TextCommandsRepository).toSelf();
+
+botContainer.bind<Controller.SongController>(Controller.SongController).toSelf();
 export { botContainer as BotContainer };

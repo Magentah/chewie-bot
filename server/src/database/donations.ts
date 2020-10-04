@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
-import DatabaseService, { Tables } from "../services/databaseService";
-import { IDonation } from "../models/donation";
+import { DatabaseService, DatabaseTables } from "../services";
+import { IDonation } from "../models";
 
 @injectable()
 export class DonationsRepository {
@@ -9,12 +9,12 @@ export class DonationsRepository {
     }
 
     public async get(username: string): Promise<IDonation[]> {
-        const userLevel = await this.databaseService.getQueryBuilder(Tables.TextCommands).where({ username });
+        const userLevel = await this.databaseService.getQueryBuilder(DatabaseTables.TextCommands).where({ username });
         return userLevel as IDonation[];
     }
 
     public async add(donation: IDonation): Promise<void> {
-        await this.databaseService.getQueryBuilder(Tables.TextCommands).insert(donation);
+        await this.databaseService.getQueryBuilder(DatabaseTables.TextCommands).insert(donation);
     }
 }
 

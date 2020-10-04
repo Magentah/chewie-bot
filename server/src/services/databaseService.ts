@@ -1,9 +1,9 @@
-import { Logger, LogType } from "../logger";
-import { injectable } from "inversify";
 import * as knex from "knex";
 import * as Config from "../config.json";
+import { injectable } from "inversify";
+import { Logger, LogType } from "../logger";
 
-export enum Tables {
+export enum DatabaseTables {
     Users = "users",
     UserLevels = "userLevels",
     TextCommands = "textCommands",
@@ -76,14 +76,14 @@ export class DatabaseService {
 
     private async createUserLevelTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasUserLevelTable = await this.hasTable(Tables.UserLevels);
+            const hasUserLevelTable = await this.hasTable(DatabaseTables.UserLevels);
             if (!hasUserLevelTable) {
-                Logger.info(LogType.Database, `${Tables.UserLevels} being created.`);
-                await this.db.schema.createTable(Tables.UserLevels, (table) => {
+                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} being created.`);
+                await this.db.schema.createTable(DatabaseTables.UserLevels, (table) => {
                     table.increments("id").primary().notNullable();
                     table.string("name").notNullable().unique();
                     table.integer("rank").notNullable();
-                    Logger.info(LogType.Database, `${Tables.UserLevels} table created.`);
+                    Logger.info(LogType.Database, `${DatabaseTables.UserLevels} table created.`);
                     resolve();
                 });
             } else {
@@ -94,14 +94,14 @@ export class DatabaseService {
 
     private async createVIPLevelTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasVIPLevelTable = await this.hasTable(Tables.VIPLevels);
+            const hasVIPLevelTable = await this.hasTable(DatabaseTables.VIPLevels);
             if (!hasVIPLevelTable) {
-                Logger.info(LogType.Database, `${Tables.VIPLevels} being created.`);
-                await this.db.schema.createTable(Tables.VIPLevels, (table) => {
+                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} being created.`);
+                await this.db.schema.createTable(DatabaseTables.VIPLevels, (table) => {
                     table.increments("id").primary().notNullable();
                     table.string("name").notNullable().unique();
                     table.integer("rank").notNullable();
-                    Logger.info(LogType.Database, `${Tables.VIPLevels} table created.`);
+                    Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} table created.`);
                     resolve();
                 });
             } else {
@@ -112,15 +112,15 @@ export class DatabaseService {
 
     private async createUserTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasUserTable = await this.hasTable(Tables.Users);
+            const hasUserTable = await this.hasTable(DatabaseTables.Users);
             if (!hasUserTable) {
-                Logger.info(LogType.Database, `${Tables.Users} being created.`);
-                await this.db.schema.createTable(Tables.Users, (table) => {
+                Logger.info(LogType.Database, `${DatabaseTables.Users} being created.`);
+                await this.db.schema.createTable(DatabaseTables.Users, (table) => {
                     table.increments("id").primary().notNullable();
                     table.integer("vipLevelKey").unsigned();
-                    table.foreign("vipLevelKey").references(`${Tables.VIPLevels}.id`);
+                    table.foreign("vipLevelKey").references(`${DatabaseTables.VIPLevels}.id`);
                     table.integer("userLevelKey").unsigned();
-                    table.foreign("userLevelKey").references(`${Tables.UserLevels}.id`);
+                    table.foreign("userLevelKey").references(`${DatabaseTables.UserLevels}.id`);
                     table.string("username").notNullable().unique();
                     table.string("refreshToken").unique();
                     table.string("idToken").unique();
@@ -129,7 +129,7 @@ export class DatabaseService {
                     table.boolean("hasLogin").notNullable();
                     table.string("streamlabsToken");
                     table.string("streamlabsRefresh");
-                    Logger.info(LogType.Database, `${Tables.Users} table created.`);
+                    Logger.info(LogType.Database, `${DatabaseTables.Users} table created.`);
                     resolve();
                 });
             } else {
@@ -140,16 +140,16 @@ export class DatabaseService {
 
     private async createTextCommandsTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasTextCommandsTable = await this.hasTable(Tables.TextCommands);
+            const hasTextCommandsTable = await this.hasTable(DatabaseTables.TextCommands);
             if (!hasTextCommandsTable) {
-                Logger.info(LogType.Database, `${Tables.TextCommands} being created.`);
-                await this.db.schema.createTable(Tables.TextCommands, (table) => {
+                Logger.info(LogType.Database, `${DatabaseTables.TextCommands} being created.`);
+                await this.db.schema.createTable(DatabaseTables.TextCommands, (table) => {
                     table.increments("id").primary().notNullable();
                     table.string("commandName").notNullable();
                     table.string("message").notNullable();
                     table.integer("minimumUserLevelKey").unsigned();
-                    table.foreign("minimumUserLevelKey").references(`${Tables.UserLevels}.id`);
-                    Logger.info(LogType.Database, `${Tables.TextCommands} table created.`);
+                    table.foreign("minimumUserLevelKey").references(`${DatabaseTables.UserLevels}.id`);
+                    Logger.info(LogType.Database, `${DatabaseTables.TextCommands} table created.`);
                     resolve();
                 });
             } else {
@@ -160,17 +160,17 @@ export class DatabaseService {
 
     private async createDonationsTable(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasDonationsTable = await this.hasTable(Tables.Donations);
+            const hasDonationsTable = await this.hasTable(DatabaseTables.Donations);
             if (!hasDonationsTable) {
-                Logger.info(LogType.Database, `${Tables.Donations} being created.`);
-                await this.db.schema.createTable(Tables.Donations, (table) => {
+                Logger.info(LogType.Database, `${DatabaseTables.Donations} being created.`);
+                await this.db.schema.createTable(DatabaseTables.Donations, (table) => {
                     table.increments("id").primary().notNullable();
                     table.string("username").notNullable();
                     table.dateTime("date").notNullable();
                     table.string("type").notNullable();
                     table.string("message");
                     table.decimal("amount").notNullable();
-                    Logger.info(LogType.Database, `${Tables.Donations} table created.`);
+                    Logger.info(LogType.Database, `${DatabaseTables.Donations} table created.`);
                     resolve();
                 });
             } else {
@@ -181,7 +181,7 @@ export class DatabaseService {
 
     private async populateDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const userLevelsAdded = await this.db(Tables.UserLevels).select();
+            const userLevelsAdded = await this.db(DatabaseTables.UserLevels).select();
             if (userLevelsAdded.length === 0) {
                 const userLevels = [
                     { name: "Viewer", rank: 1 },
@@ -190,10 +190,10 @@ export class DatabaseService {
                     { name: "Bot", rank: 4 },
                     { name: "Broadcaster", rank: 5 },
                 ];
-                await this.db(Tables.UserLevels).insert(userLevels);
-                Logger.info(LogType.Database, `${Tables.UserLevels} populated with initial data.`);
+                await this.db(DatabaseTables.UserLevels).insert(userLevels);
+                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} populated with initial data.`);
             }
-            const vipLevelsAdded = await this.db(Tables.VIPLevels).select();
+            const vipLevelsAdded = await this.db(DatabaseTables.VIPLevels).select();
             if (vipLevelsAdded.length === 0) {
                 const vipLevels = [
                     { name: "None", rank: 1 },
@@ -201,8 +201,8 @@ export class DatabaseService {
                     { name: "Silver", rank: 3 },
                     { name: "Gold", rank: 4 },
                 ];
-                await this.db(Tables.VIPLevels).insert(vipLevels);
-                Logger.info(LogType.Database, `${Tables.VIPLevels} populated with initial data.`);
+                await this.db(DatabaseTables.VIPLevels).insert(vipLevels);
+                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
             }
         });
     }

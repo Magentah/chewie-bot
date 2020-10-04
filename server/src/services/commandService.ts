@@ -1,13 +1,12 @@
-import { injectable, inject } from "inversify";
-import { Command } from "../commands/command";
-import TwitchChatParser from "../helpers/twitchChatParser";
-import CommandNotExistError from "../errors/commandNotExist";
-import CommandInternalError from "../errors/commandInternal";
-import { Logger, LogType } from "../logger";
 import * as Commands from "../commands/commandScripts";
-import TextCommandsRepository from "../database/textCommands";
-import { IUser } from "../models/user";
-import UserService from "./userService";
+import { injectable, inject } from "inversify";
+import { Logger, LogType } from "../logger";
+import { TwitchChatParser } from "../helpers";
+import { CommandNotExistError, CommandInternalError } from "../errors";
+import { Command } from "../commands/command";
+import { TextCommandsRepository } from "../database";
+import { IUser } from "../models";
+import { UserService } from "./";
 
 @injectable()
 export class CommandService {

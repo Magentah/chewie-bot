@@ -1,8 +1,9 @@
 import * as Winston from "winston";
-const { combine, timestamp, label, prettyPrint } = Winston.format;
 import * as Config from "./config.json";
 
-export enum LogType {
+const { combine, timestamp, label, prettyPrint } = Winston.format;
+
+enum LogType {
     Command = "Command",
     Twitch = "Twitch",
     ServerInfo = "ServerInfo",
@@ -172,3 +173,4 @@ export class Logger {
 }
 
 export default Logger;
+export { LogType, LogLevel };

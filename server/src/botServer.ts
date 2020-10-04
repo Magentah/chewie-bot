@@ -8,20 +8,11 @@ import * as cookieParser from "cookie-parser";
 import * as passport from "passport";
 import * as cors from "cors";
 
-import { BotContainer } from "./inversify.config";
-
 import { Server } from "@overnightjs/core";
-import TwitchService from "./services/twitchService";
-import TwitchStrategy from "./strategy/twitchStrategy";
-import StreamlabsStrategy from "./strategy/streamlabsStrategy";
 
 import { Logger, LogType } from "./logger";
-import CryptoHelper from "./helpers/cryptoHelper";
-import Constants from "./constants";
-import UserService from "./services/userService";
-import { IUser } from "./models/user";
-
-import * as Config from "./config.json";
+import { CryptoHelper } from "./helpers";
+import { SongRouter, AuthRouter, setupPassport } from "./routes";
 const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
@@ -30,7 +21,7 @@ class BotServer extends Server {
 
     constructor() {
         super(true);
-        this.setupPassport();
+        setupPassport();
         this.setupApp();
     }
 
@@ -49,79 +40,8 @@ class BotServer extends Server {
         youtubeService.getSongDetails('https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1'); */
     }
 
-    private setupPassport(): void {
-        passport.use(
-            new TwitchStrategy(
-                {
-                    clientID: Config.twitch.clientId,
-                    clientSecret: Config.twitch.clientSecret,
-                    authorizationURL: Constants.TwitchAuthUrl,
-                    tokenURL: Constants.TwitchTokenUrl,
-                    callbackURL: Config.twitch.redirectUri,
-                    scope: Constants.TwitchScopes.split(" "),
-                    customHeaders: {
-                        "Client-ID": Config.twitch.clientId,
-                    },
-                },
-                async (
-                    // tslint:disable-next-line: variable-name
-                    _accessToken: any,
-                    // tslint:disable-next-line: variable-name
-                    _refreshToken: any,
-                    profile: { username: string },
-                    done: (err: undefined, user: IUser) => any
-                ) => {
-                    await BotContainer.get(UserService).addUser(profile.username);
-                    const user = await BotContainer.get(UserService).getUser(profile.username);
-                    return done(undefined, user);
-                }
-            )
-        );
-
-        passport.serializeUser((user: any, done) => {
-            done(undefined, user);
-        });
-
-        passport.deserializeUser((user: any, done) => {
-            done(undefined, user);
-        });
-
-        passport.use(
-            new StreamlabsStrategy(
-                {
-                    clientID: Config.streamlabs.clientId,
-                    clientSecret: Config.streamlabs.clientSecret,
-                    authorizationURL: Constants.StreamlabsAuthUrl,
-                    tokenURL: Constants.StreamlabsTokenUrl,
-                    callbackURL: Config.streamlabs.redirectUri,
-                    scope: Constants.StreamlabsScopes.split(" "),
-                    passReqToCallback: true,
-                },
-                async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
-                    const user = await BotContainer.get(UserService).getUser(profile.username);
-                    user.streamlabsRefresh = refreshToken;
-                    user.streamlabsToken = accessToken;
-                    await BotContainer.get(UserService).updateUser(user);
-                    const account = {
-                        accessToken,
-                        refreshToken,
-                        user: user.username,
-                    };
-                    req.logIn(user, (err) => {
-                        if (!err) {
-                            Logger.info(LogType.ServerInfo, `Logged in user ${user.username}`);
-                        }
-                    });
-                    return done(undefined, account);
-                }
-            )
-        );
-    }
-
     private setupApp(): void {
         const dir = path.join(__dirname, "../../client/build");
-
-        super.addControllers(BotContainer.get(TwitchService));
 
         const redisClient = redis.createClient({
             url: process.env.REDIS_URL,
@@ -155,29 +75,11 @@ class BotServer extends Server {
         this.app.get("/", (req, res) => {
             res.sendFile("index.html", { root: dir });
         });
-        this.app.get("/api/auth/twitch", passport.authenticate("twitch"));
-        this.app.get(
-            "/api/auth/twitch/redirect",
-            passport.authenticate("twitch", { failureRedirect: "/" }),
-            (req, res) => {
-                res.redirect("/");
-            }
-        );
-        this.app.get("/api/auth/streamlabs", passport.authorize("streamlabs"));
-        this.app.get(
-            "/api/auth/streamlabs/callback",
-            passport.authorize("streamlabs", { failureRedirect: "/" }),
-            (req, res) => {
-                res.redirect("/");
-            }
-        );
-        this.app.get("/api/protected", (req, res) => {
-            if (req.user) {
-                res.send("Protected");
-            } else {
-                res.send("Locked");
-            }
-        });
+
+        this.app.use(AuthRouter);
+        this.app.use(SongRouter);
+
+        // Login/Logout Routes
         this.app.get("/api/isloggedin", (req, res) => {
             if (!req.user) {
                 return res.status(403).json({ message: "No logged in user." });
@@ -188,6 +90,15 @@ class BotServer extends Server {
         this.app.get("/api/logout", (req, res) => {
             req.logOut();
             res.redirect("/");
+        });
+
+        // Test Routes
+        this.app.get("/api/protected", (req, res) => {
+            if (req.user) {
+                res.send("Protected");
+            } else {
+                res.send("Locked");
+            }
         });
     }
 }

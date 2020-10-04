@@ -1,7 +1,4 @@
-import UserLevelsRepository from "../database/userLevelsRepository";
-import { IUser } from "../models/user";
-import { IUserLevel } from "../models/userLevel";
-import { BotContainer } from "../inversify.config";
+import { IUser, IUserLevel } from "../models";
 
 export abstract class Command {
     protected isInternalCommand: boolean = false;

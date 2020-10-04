@@ -1,7 +1,6 @@
 import { injectable, inject } from "inversify";
-import UsersRepository from "../database/usersRepository";
-import { IUser } from "../models/user";
-import { ITwitchChatList } from "../models/twitchApi";
+import { UsersRepository } from "../database";
+import { IUser, ITwitchChatList } from "../models";
 
 @injectable()
 export class UserService {

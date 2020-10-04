@@ -1,13 +1,13 @@
 import { injectable, inject } from "inversify";
-import Song, { ISong, SongSource } from "../models/song";
-import YoutubeService from "./youtubeService";
-import InvalidSongUrlError from "../errors/invalidSongUrl";
-import Logger, { LogType } from "../logger";
-import { loggers } from "winston";
+import { YoutubeService } from "./";
+import { Logger, LogType } from "../logger";
+import { ISong, SongSource } from "../models";
+import { InvalidSongUrlError } from "../errors";
 
 @injectable()
 export class SongService {
-    private songQueue: { [key: string]: Song } = {};
+    private songQueue: { [key: string]: ISong } = {};
+    private userSongs: { [key: string]: ISong[] } = {};
     private nextSongId: number = 1;
 
     constructor(@inject(YoutubeService) private youtubeService: YoutubeService) {
@@ -52,7 +52,7 @@ export class SongService {
         return song;
     }
 
-    private async getSongDetails(song: Song): Promise<Song> {
+    private async getSongDetails(song: ISong): Promise<ISong> {
         switch (song.source) {
             case SongSource.Youtube: {
                 const songDetails = await this.youtubeService.getSongDetails(song.sourceId);
@@ -66,7 +66,7 @@ export class SongService {
         return song;
     }
 
-    public async addSong(url: string, username: string): Promise<Song> {
+    public async addSong(url: string, username: string): Promise<ISong> {
         try {
             let song = this.parseUrl(url);
             song = await this.getSongDetails(song);
@@ -82,16 +82,26 @@ export class SongService {
                 throw err;
             }
         }
-
-        throw new InvalidSongUrlError(`Unabled to parse url ${url}`);
     }
 
-    public songPlayed(song: Song): void {
+    public songPlayed(song: ISong): void {
         this.songQueue[song.id].beenPlayed = true;
     }
 
-    public removeSong(song: Song): void {
+    public removeSong(song: ISong): void {
         delete this.songQueue[song.id];
+    }
+
+    public getSongs(): ISong[] {
+        return Object.values(this.songQueue);
+    }
+
+    public getSongsByUsername(username: string): ISong[] {
+        if (Object.keys(this.userSongs).includes(username)) {
+            return this.userSongs[username];
+        } else {
+            return [];
+        }
     }
 }
 

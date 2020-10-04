@@ -1,11 +1,10 @@
 import * as tmi from "tmi.js";
-import { inject, injectable } from "inversify";
-import CommandService from "./commandService";
-import { Logger, LogType } from "../logger";
-import axios from "axios";
-import { ITwitchChatList } from "src/models/twitchApi";
-import UserService from "./userService";
 import * as Config from "../config.json";
+import axios from "axios";
+import { inject, injectable } from "inversify";
+import { CommandService, UserService } from "./";
+import { Logger, LogType } from "../logger";
+import { ITwitchChatList } from "../models";
 
 @injectable()
 export class TwitchService {

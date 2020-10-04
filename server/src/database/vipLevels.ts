@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
-import DatabaseService, { Tables } from "../services/databaseService";
-import { IVIPLevel } from "./../models/vipLevel";
+import { DatabaseService, DatabaseTables } from "../services";
+import { IVIPLevel } from "./../models";
 
 @injectable()
 export class VIPLevelsRepository {
@@ -9,12 +9,12 @@ export class VIPLevelsRepository {
     }
 
     public async get(name: string): Promise<IVIPLevel> {
-        const vipLevel = await this.databaseService.getQueryBuilder(Tables.VIPLevels).first().where({ name });
+        const vipLevel = await this.databaseService.getQueryBuilder(DatabaseTables.VIPLevels).first().where({ name });
         return vipLevel as IVIPLevel;
     }
 
     public async add(name: string, rank: number): Promise<void> {
-        await this.databaseService.getQueryBuilder(Tables.VIPLevels).insert({ name });
+        await this.databaseService.getQueryBuilder(DatabaseTables.VIPLevels).insert({ name });
     }
 }
 

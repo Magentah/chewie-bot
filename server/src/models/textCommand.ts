@@ -1,4 +1,4 @@
-export interface ITextCommand {
+export default interface ITextCommand {
     id?: number;
     commandName: string;
     message: string;

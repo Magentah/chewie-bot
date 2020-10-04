@@ -3,7 +3,7 @@ import axios from "axios";
 import Constants from "../constants";
 import { OK, BAD_REQUEST } from "http-status-codes";
 import { BotContainer } from "../inversify.config";
-import UserService from "../services/userService";
+import { UserService } from "../services";
 
 enum Provider {
     Streamlabs = "streamlabs",

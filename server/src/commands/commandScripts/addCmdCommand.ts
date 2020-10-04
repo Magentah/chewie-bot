@@ -1,10 +1,8 @@
 import { Command } from "../command";
-import TextCommandsRepository from "./../../database/textCommands";
-import TwitchService from "./../../services/twitchService";
+import { TextCommandsRepository, UserLevelsRepository } from "./../../database";
+import { TwitchService } from "./../../services";
 import { BotContainer } from "../../inversify.config";
-import { IUser } from "../../models/user";
-import UserLevelsRepository from "../../database/userLevelsRepository";
-import { IUserLevel } from "src/models/userLevel";
+import { IUser, IUserLevel } from "../../models";
 
 export class AddCmdCommand extends Command {
     constructor() {

@@ -41,6 +41,7 @@
 -   Docker will pass the `--inspect` flag to node for node debugging when using `docker-compose.dev.yml`.
 -   Updating docker files will require `yarn --cwd server tsc` for rebuilding server files or `yarn --cwd client build` for rebuilding client files.
     -   I plan on updating this to use the source files at some point, but for now the docker images only use the build files.
+    -   Use `tsc --p server --watch` to run `tsc` in watch mode and automatically recompile server ts files on changes. `docker-compose.dev.yml` runs `pm2` with `--watch` to restart when recompiles happen for the server.
 
 ### NodeJS
 
