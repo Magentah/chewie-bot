@@ -22,7 +22,9 @@ import Config from "./config";
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
-    private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
+    private readonly DEV_MESSAGE =
+        "Express Server is running in development mode." +
+        "No front-end is being served";
 
     constructor() {
         super(true);
@@ -63,8 +65,12 @@ class BotServer extends Server {
                     profile: { username: string },
                     done: (err: undefined, user: IUser) => any
                 ) => {
-                    await BotContainer.get(UserService).addUser(profile.username);
-                    const user = await BotContainer.get(UserService).getUser(profile.username);
+                    await BotContainer.get(UserService).addUser(
+                        profile.username
+                    );
+                    const user = await BotContainer.get(UserService).getUser(
+                        profile.username
+                    );
                     return done(undefined, user);
                 }
             )
@@ -82,7 +88,12 @@ class BotServer extends Server {
     private setupApp(): void {
         const dir = path.join(__dirname, "../../client/build");
 
-        super.addControllers(new OAuthController(BotContainer.get(OAuthService), BotContainer.get(TwitchService)));
+        super.addControllers(
+            new OAuthController(
+                BotContainer.get(OAuthService),
+                BotContainer.get(TwitchService)
+            )
+        );
 
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
@@ -93,7 +104,12 @@ class BotServer extends Server {
                 secret: CryptoHelper.generateSecret(),
                 resave: true,
                 saveUninitialized: true,
-                cookie: { httpOnly: true, sameSite: true, secure: false, path: "/" },
+                cookie: {
+                    httpOnly: true,
+                    sameSite: true,
+                    secure: false,
+                    path: "/",
+                },
                 name: "chewiebot",
             })
         );
@@ -115,7 +131,7 @@ class BotServer extends Server {
             // tslint:disable-next-line: variable-name
             passport.authenticate("twitch", { failureRedirect: "/" }),
             (res, req) => {
-                req.redirect("/");
+                req.redirect("http://localhost:3001/");
             }
         );
         this.app.get("/protected", (req, res) => {
