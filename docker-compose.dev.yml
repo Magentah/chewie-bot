@@ -2,7 +2,6 @@
 version: "3"
 volumes:
     node_modules:
-    dist:
 services:
     ui:
         build: ./client

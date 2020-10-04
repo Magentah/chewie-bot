@@ -7,6 +7,20 @@ import * as Controller from "./controllers";
 const botContainer = new Container();
 
 botContainer.bind<Service.DatabaseService>(Service.DatabaseService).toSelf().inSingletonScope();
+botContainer.bind<Service.DatabaseProvider>("DatabaseProvider").toProvider((context) => {
+    return () => {
+        return new Promise<Service.DatabaseService>(async (resolve, reject) => {
+            try {
+                const databaseService = context.container.get(Service.DatabaseService);
+                await databaseService.initDatabase();
+                return resolve(databaseService);
+            } catch (e) {
+                return reject(e);
+            }
+        });
+    };
+});
+
 botContainer.bind<Service.TwitchService>(Service.TwitchService).toSelf().inSingletonScope();
 botContainer.bind<Service.CacheService>(Service.CacheService).toSelf().inSingletonScope();
 botContainer.bind<Service.YoutubeService>(Service.YoutubeService).toSelf().inSingletonScope();

@@ -13,6 +13,8 @@ export enum DatabaseTables {
     VIPLevels = "vipLevels",
 }
 
+export type DatabaseProvider = () => Promise<DatabaseService>;
+
 @injectable()
 export class DatabaseService {
     constructor() {
@@ -60,14 +62,18 @@ export class DatabaseService {
     private isInit: boolean = false;
 
     public async initDatabase(): Promise<void> {
-        Logger.info(LogType.Database, "Creating database tables");
-        await this.createUserLevelTable();
-        await this.createVIPLevelTable();
-        await this.createUserTable();
-        await this.createDonationsTable();
-        await this.createTextCommandsTable();
-        await this.populateDatabase();
-        this.isInit = true;
+        return new Promise<void>(async (resolve, reject) => {
+            Logger.info(LogType.Database, "Creating database tables");
+            await this.createUserLevelTable();
+            await this.createVIPLevelTable();
+            await this.createUserTable();
+            await this.createDonationsTable();
+            await this.createTextCommandsTable();
+            await this.populateDatabase();
+            this.isInit = true;
+            Logger.info(LogType.Database, "Database init finished.");
+            resolve();
+        });
     }
 
     private async hasTable(tableName: string): Promise<boolean> {
@@ -87,6 +93,7 @@ export class DatabaseService {
                     resolve();
                 });
             } else {
+                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} already exists.`);
                 resolve();
             }
         });
@@ -105,6 +112,7 @@ export class DatabaseService {
                     resolve();
                 });
             } else {
+                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} already exists.`);
                 resolve();
             }
         });
@@ -133,6 +141,7 @@ export class DatabaseService {
                     resolve();
                 });
             } else {
+                Logger.info(LogType.Database, `${DatabaseTables.Users} already exists.`);
                 resolve();
             }
         });
@@ -153,6 +162,7 @@ export class DatabaseService {
                     resolve();
                 });
             } else {
+                Logger.info(LogType.Database, `${DatabaseTables.TextCommands} already exists.`);
                 resolve();
             }
         });
@@ -174,6 +184,7 @@ export class DatabaseService {
                     resolve();
                 });
             } else {
+                Logger.info(LogType.Database, `${DatabaseTables.Donations} already exists.`);
                 resolve();
             }
         });
@@ -192,6 +203,8 @@ export class DatabaseService {
                 ];
                 await this.db(DatabaseTables.UserLevels).insert(userLevels);
                 Logger.info(LogType.Database, `${DatabaseTables.UserLevels} populated with initial data.`);
+            } else {
+                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} already has data.`);
             }
             const vipLevelsAdded = await this.db(DatabaseTables.VIPLevels).select();
             if (vipLevelsAdded.length === 0) {
@@ -203,7 +216,10 @@ export class DatabaseService {
                 ];
                 await this.db(DatabaseTables.VIPLevels).insert(vipLevels);
                 Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
+            } else {
+                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
             }
+            resolve();
         });
     }
 
