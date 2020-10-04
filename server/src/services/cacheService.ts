@@ -27,15 +27,9 @@ export class CacheService {
         if (cache) {
             cache.set(key, value, (err: any, success: any) => {
                 if (!err && success) {
-                    Logger.info(
-                        LogType.Cache,
-                        `[SET]:: Cache[${cacheType}] - ${key} / ${value}`
-                    );
+                    Logger.info(LogType.Cache, `[SET]:: Cache[${cacheType}] - ${key} / ${value}`);
                 } else if (err) {
-                    Logger.err(
-                        LogType.Cache,
-                        `[SET]:: Cache[${cacheType}] - ${key} / ${value} --- ${err}`
-                    );
+                    Logger.err(LogType.Cache, `[SET]:: Cache[${cacheType}] - ${key} / ${value} --- ${err}`);
                     throw err;
                 }
             });
@@ -46,10 +40,7 @@ export class CacheService {
         const cache = this.caches.get(cacheType);
         if (cache) {
             const value = cache.get(key);
-            Logger.info(
-                LogType.Cache,
-                `[GET]:: Cache[${cacheType}] - ${key} / ${value}`
-            );
+            Logger.info(LogType.Cache, `[GET]:: Cache[${cacheType}] - ${key} / ${value}`);
             return value;
         }
     }

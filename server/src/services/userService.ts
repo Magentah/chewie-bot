@@ -1,7 +1,6 @@
 import { injectable, inject } from "inversify";
-import UsersRepository from "../database/usersRepository";
-import { IUser } from "../models/user";
-import { ITwitchChatList } from "../models/twitchApi";
+import { UsersRepository } from "../database/usersRepository";
+import { IUser, ITwitchChatList } from "../models";
 
 @injectable()
 export class UserService {
@@ -40,21 +39,16 @@ export class UserService {
      * Add users from the chatlist to the database if they do not already exist.
      * @param {ITwitchChatList} chatList A ITwitchChatList object containing the chatlist for a channel.
      */
-    public async addUAllUsersFromChatList(
-        chatList: ITwitchChatList
-    ): Promise<void> {
+    public async addUsersFromChatList(chatList: ITwitchChatList): Promise<void> {
         // Create a single array of all usernames combined from the various usertypes on the twitch chat list type
         if (!chatList.chatters) {
             return;
         }
-        const combinedChatList = Object.keys(chatList.chatters).reduce(
-            (chatterList, key) => {
-                const chatters = (chatList.chatters as any)[key] as string[];
-                chatterList.push((chatList.chatters as any)[key]);
-                return chatterList;
-            },
-            Array<string>()
-        );
+        const combinedChatList = Object.keys(chatList.chatters).reduce((chatterList, key) => {
+            const chatters = (chatList.chatters as any)[key] as string[];
+            chatterList.push((chatList.chatters as any)[key]);
+            return chatterList;
+        }, Array<string>());
 
         combinedChatList.forEach((val) => {
             this.addUser(val);

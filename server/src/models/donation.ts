@@ -1,4 +1,4 @@
-export interface IDonation {
+export default interface IDonation {
     id?: number;
     username: string;
     date: Date;

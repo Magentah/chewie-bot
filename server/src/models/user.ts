@@ -1,7 +1,6 @@
-import { IUserLevel } from "./userLevel";
-import { IVIPLevel } from "./vipLevel";
+import { IUserLevel, IVIPLevel } from "./";
 
-export interface IUser {
+export default interface IUser {
     id?: number;
     username: string;
     idToken?: string;
@@ -13,4 +12,6 @@ export interface IUser {
     userLevelKey?: number;
     userLevel?: IUserLevel;
     hasLogin: boolean;
+    streamlabsToken?: string;
+    streamlabsRefresh?: string;
 }

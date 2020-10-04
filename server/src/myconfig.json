@@ -1,10 +1,14 @@
 {
     "twitch": {
-        "clientId": "o2s64584435fe2tk30t7tnpbnra14k",
-        "clientSecret": "lcwomwi1aakgj3232ju719lj29bbe0",
-        "redirectUri": "http://localhost:3000/api/oauth/twitch/redirect",
-        "username": "amano_",
-        "oauth": "oauth:0nyef1c5xcf0b4nn44ls8tlmp9g8pn"
+        "clientId": "",
+        "clientSecret": "",
+        "redirectUri": "",
+        "username": ""
+    },
+    "streamlabs": {
+        "clientId": "",
+        "clientSecret": "",
+        "redirectUri": ""
     },
     "youtube": {
         "apiKey": ""

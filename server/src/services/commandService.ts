@@ -1,13 +1,12 @@
-import { injectable, inject } from "inversify";
-import { Command } from "../commands/command";
-import TwitchChatParser from "../helpers/twitchChatParser";
-import CommandNotExistError from "../errors/commandNotExist";
-import CommandInternalError from "../errors/commandInternal";
-import { Logger, LogType } from "../logger";
 import * as Commands from "../commands/commandScripts";
-import TextCommandsRepository from "../database/textCommands";
-import { IUser } from "../models/user";
-import UserService from "./userService";
+import { injectable, inject } from "inversify";
+import { Logger, LogType } from "../logger";
+import { TwitchChatParser } from "../helpers";
+import { CommandNotExistError, CommandInternalError } from "../errors";
+import { Command } from "../commands/command";
+import { TextCommandsRepository } from "../database/textCommands";
+import { IUser } from "../models";
+import { UserService } from "./userService";
 
 @injectable()
 export class CommandService {
@@ -68,9 +67,9 @@ export class CommandService {
      * @param {string} username The username of the user that sent the message.
      * @param {string} message The message to parse for a command.
      */
-    public async handleMessage(channel: string, username: string | undefined, message: string): Promise<void> {
+    public async handleMessage(channel: string, username: string, message: string): Promise<void> {
         const commandName = TwitchChatParser.getCommandName(message);
-        if (commandName && username) {
+        if (commandName) {
             try {
                 const user = await this.users.getUser(username);
                 const args = TwitchChatParser.getCommandArgs(message);

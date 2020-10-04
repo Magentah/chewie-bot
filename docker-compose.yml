@@ -1,0 +1,44 @@
+# docker-compose.yml
+version: "3"
+services:
+    ui:
+        ports:
+            - 80:80
+        expose:
+            - 80
+        depends_on:
+            - server
+        container_name: "chewiebot-client"
+        networks:
+            - front
+    server:
+        ports:
+            - 8080:8080
+            - 9229:9229
+        expose:
+            - 8080
+        environment:
+            PORT: 8080
+            REDIS_URL: redis://redis-cache
+        depends_on:
+            - redis
+        container_name: "chewiebot-server"
+        networks:
+            - front
+            - back
+    redis:
+        image: "redis"
+        container_name: "redis-cache"
+        expose:
+            - 6379
+        networks:
+            - back
+        volumes:
+            - redis-data:/redis
+volumes:
+    redis-data:
+networks:
+    front:
+        driver: bridge
+    back:
+        driver: bridge

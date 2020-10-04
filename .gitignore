@@ -1,5 +1,6 @@
 node_modules
 src/client/node_modules
+.vscode
 
 dist
 *.db
@@ -7,3 +8,7 @@ dist
 .vscode
 
 *.log
+client/Dockerfile.test
+server/src/config.json
+.vscode/launch.json
+secret.config.json
