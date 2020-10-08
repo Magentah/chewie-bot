@@ -1,7 +1,7 @@
-import { Command } from "../command";
 import { BotContainer } from "../../inversify.config";
+import { IUser, RequestSource } from "../../models/";
 import { SongService, TwitchService } from "../../services";
-import { IUser } from "../../models/";
+import { Command } from "../command";
 
 export class AddSongCommand extends Command {
     constructor() {
@@ -9,7 +9,7 @@ export class AddSongCommand extends Command {
     }
 
     public async execute(channel: string, user: IUser, url: string) {
-        const song = await BotContainer.get(SongService).addSong(url, user.username);
+        const song = await BotContainer.get(SongService).addSong(url, RequestSource.Chat, user.username);
         if (song) {
             BotContainer.get(TwitchService).sendMessage(
                 channel,

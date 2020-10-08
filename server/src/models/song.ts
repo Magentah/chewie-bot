@@ -20,6 +20,7 @@ export enum RequestSource {
     Bits,
     Subscription,
     Raffle,
+    Chat,
 }
 
 export default ISong;
