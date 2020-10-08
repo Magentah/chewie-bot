@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR, OK } from "http-status-codes";
-import { inject } from "inversify";
+import { inject, injectable } from "inversify";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SongService } from "../services";
 
+@injectable()
 class SongController {
     constructor(@inject(SongService) private songService: SongService) {
         Logger.info(

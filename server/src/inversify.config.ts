@@ -33,5 +33,6 @@ botContainer.bind<Repository.VIPLevelsRepository>(Repository.VIPLevelsRepository
 botContainer.bind<Repository.DonationsRepository>(Repository.DonationsRepository).toSelf();
 botContainer.bind<Repository.TextCommandsRepository>(Repository.TextCommandsRepository).toSelf();
 
-botContainer.bind<Controller.SongController>(Controller.SongController).toSelf().inSingletonScope();
+botContainer.bind<Controller.SongController>(Controller.SongController).toSelf();
+botContainer.bind<Controller.TwitchController>(Controller.TwitchController).toSelf();
 export { botContainer as BotContainer };

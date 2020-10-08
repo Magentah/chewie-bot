@@ -10,15 +10,13 @@ import * as path from "path";
 import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
-import { AuthRouter, setupPassport, SongRouter } from "./routes";
+import { AuthRouter, setupPassport, SongRouter, TwitchRouter } from "./routes";
 
 const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
-    private readonly DEV_MESSAGE =
-        "Express Server is running in development mode." +
-        "No front-end is being served";
+    private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
 
     constructor() {
         super(true);
@@ -84,6 +82,7 @@ class BotServer extends Server {
 
         this.app.use(AuthRouter);
         this.app.use(SongRouter);
+        this.app.use(TwitchRouter);
 
         // Login/Logout Routes
         this.app.get("/api/isloggedin", (req, res) => {
