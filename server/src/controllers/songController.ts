@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR, OK } from "http-status-codes";
 import { inject } from "inversify";
-import { APIHelper } from "src/helpers";
+import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SongService } from "../services";
 
