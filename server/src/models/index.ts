@@ -1,5 +1,5 @@
 export { default as IDonation } from "./donation";
-export { default as ISong, SongSource } from "./song";
+export { default as ISong, RequestSource, SongSource } from "./song";
 export { default as ITextCommand } from "./textCommand";
 export {
     ITwitchAuthResponse,
