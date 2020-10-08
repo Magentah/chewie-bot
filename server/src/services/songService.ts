@@ -1,17 +1,27 @@
-import { injectable, inject } from "inversify";
-import { YoutubeService } from "./youtubeService";
+import { inject, injectable } from "inversify";
+import { InvalidSongUrlError } from "../errors";
 import { Logger, LogType } from "../logger";
 import { ISong, SongSource } from "../models";
-import { InvalidSongUrlError } from "../errors";
+import { YoutubeService } from "./youtubeService";
 
 @injectable()
 export class SongService {
-    private songQueue: { [key: string]: ISong } = {};
-    private userSongs: { [key: string]: ISong[] } = {};
+    private songQueue: { [key: number]: ISong } = {};
     private nextSongId: number = 1;
 
-    constructor(@inject(YoutubeService) private youtubeService: YoutubeService) {
+    constructor(
+        @inject(YoutubeService) private youtubeService: YoutubeService
+    ) {
         //
+    }
+
+    private isSong(obj: any): obj is ISong {
+        return (
+            "id" in obj &&
+            "title" in obj &&
+            "requestedBy" in obj &&
+            "source" in obj
+        );
     }
 
     private parseYoutubeUrl(url: string): string | undefined {
@@ -23,7 +33,7 @@ export class SongService {
             if (url.indexOf("&") > -1) {
                 return url.slice(url.indexOf("?v=") + 3, url.indexOf("&"));
             } else {
-                return url.slice(url.indexOf("?v=") + 2);
+                return url.slice(url.indexOf("?v=") + 3);
             }
         } else {
             return undefined;
@@ -55,10 +65,14 @@ export class SongService {
     private async getSongDetails(song: ISong): Promise<ISong> {
         switch (song.source) {
             case SongSource.Youtube: {
-                const songDetails = await this.youtubeService.getSongDetails(song.sourceId);
+                const songDetails = await this.youtubeService.getSongDetails(
+                    song.sourceId
+                );
                 if (songDetails) {
                     song.title = songDetails.snippet.title;
-                    song.duration = this.youtubeService.getSongDuration(songDetails);
+                    song.duration = this.youtubeService.getSongDuration(
+                        songDetails
+                    );
                 }
                 break;
             }
@@ -71,7 +85,10 @@ export class SongService {
             let song = this.parseUrl(url);
             song = await this.getSongDetails(song);
             this.songQueue[song.id] = song;
-            Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
+            Logger.info(
+                LogType.Song,
+                `${song.source}:${song.sourceId} added to Song Queue`
+            );
             song.requestedBy = username;
             return song;
         } catch (err) {
@@ -84,24 +101,50 @@ export class SongService {
         }
     }
 
-    public songPlayed(song: ISong): void {
-        this.songQueue[song.id].beenPlayed = true;
+    public songPlayed(song: ISong | number): void;
+    public songPlayed(song: any): void {
+        if (typeof song === "number") {
+            if (Object.keys(this.songQueue).includes(song.toString())) {
+                this.songQueue[song].beenPlayed = true;
+            }
+        } else if (typeof song === "object" && song.type === "isong") {
+            if (Object.keys(this.songQueue).includes(song.id.toString())) {
+                this.songQueue[song.id].beenPlayed = true;
+            }
+        }
     }
 
-    public removeSong(song: ISong): void {
-        delete this.songQueue[song.id];
+    public removeSong(song: ISong | number): void;
+    public removeSong(song: any): void {
+        if (typeof song === "number") {
+            if (Object.keys(this.songQueue).includes(song.toString())) {
+                delete this.songQueue[song];
+            }
+        } else if (this.isSong(song)) {
+            if (Object.keys(this.songQueue).includes(song.id.toString())) {
+                delete this.songQueue[song.id];
+            }
+        }
     }
 
-    public getSongs(): ISong[] {
+    public removeSongForUser(username: string): void {
+        const userSongs = this.getSongsByUsername(username);
+        if (userSongs.length > 0) {
+            userSongs.forEach((song) => {
+                this.removeSong(song);
+            });
+        }
+    }
+
+    public getSongQueue(): ISong[] {
         return Object.values(this.songQueue);
     }
 
     public getSongsByUsername(username: string): ISong[] {
-        if (Object.keys(this.userSongs).includes(username)) {
-            return this.userSongs[username];
-        } else {
-            return [];
-        }
+        const userSongs = Object.values(this.songQueue).filter((song) => {
+            return song.requestedBy === username;
+        });
+        return userSongs;
     }
 }
 
