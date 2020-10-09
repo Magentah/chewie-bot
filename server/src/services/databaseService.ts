@@ -1,6 +1,6 @@
+import { injectable } from "inversify";
 import * as knex from "knex";
 import * as Config from "../config.json";
-import { injectable } from "inversify";
 import { Logger, LogType } from "../logger";
 
 export enum DatabaseTables {
@@ -126,9 +126,9 @@ export class DatabaseService {
                 await this.db.schema.createTable(DatabaseTables.Users, (table) => {
                     table.increments("id").primary().notNullable();
                     table.integer("vipLevelKey").unsigned();
-                    table.foreign("vipLevelKey").references(`${DatabaseTables.VIPLevels}.id`);
+                    table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
                     table.integer("userLevelKey").unsigned();
-                    table.foreign("userLevelKey").references(`${DatabaseTables.UserLevels}.id`);
+                    table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
                     table.string("username").notNullable().unique();
                     table.string("refreshToken").unique();
                     table.string("idToken").unique();
@@ -157,7 +157,7 @@ export class DatabaseService {
                     table.string("commandName").notNullable();
                     table.string("message").notNullable();
                     table.integer("minimumUserLevelKey").unsigned();
-                    table.foreign("minimumUserLevelKey").references(`${DatabaseTables.UserLevels}.id`);
+                    table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
                     Logger.info(LogType.Database, `${DatabaseTables.TextCommands} table created.`);
                     resolve();
                 });

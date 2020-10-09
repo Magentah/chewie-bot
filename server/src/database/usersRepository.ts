@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
-import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 import { Logger, LogType } from "../logger";
 import { IUser } from "../models";
+import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
 export class UsersRepository {
@@ -17,27 +17,21 @@ export class UsersRepository {
         const databaseService = await this.databaseProvider();
         Logger.info(
             LogType.Database,
-            databaseService.getQueryBuilder(DatabaseTables.Users).first().where({ username }).toSQL().sql
+            databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
+                .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
+                .where("users.username", "like", username)
+                .first(["vipLevels.name as vipLevel", "userLevels.name as userLevel", "users.*"])
+                .toSQL().sql
         );
 
-        // TODO: Fix this so that it's not 3 queries to get a single user... Raw sql is easy but I'm not sure about how to make the join work correctly
-        // using knex yet.
         const user = await databaseService
             .getQueryBuilder(DatabaseTables.Users)
-            .first()
-            .where("username", "like", username);
-        if (user) {
-            const userLevel = await databaseService
-                .getQueryBuilder(DatabaseTables.UserLevels)
-                .first()
-                .where({ id: user.userLevelKey });
-            const vipLevel = await databaseService
-                .getQueryBuilder(DatabaseTables.VIPLevels)
-                .first()
-                .where({ id: user.vipLevelKey });
-            user.userLevel = userLevel;
-            user.vipLevel = vipLevel;
-        }
+            .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
+            .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
+            .where("users.username", "like", username)
+            .first(["vipLevels.name as vipLevel", "userLevels.name as userLevel", "users.*"]);
 
         return user as IUser;
     }
