@@ -1,33 +1,24 @@
-import { injectable, inject } from "inversify";
-import { YoutubeService } from "./youtubeService";
-import { Logger, LogType } from "../logger";
-import { ISong, SongSource } from "../models";
+import { inject, injectable } from "inversify";
 import { InvalidSongUrlError } from "../errors";
+import { Logger, LogType } from "../logger";
+import { ISong, RequestSource, SongSource } from "../models";
+import { YoutubeService } from "./youtubeService";
 
 @injectable()
 export class SongService {
-    private songQueue: { [key: string]: ISong } = {};
-    private userSongs: { [key: string]: ISong[] } = {};
+    private songQueue: { [key: number]: ISong } = {};
     private nextSongId: number = 1;
 
     constructor(@inject(YoutubeService) private youtubeService: YoutubeService) {
         //
     }
 
-    private parseYoutubeUrl(url: string): string | undefined {
-        if (url.indexOf("youtu.be") > -1) {
-            // Short Youtube URL
-            const id = url.slice(url.lastIndexOf("/"), url.indexOf("?"));
-            return id;
-        } else if (url.indexOf("youtube") > -1) {
-            if (url.indexOf("&") > -1) {
-                return url.slice(url.indexOf("?v=") + 3, url.indexOf("&"));
-            } else {
-                return url.slice(url.indexOf("?v=") + 2);
-            }
-        } else {
-            return undefined;
-        }
+    /**
+     * Helper function to test whether an object implements the ISong interface.
+     * @param obj The object to test.
+     */
+    private isSong(obj: any): obj is ISong {
+        return "id" in obj && "title" in obj && "requestedBy" in obj && "source" in obj;
     }
 
     /**
@@ -39,7 +30,7 @@ export class SongService {
 
         const song: ISong = {} as ISong;
 
-        const id = this.parseYoutubeUrl(url);
+        const id = this.youtubeService.parseYoutubeUrl(url);
         if (id) {
             song.source = SongSource.Youtube;
             song.sourceId = id;
@@ -52,6 +43,10 @@ export class SongService {
         return song;
     }
 
+    /**
+     * Get details for a song from the songs source API (Youtube, Spotify, etc).
+     * @param song The song to get details for.
+     */
     private async getSongDetails(song: ISong): Promise<ISong> {
         switch (song.source) {
             case SongSource.Youtube: {
@@ -66,13 +61,20 @@ export class SongService {
         return song;
     }
 
-    public async addSong(url: string, username: string): Promise<ISong> {
+    /**
+     * Add a song to the song queue.
+     * @param url The url of the song to add to the queue.
+     * @param requestSource The source of the request (Donation, Bits, Subscription, Raffle).
+     * @param username The username that is requesting the song to be added.
+     */
+    public async addSong(url: string, requestSource: RequestSource, username: string): Promise<ISong> {
         try {
             let song = this.parseUrl(url);
             song = await this.getSongDetails(song);
             this.songQueue[song.id] = song;
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;
+            song.requestSource = requestSource;
             return song;
         } catch (err) {
             if (err instanceof InvalidSongUrlError) {
@@ -84,24 +86,69 @@ export class SongService {
         }
     }
 
-    public songPlayed(song: ISong): void {
-        this.songQueue[song.id].beenPlayed = true;
+    /**
+     * Set a song in the queue to Played status.
+     * @param song The song or song id to update.
+     */
+    public songPlayed(song: ISong | number): void;
+    public songPlayed(song: any): void {
+        if (typeof song === "number") {
+            if (Object.keys(this.songQueue).includes(song.toString())) {
+                this.songQueue[song].beenPlayed = true;
+            }
+        } else if (typeof song === "object" && song.type === "isong") {
+            if (Object.keys(this.songQueue).includes(song.id.toString())) {
+                this.songQueue[song.id].beenPlayed = true;
+            }
+        }
     }
 
-    public removeSong(song: ISong): void {
-        delete this.songQueue[song.id];
+    /**
+     * Remove a song from the song queue.
+     * @param song The song or song id to remove.
+     */
+    public removeSong(song: ISong | number): void;
+    public removeSong(song: any): void {
+        if (typeof song === "number") {
+            if (Object.keys(this.songQueue).includes(song.toString())) {
+                delete this.songQueue[song];
+            }
+        } else if (this.isSong(song)) {
+            if (Object.keys(this.songQueue).includes(song.id.toString())) {
+                delete this.songQueue[song.id];
+            }
+        }
     }
 
-    public getSongs(): ISong[] {
+    /**
+     * Remove all songs for a specific user.
+     * @param username The user to remove songs for.
+     */
+    public removeSongForUser(username: string): void {
+        const userSongs = this.getSongsByUsername(username);
+        if (userSongs.length > 0) {
+            userSongs.forEach((song) => {
+                this.removeSong(song);
+            });
+        }
+    }
+
+    /**
+     * Get the list of songs in the song queue.
+     */
+    public getSongQueue(): ISong[] {
         return Object.values(this.songQueue);
     }
 
+    /**
+     * Get the list of songs in the song queue requested by a specific user.
+     * @param username The user to get the list of songs for.
+     */
     public getSongsByUsername(username: string): ISong[] {
-        if (Object.keys(this.userSongs).includes(username)) {
-            return this.userSongs[username];
-        } else {
-            return [];
-        }
+        const userSongs = Object.values(this.songQueue).filter((song) => {
+            return song.requestedBy === username;
+        });
+        return userSongs;
     }
 }
 

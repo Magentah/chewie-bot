@@ -5,6 +5,7 @@ export interface ISong {
     title: string;
     duration: moment.Duration;
     requestedBy: string;
+    requestSource: RequestSource;
     beenPlayed: boolean;
     source: SongSource;
     sourceId: string;
@@ -12,6 +13,14 @@ export interface ISong {
 
 export enum SongSource {
     Youtube,
+}
+
+export enum RequestSource {
+    Donation,
+    Bits,
+    Subscription,
+    Raffle,
+    Chat,
 }
 
 export default ISong;

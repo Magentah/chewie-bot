@@ -4,14 +4,14 @@ import * as Config from "./config.json";
 const { combine, timestamp, label, prettyPrint } = Winston.format;
 
 enum LogType {
+    Server = "Server",
+    ServerInfo = "ServerInfo",
     Command = "Command",
     Twitch = "Twitch",
-    ServerInfo = "ServerInfo",
     Cache = "Cache",
     Database = "Database",
     OAuth = "OAuth",
     Youtube = "Youtube",
-    Server = "Server",
     Song = "Song",
 }
 
@@ -26,8 +26,15 @@ enum LogLevel {
     Debug = "debug",
 }
 
+interface ILog {
+    type: LogType;
+    level: LogLevel;
+    message: string | Error;
+}
+
 export class Logger {
     private static logger: Map<LogType, Winston.Logger>;
+    private static logQueue: ILog[] = new Array<ILog>();
 
     public static init() {
         this.logger = new Map<LogType, Winston.Logger>();
@@ -52,8 +59,29 @@ export class Logger {
      * @param obj Imported json object
      * @param key Key to get from the json object
      */
-    private static isEnabledLogKey<T extends object>(obj: T, key: keyof any): key is keyof T {
+    private static isEnabledLogKey<T extends object>(
+        obj: T,
+        key: keyof any
+    ): key is keyof T {
         return key in obj;
+    }
+
+    /**
+     * Add a log message to the queue to be logged when possible.
+     * Will attempt to log messages every 500ms until the logger has initialized.
+     * Used due to some logs are that are attempted to be written before the logger has initialized.
+     *
+     * @param log The log to be added to the queue.
+     */
+    private static queueLog(log: ILog): void {
+        // Add log to a queue that will attempt to rewrite the log when the logger has initialized.
+        this.logQueue.push(log);
+        setTimeout(() => {
+            this.logQueue.forEach((logMessage, index, array) => {
+                array.splice(index, 1);
+                this.log(logMessage.type, logMessage.level, logMessage.message);
+            });
+        }, 500);
     }
 
     /**
@@ -62,19 +90,27 @@ export class Logger {
      * @param level The log severity.
      * @param message Message to log. Can also be an Error object.
      */
-    private static log(type: LogType, level: LogLevel, message: string | Error) {
-        if (this.logger.has(type) && this.logTypeEnabled(type)) {
-            const logger = this.logger.get(type) as Winston.Logger;
-            if (typeof message === "string" || message instanceof String) {
-                logger.log(level, message as string, type);
-            } else {
-                const err = message as Error;
-                logger.log(level, err.message, {
-                    type,
-                    name: err.name,
-                    stack: err.stack,
-                });
+    private static log(
+        type: LogType,
+        level: LogLevel,
+        message: string | Error
+    ) {
+        if (this.logger !== undefined) {
+            if (this.logger.has(type) && this.logTypeEnabled(type)) {
+                const logger = this.logger.get(type) as Winston.Logger;
+                if (typeof message === "string" || message instanceof String) {
+                    logger.log(level, message as string, type);
+                } else {
+                    const err = message as Error;
+                    logger.log(level, err.message, {
+                        type,
+                        name: err.name,
+                        stack: err.stack,
+                    });
+                }
             }
+        } else {
+            this.queueLog({ type, level, message });
         }
     }
 
@@ -116,7 +152,10 @@ export class Logger {
      */
     private static setupLoggers() {
         Object.keys(LogType).forEach((val) => {
-            this.logger.set(val as LogType, this.setupCommandLogger(val as LogType));
+            this.logger.set(
+                val as LogType,
+                this.setupCommandLogger(val as LogType)
+            );
         });
     }
 
@@ -138,7 +177,9 @@ export class Logger {
         return options;
     }
 
-    private static setLogLevels(options: Winston.LoggerOptions): Winston.LoggerOptions {
+    private static setLogLevels(
+        options: Winston.LoggerOptions
+    ): Winston.LoggerOptions {
         if (!Config.log.levels || Config.log.levels === "syslog") {
             options.levels = Winston.config.syslog.levels;
         } else if (Config.log.levels === "npm") {
@@ -147,15 +188,29 @@ export class Logger {
         return options;
     }
 
-    private static setLogFormat(options: Winston.LoggerOptions, type: LogType): Winston.LoggerOptions {
-        options.format = combine(label({ label: type }), timestamp(), prettyPrint({ colorize: true }));
+    private static setLogFormat(
+        options: Winston.LoggerOptions,
+        type: LogType
+    ): Winston.LoggerOptions {
+        options.format = combine(
+            label({ label: type }),
+            timestamp(),
+            prettyPrint({ colorize: true })
+        );
 
         return options;
     }
 
-    private static setLogTransports(options: Winston.LoggerOptions, type: LogType): Winston.LoggerOptions {
+    private static setLogTransports(
+        options: Winston.LoggerOptions,
+        type: LogType
+    ): Winston.LoggerOptions {
         // Different format for files as colorize adds unicode characters
-        const fileFormat = combine(label({ label: type }), timestamp(), prettyPrint({ colorize: false }));
+        const fileFormat = combine(
+            label({ label: type }),
+            timestamp(),
+            prettyPrint({ colorize: false })
+        );
 
         options.transports = [
             new Winston.transports.Console({

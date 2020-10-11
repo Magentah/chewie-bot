@@ -1,23 +1,24 @@
-import * as path from "path";
+import { Server } from "@overnightjs/core";
+import * as bodyParser from "body-parser";
+import * as connectRedis from "connect-redis";
+import * as cookieParser from "cookie-parser";
+import * as cors from "cors";
 import * as express from "express";
 import * as expressSession from "express-session";
-import * as redis from "redis";
-import * as connectRedis from "connect-redis";
-import * as bodyParser from "body-parser";
-import * as cookieParser from "cookie-parser";
 import * as passport from "passport";
-import * as cors from "cors";
-
-import { Server } from "@overnightjs/core";
-
-import { Logger, LogType } from "./logger";
+import * as path from "path";
+import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
-import { SongRouter, AuthRouter, setupPassport } from "./routes";
+import { Logger, LogType } from "./logger";
+import { AuthRouter, setupPassport, SongRouter, TwitchRouter } from "./routes";
+
 const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
-    private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
+    private readonly DEV_MESSAGE =
+        "Express Server is running in development mode." +
+        "No front-end is being served";
 
     constructor() {
         super(true);
@@ -59,7 +60,12 @@ class BotServer extends Server {
                 secret: CryptoHelper.getSecret(),
                 resave: true,
                 saveUninitialized: true,
-                cookie: { httpOnly: true, sameSite: true, secure: false, path: "/" },
+                cookie: {
+                    httpOnly: true,
+                    sameSite: true,
+                    secure: false,
+                    path: "/",
+                },
                 name: "chewiebot",
                 store: new RedisStore({ client: redisClient }),
             })
@@ -78,6 +84,7 @@ class BotServer extends Server {
 
         this.app.use(AuthRouter);
         this.app.use(SongRouter);
+        this.app.use(TwitchRouter);
 
         // Login/Logout Routes
         this.app.get("/api/isloggedin", (req, res) => {
