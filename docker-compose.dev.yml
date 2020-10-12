@@ -4,10 +4,19 @@ volumes:
     node_modules:
 services:
     ui:
-        build: ./client
+        build:
+            context: ./client
+            dockerfile: Dockerfile
         volumes:
-            - ./client/build:/usr/share/nginx/html
+            - ./client/:/usr/src/chewiebot/client
             - "/usr/src/chewiebot/client/node_modules/"
+        ports:
+            - 3001:3000
+        expose:
+            - 3001
+        environment:
+            - CHOKIDAR_USEPOLLING=true
+        command: ["yarn", "start"]
     server:
         build: ./server
         volumes:

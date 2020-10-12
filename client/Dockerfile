@@ -1,5 +1,8 @@
 FROM node:12-alpine AS base
 WORKDIR /usr/src/chewiebot/client
+
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
 COPY package*.json ./
 RUN yarn install
 RUN yarn global add react-scripts
@@ -8,10 +11,3 @@ RUN yarn global add react-scripts
 FROM base AS build
 WORKDIR /usr/src/chewiebot/client
 COPY . ./
-RUN yarn build
-
-FROM nginx:stable-alpine
-COPY --from=build /usr/src/chewiebot/client/build /usr/share/nginx/html
-COPY default.conf /etc/nginx/conf.d/
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]

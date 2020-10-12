@@ -2,10 +2,6 @@
 version: "3"
 services:
     ui:
-        ports:
-            - 80:80
-        expose:
-            - 80
         depends_on:
             - server
         container_name: "chewiebot-client"

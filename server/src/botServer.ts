@@ -16,9 +16,7 @@ const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
-    private readonly DEV_MESSAGE =
-        "Express Server is running in development mode." +
-        "No front-end is being served";
+    private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
 
     constructor() {
         super(true);
@@ -42,7 +40,12 @@ class BotServer extends Server {
     }
 
     private setupApp(): void {
-        const dir = path.join(__dirname, "../../client/build");
+        let dir = "";
+        if (process.env.NODE_END === "development") {
+            dir = path.join(__dirname, "../../client/src/views");
+        } else {
+            dir = path.join(__dirname, "../../client/build");
+        }
 
         const redisClient = redis.createClient({
             url: process.env.REDIS_URL,

@@ -5,6 +5,11 @@ volumes:
 services:
     ui:
         image: magentafall/chewiebot:client-latest
+        ports:
+            - 80:80
+        expose:
+            - 80
+        command: ["nginx", "-g", "daemon off;"]
     server:
         image: magentafall/chewiebot:server-latest
         volumes:

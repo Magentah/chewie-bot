@@ -57,7 +57,7 @@ jobs:
               with:
                   push: true
                   context: ./client
-                  file: ./client/Dockerfile
+                  file: ./client/Dockerfile.prod
                   tags: ${{ secrets.dockerUsername }}/chewiebot:client-latest
 
     deploy-to-digitalocean:
