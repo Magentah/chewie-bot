@@ -11,3 +11,4 @@ RUN yarn global add react-scripts
 FROM base AS build
 WORKDIR /usr/src/chewiebot/client
 COPY . ./
+COPY ./public/assets /usr/src/chewiebot/client/assets

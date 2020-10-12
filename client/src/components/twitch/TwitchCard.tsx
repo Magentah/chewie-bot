@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Image, Button } from "react-bootstrap";
-import { Grid, Card, CardContent, Divider } from "@material-ui/core";
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import { Card, CardContent, Grid } from "@material-ui/core";
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import React, { useEffect, useState } from "react";
+import { Button, Image } from "react-bootstrap";
 
 const TwitchCard: React.FC<any> = (props: any) => {
     const isDev = true;
@@ -41,9 +41,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
         } else {
             return (
                 <p>
-                    Logged in to Twitch.tv{" "}
-                    {user.streamlabsToken ? "and Streamlabs" : ""} as{" "}
-                    {user.username}.
+                    Logged in to Twitch.tv {user.streamlabsToken ? "and Streamlabs" : ""} as {user.username}.
                 </p>
             );
         }
@@ -55,8 +53,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
             headers: {
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "http://localhost",
-                "Access-Control-Allow-Methods":
-                    "GET, POST, OPTIONS, PUT, PATCH, DELETE",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, PATCH, DELETE",
                 "Access-Control-Allow-Headers": "X-Requested-With,content-type",
                 "Access-Control-Allow-Credentials": true,
             },
@@ -71,12 +68,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
             <div className="App">
                 <header className="App-header">
                     {message()}
-                    <a
-                        className="App-link"
-                        href="https://reactjs.org"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
                         Learn React
                     </a>
                     <a class-name="App-link" href="/api/auth/twitch">
@@ -104,21 +96,15 @@ const TwitchCard: React.FC<any> = (props: any) => {
         if (isDev) {
             return (
                 <div>
-                    <div style={{ marginTop: "10px" }}>
-                        {" "}
-                        Welcome Dango Devs!
-                    </div>
+                    <div style={{ marginTop: "10px" }}> Welcome Dango Devs!</div>
                     <p>
-                        Any modification to <code>{"src/client/**"}</code> can
-                        be reloaded by{" "}
+                        Any modification to <code>{"src/client/**"}</code> can be reloaded by{" "}
                         <code>{"cd src/client && yarn build"}</code>
                     </p>
                 </div>
             );
         }
-        return (
-            <p>Welome to the Dango Family! Sign in using your Twitch account</p>
-        );
+        return <p>Welome to the Dango Family! Sign in using your Twitch account</p>;
     };
 
     return (
@@ -126,29 +112,18 @@ const TwitchCard: React.FC<any> = (props: any) => {
             <CardContent style={{ textAlign: "center" }}>
                 <Grid>
                     <Grid item spacing={3} style={{ marginBottom: "20px" }}>
-                        <Image
-                            src={"/assets/chewie_logo.jpg"}
-                            alt="logo"
-                            width="25%"
-                            roundedCircle
-                        />
+                        <Image src={"/assets/chewie_logo.jpg"} alt="logo" width="25%" roundedCircle />
                     </Grid>
                     <Grid item spacing={3}>
                         {renderWelcome()}
                     </Grid>
                     <Grid item spacing={3}>
-                        <Button
-                            variant="light"
-                            style={cssTwitchButton}
-                            onClick={twitchRedirect}
-                        >
+                        <Button variant="light" style={cssTwitchButton} onClick={twitchRedirect}>
                             <Image
                                 src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
                                 style={{ width: "30px" }}
                             />{" "}
-                            <span style={{ color: "white" }}>
-                                Connect ChewieBot to Twitch
-                            </span>
+                            <span style={{ color: "white" }}>Connect ChewieBot to Twitch</span>
                         </Button>
                     </Grid>
                 </Grid>
