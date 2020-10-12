@@ -16,7 +16,9 @@ const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
-    private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
+    private readonly DEV_MESSAGE =
+        "Express Server is running in development mode." +
+        "No front-end is being served";
 
     constructor() {
         super(true);
