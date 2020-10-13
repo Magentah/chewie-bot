@@ -35,13 +35,13 @@
 
 -   Using docker is the recommended way to run the bot. Only Docker using WSL2 has been tested.
 -   In `/client/package.json/`, ensure that `proxy` is set to `http://server:8080`. This is the default, so should only have been changed if you changed it for running with NodeJS.
--   From the root repository, run `yarn --cwd server setup` and `yarn --cwd server build`. The `setup` command will install node packages for both the server and client. The `build` command will build the typescript files.
+-   From the root repository, run `yarn --cwd server setup`. The `setup` command will install node packages for both the server and client.
 -   To run the site in docker, run `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`. This will take some time the first time as it will build and start the containers using the dev docker config. The dev docker config will build images from local directories and map volumes to `/server/` and `/client/`. The `docker-compose.prod.yml` config will take images from the DockerHub repository and only map a volume for the SQLite database.
--   Open a browser and navigate to `localhost`.
--   Docker will pass the `--inspect` flag to node for node debugging when using `docker-compose.dev.yml`.
--   Updating docker files will require `yarn --cwd server tsc` for rebuilding server files or `yarn --cwd client build` for rebuilding client files.
-    -   I plan on updating this to use the source files at some point, but for now the docker images only use the build files.
-    -   Use `tsc --p server --watch` to run `tsc` in watch mode and automatically recompile server ts files on changes. `docker-compose.dev.yml` runs `pm2` with `--watch` to restart when recompiles happen for the server.
+-   Open a browser and navigate to `localhost:3001`. This may give an error due to needing to wait for the client and server to start up. You can check if the client is running by `docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs ui` and checking to see if the `Client Compiled` message is visible.
+-   Docker will pass the `--inspect` flag to node for node debugging the server when using `docker-compose.dev.yml`. This will map localhost:9229 to the node inspector for the server.
+-   Files will be updated automatically when saved.
+    -   Server uses pm2 to watch the `/server/src` folder.
+    -   Client uses `react-scripts start` to watch the `/client/` folder.
 
 ### NodeJS
 
