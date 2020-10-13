@@ -1,0 +1,18 @@
+{
+    "apps": {
+        "name": "chewiebot",
+        "script": "./src/start.ts",
+        "watch": "/usr/src/chewiebot/server/src",
+        "watch_options": {
+            "dot": true,
+            "usePolling": true
+        },
+        "env": {
+            "NODE_ENV": "development",
+            "NODE_OPTIONS": "--inspect=0.0.0.0:9229"
+        },
+        "env_production": {
+            "NODE_ENV": "production"
+        }
+    }
+}

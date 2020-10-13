@@ -1,0 +1,17 @@
+{
+    "extends": "tslint:recommended",
+    "rules": {
+        "max-line-length": {
+            "options": [240]
+        },
+        "member-ordering": false,
+        "no-consecutive-blank-lines": false,
+        "object-literal-sort-keys": false,
+        "ordered-imports": false,
+        "quotemark": [true, "double"],
+        "variable-name": [true, "allow-pascal-case"],
+        "indent": [true, "spaces", 4],
+        "no-null-keyword": true,
+        "trailing-comma": false
+    }
+}

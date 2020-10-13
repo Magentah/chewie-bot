@@ -49,7 +49,7 @@ jobs:
               with:
                   push: true
                   context: ./server
-                  file: ./server/Dockerfile
+                  file: ./server/Dockerfile.prod
                   tags: ${{ secrets.dockerUsername }}/chewiebot:server-latest
 
             - name: Build Client Docker Image
