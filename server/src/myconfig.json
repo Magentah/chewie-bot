@@ -17,6 +17,7 @@
     "log": {
         "levels": "syslog",
         "level": "info",
+        "logfile": "logs.txt",
         "enabledLogs": {
             "cache": true,
             "command": true,
