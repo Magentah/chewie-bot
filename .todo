@@ -92,13 +92,7 @@ Users:
     ☐ Accumulate points over time when users are in chat (options for whether broadcaster is live or not, different accumulation rates, etc)@created(19-08-10 14:17)
 
 UI:
-    // Everything needs to be done UI wise currently...
-    ☐ Stop using the react demo splash page. @created(19-08-09 16:25)
-    ☐ Navbar with login button / user details @created(19-08-09 16:26)
-    ☐ Song queue that allows ordering songs, updating songs @created(19-08-09 16:26)
-    ☐ Hotkeys @created(19-08-09 16:26)
-    ☐ User info, also able to update user info @created(19-08-09 16:27)
-    ☐ Points config stuff @created(19-08-09 16:27)
-    ☐ View commands, config for commands (e.g. points required to use, user level restrictions) @created(19-08-09 16:27)
-    ☐ Editable Song List @created(20-09-22 14:31)
-        Songs that Chewie has memorised and people can request easily
+    Landing Page:
+    Bot Settings:
+
+    

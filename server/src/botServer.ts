@@ -11,6 +11,7 @@ import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SongRouter, TwitchRouter } from "./routes";
+import { RouteLogger } from "./middleware";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -56,6 +57,7 @@ class BotServer extends Server {
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(cookieParser(CryptoHelper.getSecret()));
         this.app.use(cors());
+        this.app.use(RouteLogger);
         this.app.set("views", dir);
         this.app.use(express.static(dir));
         this.app.use(
