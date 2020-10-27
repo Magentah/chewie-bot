@@ -5,11 +5,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Typography, Divider } from "@material-ui/core";
 import SideBar from "../../components/sidebar/SideBar";
 import NavBar from "../../components/navbar/NavBar";
-import {
-    Route as RouteType,
-    DashboardRoutes,
-    NotFoundRoute,
-} from "../../Routes";
+import { Route as RouteType, DashboardRoutes, NotFoundRoute } from "../../Routes";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -24,9 +20,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const createRouteMap = (
-    routes: Array<RouteType>
-): ((x: string) => RouteType) => {
+const createRouteMap = (routes: Array<RouteType>): ((x: string) => RouteType) => {
     const m = new Map<string, RouteType>();
     routes.forEach((route: RouteType) => {
         m.set(route.path, route);
@@ -70,7 +64,7 @@ const Dashboard: React.FC<{}> = (props) => {
 
     const renderRoute = () => {
         const routeJsx = DashboardRoutes.map((route: RouteType) => (
-            <Route exact path={route.path}>
+            <Route exact path={route.path} key={route.name}>
                 <route.component />
             </Route>
         ));

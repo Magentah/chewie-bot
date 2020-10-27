@@ -111,13 +111,11 @@ const TwitchCard: React.FC<any> = (props: any) => {
         <Card>
             <CardContent style={{ textAlign: "center" }}>
                 <Grid>
-                    <Grid item spacing={3} style={{ marginBottom: "20px" }}>
+                    <Grid item style={{ marginBottom: "20px" }}>
                         <Image src={"/assets/chewie_logo.jpg"} alt="logo" width="25%" roundedCircle />
                     </Grid>
-                    <Grid item spacing={3}>
-                        {renderWelcome()}
-                    </Grid>
-                    <Grid item spacing={3}>
+                    <Grid item>{renderWelcome()}</Grid>
+                    <Grid item>
                         <Button variant="light" style={cssTwitchButton} onClick={twitchRedirect}>
                             <Image
                                 src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
