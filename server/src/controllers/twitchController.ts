@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { OK } from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { Logger, LogType } from "../logger";
 import { TwitchService } from "../services";
@@ -12,12 +12,12 @@ class TwitchController {
 
     public joinChannel(req: Request, res: Response): void {
         this.twitchService.defaultBotJoinChannel(`#${req.params.channel}`);
-        res.sendStatus(OK);
+        res.sendStatus(StatusCodes.OK);
     }
 
     public leaveChannel(req: Request, res: Response): void {
         this.twitchService.leaveChannel(`#${req.params.channel}`);
-        res.sendStatus(OK);
+        res.sendStatus(StatusCodes.OK);
     }
 
     public createClient(req: Request, res: Response): void {
@@ -26,7 +26,7 @@ class TwitchController {
         } else {
             this.twitchService.setupClientForChannel(`#${req.params.channel}`, req.body.username, req.body.oauth);
         }
-        res.sendStatus(OK);
+        res.sendStatus(StatusCodes.OK);
     }
 }
 

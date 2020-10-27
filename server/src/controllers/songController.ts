@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR, OK } from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
@@ -21,7 +21,7 @@ class SongController {
      */
     public getSongRequests(req: Request, res: Response): void {
         const songs = this.songService.getSongQueue();
-        res.status(OK);
+        res.status(StatusCodes.OK);
         res.send(songs);
     }
 
@@ -32,7 +32,7 @@ class SongController {
      */
     public getSongsForUser(req: Request, res: Response): void {
         const songs = this.songService.getSongsByUsername(req.params.username);
-        res.status(OK);
+        res.status(StatusCodes.OK);
         res.send(songs);
     }
 
@@ -43,26 +43,29 @@ class SongController {
      */
     public async addSongForUser(req: Request, res: Response): Promise<void> {
         if (req.body.url === undefined || req.body.url.length === 0) {
-            res.status(BAD_REQUEST);
-            res.send(APIHelper.error(BAD_REQUEST, "Request body does not include a valid URL."));
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a valid URL."));
             return;
         }
         if (req.body.requestSource === undefined || req.body.requestSource.length === 0) {
-            res.status(BAD_REQUEST);
-            res.send(APIHelper.error(BAD_REQUEST, "Request body does not include a valid request source."));
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a valid request source."));
             return;
         }
         const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username);
 
         if (song === undefined) {
-            res.status(INTERNAL_SERVER_ERROR);
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
-                APIHelper.error(INTERNAL_SERVER_ERROR, "There was an error when attempting to add the song request.")
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song request."
+                )
             );
             return;
         }
 
-        res.status(OK);
+        res.status(StatusCodes.OK);
         res.send(song);
     }
 
@@ -73,7 +76,7 @@ class SongController {
      */
     public removeSong(req: Request, res: Response): void {
         this.songService.removeSong(Number.parseInt(req.params.songId, 10));
-        res.sendStatus(OK);
+        res.sendStatus(StatusCodes.OK);
     }
 
     /**
@@ -83,7 +86,7 @@ class SongController {
      */
     public removeSongForUser(req: Request, res: Response): void {
         this.songService.removeSongForUser(req.params.username);
-        res.sendStatus(OK);
+        res.sendStatus(StatusCodes.OK);
     }
 }
 

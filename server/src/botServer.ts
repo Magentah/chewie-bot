@@ -84,7 +84,7 @@ class BotServer extends Server {
             next();
         });
         this.app.get("/", (req, res) => {
-            res.sendFile("index.html", { root: dir });
+            res.redirect("/");
         });
 
         this.app.use(AuthRouter);

@@ -86,10 +86,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
     };
 
     const twitchRedirect = async () => {
-        const redirectUrl = `api/auth/twitch/redirect`;
-        const response = await fetch(redirectUrl).then((res) => res.json());
-
-        window.location.replace(response.url);
+        window.location.href = "/api/auth/twitch";
     };
 
     const renderWelcome = () => {

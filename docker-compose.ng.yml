@@ -1,0 +1,27 @@
+# docker-compose.yml
+version: "3"
+volumes:
+    node_modules:
+services:
+    ui:
+        build:
+            context: ./client
+            dockerfile: Dockerfile.prod
+        volumes:
+            - ./client/:/usr/src/chewiebot/client
+            - "/usr/src/chewiebot/client/node_modules/"
+        ports:
+            - 80:80
+        expose:
+            - 80
+        command: ["nginx", "-g", "daemon off;"]
+    server:
+        build:
+            context: ./server
+            dockerfile: Dockerfile
+        volumes:
+            - ./server:/usr/src/chewiebot/server
+            - "/usr/src/chewiebot/server/node_modules/"
+        environment:
+            NODE_ENV: development
+        command: ["pm2-dev", "ecosystem.config.json"]

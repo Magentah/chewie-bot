@@ -50,18 +50,6 @@ const Dashboard: React.FC<{}> = (props) => {
 
     console.log("Route", route);
 
-    useEffect(() => {
-        const url = `http://localhost:3000/protected`;
-        axios
-            .get(url)
-            .then((res) => {
-                console.log("/protected, result= ", res);
-            })
-            .catch((err) => {
-                console.log("err", err);
-            });
-    }, []);
-
     const renderRoute = () => {
         const routeJsx = DashboardRoutes.map((route: RouteType) => (
             <Route exact path={route.path} key={route.name}>
