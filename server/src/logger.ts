@@ -13,6 +13,7 @@ enum LogType {
     OAuth = "OAuth",
     Youtube = "Youtube",
     Song = "Song",
+    WebSocket = "WebSocket",
 }
 
 enum LogLevel {

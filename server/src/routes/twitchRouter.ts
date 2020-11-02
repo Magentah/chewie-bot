@@ -7,6 +7,6 @@ const twitchController: TwitchController = BotContainer.get(TwitchController);
 
 twitchRouter.get("/api/twitch/:channel/join", (res, req) => twitchController.joinChannel(res, req));
 twitchRouter.get("/api/twitch/:channel/leave", (res, req) => twitchController.leaveChannel(res, req));
-twitchRouter.post("/api/twitch/:channel/create", (res, req) => twitchController.createClient(res, req));
+twitchRouter.get("/api/twitch/status", (res, req) => twitchController.getStatus(res, req));
 
 export default twitchRouter;

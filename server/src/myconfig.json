@@ -26,7 +26,8 @@
             "songs": true,
             "twitch": true,
             "server": true,
-            "serverinfo": true
+            "serverinfo": true,
+            "websocket": true
         }
     },
     "database": {

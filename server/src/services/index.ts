@@ -5,3 +5,4 @@ export { default as SongService } from "./songService";
 export { default as TwitchService } from "./twitchService";
 export { default as UserService } from "./userService";
 export { default as YoutubeService } from "./youtubeService";
+export { default as WebsocketService } from "./websocketService";

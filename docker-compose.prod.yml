@@ -10,7 +10,7 @@ services:
         expose:
             - 80
         command: ["nginx", "-g", "daemon off;"]
-    server:
+    backend:
         image: magentafall/chewiebot:server-latest
         volumes:
             - chewiebot-db:/usr/src/chewiebot/server/dist/chewiebot.db

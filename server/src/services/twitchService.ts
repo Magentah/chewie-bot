@@ -3,54 +3,48 @@ import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
-import { ITwitchChatList } from "../models";
-import { CommandService } from "./commandService";
-import { UserService } from "./userService";
-import passport = require("passport");
+import { ITwitchChatList, SocketMessageType } from "../models";
+
+// Required to do it this way instead of from "../services" due to inversify breaking otherwise
+import CommandService from "../services/commandService";
+import UserService from "../services/userService";
+import WebsocketService from "../services/websocketService";
+
+export interface IBotTwitchStatus {
+    connected: boolean;
+}
 
 @injectable()
 export class TwitchService {
-    private clients: { [channel: string]: tmi.Client } = {};
-    private defaultClient: tmi.Client;
+    private client: tmi.Client;
     private options: tmi.Options;
     private channelUserList: Map<string, ITwitchChatList>;
 
     constructor(
         @inject(CommandService) private commandService: CommandService,
-        @inject(UserService) private users: UserService
+        @inject(UserService) private users: UserService,
+        @inject(WebsocketService) private websocketService: WebsocketService
     ) {
         this.channelUserList = new Map<string, ITwitchChatList>();
         this.options = this.setupOptions(Config.twitch.username, Config.twitch.oauth, Config.twitch.username);
-        this.defaultClient = tmi.Client(this.options);
-        this.setupEventHandlers(this.defaultClient);
-        this.clients[Config.twitch.username] = this.defaultClient;
-        this.defaultClient.connect();
+        this.client = tmi.Client(this.options);
+        this.setupEventHandlers(this.client);
     }
 
     public sendMessage(channel: string, message: string): void {
-        this.clients[channel].say(channel, message);
+        this.client.say(channel, message);
     }
 
-    public joinChannel(client: tmi.Client, channel: string): void {
-        this.clients[channel] = client;
-        client.join(channel);
-    }
-
-    public defaultBotJoinChannel(channel: string): void {
-        this.joinChannel(this.defaultClient, channel);
+    public joinChannel(channel: string): void {
+        this.client.join(channel);
     }
 
     public leaveChannel(channel: string): void {
-        const client = this.clients[channel];
-        client.part(channel);
+        this.client.part(channel);
     }
 
-    public setupClientForChannel(channel: string, botUsername: string, botOAuth: string): void {
-        const options = this.setupOptions(botUsername, botOAuth, channel);
-        const client = tmi.Client(options);
-        client.connect();
-        this.clients[channel] = client;
-        this.joinChannel(client, channel);
+    public getStatus(): string {
+        return this.client.readyState();
     }
 
     /**
@@ -189,7 +183,12 @@ export class TwitchService {
     }
 
     private connectedEventHandler(address: string, port: number) {
-        Logger.info(LogType.Twitch, `Connected to address: ${address}:${port}`);
+        Logger.info(LogType.Twitch, `Connected to Twitch.tv service.`, { address, port });
+        this.websocketService.send({
+            type: SocketMessageType.BotConnected,
+            message: "Bot connected to twitch server.",
+            data: { address, port },
+        });
     }
 
     private connectingEventHandler(address: string, port: number) {
@@ -197,7 +196,12 @@ export class TwitchService {
     }
 
     private disconnectedEventHandler(reason: string) {
-        // Empty
+        Logger.info(LogType.Twitch, "Disconnected from Twitch.tv service.", { reason });
+        this.websocketService.send({
+            type: SocketMessageType.BotDisconnected,
+            message: "Bot connected to twitch server.",
+            data: { reason },
+        });
     }
 
     private emoteOnlyEventHandler(channel: string, enabled: boolean) {
@@ -366,12 +370,12 @@ export class TwitchService {
 
     public connect(channel: string): void {
         Logger.info(LogType.Twitch, "Connecting to Twitch.tv with tmi.js");
-        this.clients[channel].connect();
+        this.client.connect();
     }
 
     public disconnect(channel: string): void {
         Logger.info(LogType.Twitch, "Disconnecting from Twitch.tv");
-        this.clients[channel].disconnect();
+        this.client.disconnect();
     }
 }
 

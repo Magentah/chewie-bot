@@ -41,6 +41,7 @@
         "@overnightjs/core": "^1.6.9",
         "@overnightjs/logger": "^1.1.9",
         "@types/cors": "^2.8.7",
+        "@types/ws": "^7.2.9",
         "axios": "^0.20.0",
         "connect-redis": "^5.0.0",
         "cookie-parser": "^1.4.5",
@@ -61,6 +62,7 @@
         "sqlite3": "^4.0.9",
         "tmi.js": "^1.4.5",
         "tslib": "^2.0.1",
-        "winston": "^3.2.1"
+        "winston": "^3.2.1",
+        "ws": "^7.3.1"
     }
 }

@@ -12,17 +12,20 @@ import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SongRouter, TwitchRouter } from "./routes";
 import { RouteLogger } from "./middleware";
+import { WebsocketService } from "./services";
+import { BotContainer } from "./inversify.config";
 
 const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
     private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
-
+    private socket: WebsocketService;
     constructor() {
         super(true);
         setupPassport();
         this.setupApp();
+        this.socket = BotContainer.get<WebsocketService>(WebsocketService);
     }
 
     public start(port: number): void {

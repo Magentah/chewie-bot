@@ -12,10 +12,11 @@ services:
             - "/usr/src/chewiebot/client/node_modules/"
         ports:
             - 80:80
+            - 8020:8020
         expose:
             - 80
         command: ["nginx", "-g", "daemon off;"]
-    server:
+    backend:
         build:
             context: ./server
             dockerfile: Dockerfile

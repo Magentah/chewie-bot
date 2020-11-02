@@ -1,7 +1,9 @@
 import { inject, injectable } from "inversify";
+import { BotContainer } from "src/inversify.config";
 import { InvalidSongUrlError } from "../errors";
 import { Logger, LogType } from "../logger";
-import { ISong, RequestSource, SongSource } from "../models";
+import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";
+import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
 
 @injectable()
@@ -9,7 +11,10 @@ export class SongService {
     private songQueue: { [key: number]: ISong } = {};
     private nextSongId: number = 1;
 
-    constructor(@inject(YoutubeService) private youtubeService: YoutubeService) {
+    constructor(
+        @inject(YoutubeService) private youtubeService: YoutubeService,
+        @inject(WebsocketService) private websocketService: WebsocketService
+    ) {
         //
     }
 
@@ -75,6 +80,14 @@ export class SongService {
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;
             song.requestSource = requestSource;
+
+            this.websocketService.send({
+                type: SocketMessageType.SongAdded,
+                message: "Song Added",
+                data: song,
+                username,
+            });
+
             return song;
         } catch (err) {
             if (err instanceof InvalidSongUrlError) {
@@ -95,10 +108,20 @@ export class SongService {
         if (typeof song === "number") {
             if (Object.keys(this.songQueue).includes(song.toString())) {
                 this.songQueue[song].beenPlayed = true;
+                this.websocketService.send({
+                    type: SocketMessageType.SongPlayed,
+                    message: "Song Played",
+                    data: this.songQueue[song],
+                });
             }
         } else if (typeof song === "object" && song.type === "isong") {
             if (Object.keys(this.songQueue).includes(song.id.toString())) {
                 this.songQueue[song.id].beenPlayed = true;
+                this.websocketService.send({
+                    type: SocketMessageType.SongPlayed,
+                    message: "Song Played",
+                    data: song,
+                });
             }
         }
     }
@@ -111,10 +134,20 @@ export class SongService {
     public removeSong(song: any): void {
         if (typeof song === "number") {
             if (Object.keys(this.songQueue).includes(song.toString())) {
+                this.websocketService.send({
+                    type: SocketMessageType.SongRemoved,
+                    message: "Song Removed",
+                    data: this.songQueue[song],
+                });
                 delete this.songQueue[song];
             }
         } else if (this.isSong(song)) {
             if (Object.keys(this.songQueue).includes(song.id.toString())) {
+                this.websocketService.send({
+                    type: SocketMessageType.SongRemoved,
+                    message: "Song Removed",
+                    data: song,
+                });
                 delete this.songQueue[song.id];
             }
         }
