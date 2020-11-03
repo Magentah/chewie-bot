@@ -277,6 +277,12 @@ const SongQueue: React.FC<{}> = (props) => {
     };
 
     useEffect(() => {
+        axios.get("api/songs").then((response) => {
+            setSongs(response.data);
+        });
+    }, []);
+
+    useEffect(() => {
         websocket.current = new WebsocketService();
 
         return () => {
