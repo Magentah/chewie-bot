@@ -4,6 +4,7 @@ import { AppBar, Toolbar, IconButton, Badge, Typography } from "@material-ui/cor
 import { Notifications, AccountBoxOutlined, LiveTv, Link, LinkOff } from "@material-ui/icons";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
+import { ActionImportantDevices } from "material-ui/svg-icons";
 
 type NavBarProps = {};
 const sidebarWidth = 230;
@@ -43,8 +44,13 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     };
 
     const connectBot = async () => {
-        const response = await axios.get("/api/twitch/status");
-        setBotConnected(response.data.connected === "CONNECTED");
+        if (botConnected) {
+            await axios.get("/api/twitch/disconnect");
+            setBotConnected(false);
+        } else {
+            await axios.get("/api/twitch/connect");
+            setBotConnected(true);
+        }
     };
 
     return (

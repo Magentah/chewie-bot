@@ -4,7 +4,7 @@ import SongQueue from "../../components/songqueue/SongQueue";
 
 const MusicRequestView: React.FC<{}> = (props) => {
     return (
-        <Box width={1600}>
+        <Box>
             <Card>
                 <CardContent>
                     <SongQueue />

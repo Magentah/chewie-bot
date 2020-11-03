@@ -19,6 +19,8 @@ export class UserService {
                 username: user,
                 points: 0,
                 hasLogin: false,
+                vipLevelKey: 1,
+                userLevelKey: 1,
             };
         } else {
             newUser = user;

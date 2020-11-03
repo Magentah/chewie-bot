@@ -1,4 +1,4 @@
-import { Card, CardContent, Grid } from "@material-ui/core";
+import { Card, CardContent, Grid, Typography } from "@material-ui/core";
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import React, { useEffect, useState } from "react";
 import { Button, Image } from "react-bootstrap";
@@ -7,6 +7,16 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const isDev = true;
     const cssTwitchButton = {
         backgroundColor: "#9147ff",
+        marginRight: "10px",
+    };
+
+    const cssStreamlabsButton = {
+        backgroundColor: "#80f5d2",
+    };
+
+    const streamlabsImage = {
+        width: "130px",
+        padding: "6px",
     };
 
     const defaultUser: any = {
@@ -18,7 +28,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
 
     useEffect(() => {
         axios
-            .get("/api/isloggedin", {
+            .get("api/isloggedin", {
                 withCredentials: true,
             })
             .then((response: AxiosResponse<any>) => {
@@ -34,60 +44,6 @@ const TwitchCard: React.FC<any> = (props: any) => {
                 console.log("ERR", err);
             });
     }, []);
-
-    const message = (): JSX.Element => {
-        if (user) {
-            return <p>No user logged in.</p>;
-        } else {
-            return (
-                <p>
-                    Logged in to Twitch.tv {user.streamlabsToken ? "and Streamlabs" : ""} as {user.username}.
-                </p>
-            );
-        }
-    };
-
-    const streamlabsLogin = (): any => {
-        const params: AxiosRequestConfig = {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "http://localhost",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-                "Access-Control-Allow-Headers": "X-Requested-With,content-type",
-                "Access-Control-Allow-Credentials": true,
-            },
-            withCredentials: true,
-            data: undefined,
-        };
-        axios.get("/api/auth/streamlabs", params);
-    };
-
-    const render = () => {
-        return (
-            <div className="App">
-                <header className="App-header">
-                    {message()}
-                    <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-                        Learn React
-                    </a>
-                    <a class-name="App-link" href="/api/auth/twitch">
-                        Connect to Twitch
-                    </a>
-                    <a class-name="App-link" href="/api/auth/streamlabs">
-                        Connect to Streamlabs
-                    </a>
-                    <a class-name="App-link" href="/api/logout">
-                        Logout
-                    </a>
-                </header>
-            </div>
-        );
-    };
-
-    const twitchRedirect = async () => {
-        window.location.href = "/api/auth/twitch";
-    };
 
     const renderWelcome = () => {
         if (isDev) {
@@ -113,12 +69,19 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     </Grid>
                     <Grid item>{renderWelcome()}</Grid>
                     <Grid item>
-                        <Button variant="light" style={cssTwitchButton} onClick={twitchRedirect}>
+                        <Button variant="light" style={cssTwitchButton} href="/api/twitch/magentafall/join">
                             <Image
                                 src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
                                 style={{ width: "30px" }}
                             />{" "}
                             <span style={{ color: "white" }}>Connect ChewieBot to Twitch</span>
+                        </Button>
+                        <Button variant="light" style={cssStreamlabsButton} href="/api/auth/streamlabs">
+                            <Image
+                                style={streamlabsImage}
+                                src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
+                            />
+                            <Typography component="span">Connect to Streamlabs</Typography>
                         </Button>
                     </Grid>
                 </Grid>

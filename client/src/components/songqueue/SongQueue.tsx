@@ -15,52 +15,6 @@ type YTVideo = {
     channel: string;
 };
 
-const stubData = [
-    {
-        idx: 0,
-        id: "CNRsiu5EeT4",
-        duration: "3:27",
-        name: "Raiden X 찬열 CHANYEOL - Yours (Feat. 이하이, 창모) Piano Cover",
-        channel: "Chewie Melodies",
-        requestedBy: "MagentaFall",
-        requesterStatus: "Viewer",
-        requesterVIPStatus: "None",
-        requestedWith: "Donation",
-    },
-    {
-        idx: 1,
-        id: "I-vS4auhAjI",
-        duration: "3:25",
-        name: "아이유 (IU) - 에잇 / Eight (Prod. & Feat. SUGA) (Piano Cover)",
-        channel: "Chewie Melodies",
-        requestedBy: "MagentaFall",
-        requesterStatus: "Subscriber",
-        requesterVIPStatus: "Bronze",
-        requestedWith: "Gold VIP",
-    },
-    {
-        idx: 2,
-        id: "CdAtlXL9tl0",
-        duration: "3:47",
-        name: "아이유 (IU) - Last Night Story / 어젯밤 이야기 (Piano Cover)",
-        channel: "Chewie Melodies",
-        requestedBy: "MagentaFall",
-        requesterStatus: "Tier 2 Subscriber",
-        requesterVIPStatus: "Silver",
-        requestedWith: "Raffle",
-    },
-    {
-        idx: 3,
-        id: "2J-5uSvuags",
-        duration: "1:19:20",
-        name: "Jason Yang Violin X ChewieMelodies Collaboration Stream! Part 1 of 4",
-        channel: "Chewie Melodies",
-        requestedBy: "MagentaFall",
-        requesterStatus: "Tier 3 Subscriber",
-        requesterVIPStatus: "Gold",
-        requestedWith: "Song List",
-    },
-];
 const x: any = {
     MUIDataTableHeadCell: {
         root: {
@@ -143,103 +97,6 @@ const RequestedWithCell: React.FC<any> = (value) => {
     );
 };
 
-const columns = [
-    {
-        label: "Preview",
-        name: "sourceId",
-        options: { customBodyRender: PreviewCell },
-    },
-    {
-        label: "Details",
-        name: "details",
-        options: {
-            customBodyRender: DetailCell,
-            filterOptions: {
-                names: stubData.map((item) => {
-                    return item.name;
-                }),
-                logic(prop: string, filters: any[]): boolean {
-                    if (filters.length) {
-                        return !filters.includes(stubData[Number.parseInt(prop)].name);
-                    }
-                    return false;
-                },
-            },
-        },
-    },
-    {
-        label: "Requested By",
-        name: "requestedBy",
-        options: {
-            customBodyRender: RequesterCell,
-            filterOptions: {
-                names: Array.from(
-                    new Set(
-                        stubData.map((item) => {
-                            return item.requestedBy;
-                        })
-                    )
-                ),
-                logic(index: string, filters: any[]): boolean {
-                    if (filters.length) {
-                        return !filters.includes(stubData[Number.parseInt(index)].requestedBy);
-                    }
-                    return false;
-                },
-            },
-        },
-    },
-    {
-        label: "Requester Status",
-        name: "requesterStatus",
-        options: {
-            customBodyRender: RequesterStatusCell,
-            filterOptions: {
-                names: Array.from(
-                    new Set(
-                        stubData
-                            .map((item) => {
-                                return item.requesterStatus;
-                            })
-                            .concat(
-                                stubData.map((otherItem) => {
-                                    return otherItem.requesterVIPStatus;
-                                })
-                            )
-                    )
-                ),
-                logic(index: string, filters: any[]): boolean {
-                    if (filters.length) {
-                        return (
-                            !filters.includes(stubData[Number.parseInt(index)].requesterStatus) &&
-                            !filters.includes(stubData[Number.parseInt(index)].requesterVIPStatus)
-                        );
-                    }
-                    return false;
-                },
-            },
-        },
-    },
-    {
-        label: "Requested With",
-        name: "requestSource",
-        options: {
-            customBodyRender: RequestedWithCell,
-            filterOptions: {
-                names: stubData.map((item) => {
-                    return item.requestedWith;
-                }),
-                logic(index: string, filters: any[]): boolean {
-                    if (filters.length) {
-                        return !filters.includes(stubData[Number.parseInt(index)].requestedWith);
-                    }
-                    return false;
-                },
-            },
-        },
-    },
-];
-
 interface Song {
     details: {
         title: string;
@@ -308,7 +165,7 @@ const SongQueue: React.FC<{}> = (props) => {
         const songsToDelete = songs.filter((song, index) => {
             return indexes.includes(index);
         });
-        console.log(songsToDelete);
+
         axios.post("api/songs/delete", { songs: songsToDelete }).then((response) => {
             //
         });
@@ -317,6 +174,80 @@ const SongQueue: React.FC<{}> = (props) => {
             deleteSong(song);
         });
     };
+
+    const columns = [
+        {
+            label: "Preview",
+            name: "sourceId",
+            options: { customBodyRender: PreviewCell, filter: false },
+        },
+        {
+            label: "Song Title",
+            name: "details",
+            options: {
+                customBodyRender: DetailCell,
+                filterOptions: {
+                    names: Array.from(
+                        new Set(
+                            songs.map((item) => {
+                                return item.details.title;
+                            })
+                        )
+                    ),
+                    logic(prop: any, filters: any[]): boolean {
+                        if (filters.length) {
+                            return !filters.includes(prop.title);
+                        }
+                        return false;
+                    },
+                },
+            },
+        },
+        {
+            label: "Requested By",
+            name: "requestedBy",
+            options: {
+                customBodyRender: RequesterCell,
+                filter: true,
+            },
+        },
+        {
+            label: "Requester Status",
+            name: "requesterStatus",
+            options: {
+                customBodyRender: RequesterStatusCell,
+                filterOptions: {
+                    names: Array.from(
+                        new Set(
+                            songs
+                                .map((item) => {
+                                    return item?.requesterStatus?.viewerStatus;
+                                })
+                                .concat(
+                                    songs.map((otherItem) => {
+                                        return otherItem?.requesterStatus?.vipStatus;
+                                    })
+                                )
+                        )
+                    ),
+                    logic(prop: any, filters: any[]): boolean {
+                        if (filters.length) {
+                            return !filters.includes(prop.viewerStatus) && !filters.includes(prop.vipStatus);
+                        }
+                        return false;
+                    },
+                },
+            },
+        },
+        {
+            label: "Requested With",
+            name: "requestSource",
+            options: {
+                customBodyRender: RequestedWithCell,
+                filter: true,
+            },
+        },
+    ];
 
     return (
         <MuiThemeProvider theme={getMuiTheme()}>

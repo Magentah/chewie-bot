@@ -76,21 +76,14 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
                 <Button
                     className={classes.button}
                     style={{ backgroundColor: link.color }}
-                    onClick={() => {
-                        window.open(link.link, "_blank");
-                    }}
+                    href={link.link}
+                    target="_blank"
                     startIcon={link.logo}
                 >
                     {link.name}
                 </Button>
             </Grid>
         ));
-    };
-    const onLogin = () => {
-        console.log("login");
-        const url = "http://localhost:3000/auth/twitch";
-        // history.push("/");
-        window.open(url);
     };
     return (
         <Container className={classes.root}>
@@ -108,7 +101,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
                             <Button
                                 className={classes.button}
                                 style={{ backgroundColor: "#9146ff" }}
-                                onClick={onLogin}
+                                href="/api/auth/twitch"
                                 startIcon={<FontAwesomeIcon icon={faTwitch} />}
                             >
                                 Twitch Account

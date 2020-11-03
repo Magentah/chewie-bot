@@ -63,15 +63,17 @@ export class DatabaseService {
 
     public async initDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            Logger.info(LogType.Database, "Creating database tables");
-            await this.createUserLevelTable();
-            await this.createVIPLevelTable();
-            await this.createUserTable();
-            await this.createDonationsTable();
-            await this.createTextCommandsTable();
-            await this.populateDatabase();
-            this.isInit = true;
-            Logger.info(LogType.Database, "Database init finished.");
+            if (!this.isInit) {
+                Logger.info(LogType.Database, "Creating database tables");
+                await this.createUserLevelTable();
+                await this.createVIPLevelTable();
+                await this.createUserTable();
+                await this.createDonationsTable();
+                await this.createTextCommandsTable();
+                await this.populateDatabase();
+                this.isInit = true;
+                Logger.info(LogType.Database, "Database init finished.");
+            }
             resolve();
         });
     }

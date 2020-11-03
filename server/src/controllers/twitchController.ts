@@ -24,6 +24,16 @@ class TwitchController {
     public getStatus(req: Request, res: Response): void {
         res.status(StatusCodes.OK).send(this.twitchService.getStatus());
     }
+
+    public connect(req: Request, res: Response): void {
+        this.twitchService.connect();
+        res.sendStatus(StatusCodes.OK);
+    }
+
+    public disconnect(req: Request, res: Response): void {
+        this.twitchService.disconnect();
+        res.sendStatus(StatusCodes.OK);
+    }
 }
 
 export default TwitchController;

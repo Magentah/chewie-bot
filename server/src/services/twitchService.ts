@@ -36,10 +36,12 @@ export class TwitchService {
     }
 
     public joinChannel(channel: string): void {
+        Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
         this.client.join(channel);
     }
 
     public leaveChannel(channel: string): void {
+        Logger.info(LogType.Twitch, `Bot left channel ${channel}`);
         this.client.part(channel);
     }
 
@@ -171,7 +173,7 @@ export class TwitchService {
             return;
         }
 
-        this.commandService.handleMessage(channel, userstate.usernane, message);
+        this.commandService.handleMessage(channel, userstate.username ?? "", message);
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {
@@ -368,12 +370,12 @@ export class TwitchService {
         // Empty
     }
 
-    public connect(channel: string): void {
+    public connect(): void {
         Logger.info(LogType.Twitch, "Connecting to Twitch.tv with tmi.js");
         this.client.connect();
     }
 
-    public disconnect(channel: string): void {
+    public disconnect(): void {
         Logger.info(LogType.Twitch, "Disconnecting from Twitch.tv");
         this.client.disconnect();
     }
