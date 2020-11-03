@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
+import { ISong } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SongService } from "../services";
@@ -75,7 +76,11 @@ class SongController {
      * @param res Express HTTP Response
      */
     public removeSong(req: Request, res: Response): void {
-        this.songService.removeSong(Number.parseInt(req.params.songId, 10));
+        const songIds = Array.from<ISong>(req.body.songs);
+        songIds.forEach((song) => {
+            this.songService.removeSong(song.id);
+        });
+        // this.songService.removeSong(Number.parseInt(req.params.songId, 10));
         res.sendStatus(StatusCodes.OK);
     }
 

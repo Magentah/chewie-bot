@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import MUIDataTable from "mui-datatables";
 import { Image } from "react-bootstrap";
 import { Grid, Typography, Box } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
+import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
+import moment from "moment";
+import axios from "axios";
 
 type YTVideo = {
     idx: number;
@@ -75,11 +78,10 @@ const getMuiTheme = () => {
 };
 
 const PreviewCell: React.FC<any> = (value) => {
-    const datum = stubData[value];
-    const url = `https://img.youtube.com/vi/${datum.id}/0.jpg`;
+    const url = `https://img.youtube.com/vi/${value}/0.jpg`;
     return (
         <div className="Pog">
-            <a href={`https://www.youtube.com/watch?v=${datum.id}`}>
+            <a href={`https://www.youtube.com/watch?v=${value}`}>
                 <Image src={url} thumbnail />
             </a>
         </div>
@@ -87,18 +89,18 @@ const PreviewCell: React.FC<any> = (value) => {
 };
 
 const DetailCell: React.FC<any> = (value) => {
-    const datum = stubData[value];
+    const duration = moment.utc(moment.duration(value.duration).asMilliseconds()).format("HH:mm:ss");
     return (
         <Grid style={{ marginBottom: 40 }}>
             <Grid item xs={12}>
                 <Typography component="div">
-                    <a href={`https://www.youtube.com/watch?v=${datum.id}`}>{datum.name}</a>
+                    <a href={`https://www.youtube.com/watch?v=${value?.sourceId}`}>{value?.title}</a>
                 </Typography>
             </Grid>
             <Grid>
                 <Typography component="div">
                     <Box fontStyle="italic" fontSize={14}>
-                        {datum.duration} - {datum.channel}{" "}
+                        Song Length: {duration}{" "}
                     </Box>
                 </Typography>
             </Grid>
@@ -107,28 +109,26 @@ const DetailCell: React.FC<any> = (value) => {
 };
 
 const RequesterCell: React.FC<any> = (value) => {
-    const datum = stubData[value];
     return (
         <Typography component="div">
-            <Box>{datum.requestedBy}</Box>
+            <Box>{value}</Box>
         </Typography>
     );
 };
 
 const RequesterStatusCell: React.FC<any> = (value) => {
-    const datum = stubData[value];
     return (
         <Grid>
             <Typography component="div" style={{ marginBottom: 20 }}>
                 Status
                 <Box fontStyle="italic" fontSize={14}>
-                    {datum.requesterStatus}
+                    {value?.viewerStatus}
                 </Box>
             </Typography>
             <Typography component="div">
                 VIP Status
                 <Box fontStyle="italic" fontSize={14}>
-                    {datum.requesterVIPStatus}
+                    {value?.vipStatus}
                 </Box>
             </Typography>
         </Grid>
@@ -136,10 +136,9 @@ const RequesterStatusCell: React.FC<any> = (value) => {
 };
 
 const RequestedWithCell: React.FC<any> = (value) => {
-    const datum = stubData[value];
     return (
         <Typography component="div">
-            <Box>{datum.requestedWith}</Box>
+            <Box>{value}</Box>
         </Typography>
     );
 };
@@ -147,12 +146,12 @@ const RequestedWithCell: React.FC<any> = (value) => {
 const columns = [
     {
         label: "Preview",
-        name: "idx",
+        name: "sourceId",
         options: { customBodyRender: PreviewCell },
     },
     {
         label: "Details",
-        name: "idx",
+        name: "details",
         options: {
             customBodyRender: DetailCell,
             filterOptions: {
@@ -170,7 +169,7 @@ const columns = [
     },
     {
         label: "Requested By",
-        name: "idx",
+        name: "requestedBy",
         options: {
             customBodyRender: RequesterCell,
             filterOptions: {
@@ -192,7 +191,7 @@ const columns = [
     },
     {
         label: "Requester Status",
-        name: "idx",
+        name: "requesterStatus",
         options: {
             customBodyRender: RequesterStatusCell,
             filterOptions: {
@@ -223,7 +222,7 @@ const columns = [
     },
     {
         label: "Requested With",
-        name: "idx",
+        name: "requestSource",
         options: {
             customBodyRender: RequestedWithCell,
             filterOptions: {
@@ -241,24 +240,85 @@ const columns = [
     },
 ];
 
-const ws = new WebSocket("ws://localhost:8001");
-ws.addEventListener("open", () => {
-    ws.addEventListener("message", (data: any) => {
-        console.log(data);
-    });
-
-    ws.send("opened socket");
-    console.log("connected to socket");
-});
+interface Song {
+    details: {
+        title: string;
+        duration: moment.Duration;
+        sourceId: string;
+    };
+    source: number;
+    sourceId: string;
+    duration: moment.Duration;
+    requestedBy: string;
+    requesterStatus: {
+        viewerStatus: string;
+        vipStatus: string;
+    };
+    requestSource: string;
+}
 
 const SongQueue: React.FC<{}> = (props) => {
+    const [songs, setSongs] = useState<Song[]>([]);
+    const websocket = useRef<WebsocketService | undefined>(undefined);
+
+    const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
+    const deleteSong = (songIndex: number) =>
+        setSongs((state: Song[]) => {
+            state.splice(songIndex, 1);
+            return state;
+        });
+
+    const onSongAdded = (message: ISocketMessage) => {
+        if (message.data && message.data.details && message.data.sourceId) {
+            message.data.details.sourceId = message.data.sourceId;
+        }
+        console.log(`song added`);
+        addSong(message.data);
+    };
+
+    useEffect(() => {
+        websocket.current = new WebsocketService();
+
+        return () => {
+            websocket.current?.close();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!websocket.current) {
+            return;
+        }
+        console.log(`songqueue websocket connected`);
+
+        websocket.current.onMessage(SocketMessageType.SongAdded, onSongAdded);
+    }, []);
+
+    const onSongDeleted = (rowsDeleted: any) => {
+        console.log(rowsDeleted);
+        const indexes = rowsDeleted.data.map((song: any) => {
+            return song.dataIndex;
+        });
+
+        const songsToDelete = songs.filter((song, index) => {
+            return indexes.includes(index);
+        });
+        console.log(songsToDelete);
+        axios.post("api/songs/delete", { songs: songsToDelete }).then((response) => {
+            //
+        });
+
+        indexes.forEach((song: any) => {
+            deleteSong(song);
+        });
+    };
+
     return (
         <MuiThemeProvider theme={getMuiTheme()}>
             <MUIDataTable
                 title="Song Queue"
-                data={stubData}
+                data={songs}
                 columns={columns}
-                options={{ elevation: 0, download: false, print: false }}
+                options={{ elevation: 0, download: false, print: false, onRowsDelete: onSongDeleted }}
             />
         </MuiThemeProvider>
     );

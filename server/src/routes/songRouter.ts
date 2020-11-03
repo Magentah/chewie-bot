@@ -7,11 +7,11 @@ const songController: SongController = BotContainer.get(SongController);
 
 songRouter.get("/api/songs", (res, req) => songController.getSongRequests(res, req));
 songRouter
-    .route("/api/songs/:username")
+    .route("/api/songs/user/:username")
     .get((res, req) => songController.getSongsForUser(res, req))
     .post((res, req) => songController.addSongForUser(res, req))
     .delete((res, req) => songController.removeSongForUser(res, req));
 
-songRouter.delete("/api/songs/:songId", (res, req) => songController.removeSong(res, req));
+songRouter.post("/api/songs/delete", (res, req) => songController.removeSong(res, req));
 
 export default songRouter;

@@ -2,9 +2,15 @@ import moment = require("moment");
 
 export interface ISong {
     id: number;
-    title: string;
-    duration: moment.Duration;
+    details: {
+        title: string;
+        duration: moment.Duration;
+    };
     requestedBy: string;
+    requesterStatus: {
+        vipStatus: string;
+        viewerStatus: string;
+    };
     requestSource: RequestSource;
     beenPlayed: boolean;
     source: SongSource;
@@ -12,15 +18,15 @@ export interface ISong {
 }
 
 export enum SongSource {
-    Youtube,
+    Youtube = "Youtube",
 }
 
 export enum RequestSource {
-    Donation,
-    Bits,
-    Subscription,
-    Raffle,
-    Chat,
+    Donation = "Donation",
+    Bits = "Bits",
+    Subscription = "Subscription",
+    Raffle = "Raffle",
+    Chat = "Chat",
 }
 
 export default ISong;

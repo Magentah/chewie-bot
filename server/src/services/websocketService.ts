@@ -1,8 +1,9 @@
 import * as WebSocket from "ws";
 import { ClientRequest, IncomingMessage } from "http";
 import { Logger, LogType } from "../logger";
-import { injectable } from "inversify";
-import { ISocketMessage, SocketMessageType } from "../models";
+import { inject, injectable } from "inversify";
+import { ISocketMessage, SocketMessageType, IUser } from "../models";
+import UserService from "../services/userService";
 
 interface IExWebSocket extends WebSocket {
     isAlive: boolean;
@@ -13,7 +14,7 @@ export class WebsocketService {
     private server: WebSocket.Server;
     private heartbeat: NodeJS.Timeout;
 
-    constructor() {
+    constructor(@inject(UserService) private userService: UserService) {
         this.server = new WebSocket.Server({
             port: 8001,
             perMessageDeflate: false,
@@ -38,8 +39,12 @@ export class WebsocketService {
         }, 30000);
     }
 
-    public send(message: ISocketMessage): void {
+    public async send(message: ISocketMessage): Promise<void> {
         Logger.info(LogType.WebSocket, "Sending message to websocket clients.", { message });
+
+        if (message.username && !message.user) {
+            message.user = await this.getUser(message.username);
+        }
 
         this.server.clients.forEach((client: WebSocket) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -52,6 +57,11 @@ export class WebsocketService {
                 });
             }
         });
+    }
+
+    private async getUser(username: string): Promise<IUser> {
+        const user = await this.userService.getUser(username);
+        return user;
     }
 
     private onServerConnection(this: WebSocket.Server, socket: WebSocket, request: IncomingMessage): void {
@@ -91,7 +101,7 @@ export class WebsocketService {
     }
 
     private onServerHeaders(headers: any[], request: IncomingMessage): void {
-        Logger.info(LogType.WebSocket, `Websocket server headers received.`, { headers });
+        Logger.debug(LogType.WebSocket, `Websocket server headers received.`, { headers });
     }
 
     private onServerListening(): void {
@@ -111,16 +121,16 @@ export class WebsocketService {
     }
 
     private static onOpen(this: WebSocket): void {
-        Logger.info(LogType.WebSocket, `Websocket opened.`);
+        Logger.debug(LogType.WebSocket, `Websocket opened.`);
     }
 
     private static onPing(this: WebSocket, data: Buffer): void {
-        Logger.info(LogType.WebSocket, `Websocket ping.`, { data });
+        Logger.debug(LogType.WebSocket, `Websocket ping.`, { data });
     }
 
     private static onPong(this: WebSocket, data: Buffer): void {
         (this as IExWebSocket).isAlive = true;
-        Logger.info(LogType.WebSocket, `Websocket pong.`, { data });
+        Logger.debug(LogType.WebSocket, `Websocket pong.`, { data });
     }
 
     private static onUnexpectedResponse(this: WebSocket, request: ClientRequest, response: IncomingMessage): void {
@@ -132,7 +142,7 @@ export class WebsocketService {
     }
 
     private static onUpgrade(this: WebSocket, response: IncomingMessage): void {
-        Logger.info(LogType.WebSocket, `Websocket upgrade`);
+        Logger.debug(LogType.WebSocket, `Websocket upgrade`);
     }
 }
 

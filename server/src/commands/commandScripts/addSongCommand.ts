@@ -13,7 +13,7 @@ export class AddSongCommand extends Command {
         if (song) {
             BotContainer.get(TwitchService).sendMessage(
                 channel,
-                `${song.title} was added to the song queue by ${song.requestedBy}!`
+                `${song.details.title} was added to the song queue by ${song.requestedBy}!`
             );
         }
     }

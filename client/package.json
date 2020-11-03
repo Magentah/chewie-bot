@@ -2,7 +2,7 @@
     "name": "client",
     "version": "0.1.0",
     "private": true,
-    "proxy": "http://backend:8080",
+    "proxy": "http://172.19.0.2:8080/",
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.28",
         "@fortawesome/free-brands-svg-icons": "^5.13.0",
@@ -19,6 +19,7 @@
         "@types/react-router-dom": "^5.1.5",
         "axios": "^0.19.2",
         "material-ui": "^0.20.2",
+        "moment": "^2.29.1",
         "mui-datatables": "^2.14.0",
         "react": "^16.13.1",
         "react-bootstrap": "^1.0.1",

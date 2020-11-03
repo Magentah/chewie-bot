@@ -57,8 +57,10 @@ export class SongService {
             case SongSource.Youtube: {
                 const songDetails = await this.youtubeService.getSongDetails(song.sourceId);
                 if (songDetails) {
-                    song.title = songDetails.snippet.title;
-                    song.duration = this.youtubeService.getSongDuration(songDetails);
+                    song.details = {
+                        title: songDetails.snippet.title,
+                        duration: this.youtubeService.getSongDuration(songDetails),
+                    };
                 }
                 break;
             }
