@@ -11,9 +11,10 @@ import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SongRouter, TwitchRouter } from "./routes";
-import { RouteLogger } from "./middleware";
+import { RouteLogger, UserCookie } from "./middleware";
 import { WebsocketService } from "./services";
 import { BotContainer } from "./inversify.config";
+import { IUser } from "./models";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -74,7 +75,7 @@ class BotServer extends Server {
                     secure: false,
                     path: "/",
                 },
-                name: "chewiebot",
+                name: "chewiebot.sid",
                 store: new RedisStore({ client: redisClient }),
             })
         );
@@ -86,6 +87,7 @@ class BotServer extends Server {
             }
             next();
         });
+        this.app.use(UserCookie);
         this.app.get("/", (req, res) => {
             res.redirect("/");
         });

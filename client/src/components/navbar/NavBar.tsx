@@ -1,4 +1,4 @@
-import React, { Props, useState } from "react";
+import React, { Props, useEffect, useState } from "react";
 import { makeStyles, fade } from "@material-ui/core/styles";
 import { AppBar, Toolbar, IconButton, Badge, Typography } from "@material-ui/core";
 import { Notifications, AccountBoxOutlined, LiveTv, Link, LinkOff } from "@material-ui/icons";
@@ -52,6 +52,16 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
             setBotConnected(true);
         }
     };
+
+    useEffect(() => {
+        axios.get("/api/twitch/status").then((response) => {
+            if (response.data === "OPEN") {
+                setBotConnected(true);
+            } else {
+                setBotConnected(false);
+            }
+        });
+    }, []);
 
     return (
         <AppBar position="fixed" className={classes.appBar}>

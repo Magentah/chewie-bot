@@ -7,6 +7,7 @@ import CssBaseLine from "@material-ui/core/CssBaseline";
 import Dashboard from "./views/dashboard/Dashboard";
 import Login from "./views/login/Login";
 import axios from "axios";
+import UserContextProvider from "./contexts/userContext";
 
 // initialize brand icons
 library.add(fab);
@@ -45,7 +46,9 @@ const App: React.FC<{}> = (props) => {
                 <Route path="/login">
                     <Login />
                 </Route>
-                <Route path="/">{isLoggedIn ? <Dashboard /> : <Redirect to="/login" />}</Route>
+                <UserContextProvider>
+                    <Route path="/">{isLoggedIn ? <Dashboard /> : <Redirect to="/login" />}</Route>
+                </UserContextProvider>
             </Switch>
         </Router>
     );
