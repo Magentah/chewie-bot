@@ -1,7 +1,8 @@
 import * as Winston from "winston";
+import winston = require("winston/lib/winston/config");
 import * as Config from "./config.json";
 
-const { combine, timestamp, label, prettyPrint } = Winston.format;
+const { combine, timestamp, label, prettyPrint, printf, colorize } = Winston.format;
 
 enum LogType {
     Server = "Server",
@@ -192,6 +193,16 @@ export class Logger {
         options.transports = [
             new Winston.transports.Console({
                 handleExceptions: true,
+                format: combine(
+                    colorize(),
+                    label({ label: type }),
+                    timestamp(),
+                    printf((info) => {
+                        return `${info.timestamp} :: ${info.label}/${info.level} :: ${info.message} ${
+                            info.meta ? " :::: " + JSON.stringify(info.meta) : ""
+                        }`;
+                    })
+                ),
             }),
             new Winston.transports.File({
                 filename: Config.log.logfile,

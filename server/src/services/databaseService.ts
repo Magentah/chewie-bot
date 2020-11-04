@@ -2,6 +2,7 @@ import { injectable } from "inversify";
 import * as knex from "knex";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
+import { IUser } from "../models";
 
 export enum DatabaseTables {
     Users = "users",
@@ -71,6 +72,7 @@ export class DatabaseService {
                 await this.createDonationsTable();
                 await this.createTextCommandsTable();
                 await this.populateDatabase();
+                await this.addBroadcaster();
                 this.isInit = true;
                 Logger.info(LogType.Database, "Database init finished.");
             }
@@ -220,6 +222,25 @@ export class DatabaseService {
                 Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
             } else {
                 Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
+            }
+            resolve();
+        });
+    }
+
+    private async addBroadcaster(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            const username: string = "";
+            if (!(await this.db(DatabaseTables.Users).first().where("username", "like", username))) {
+                const broadcasterUsername = Config.twitch.broadcasterName;
+                const user: IUser = {
+                    username: broadcasterUsername,
+                    userLevelKey: 5,
+                    vipLevelKey: 1,
+                    points: 0,
+                    hasLogin: true,
+                };
+
+                await this.db(DatabaseTables.Users).insert(user);
             }
             resolve();
         });

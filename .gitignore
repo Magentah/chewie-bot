@@ -7,7 +7,7 @@ dist
 
 .vscode
 
-*log*
+logs.*
 client/Dockerfile.test
 server/src/config.json
 .vscode/launch.json

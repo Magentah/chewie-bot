@@ -83,7 +83,7 @@ class BotServer extends Server {
         this.app.use(passport.session());
         this.app.use((req, res, next) => {
             if (req.session) {
-                Logger.info(LogType.ServerInfo, JSON.stringify(req.session));
+                Logger.info(LogType.ServerInfo, "Session info", req.session);
             }
             next();
         });
