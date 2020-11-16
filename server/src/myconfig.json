@@ -3,7 +3,9 @@
         "clientId": "",
         "clientSecret": "",
         "redirectUri": "",
-        "username": ""
+        "username": "",
+        "broadcasterName": "",
+        "oauth": ""
     },
     "streamlabs": {
         "clientId": "",
@@ -11,7 +13,8 @@
         "redirectUri": ""
     },
     "youtube": {
-        "apiKey": ""
+        "apiKey": "",
+        "clientId": ""
     },
     "secretKey": "",
     "log": {

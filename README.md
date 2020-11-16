@@ -6,7 +6,7 @@
 
 ### Dev Setup
 
--   In the `/server/` folder, rename `myconfig.json` to `config.json` and update with your config details.
+-   In the `/server/src` folder, rename `myconfig.json` to `config.json` and update with your config details.
 
 -   ### Secret Key
 
@@ -15,11 +15,18 @@
 -   #### Twitch
 
     -   You will need to setup a Twitch App at [https://dev.twitch.tv/console](https://dev.twitch.tv/console). You will then need to copy your client_id and client_secret for the app to the config.
-    -   The redirect url should be `http://localhost:3000/api/oauth/twitch/redirect` by default.
+    -   The redirect URL should be `http://localhost/api/auth/twitch/redirect` by default.
+    -   For `oauth` enter an OAuth ID generated at [https://twitchapps.com/tmi/](https://twitchapps.com/tmi/)
+    -   `broadcasterName` should be your Twitch user name
 
 -   #### Youtube
 
     -   You can setup a Google project at [https://console.developers.google.com](https://console.developers.google.com). You will then need to enable the Youtube Data V3 API for you project, and copy the API key to the config.
+
+-   #### Streamlabs
+
+    -   Setup an app at [https://streamlabs.com/dashboard#/settings/api-settings](https://streamlabs.com/dashboard#/settings/api-settings) and copy the Client ID and Client Secret.
+    -   The redirect URL should be `http://localhost/api/auth/streamlabs/callback` by default.
 
 -   #### Database
 
@@ -34,11 +41,11 @@
 ### Docker
 
 -   Using docker is the recommended way to run the bot. Only Docker using WSL2 has been tested.
--   In `/client/package.json/`, ensure that `proxy` is set to `http://server:8080`. This is the default, so should only have been changed if you changed it for running with NodeJS.
+-   In `/client/package.json`, ensure that `proxy` is set to `http://server:8080`. This is the default, so should only have been changed if you changed it for running with NodeJS.
 -   From the root repository, run `yarn --cwd server setup`. The `setup` command will install node packages for both the server and client.
--   To run the site in docker, run `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`. This will take some time the first time as it will build and start the containers using the dev docker config. The dev docker config will build images from local directories and map volumes to `/server/` and `/client/`. The `docker-compose.prod.yml` config will take images from the DockerHub repository and only map a volume for the SQLite database.
--   Open a browser and navigate to `localhost:3001`. This may give an error due to needing to wait for the client and server to start up. You can check if the client is running by `docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs ui` and checking to see if the `Client Compiled` message is visible.
--   Docker will pass the `--inspect` flag to node for node debugging the server when using `docker-compose.dev.yml`. This will map localhost:9229 to the node inspector for the server.
+-   To run the site in docker, run `docker-compose -f docker-compose.yml -f docker-compose.ng.yml up -d --build`. This will take some time the first time as it will build and start the containers using the dev docker config. The dev docker config will build images from local directories and map volumes to `/server/` and `/client/`. The `docker-compose.prod.yml` config will take images from the DockerHub repository and only map a volume for the SQLite database.
+-   Open a browser and navigate to `localhost`. This may give an error due to needing to wait for the client and server to start up. You can check if the client is running by `docker-compose -f docker-compose.yml -f docker-compose.ng.yml logs ui` and checking to see if the `Client Compiled` message is visible.
+-   Docker will pass the `--inspect` flag to node for node debugging the server when using `docker-compose.ng.yml`. This will map localhost:9229 to the node inspector for the server.
 -   Files will be updated automatically when saved.
     -   Server uses pm2 to watch the `/server/src` folder.
     -   Client uses `react-scripts start` to watch the `/client/` folder.
