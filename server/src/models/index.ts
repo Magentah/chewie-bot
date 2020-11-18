@@ -24,3 +24,4 @@ export {
     IYoutubeVideoListResponsePageInfo,
 } from "./youtubeApiResult";
 export { default as ISocketMessage, SocketMessageType } from "./socketMessage";
+export { default as IEvent } from "./event";
