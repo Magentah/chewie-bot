@@ -3,8 +3,10 @@ export { default as AddCmdCommand } from "./addCmdCommand";
 export { default as TextCommand } from "./textCommand";
 export { default as DelCmdCommand } from "./delCmdCommand";
 export { default as AddSongCommand } from "./addSongCommand";
-export { default as DuelCommand } from "./duelCommand";
-export { acceptCommand as AcceptCommand } from "./duelCommand";
-export { rockCommand as RockCommand } from "./duelCommand";
-export { paperCommand as PaperCommand } from "./duelCommand";
-export { scissorsCommand as ScissorsCommand } from "./duelCommand";
+
+// Duel
+export { default as DuelCommand } from "./duel/duelCommand";
+export { default as AcceptCommand } from "./duel/acceptCommand";
+export { default as RockCommand } from "./duel/rockCommand";
+export { default as PaperCommand } from "./duel/paperCommand";
+export { default as ScissorsCommand } from "./duel/scissorsCommand";
