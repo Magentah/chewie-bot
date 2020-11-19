@@ -36,6 +36,16 @@ export class DuelEventParticipant implements IEventParticipant {
 export class DuelEvent implements IEvent {
     private wager: any;
     
+    public sendMessage: (name: string) => void;
+
+    public readonly initialParticipationPeriod: number = 60 * 1000;
+
+    public readonly cooldownPeriod: number = 2 * 60 * 1000;
+
+    public participants: DuelEventParticipant[] = [];
+
+    public state: EventState = EventState.Open;
+
     constructor(initiatingUser : IUser, targetUser : IUser | null, wager : number) {
         this.participants.push(new DuelEventParticipant(initiatingUser, wager, true));
 
@@ -48,17 +58,7 @@ export class DuelEvent implements IEvent {
         this.sendMessage = (x) => {};
     }
 
-    sendMessage: (name: string) => void;
-
-    readonly initialParticipationPeriod: number = 60 * 1000;
-
-    readonly cooldownPeriod: number = 2 * 60 * 1000;
-
-    participants: DuelEventParticipant[] = [];
-
-    state: EventState = EventState.Open;
-
-    start() {        
+    public start() {        
         if (this.participants.length > 1) {
             this.sendMessage(`Sir ${this.participants[0].user.username} has challenged Sir ${this.participants[1].user.username} to a duel for ${this.wager} chews! Sir ${this.participants[1].user.username}, to accept this duel, type !accept`);
         } else {
@@ -67,21 +67,21 @@ export class DuelEvent implements IEvent {
         }
     }
     
-    participationPeriodEnded(): void {
+    public participationPeriodEnded(): void {
         // Participants missing? 
-        if (this.state == EventState.Open) {
+        if (this.state === EventState.Open) {
             this.sendMessage(`Oh Sir ${this.participants[0].user.username}, it appears your challenge has not been answered. The duel has been called off.`);
             BotContainer.get(EventService).stopEvent(this);
-        } else if (this.state == EventState.BoardingCompleted && !this.participants[1].accepted) {
+        } else if (this.state === EventState.BoardingCompleted && !this.participants[1].accepted) {
             // Participant may have been entered by the challenger, but he might have not accepted.
             this.sendMessage(`Oh Sir ${this.participants[0].user.username}, it appears ${this.participants[1].user.username} did not answer your challenge. The duel has been called off.`);
             BotContainer.get(EventService).stopEvent(this);
         }
     }
 
-    checkForOngoingEvent(runningEvent: IEvent, user : IUser): [boolean, string] {
+    public checkForOngoingEvent(runningEvent: IEvent, user : IUser): [boolean, string] {
         if (runningEvent instanceof DuelEvent) {
-            if (runningEvent.state == EventState.Ended) {
+            if (runningEvent.state === EventState.Ended) {
                 return [false, `A duel has just finished @${user.username}. Please wait while we clean up the battleground.`];
             } else {
                 return [false, `A duel is underway @${user.username}. Please wait for the current duel to finish.`];
@@ -91,7 +91,7 @@ export class DuelEvent implements IEvent {
         return [true, ""];
     }
 
-    setWeapon(user: IUser, weapon: Weapon) : boolean {
+    public setWeapon(user: IUser, weapon: Weapon) : boolean {
         const participant = this.getParticipant(user) as DuelEventParticipant;
         // We want to allow multiple weapon changes during the weapon selecting period.
         if (participant) {
@@ -102,7 +102,7 @@ export class DuelEvent implements IEvent {
         return false;
     }
 
-    getParticipant(user: IUser) : IEventParticipant | null {
+    public getParticipant(user: IUser) : IEventParticipant | null {
         for (let participant of this.participants) {
             if (participant.user.username.toLowerCase() === user.username.toLowerCase()) {
                 return participant;
@@ -112,11 +112,11 @@ export class DuelEvent implements IEvent {
         return null;
     }
 
-    hasParticipant(user: IUser) : boolean {
+    public hasParticipant(user: IUser) : boolean {
         return this.getParticipant(user) != null;
     }
 
-    canAccept(user: IUser) : [boolean, string] {
+    public canAccept(user: IUser) : [boolean, string] {
         // Check if target user has enough points.
         if (user.points < this.wager) {
             return [false, `@${user.username} does not have enough chews!`];
@@ -125,7 +125,7 @@ export class DuelEvent implements IEvent {
         return [true, ""];
     }
 
-    accept(user: IUser) : [boolean, string] {
+    public accept(user: IUser) : [boolean, string] {
         const [result, msg] = this.canAccept(user);
         if (result) {
             this.state = EventState.BoardingCompleted;
@@ -151,11 +151,11 @@ export class DuelEvent implements IEvent {
         }
     }
 
-    delay(ms: number) {
+    private delay(ms: number) {
         return new Promise( resolve => setTimeout(resolve, ms) );
     }
 
-    async waitForWeaponChoice() {
+    private async waitForWeaponChoice() {
         // Wait one minute for both participants to choose a weapon.
         await this.delay(60 * 1000);
 
@@ -172,7 +172,7 @@ export class DuelEvent implements IEvent {
         }
     }
 
-    returnChews() {
+    private returnChews() {
         this.participants[0].user.points += this.wager;
         this.participants[1].user.points += this.wager;
 
@@ -180,12 +180,12 @@ export class DuelEvent implements IEvent {
         BotContainer.get(UserService).updateUser(this.participants[1].user);
     }
 
-    startDuel() {
+    private startDuel() {
         this.state = EventState.Ended;
         BotContainer.get(EventService).stopEventStartCooldown(this);
 
         // Check for draw first
-        if (this.participants[0].weapon == this.participants[1].weapon) {
+        if (this.participants[0].weapon === this.participants[1].weapon) {
             switch (this.participants[0].weapon) {
                 case Weapon.Rock:
                     this.sendMessage(`Sir ${this.participants[0].user.username} and Sir ${this.participants[1].user.username} both threw Rock! They collide with such force they fuse to form nuclear isotope cozmium-322!`);
@@ -213,9 +213,9 @@ export class DuelEvent implements IEvent {
             // Determine the winner and display text based on the winner's weapon.
             let winner;
             let loser;
-            if (this.participants[0].weapon == Weapon.Paper && this.participants[1].weapon == Weapon.Rock
-                || this.participants[0].weapon == Weapon.Rock && this.participants[1].weapon == Weapon.Scissors
-                || this.participants[0].weapon == Weapon.Scissors && this.participants[1].weapon == Weapon.Paper) {
+            if (this.participants[0].weapon === Weapon.Paper && this.participants[1].weapon === Weapon.Rock
+                || this.participants[0].weapon === Weapon.Rock && this.participants[1].weapon === Weapon.Scissors
+                || this.participants[0].weapon === Weapon.Scissors && this.participants[1].weapon === Weapon.Paper) {
                 winner = this.participants[0];
                 loser  = this.participants[1];
             } else {
@@ -246,7 +246,7 @@ export class DuelEvent implements IEvent {
         }
     }
 
-    onCooldownComplete(): void {
+    public onCooldownComplete(): void {
         this.sendMessage("The duelgrounds are ready for the next battle! Settle your grievances today with !duel <target> <wager>");
     }    
 }

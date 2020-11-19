@@ -15,15 +15,15 @@ export class DuelCommand extends Command {
         super();
     }
 
-    public async execute(channel: string, user: IUser, arg1 : string, arg2 : number): Promise<void> {
+    public async execute(channel: string, user: IUser, usernameOrWager : string, wager : number): Promise<void> {
         let target;
         let wagerValue;
 
-        if (arg2 == undefined) {
-            wagerValue = parseInt(arg1);
+        if (wager === undefined) {
+            wagerValue = parseInt(usernameOrWager);
         } else {
-            target = arg1;
-            wagerValue = arg2;
+            target = usernameOrWager;
+            wagerValue = wager;
         }
 
         if (target && target.toString().toLowerCase() === user.username.toLowerCase())
@@ -32,7 +32,7 @@ export class DuelCommand extends Command {
             return;
         }
 
-        if (!wagerValue || wagerValue < 0)
+        if (!wagerValue || wagerValue <= 0)
         {
             BotContainer.get(TwitchService).sendMessage(channel, "Your wager needs to be more than that, @" + user.username);
             return;

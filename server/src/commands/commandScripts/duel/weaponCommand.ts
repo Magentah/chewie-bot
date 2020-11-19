@@ -16,7 +16,7 @@ class WeaponCommand extends Command {
         // Find the duel which the current user is participating in.
         const runningDuels = BotContainer.get(EventService).getEvents<DuelEvent>();
         for (let duel of runningDuels) {
-            if (duel.state == EventState.BoardingCompleted) {
+            if (duel.state === EventState.BoardingCompleted) {
                 if (duel.setWeapon(user, weapon)) {
                     BotContainer.get(TwitchService).sendWhisper(user.username, "Your current weapon is: " + weapon);
                     return;

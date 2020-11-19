@@ -11,7 +11,7 @@ export class AcceptCommand extends Command {
         // Find duel that is aimed at the current user.
         const runningDuels = BotContainer.get(EventService).getEvents<DuelEvent>();
         for (let duel of runningDuels) {
-            if (duel.state == EventState.BoardingCompleted && duel.participants.length > 1 && duel.participants[1].user.username == user.username) {
+            if (duel.state === EventState.BoardingCompleted && duel.participants.length > 1 && duel.participants[1].user.username === user.username) {
                 this.acceptDuel(duel, user, channel);
                 return;
             }
@@ -19,7 +19,7 @@ export class AcceptCommand extends Command {
 
         // Find any open duel otherwise.
         for (let duel of runningDuels) {
-            if (duel.state == EventState.Open && duel.participants.length == 1) {
+            if (duel.state === EventState.Open && duel.participants.length === 1) {
                 this.acceptDuel(duel, user, channel);
                 return;
             }

@@ -27,7 +27,7 @@ export class EventService {
         // (duel) it depends on the parameters.
         for (let runningEvent of this.runningEvents) {
             // Events only need to check for other events of the same type.
-            if (event.constructor == runningEvent.constructor) {
+            if (event.constructor === runningEvent.constructor) {
                 const [checkResult, message] = event.checkForOngoingEvent(runningEvent, user);
                 if (!checkResult) {
                     return message;
