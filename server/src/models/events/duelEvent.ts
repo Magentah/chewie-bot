@@ -3,6 +3,7 @@ import { EventService, UserService } from "../../services";
 import { IUser } from "../../models";
 import { IEventParticipant, EventState } from '../event';
 import { BotContainer } from "../../inversify.config";
+import { Logger, LogType } from '../../logger';
 
 export enum Weapon {
     None = "",
@@ -58,7 +59,9 @@ export class DuelEvent implements IEvent {
         this.sendMessage = (x) => {};
     }
 
-    public start() {        
+    public start() {
+        Logger.info(LogType.Command, `Duel initialised with ${this.participants.length} participants`);
+        
         if (this.participants.length > 1) {
             this.sendMessage(`Sir ${this.participants[0].user.username} has challenged Sir ${this.participants[1].user.username} to a duel for ${this.wager} chews! Sir ${this.participants[1].user.username}, to accept this duel, type !accept`);
         } else {
@@ -68,6 +71,8 @@ export class DuelEvent implements IEvent {
     }
     
     public participationPeriodEnded(): void {
+        Logger.info(LogType.Command, `Duel participation period ended`);
+
         // Participants missing? 
         if (this.state === EventState.Open) {
             this.sendMessage(`Oh Sir ${this.participants[0].user.username}, it appears your challenge has not been answered. The duel has been called off.`);
@@ -92,11 +97,15 @@ export class DuelEvent implements IEvent {
     }
 
     public setWeapon(user: IUser, weapon: Weapon) : boolean {
+        Logger.info(LogType.Command, `Attempting to set weapon for user ${user.username}`);
+
         const participant = this.getParticipant(user) as DuelEventParticipant;
         // We want to allow multiple weapon changes during the weapon selecting period.
         if (participant) {
             participant.weapon = weapon;
             return true;            
+        } else {
+            Logger.warn(LogType.Command, `Could not find ${user.username} among the duel participants`);
         }
 
         return false;
@@ -126,6 +135,8 @@ export class DuelEvent implements IEvent {
     }
 
     public accept(user: IUser) : [boolean, string] {
+        Logger.info(LogType.Command, `User ${user.username} is accepting the duel`);
+
         const [result, msg] = this.canAccept(user);
         if (result) {
             this.state = EventState.BoardingCompleted;
@@ -155,6 +166,8 @@ export class DuelEvent implements IEvent {
     }
 
     private async waitForWeaponChoice() {
+        Logger.info(LogType.Command, `Waiting for weapon choice`);
+
         // Wait one minute for both participants to choose a weapon.
         await this.delay(60 * 1000);
 
@@ -172,6 +185,8 @@ export class DuelEvent implements IEvent {
     }
 
     private returnChews() {
+        Logger.info(LogType.Command, `Returning chews to duel participants`);
+
         this.participants[0].user.points += this.wager;
         this.participants[1].user.points += this.wager;
 
@@ -179,6 +194,8 @@ export class DuelEvent implements IEvent {
     }
 
     private startDuel() {
+        Logger.info(LogType.Command, `Starting duel with weapons ${this.participants[0].weapon} and ${this.participants[1].weapon}`);
+
         this.state = EventState.Ended;
         BotContainer.get(EventService).stopEventStartCooldown(this);
 
@@ -202,6 +219,7 @@ export class DuelEvent implements IEvent {
             this.sendMessage(`Both participants lose ${chewsLost} chews chewieWUT`);
 
             // 10 % of chews go into a (currently non existing) pool, the remaining chews are returned.
+            Logger.info(LogType.Command, `Duel ended in a draw, returning ${this.wager - chewsLost} to duel participants`);
             this.participants[0].user.points += (this.wager - chewsLost);
             this.participants[1].user.points += (this.wager - chewsLost);
 
@@ -221,6 +239,7 @@ export class DuelEvent implements IEvent {
             }
 
             // Winner gets his chews back plus the loser's chews.
+            Logger.info(LogType.Command, `Duel won by ${winner.user.username}, awarding ${this.wager} chews to winner`);
             winner.user.points += this.wager * 2;
             BotContainer.get(UserService).updateUser(winner.user);
             
@@ -244,6 +263,7 @@ export class DuelEvent implements IEvent {
     }
 
     public onCooldownComplete(): void {
+        Logger.info(LogType.Command, `Duel cooldown ended`);
         this.sendMessage("The duelgrounds are ready for the next battle! Settle your grievances today with !duel <target> <wager>");
     }    
 }

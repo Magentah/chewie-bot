@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import Logger, { LogType } from '../logger';
 import { IEvent, IUser } from "../models";
 
 @injectable()
@@ -35,6 +36,7 @@ export class EventService {
             }
         }
 
+        Logger.info(LogType.Command, `Adding event ${event.constructor.name} initiated by ${user.username} to the event list, starting participation period of ${event.initialParticipationPeriod} ms.`);
         this.runningEvents.push(event);
         event.start();
         this.startParticipation(event)
@@ -43,6 +45,7 @@ export class EventService {
 
     private async startParticipation(event: IEvent) {
         await this.delay(event.initialParticipationPeriod);
+        Logger.info(LogType.Command, `Participation period for event ${event.constructor.name} has ended`);
         event.participationPeriodEnded();
     }
 
@@ -51,6 +54,8 @@ export class EventService {
      * @param event Event to end
      */
     public stopEvent(event: IEvent) {
+        Logger.info(LogType.Command, `Removing event ${event.constructor.name} from the event list`);
+
         const idx = this.runningEvents.indexOf(event);
         if (idx >= 0) {
             this.runningEvents.splice(idx, 1);
@@ -62,6 +67,8 @@ export class EventService {
      * @param event Event to end
      */
     public async stopEventStartCooldown(event: IEvent) {
+        Logger.info(LogType.Command, `Ending event ${event.constructor.name} with cooldown of ${event.cooldownPeriod} ms`);
+
         await this.delay(event.cooldownPeriod);
         this.stopEvent(event);
         event.onCooldownComplete();

@@ -5,11 +5,13 @@ import { IUser } from "../../../models";
 import { DuelEvent, Weapon } from "../../../models/events/duelEvent";
 import { EventService } from '../../../services/eventService';
 import { EventState } from '../../../models/event';
+import { Logger, LogType } from '../../../logger';
 
 class WeaponCommand extends Command {
     protected chooseWeapon(channel: string, user: IUser, weapon : Weapon): void {
         // We only accept whispers for the choice of weapon.
         if (channel) {
+            Logger.info(LogType.Command, `Ignoring weapon choice posted in public chat`);
             return;
         }
 
@@ -23,6 +25,8 @@ class WeaponCommand extends Command {
                 }
             }
         }
+
+        Logger.info(LogType.Command, `Cannot set weapon because no duel is currently in progress.`);
     }
 }
 
