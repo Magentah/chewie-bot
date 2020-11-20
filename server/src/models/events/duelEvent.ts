@@ -1,7 +1,6 @@
-import { IEvent } from "..";
 import { EventService, UserService } from "../../services";
 import { IUser } from "../../models";
-import { IEventParticipant, EventState } from '../event';
+import { EventParticipant, EventState, ParticipationEvent } from '../event';
 import { BotContainer } from "../../inversify.config";
 import { Logger, LogType } from '../../logger';
 
@@ -12,15 +11,12 @@ export enum Weapon {
     Scissors = "Scissors"
 }
 
-export class DuelEventParticipant implements IEventParticipant {
+export class DuelEventParticipant extends EventParticipant {
     constructor(user : IUser, wager : number, accepted : boolean) {
-        this.user = user;
-        this.points = wager;
+        super(user, wager);
         this.accepted = accepted;
     }
 
-    user: IUser;
-    points: number;
     weapon: Weapon = Weapon.None;
     accepted: boolean;
 }
@@ -34,20 +30,12 @@ export class DuelEventParticipant implements IEventParticipant {
  * 3) Wait 1 minutes for both participants to whisper the bot with their weapon and the bot responds confirming the selection
  * 4) Decide winner, print message, award chews. If there was a tie, both participants lose 10% of the bet that goes into a pool for later use. Go on cooldown for 2 minutes.
  */
-export class DuelEvent implements IEvent {
+export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
     private wager: any;
     
-    public sendMessage: (name: string) => void;
-
-    public readonly initialParticipationPeriod: number = 60 * 1000;
-
-    public readonly cooldownPeriod: number = 2 * 60 * 1000;
-
-    public participants: DuelEventParticipant[] = [];
-
-    public state: EventState = EventState.Open;
-
     constructor(initiatingUser : IUser, targetUser : IUser | null, wager : number) {
+        super(60 * 1000, 2 * 60 * 1000);
+
         this.participants.push(new DuelEventParticipant(initiatingUser, wager, true));
 
         if (targetUser) {
@@ -84,7 +72,7 @@ export class DuelEvent implements IEvent {
         }
     }
 
-    public checkForOngoingEvent(runningEvent: IEvent, user : IUser): [boolean, string] {
+    public checkForOngoingEvent(runningEvent: ParticipationEvent<DuelEventParticipant>, user : IUser): [boolean, string] {
         if (runningEvent instanceof DuelEvent) {
             if (runningEvent.state === EventState.Ended) {
                 return [false, `A duel has just finished @${user.username}. Please wait while we clean up the battleground.`];
@@ -111,7 +99,7 @@ export class DuelEvent implements IEvent {
         return false;
     }
 
-    public getParticipant(user: IUser) : IEventParticipant | null {
+    public getParticipant(user: IUser) : EventParticipant | null {
         for (let participant of this.participants) {
             if (participant.user.username.toLowerCase() === user.username.toLowerCase()) {
                 return participant;
@@ -161,10 +149,6 @@ export class DuelEvent implements IEvent {
         }
     }
 
-    private delay(ms: number) {
-        return new Promise( resolve => setTimeout(resolve, ms) );
-    }
-
     private async waitForWeaponChoice() {
         Logger.info(LogType.Command, `Waiting for weapon choice`);
 
@@ -196,7 +180,6 @@ export class DuelEvent implements IEvent {
     private startDuel() {
         Logger.info(LogType.Command, `Starting duel with weapons ${this.participants[0].weapon} and ${this.participants[1].weapon}`);
 
-        this.state = EventState.Ended;
         BotContainer.get(EventService).stopEventStartCooldown(this);
 
         // Check for draw first

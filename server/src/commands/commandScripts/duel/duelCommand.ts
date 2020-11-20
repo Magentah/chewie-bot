@@ -2,8 +2,7 @@ import { Command } from "../../command";
 import { TwitchService, UserService } from "../../../services";
 import { BotContainer } from "../../../inversify.config";
 import { IUser } from "../../../models";
-import { IEvent } from "../../../models";
-import { DuelEvent, DuelEventParticipant, Weapon } from "../../../models/events/duelEvent";
+import { DuelEvent } from "../../../models/events/duelEvent";
 import { EventService } from '../../../services/eventService';
 
 /**
@@ -67,8 +66,8 @@ export class DuelCommand extends Command {
             }
         }
 
-        function isEvent(event: string | IEvent): event is IEvent {
-            return (event as IEvent).state !== undefined;
+        function isEvent(event: string | DuelEvent): event is DuelEvent {
+            return (event as DuelEvent).state !== undefined;
         };
 
         const result = BotContainer.get(EventService).startEvent(duel, user);

@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import ParticipationEvent, { EventParticipant, EventState } from '../models/event';
 import Logger, { LogType } from '../logger';
 import { IEvent, IUser } from "../models";
 
@@ -11,7 +12,7 @@ export class EventService {
     /**
      * Contains all currently active events, including those that are currently in cooldown.
      */
-    private runningEvents: IEvent[] = [];
+    private runningEvents: ParticipationEvent<EventParticipant>[] = [];
 
     constructor() {        
     }
@@ -22,7 +23,7 @@ export class EventService {
      * @param user The user who requested the event to start.
      * @returns Error message to post in chat if event cannot currently be started. Otherwise returns the started event.
      */
-    public startEvent<T extends IEvent>(event: T, user : IUser): T | string {
+    public startEvent<T extends ParticipationEvent<EventParticipant>>(event: T, user : IUser): T | string {
         // Check for any running events that prevent the new event from starting.
         // In same cases an event of a certain type may only be active once, in other cases
         // (duel) it depends on the parameters.
@@ -43,7 +44,7 @@ export class EventService {
         return event;
     }
 
-    private async startParticipation(event: IEvent) {
+    private async startParticipation(event: ParticipationEvent<EventParticipant>) {
         await this.delay(event.initialParticipationPeriod);
         Logger.info(LogType.Command, `Participation period for event ${event.constructor.name} has ended`);
         event.participationPeriodEnded();
@@ -53,7 +54,7 @@ export class EventService {
      * Removes and event from the event list, does not impose a cooldown on the event.
      * @param event Event to end
      */
-    public stopEvent(event: IEvent) {
+    public stopEvent(event: ParticipationEvent<EventParticipant>) {
         Logger.info(LogType.Command, `Removing event ${event.constructor.name} from the event list`);
 
         const idx = this.runningEvents.indexOf(event);
@@ -66,9 +67,10 @@ export class EventService {
      * Removes an event from the event list after the event's cooldown has passed.
      * @param event Event to end
      */
-    public async stopEventStartCooldown(event: IEvent) {
+    public async stopEventStartCooldown(event: ParticipationEvent<EventParticipant>) {
         Logger.info(LogType.Command, `Ending event ${event.constructor.name} with cooldown of ${event.cooldownPeriod} ms`);
 
+        event.state = EventState.Ended;
         await this.delay(event.cooldownPeriod);
         this.stopEvent(event);
         event.onCooldownComplete();
@@ -81,7 +83,7 @@ export class EventService {
     /**
      * Returns a list of all active events of a given type.
      */
-    public getEvents<T extends IEvent>(): T[] {
+    public getEvents<T extends ParticipationEvent<EventParticipant>>(): T[] {
         let events: T[] = [];
 
         for (let runningEvent of this.runningEvents) {
