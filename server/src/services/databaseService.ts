@@ -229,7 +229,7 @@ export class DatabaseService {
 
     private async addBroadcaster(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const username: string = "";
+            const username: string = Config.twitch.broadcasterName;
             if (!(await this.db(DatabaseTables.Users).first().where("username", "like", username))) {
                 const broadcasterUsername = Config.twitch.broadcasterName;
                 const user: IUser = {
