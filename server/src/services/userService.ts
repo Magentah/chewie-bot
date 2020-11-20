@@ -30,11 +30,14 @@ export class UserService {
     }
 
     /**
-     * Update a user with new data
-     * @param {IUser} user The updated user object for the user to update.
+     * Updates one or more users with new data
+     * @param {IUser} users The updated user objects for the users to update.
      */
-    public async updateUser(user: IUser): Promise<void> {
-        await this.users.update(user);
+    public async updateUser(...users: IUser[]): Promise<void> {
+        // TODO: Make actual batch updates through the UsersRepository.
+        for (let user of users) {
+            await this.users.update(user);
+        }
     }
 
     /**

@@ -140,8 +140,7 @@ export class DuelEvent implements IEvent {
             this.participants[0].user.points -= this.wager;
             this.participants[1].user.points -= this.wager;
 
-            BotContainer.get(UserService).updateUser(this.participants[0].user);
-            BotContainer.get(UserService).updateUser(this.participants[1].user);
+            BotContainer.get(UserService).updateUser(...this.participants.map((x) => x.user));
             
             this.waitForWeaponChoice();
             return [true, ""];
@@ -176,8 +175,7 @@ export class DuelEvent implements IEvent {
         this.participants[0].user.points += this.wager;
         this.participants[1].user.points += this.wager;
 
-        BotContainer.get(UserService).updateUser(this.participants[0].user);
-        BotContainer.get(UserService).updateUser(this.participants[1].user);
+        BotContainer.get(UserService).updateUser(...this.participants.map((x) => x.user));
     }
 
     private startDuel() {
@@ -207,8 +205,7 @@ export class DuelEvent implements IEvent {
             this.participants[0].user.points += (this.wager - chewsLost);
             this.participants[1].user.points += (this.wager - chewsLost);
 
-            BotContainer.get(UserService).updateUser(this.participants[0].user);
-            BotContainer.get(UserService).updateUser(this.participants[1].user);
+            BotContainer.get(UserService).updateUser(...this.participants.map((x) => x.user));
         } else {
             // Determine the winner and display text based on the winner's weapon.
             let winner;
