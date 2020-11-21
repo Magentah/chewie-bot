@@ -44,8 +44,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
         if (super.addParticipant(participant)) {
             // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
-            participant.user.points -= participant.points;
-            BotContainer.get(UserService).updateUser(participant.user);
+            BotContainer.get(UserService).changeUserPoints(participant.user, -participant.points);
 
             // If a new level has been reached after a participant has been added, make an announcement.
             const newLevel = this.getHeistLevel();
@@ -107,8 +106,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 const pointsWon = Math.floor(participant.points * level.payoutMultiplier);
                 winners.push({ participant: participant, pointsWon : pointsWon});
 
-                participant.user.points += pointsWon;
-                BotContainer.get(UserService).updateUser(participant.user);
+                BotContainer.get(UserService).changeUserPoints(participant.user, pointsWon);
             }
         }
 

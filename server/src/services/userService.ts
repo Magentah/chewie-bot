@@ -41,6 +41,16 @@ export class UserService {
     }
 
     /**
+     * Adds or removes the given amount of points to a user.
+     * @param {IUser} user The user object to update.
+     * @param {points} points Number of points to add or remove (if negative)
+     */
+    public async changeUserPoints(user: IUser, points : number): Promise<void> {
+        user.points += points;
+        await this.users.incrementPoints(user, points);
+    }
+
+    /**
      * Add users from the chatlist to the database if they do not already exist.
      * @param {ITwitchChatList} chatList A ITwitchChatList object containing the chatlist for a channel.
      */
