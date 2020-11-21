@@ -31,7 +31,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     constructor(initiatingUser : IUser, wager : number) {
         super(2 * 60 * 1000, 5 * 60 * 1000);
 
-        this.participants.push(new EventParticipant(initiatingUser, wager));
+        this.addParticipant(new EventParticipant(initiatingUser, wager));
     }
 
     public start() {

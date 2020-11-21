@@ -27,20 +27,20 @@ export class DuelCommand extends Command {
 
         if (target && target.toString().toLowerCase() === user.username.toLowerCase())
         {
-            BotContainer.get(TwitchService).sendMessage(channel, "@" + user.username + ", you cannot duel yourself.");
+            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you cannot duel yourself.");
             return;
         }
 
         if (!wagerValue || wagerValue <= 0)
         {
-            BotContainer.get(TwitchService).sendMessage(channel, "Your wager needs to be more than that, @" + user.username);
+            BotContainer.get(TwitchService).sendMessage(channel, "Your wager needs to be more than that, " + user.username);
             return;
         }
 
         // Check if initiating user has enough points.
         if (user.points < wagerValue)
         {
-            BotContainer.get(TwitchService).sendMessage(channel, "@" + user.username + ", you do not have enough chews to wager that much!");
+            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you do not have enough chews to wager that much!");
             return;
         }
 
