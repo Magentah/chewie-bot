@@ -4,6 +4,7 @@ import { BotContainer } from "../../../inversify.config";
 import { IUser } from "../../../models";
 import { DuelEvent } from "../../../models/events/duelEvent";
 import { EventService } from "../../../services/eventService";
+import { ParticipationEvent } from "../../../models/event";
 
 /**
  * Command for starting a duel.
@@ -30,14 +31,7 @@ export class DuelCommand extends Command {
             return;
         }
 
-        if (!wagerValue || wagerValue <= 0) {
-            BotContainer.get(TwitchService).sendMessage(channel, "Your wager needs to be more than that, " + user.username);
-            return;
-        }
-
-        // Check if initiating user has enough points.
-        if (user.points < wagerValue) {
-            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you do not have enough chews to wager that much!");
+        if (!ParticipationEvent.validatePoints(user, channel, wagerValue)) {
             return;
         }
 

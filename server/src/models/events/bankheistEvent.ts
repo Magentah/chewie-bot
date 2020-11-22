@@ -13,6 +13,10 @@ import { Logger, LogType } from "../../logger";
  * 4) Calculate winners and losers
  * 5) Put bankheist in cooldown
  */
+
+const BankheistParticipationPeriod = 2 * 60 * 1000;
+const BankheistCooldownPeriod = 2 * 60 * 1000;
+
 export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     // TODO: Allow configuration of values and messages in UI.
     private readonly heistLevels = [
@@ -29,7 +33,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     private readonly loseMessages = [ "Something with kaputcheese and lactose intolerance..." ];
 
     constructor(initiatingUser: IUser, wager: number) {
-        super(2 * 60 * 1000, 5 * 60 * 1000);
+        super(BankheistParticipationPeriod, BankheistCooldownPeriod);
 
         this.addParticipant(new EventParticipant(initiatingUser, wager));
     }

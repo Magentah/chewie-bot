@@ -4,7 +4,7 @@ import { BotContainer } from "../../inversify.config";
 import { IUser } from "../../models";
 import { BankheistEvent } from "../../models/events/bankheistEvent";
 import { EventService } from "../../services/eventService";
-import { EventState } from "../../models/event";
+import {ParticipationEvent, EventState } from "../../models/event";
 import { EventParticipant } from "../../models/eventParticipant";
 
 /**
@@ -17,14 +17,7 @@ export class BankheistCommand extends Command {
     }
 
     public async execute(channel: string, user: IUser, wager: number): Promise<void> {
-        if (!wager || wager <= 0) {
-            BotContainer.get(TwitchService).sendMessage(channel, "Your wager needs to be more than that, " + user.username);
-            return;
-        }
-
-        // Check if initiating user has enough points.
-        if (user.points < wager) {
-            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you do not have enough chews to wager that much!");
+        if (!ParticipationEvent.validatePoints(user, channel, wager)) {
             return;
         }
 

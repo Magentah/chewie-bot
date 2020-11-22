@@ -22,11 +22,15 @@ export enum Weapon {
  * 3) Wait 1 minutes for both participants to whisper the bot with their weapon and the bot responds confirming the selection
  * 4) Decide winner, print message, award chews. If there was a tie, both participants lose 10% of the bet that goes into a pool for later use. Go on cooldown for 2 minutes.
  */
+
+const DuelParticipationPeriod = 60 * 1000;
+const DuelCooldownPeriod = 2 * 60 * 1000;
+
 export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
     private wager: any;
 
     constructor(initiatingUser: IUser, targetUser: IUser | undefined, wager: number) {
-        super(60 * 1000, 2 * 60 * 1000);
+        super(DuelParticipationPeriod, DuelCooldownPeriod);
 
         this.participants.push(new DuelEventParticipant(initiatingUser, wager, true));
 
