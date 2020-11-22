@@ -17,7 +17,7 @@ export class UsersRepository {
      */
     public async get(username: string): Promise<IUser> {
         const databaseService = await this.databaseProvider();
-        Logger.info(
+        Logger.debug(
             LogType.Database,
             databaseService
                 .getQueryBuilder(DatabaseTables.Users)
@@ -60,6 +60,33 @@ export class UsersRepository {
 
     /**
      * Updates user data in the database if the user already exists.
+     * @param user Updated user
+     * @param points Number of points to add or remove (if negative)
+     */
+    public async incrementPoints(user: IUser, points : number): Promise<void> {
+        if (!(await this.userExists(user))) {
+            return;
+        }
+
+        const databaseService = await this.databaseProvider();
+
+        Logger.debug(
+            LogType.Database,
+            databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .increment('points', points)
+                .where({ id: user.id })
+                .toSQL().sql
+        );
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .increment('points', points)
+            .where({ id: user.id });
+    }
+
+    /**
+     * Increments or decrements the number of points for a user.
      * @param user Updated user
      */
     public async update(user: IUser): Promise<void> {

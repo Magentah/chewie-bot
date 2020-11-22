@@ -1,5 +1,5 @@
 import { IUser } from "../../../models";
-import { Weapon } from "../../../models/events/duelEvent";
+import { Weapon } from "../../../events/duelEvent";
 import WeaponCommand from "./weaponCommand";
 
 export class ScissorsCommand extends WeaponCommand {

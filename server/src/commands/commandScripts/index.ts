@@ -10,3 +10,5 @@ export { default as AcceptCommand } from "./duel/acceptCommand";
 export { default as RockCommand } from "./duel/rockCommand";
 export { default as PaperCommand } from "./duel/paperCommand";
 export { default as ScissorsCommand } from "./duel/scissorsCommand";
+
+export { default as BankheistCommand } from "./bankheistCommand";
