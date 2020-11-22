@@ -35,7 +35,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                 if (response.status === 200) {
                     const userWrapper: any = { user: response.data };
                     console.log("login", userWrapper);
-                    setUser(userWrapper);
+                    setUser(userWrapper.user);
                 } else if (response.status === 403) {
                     //
                 }
@@ -69,7 +69,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     </Grid>
                     <Grid item>{renderWelcome()}</Grid>
                     <Grid item>
-                        <Button variant="light" style={cssTwitchButton} href="/api/twitch/magentafall/join">
+                        <Button variant="light" style={cssTwitchButton} href={`/api/twitch/${user.username}/join`} >
                             <Image
                                 src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
                                 style={{ width: "30px" }}

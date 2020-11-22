@@ -35,6 +35,10 @@ export class TwitchService {
         this.client.say(channel, message);
     }
 
+    public sendWhisper(username: string, message: string): void {
+        this.client.whisper(username, message);
+    }
+
     public joinChannel(channel: string): void {
         Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
         this.client.join(channel);
@@ -367,7 +371,13 @@ export class TwitchService {
     }
 
     private whisperEventHandler(from: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
-        // Empty
+        Logger.info(LogType.Twitch, `Whisper event: ${from}:${userstate.username} -- ${message}`);
+
+        if (self) {
+            return;
+        }
+
+        this.commandService.handleMessage("", userstate.username ?? "", message);
     }
 
     public connect(): void {
