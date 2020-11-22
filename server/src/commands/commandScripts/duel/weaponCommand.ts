@@ -2,7 +2,7 @@ import { Command } from "../../command";
 import { TwitchService } from "../../../services";
 import { BotContainer } from "../../../inversify.config";
 import { IUser } from "../../../models";
-import { DuelEvent, Weapon } from "../../../models/events/duelEvent";
+import { DuelEvent, Weapon } from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
 import { EventState } from "../../../models/event";
 import { Logger, LogType } from "../../../logger";

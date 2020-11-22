@@ -2,9 +2,9 @@ import { Command } from "../command";
 import { TwitchService } from "../../services";
 import { BotContainer } from "../../inversify.config";
 import { IUser } from "../../models";
-import { BankheistEvent } from "../../models/events/bankheistEvent";
+import { BankheistEvent } from "../../events/bankheistEvent";
 import { EventService } from "../../services/eventService";
-import {ParticipationEvent, EventState } from "../../models/event";
+import { ParticipationEvent, EventState } from "../../models/event";
 import { EventParticipant } from "../../models/eventParticipant";
 
 /**
@@ -25,7 +25,10 @@ export class BankheistCommand extends Command {
         for (const heistInProgress of BotContainer.get(EventService).getEvents<BankheistEvent>()) {
             if (heistInProgress.state === EventState.Open) {
                 if (!heistInProgress.addParticipant(new EventParticipant(user, wager))) {
-                    BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you already joined the bank heist!");
+                    BotContainer.get(TwitchService).sendMessage(
+                        channel,
+                        user.username + ", you already joined the bank heist!"
+                    );
                 }
                 return;
             }
