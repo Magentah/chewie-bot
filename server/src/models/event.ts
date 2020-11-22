@@ -1,3 +1,5 @@
+import { BotContainer } from "../inversify.config";
+import { TwitchService, UserService } from "../services";
 import { EventParticipant } from "./eventParticipant";
 import IUser from "./user";
 
@@ -44,6 +46,21 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
         this.cooldownPeriod = cooldownPeriod;
     }
 
+    public static validatePoints(user: IUser, channel: string, wager: number): boolean {
+        if (!wager || wager <= 0) {
+            BotContainer.get(TwitchService).sendMessage(channel, "Your wager needs to be more than that, " + user.username);
+            return false;
+        }
+
+        // Check if initiating user has enough points.
+        if (user.points < wager) {
+            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you do not have enough chews to wager that much!");
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Starts the event (gathering participants).
      */
@@ -67,11 +84,16 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
      * @param participant Participant to add
      * @returns true if the user has been added, false if the user is already enlisted.
      */
-    public addParticipant(participant: T): boolean {
+    public addParticipant(participant: T, deductPoints: boolean): boolean {
         for (const p of this.participants) {
             if (p.user.username.toLowerCase() === participant.user.username.toLowerCase()) {
                 return false;
             }
+        }
+
+        if (deductPoints) {
+            // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
+            BotContainer.get(UserService).changeUserPoints(participant.user, -participant.points);
         }
 
         this.participants.push(participant);

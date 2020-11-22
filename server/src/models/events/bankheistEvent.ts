@@ -46,10 +46,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     public addParticipant(participant: EventParticipant): boolean {
         const oldLevel = this.getHeistLevel();
 
-        if (super.addParticipant(participant)) {
-            // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
-            BotContainer.get(UserService).changeUserPoints(participant.user, -participant.points);
-
+        if (super.addParticipant(participant, true)) {
             // If a new level has been reached after a participant has been added, make an announcement.
             const newLevel = this.getHeistLevel();
             if (newLevel.level > oldLevel.level && newLevel.level < this.heistLevels.length) {
