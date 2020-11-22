@@ -1,7 +1,6 @@
-import { IUser } from "..";
-import { EventParticipant } from "../eventParticipant";
+import { IUser } from "../models";
+import { EventParticipant } from "../models/eventParticipant";
 import { Weapon } from "./duelEvent";
-
 
 export class DuelEventParticipant extends EventParticipant {
     constructor(user: IUser, wager: number, accepted: boolean) {
