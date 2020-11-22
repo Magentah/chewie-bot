@@ -1,21 +1,5 @@
-import IUser from './user';
-
-export class EventParticipant {
-    constructor(user : IUser, wager : number) {
-        this.user = user;
-        this.points = wager;
-    }
-
-    /**
-     * The user participating in the event.
-     */
-    user: IUser;
-    
-    /**
-     * The number of points that are placed on the bet.
-     */
-    points: number;
-}
+import { EventParticipant } from "./eventParticipant";
+import IUser from "./user";
 
 export enum EventState {
     /**
@@ -44,18 +28,18 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
      * List of users participating in the event.
      */
     public participants: T[] = [];
-    
+
     /**
      * Amount of time in ms for how long participants are being allowed to enter the event.
      */
-    public readonly initialParticipationPeriod : number;
+    public readonly initialParticipationPeriod: number;
 
     /***
      * Amount of time that has to pass between events.
      */
-    public readonly cooldownPeriod : number;
+    public readonly cooldownPeriod: number;
 
-    constructor(initialParticipationPeriod : number, cooldownPeriod: number) {
+    constructor(initialParticipationPeriod: number, cooldownPeriod: number) {
         this.initialParticipationPeriod = initialParticipationPeriod;
         this.cooldownPeriod = cooldownPeriod;
     }
@@ -63,12 +47,12 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
     /**
      * Starts the event (gathering participants).
      */
-    public abstract start() : void;
+    public abstract start(): void;
 
     /**
      * Called when the time for gathering participants has passed.
      */
-    public abstract participationPeriodEnded() : void;
+    public abstract participationPeriodEnded(): void;
 
     /**
      * Allows any newly created event to check for other running events.
@@ -76,15 +60,15 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
      * @param user User initiating the new event
      * @returns [true, ""] if no conflicts exist, [false, msg] when the event cannot be started because of conflicts.
      */
-    public abstract checkForOngoingEvent(event: ParticipationEvent<T>, user : IUser) : [boolean, string];
+    public abstract checkForOngoingEvent(event: ParticipationEvent<T>, user: IUser): [boolean, string];
 
     /**
      * Adds a new participant to the event.
-     * @param participant 
+     * @param participant Participant to add
      * @returns true if the user has been added, false if the user is already enlisted.
      */
-    public addParticipant(participant: T) : boolean {
-        for (let p of this.participants) {
+    public addParticipant(participant: T): boolean {
+        for (const p of this.participants) {
             if (p.user.username.toLowerCase() === participant.user.username.toLowerCase()) {
                 return false;
             }
@@ -97,32 +81,32 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
     /**
      * Determines if a user has entered the event.
      */
-    public hasParticipant(user: IUser) : boolean {
-        return this.getParticipant(user) != null;
+    public hasParticipant(user: IUser): boolean {
+        return this.getParticipant(user) !== undefined;
     }
 
     /**
      * Callback for sending messages to the chat.
      */
-    public sendMessage: (msg: string) => void = () => {};
+    public sendMessage: (msg: string) => void = () => undefined;
 
     /**
      * Called when the cooldown has completed.
      */
-    public abstract onCooldownComplete() : void;
+    public abstract onCooldownComplete(): void;
 
-    public getParticipant(user: IUser) : EventParticipant | null {
-        for (let participant of this.participants) {
+    public getParticipant(user: IUser): EventParticipant | undefined {
+        for (const participant of this.participants) {
             if (participant.user.username.toLowerCase() === user.username.toLowerCase()) {
                 return participant;
             }
         }
 
-        return null;
+        return undefined;
     }
-    
+
     protected delay(ms: number) {
-        return new Promise( resolve => setTimeout(resolve, ms) );
+        return new Promise( (resolve) => setTimeout(resolve, ms) );
     }
 }
 

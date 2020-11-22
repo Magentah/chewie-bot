@@ -1,9 +1,9 @@
-import { IEvent } from "..";
 import { EventService, UserService } from "../../services";
 import { IUser } from "../../models";
-import ParticipationEvent, { EventParticipant, EventState } from '../event';
+import ParticipationEvent, { EventState } from "../event";
+import { EventParticipant } from "../eventParticipant";
 import { BotContainer } from "../../inversify.config";
-import { Logger, LogType } from '../../logger';
+import { Logger, LogType } from "../../logger";
 
 /**
  * Detailed description of a bankheist: http://wiki.deepbot.tv/bankheist
@@ -28,7 +28,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     private readonly win1Messages = [ "The heisters find themselves at the presitigous wedding of ArcaneFox and lixy chewieHug and decide to put on a big band to celebrate BongoPenguin BBoomer GuitarTime epicSax kannaPiano DanceBro For their performance, the heisters are given their pay in chews chewieLove chewieLove chewieLove"];
     private readonly loseMessages = [ "Something with kaputcheese and lactose intolerance..." ];
 
-    constructor(initiatingUser : IUser, wager : number) {
+    constructor(initiatingUser: IUser, wager: number) {
         super(2 * 60 * 1000, 5 * 60 * 1000);
 
         this.addParticipant(new EventParticipant(initiatingUser, wager));
@@ -38,8 +38,8 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         Logger.info(LogType.Command, `Bankheist initiated`);
         this.sendMessage(`${this.participants[0].user.username} has started planning a bank heist! Looking for a bigger crew for a bigger score. Join in! Type !bankheist [x] to enter.`);
     }
-    
-    public addParticipant(participant: EventParticipant) : boolean {
+
+    public addParticipant(participant: EventParticipant): boolean {
         const oldLevel = this.getHeistLevel();
 
         if (super.addParticipant(participant)) {
@@ -57,7 +57,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
         return false;
     }
-    
+
     private getHeistLevel() {
         for (let i = this.heistLevels.length - 1; i > 0; i--) {
             if (this.participants.length >= this.heistLevels[i].minUsers) {
@@ -75,7 +75,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         this.startBankheist();
     }
 
-    public checkForOngoingEvent(runningEvent: ParticipationEvent<EventParticipant>, user : IUser): [boolean, string] {
+    public checkForOngoingEvent(runningEvent: ParticipationEvent<EventParticipant>, user: IUser): [boolean, string] {
         if (runningEvent instanceof BankheistEvent) {
             if (runningEvent.state === EventState.Ended) {
                 return [false, `Chewie and his highly inept security guards request some downtime, have a heart and let them rest will ya?`];
@@ -100,11 +100,11 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
         // Win or lose? We need to determine success for each participant individually.
         const winners = [];
-        for (let participant of this.participants) {
+        for (const participant of this.participants) {
             const hasWon = Math.random() * 100 <= level.winChance;
             if (hasWon) {
                 const pointsWon = Math.floor(participant.points * level.payoutMultiplier);
-                winners.push({ participant: participant, pointsWon : pointsWon});
+                winners.push({participant, pointsWon});
 
                 BotContainer.get(UserService).changeUserPoints(participant.user, pointsWon);
             }
@@ -115,16 +115,16 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         // Output a random win or lose message
         if (winners.length > 0) {
             const percentWin = winners.length / this.participants.length * 100.0;
-            let winMessages = percentWin >= 100 ? this.win100Messages : percentWin >= 34 ? this.win34Messages : this.win1Messages;
+            const winMessages = percentWin >= 100 ? this.win100Messages : percentWin >= 34 ? this.win34Messages : this.win1Messages;
             const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
             this.sendMessage(winMessages[msgIndex]);
 
             // List all winners
             let winMessage = "These monsters stole this from poor ol Chewie: ";
-            for (let winner of winners) {
+            for (const winner of winners) {
                 winMessage += `${winner.participant.user.username} - ${winner.pointsWon} (${winner.participant.points}), `;
             }
-            
+
             this.sendMessage(winMessage.substring(0, winMessage.length - 2));
         } else {
             const msgIndex = Math.floor(Math.random() * Math.floor(this.loseMessages.length));
@@ -137,7 +137,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     public onCooldownComplete(): void {
         Logger.info(LogType.Command, `Bankheist cooldown ended`);
         this.sendMessage("Looks like you can bankheist again... If you dare ( ͡° ͜ʖ ͡°)");
-    }    
+    }
 }
 
 export default BankheistEvent;

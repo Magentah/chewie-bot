@@ -1,24 +1,16 @@
 import { EventService, UserService } from "../../services";
 import { IUser } from "../../models";
-import { EventParticipant, EventState, ParticipationEvent } from '../event';
+import { EventState, ParticipationEvent } from "../event";
+import { EventParticipant } from "../eventParticipant";
 import { BotContainer } from "../../inversify.config";
-import { Logger, LogType } from '../../logger';
+import { Logger, LogType } from "../../logger";
+import { DuelEventParticipant } from "./duelEventParticipant";
 
 export enum Weapon {
     None = "",
     Rock = "Rock",
     Paper = "Paper",
     Scissors = "Scissors"
-}
-
-export class DuelEventParticipant extends EventParticipant {
-    constructor(user : IUser, wager : number, accepted : boolean) {
-        super(user, wager);
-        this.accepted = accepted;
-    }
-
-    weapon: Weapon = Weapon.None;
-    accepted: boolean;
 }
 
 /**
@@ -32,8 +24,8 @@ export class DuelEventParticipant extends EventParticipant {
  */
 export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
     private wager: any;
-    
-    constructor(initiatingUser : IUser, targetUser : IUser | null, wager : number) {
+
+    constructor(initiatingUser: IUser, targetUser: IUser | undefined, wager: number) {
         super(60 * 1000, 2 * 60 * 1000);
 
         this.participants.push(new DuelEventParticipant(initiatingUser, wager, true));
@@ -44,12 +36,12 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         }
 
         this.wager = wager;
-        this.sendMessage = (x) => {};
+        this.sendMessage = (x) => undefined;
     }
 
     public start() {
         Logger.info(LogType.Command, `Duel initialised with ${this.participants.length} participants`);
-        
+
         if (this.participants.length > 1) {
             this.sendMessage(`Sir ${this.participants[0].user.username} has challenged Sir ${this.participants[1].user.username} to a duel for ${this.wager} chews! Sir ${this.participants[1].user.username}, to accept this duel, type !accept`);
         } else {
@@ -57,11 +49,11 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
             this.sendMessage(`Sir ${this.participants[0].user.username} has issued an open duel with the wager of ${this.wager} chews! Is there anyone who would !accept this challenge?`);
         }
     }
-    
+
     public participationPeriodEnded(): void {
         Logger.info(LogType.Command, `Duel participation period ended`);
 
-        // Participants missing? 
+        // Participants missing?
         if (this.state === EventState.Open) {
             this.sendMessage(`Oh Sir ${this.participants[0].user.username}, it appears your challenge has not been answered. The duel has been called off.`);
             BotContainer.get(EventService).stopEvent(this);
@@ -72,7 +64,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         }
     }
 
-    public checkForOngoingEvent(runningEvent: ParticipationEvent<DuelEventParticipant>, user : IUser): [boolean, string] {
+    public checkForOngoingEvent(runningEvent: ParticipationEvent<DuelEventParticipant>, user: IUser): [boolean, string] {
         if (runningEvent instanceof DuelEvent) {
             if (runningEvent.state === EventState.Ended) {
                 return [false, `A duel has just finished @${user.username}. Please wait while we clean up the battleground.`];
@@ -84,14 +76,14 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         return [true, ""];
     }
 
-    public setWeapon(user: IUser, weapon: Weapon) : boolean {
+    public setWeapon(user: IUser, weapon: Weapon): boolean {
         Logger.info(LogType.Command, `Attempting to set weapon for user ${user.username}`);
 
         const participant = this.getParticipant(user) as DuelEventParticipant;
         // We want to allow multiple weapon changes during the weapon selecting period.
         if (participant) {
             participant.weapon = weapon;
-            return true;            
+            return true;
         } else {
             Logger.warn(LogType.Command, `Could not find ${user.username} among the duel participants`);
         }
@@ -99,21 +91,21 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         return false;
     }
 
-    public getParticipant(user: IUser) : EventParticipant | null {
-        for (let participant of this.participants) {
+    public getParticipant(user: IUser): EventParticipant | undefined {
+        for (const participant of this.participants) {
             if (participant.user.username.toLowerCase() === user.username.toLowerCase()) {
                 return participant;
             }
         }
 
-        return null;
+        return undefined;
     }
 
-    public hasParticipant(user: IUser) : boolean {
-        return this.getParticipant(user) != null;
+    public hasParticipant(user: IUser): boolean {
+        return this.getParticipant(user) !== undefined;
     }
 
-    public canAccept(user: IUser) : [boolean, string] {
+    public canAccept(user: IUser): [boolean, string] {
         // Check if target user has enough points.
         if (user.points < this.wager) {
             return [false, `@${user.username} does not have enough chews!`];
@@ -122,27 +114,26 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         return [true, ""];
     }
 
-    public accept(user: IUser) : [boolean, string] {
+    public accept(user: IUser): [boolean, string] {
         Logger.info(LogType.Command, `User ${user.username} is accepting the duel`);
 
         const [result, msg] = this.canAccept(user);
         if (result) {
             this.state = EventState.BoardingCompleted;
             const participant = this.getParticipant(user) as DuelEventParticipant;
-            if (!participant) { 
+            if (!participant) {
                 this.participants.push(new DuelEventParticipant(user, this.wager, true));
             } else {
                 participant.accepted = true;
             }
-            
+
             // Deduct chews now so that they cannot be spent while choosing weapons.
             BotContainer.get(UserService).changeUserPoints(this.participants[0].user, -this.wager);
             BotContainer.get(UserService).changeUserPoints(this.participants[1].user, -this.wager);
-            
+
             this.waitForWeaponChoice();
             return [true, ""];
-        }
-        else {
+        } else {
             return [result, msg];
         }
     }
@@ -161,7 +152,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
             BotContainer.get(EventService).stopEvent(this);
             this.sendMessage(`Despite accepting the duel, it appears Sir ${this.participants[1].user.username} has run away! The duel has been called off FeelsBadMan`);
             this.returnChews();
-        } else {            
+        } else {
             this.startDuel();
         }
     }
@@ -218,9 +209,8 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
             // Winner gets his chews back plus the loser's chews.
             Logger.info(LogType.Command, `Duel won by ${winner.user.username}, awarding ${this.wager} chews to winner`);
             BotContainer.get(UserService).changeUserPoints(winner.user, this.wager * 2);
-            
-            switch (winner.weapon)
-            {
+
+            switch (winner.weapon) {
                 case Weapon.Rock:
                     this.sendMessage(`Sir ${winner.user.username} threw Rock and absolutely smashed Sir ${loser.user.username}'s Scissors!`);
                     break;
@@ -241,7 +231,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
     public onCooldownComplete(): void {
         Logger.info(LogType.Command, `Duel cooldown ended`);
         this.sendMessage("The duelgrounds are ready for the next battle! Settle your grievances today with !duel <target> <wager>");
-    }    
+    }
 }
 
 export default DuelEvent;
