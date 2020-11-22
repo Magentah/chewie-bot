@@ -11,8 +11,9 @@ export { default as RockCommand } from "./duel/rockCommand";
 export { default as PaperCommand } from "./duel/paperCommand";
 export { default as ScissorsCommand } from "./duel/scissorsCommand";
 
+export { default as BankheistCommand } from "./bankheistCommand";
+
 // Arena
 export { default as JoinArenaCommand } from "./arena/joinArenaCommand";
 export { default as StartArenaCommand } from "./arena/startArenaCommand";
 
-export { default as BankheistCommand } from "./bankheistCommand";

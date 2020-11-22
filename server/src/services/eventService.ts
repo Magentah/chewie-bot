@@ -1,6 +1,7 @@
 import { inject, injectable } from "inversify";
-import ParticipationEvent, { EventParticipant, EventState } from '../models/event';
-import Logger, { LogType } from '../logger';
+import ParticipationEvent, { EventState } from "../models/event";
+import { EventParticipant } from "../models/eventParticipant";
+import Logger, { LogType } from "../logger";
 import { IEvent, IUser } from "../models";
 
 @injectable()
@@ -12,10 +13,7 @@ export class EventService {
     /**
      * Contains all currently active events, including those that are currently in cooldown.
      */
-    private runningEvents: ParticipationEvent<EventParticipant>[] = [];
-
-    constructor() {        
-    }
+    private runningEvents: Array<ParticipationEvent<EventParticipant>> = [];
 
     /**
      * Starts a new event and sets a timer for the participation period.
@@ -23,11 +21,11 @@ export class EventService {
      * @param user The user who requested the event to start.
      * @returns Error message to post in chat if event cannot currently be started. Otherwise returns the started event.
      */
-    public startEvent<T extends ParticipationEvent<EventParticipant>>(event: T, user : IUser): T | string {
+    public startEvent<T extends ParticipationEvent<EventParticipant>>(event: T, user: IUser): T | string {
         // Check for any running events that prevent the new event from starting.
         // In same cases an event of a certain type may only be active once, in other cases
         // (duel) it depends on the parameters.
-        for (let runningEvent of this.runningEvents) {
+        for (const runningEvent of this.runningEvents) {
             // Events only need to check for other events of the same type.
             if (event.constructor === runningEvent.constructor) {
                 const [checkResult, message] = event.checkForOngoingEvent(runningEvent, user);
@@ -40,7 +38,7 @@ export class EventService {
         Logger.info(LogType.Command, `Adding event ${event.constructor.name} initiated by ${user.username} to the event list, starting participation period of ${event.initialParticipationPeriod} ms.`);
         this.runningEvents.push(event);
         event.start();
-        this.startParticipation(event)
+        this.startParticipation(event);
         return event;
     }
 
@@ -77,16 +75,16 @@ export class EventService {
     }
 
     private delay(ms: number) {
-        return new Promise( resolve => setTimeout(resolve, ms) );
+        return new Promise( (resolve) => setTimeout(resolve, ms) );
     }
 
     /**
      * Returns a list of all active events of a given type.
      */
     public getEvents<T extends ParticipationEvent<EventParticipant>>(): T[] {
-        let events: T[] = [];
+        const events: T[] = [];
 
-        for (let runningEvent of this.runningEvents) {
+        for (const runningEvent of this.runningEvents) {
             const e = runningEvent as T;
             if (e) {
                 events.push(e);
