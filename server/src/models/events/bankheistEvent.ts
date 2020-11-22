@@ -78,12 +78,15 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
     public checkForOngoingEvent(runningEvent: ParticipationEvent<EventParticipant>, user: IUser): [boolean, string] {
         if (runningEvent instanceof BankheistEvent) {
-            if (runningEvent.state === EventState.Ended) {
-                return [false, `Chewie and his highly inept security guards request some downtime, have a heart and let them rest will ya?`];
-            } else if (runningEvent.state === EventState.BoardingCompleted) {
-                return [false, `Sorry ${user.username}, you are too late. The crew is in the middle of a heist. Come back for the next one?`];
-            } else {
-                return [false, `A bankheist is currently in progress, use !bankheist <wager> to join!`];
+            switch (runningEvent.state) {
+                case EventState.Ended:
+                    return [false, `Chewie and his highly inept security guards request some downtime, have a heart and let them rest will ya?`];
+
+                case EventState.BoardingCompleted:
+                    return [false, `Sorry ${user.username}, you are too late. The crew is in the middle of a heist. Come back for the next one?`];
+
+                default:
+                    return [false, `A bankheist is currently in progress, use !bankheist <wager> to join!`];
             }
         }
 
