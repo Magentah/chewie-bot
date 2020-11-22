@@ -35,7 +35,7 @@ export class UserService {
      */
     public async updateUser(...users: IUser[]): Promise<void> {
         // TODO: Make actual batch updates through the UsersRepository.
-        for (let user of users) {
+        for (const user of users) {
             await this.users.update(user);
         }
     }
@@ -45,9 +45,22 @@ export class UserService {
      * @param {IUser} user The user object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUserPoints(user: IUser, points : number): Promise<void> {
+    public async changeUserPoints(user: IUser, points: number): Promise<void> {
         user.points += points;
         await this.users.incrementPoints(user, points);
+    }
+
+    /**
+     * Adds or removes the given amount of points to one or more users.
+     * @param {IUser} users The users object to update.
+     * @param {points} points Number of points to add or remove (if negative)
+     */
+    public async changeUsersPoints(users: IUser[], points: number): Promise<void> {
+        // TODO: Make actual batch updates through the UsersRepository.
+        for (const user of users) {
+            user.points += points;
+            await this.users.incrementPoints(user, points);
+        }
     }
 
     /**

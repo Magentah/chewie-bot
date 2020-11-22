@@ -128,8 +128,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
             }
 
             // Deduct chews now so that they cannot be spent while choosing weapons.
-            BotContainer.get(UserService).changeUserPoints(this.participants[0].user, -this.wager);
-            BotContainer.get(UserService).changeUserPoints(this.participants[1].user, -this.wager);
+            BotContainer.get(UserService).changeUsersPoints(this.participants.map((x) => x.user), -this.wager);
 
             this.waitForWeaponChoice();
             return [true, ""];
@@ -160,8 +159,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
     private returnChews() {
         Logger.info(LogType.Command, `Returning chews to duel participants`);
 
-        BotContainer.get(UserService).changeUserPoints(this.participants[0].user, this.wager);
-        BotContainer.get(UserService).changeUserPoints(this.participants[1].user, this.wager);
+        BotContainer.get(UserService).changeUsersPoints(this.participants.map((x) => x.user), this.wager);
     }
 
     private startDuel() {
@@ -190,8 +188,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
 
             // 10 % of chews go into a (currently non existing) pool, the remaining chews are returned.
             Logger.info(LogType.Command, `Duel ended in a draw, returning ${this.wager - chewsLost} to duel participants`);
-            BotContainer.get(UserService).changeUserPoints(this.participants[0].user, (this.wager - chewsLost));
-            BotContainer.get(UserService).changeUserPoints(this.participants[1].user, (this.wager - chewsLost));
+            BotContainer.get(UserService).changeUsersPoints(this.participants.map((x) => x.user), (this.wager - chewsLost));
         } else {
             // Determine the winner and display text based on the winner's weapon.
             let winner;
