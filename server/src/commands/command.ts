@@ -1,4 +1,4 @@
-import { IUser, IUserLevel } from "../models";
+import { IUser, IUserLevel, ICommandAlias } from "../models";
 
 export abstract class Command {
     protected isInternalCommand: boolean = false;
@@ -6,6 +6,10 @@ export abstract class Command {
 
     public execute(channel: string, user: IUser, ...args: any[]): void {
         // Empty
+    }
+
+    public getAliases(): ICommandAlias[] {
+        return [];
     }
 
     public isInternal(): boolean {

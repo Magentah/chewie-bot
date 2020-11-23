@@ -7,9 +7,7 @@ export { default as AddSongCommand } from "./addSongCommand";
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";
 export { default as AcceptCommand } from "./duel/acceptCommand";
-export { default as RockCommand } from "./duel/rockCommand";
-export { default as PaperCommand } from "./duel/paperCommand";
-export { default as ScissorsCommand } from "./duel/scissorsCommand";
+export { default as WeaponCommand } from "./duel/weaponCommand";
 
 export { default as BankheistCommand } from "./bankheistCommand";
 

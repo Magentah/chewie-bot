@@ -29,6 +29,9 @@ export class CommandService {
             const commandName = val.substr(0, val.toLowerCase().indexOf("command"));
             const command = new (Object.values(Commands)[index])();
             this.commands.set(commandName.toLowerCase(), command);
+            for (const alias of command.getAliases()) {
+                this.commands.set(alias.name.toLowerCase(), command);
+            }
         });
     }
 
@@ -42,7 +45,12 @@ export class CommandService {
         if (this.commands.has(commandName)) {
             const command = this.commands.get(commandName);
             if (command && !command.isInternal()) {
-                command.execute(channel, user, ...args);
+                const aliasArgs = this.getAliasArgs(command, commandName);
+                if (aliasArgs) {
+                    command.execute(channel, user, ...aliasArgs);
+                } else {
+                    command.execute(channel, user, ...args);
+                }
             } else if (command && command.isInternal()) {
                 throw new CommandInternalError(
                     `The command ${command} is an internal command that has been called through a chat command.`
@@ -59,6 +67,21 @@ export class CommandService {
                 }
             }
         }
+    }
+
+    /**
+     * Determines the arguments to pass to the aliased command.
+     * @param command Command being executed
+     * @param commandName Name that was used to call the command.
+     */
+    private getAliasArgs(command: Command, commandName: string): string[] | undefined {
+        for (const alias of command.getAliases()) {
+            if (alias.name === commandName) {
+                return [ alias.arguments ];
+            }
+        }
+
+        return undefined;
     }
 
     /**
