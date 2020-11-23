@@ -43,9 +43,11 @@ export class EventService {
     }
 
     private async startParticipation(event: ParticipationEvent<EventParticipant>) {
-        await this.delay(event.initialParticipationPeriod);
-        Logger.info(LogType.Command, `Participation period for event ${event.constructor.name} has ended`);
-        event.participationPeriodEnded();
+        if (event.initialParticipationPeriod) {
+            await this.delay(event.initialParticipationPeriod);
+            Logger.info(LogType.Command, `Participation period for event ${event.constructor.name} has ended`);
+            event.participationPeriodEnded();
+        }
     }
 
     /**

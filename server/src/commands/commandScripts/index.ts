@@ -17,3 +17,6 @@ export { default as BankheistCommand } from "./bankheistCommand";
 export { default as JoinArenaCommand } from "./arena/joinArenaCommand";
 export { default as StartArenaCommand } from "./arena/startArenaCommand";
 
+// Auction
+export { default as AuctionCommand } from "./auction/auctionCommand";
+export { default as BidCommand } from "./auction/bidCommand";
