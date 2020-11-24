@@ -3,3 +3,4 @@ export { default as TextCommandsRepository } from "./textCommands";
 export { default as UsersRepository } from "./usersRepository";
 export { default as UserLevelsRepository } from "./userLevelsRepository";
 export { default as VIPLevelsRepository } from "./vipLevels";
+export { default as CommandAliasesRepository } from "./commandAliases";

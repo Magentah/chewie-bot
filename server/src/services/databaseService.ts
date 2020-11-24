@@ -12,6 +12,7 @@ export enum DatabaseTables {
     Donations = "donations",
     DonationTypes = "donationTypes",
     VIPLevels = "vipLevels",
+    CommandAliases = "commandAliases"
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -65,6 +66,8 @@ export class DatabaseService {
     public async initDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             if (!this.isInit) {
+                // Set first, otherwise there is a possibility for this to run twice concurrently.
+                this.isInit = true;
                 Logger.info(LogType.Database, "Creating database tables");
                 await this.createUserLevelTable();
                 await this.createVIPLevelTable();
@@ -73,7 +76,7 @@ export class DatabaseService {
                 await this.createTextCommandsTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
-                this.isInit = true;
+                await this.createCommandAliasTable();
                 Logger.info(LogType.Database, "Database init finished.");
             }
             resolve();
@@ -189,6 +192,26 @@ export class DatabaseService {
                 });
             } else {
                 Logger.info(LogType.Database, `${DatabaseTables.Donations} already exists.`);
+                resolve();
+            }
+        });
+    }
+
+    private async createCommandAliasTable(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            const hasTable = await this.hasTable(DatabaseTables.CommandAliases);
+            if (!hasTable) {
+                Logger.info(LogType.Database, `${DatabaseTables.CommandAliases} being created.`);
+                await this.db.schema.createTable(DatabaseTables.CommandAliases, (table) => {
+                    table.increments("id").primary().notNullable();
+                    table.string("alias").unique().notNullable();
+                    table.string("commandName").notNullable();
+                    table.string("commandArguments");
+                    Logger.info(LogType.Database, `${DatabaseTables.CommandAliases} table created.`);
+                    resolve();
+                });
+            } else {
+                Logger.info(LogType.Database, `${DatabaseTables.CommandAliases} already exists.`);
                 resolve();
             }
         });

@@ -7,6 +7,7 @@ import { Command } from "../commands/command";
 import { TextCommandsRepository } from "../database/textCommands";
 import { IUser } from "../models";
 import { UserService } from "./userService";
+import { CommandAliasesRepository } from "../database/commandAliases";
 
 @injectable()
 export class CommandService {
@@ -15,6 +16,7 @@ export class CommandService {
     constructor(
         @inject(TextCommandsRepository)
         private textCommands: TextCommandsRepository,
+        private aliasCommands: CommandAliasesRepository,
         @inject(UserService) private users: UserService
     ) {
         this.commands = new Map<string, Command>();
@@ -30,7 +32,7 @@ export class CommandService {
             const command = new (Object.values(Commands)[index])();
             this.commands.set(commandName.toLowerCase(), command);
             for (const alias of command.getAliases()) {
-                this.commands.set(alias.name.toLowerCase(), command);
+                this.commands.set(alias.alias.toLowerCase(), command);
             }
         });
     }
@@ -43,41 +45,58 @@ export class CommandService {
      */
     private async executeCommand(commandName: string, channel: string, user: IUser, ...args: string[]): Promise<void> {
         if (this.commands.has(commandName)) {
+            // Execute a system defined command
             const command = this.commands.get(commandName);
-            if (command && !command.isInternal()) {
-                const aliasArgs = this.getAliasArgs(command, commandName);
-                if (aliasArgs) {
-                    command.execute(channel, user, ...aliasArgs);
-                } else {
-                    command.execute(channel, user, ...args);
-                }
-            } else if (command && command.isInternal()) {
-                throw new CommandInternalError(
-                    `The command ${command} is an internal command that has been called through a chat command.`
-                );
-            } else {
-                throw new CommandNotExistError(`The command ${command} doesn't exist.`);
-            }
+            this.executeCommandInternal(command, commandName, channel, user, args);
         } else {
-            const textCommand = await this.textCommands.get(commandName);
-            if (textCommand) {
-                if (this.commands.has("text")) {
-                    const command = this.commands.get("text") as Command;
-                    command.execute(channel, user, textCommand.message);
+            // Execute a command by user defined command alias
+            const commandAlias = await this.aliasCommands.get(commandName);
+            if (commandAlias) {
+                const command = this.commands.get(commandAlias.commandName);
+                if (commandAlias.commandArguments) {
+                    this.executeCommandInternal(command, commandName, channel, user, commandAlias.commandArguments.split(" "));
+                } else {
+                    this.executeCommandInternal(command, commandName, channel, user, args);
+                }
+            } else {
+                // Execute a user defined text command
+                const textCommand = await this.textCommands.get(commandName);
+                if (textCommand) {
+                    if (this.commands.has("text")) {
+                        const command = this.commands.get("text") as Command;
+                        command.execute(channel, user, textCommand.message);
+                    }
                 }
             }
+        }
+    }
+
+    private executeCommandInternal(command: Command | undefined, commandName: string, channel: string, user: IUser, args: string[]) {
+        if (command && !command.isInternal()) {
+            const aliasArgs = this.getAliasArgs(command, commandName);
+            if (aliasArgs) {
+                command.execute(channel, user, ...aliasArgs);
+            } else {
+                command.execute(channel, user, ...args);
+            }
+        } else if (command && command.isInternal()) {
+            throw new CommandInternalError(
+                `The command ${command} is an internal command that has been called through a chat command.`
+            );
+        } else {
+            throw new CommandNotExistError(`The command ${command} doesn't exist.`);
         }
     }
 
     /**
      * Determines the arguments to pass to the aliased command.
      * @param command Command being executed
-     * @param commandName Name that was used to call the command.
+     * @param aliasName Name that was used to call the command (alias).
      */
-    private getAliasArgs(command: Command, commandName: string): string[] | undefined {
+    private getAliasArgs(command: Command, aliasName: string): string[] | undefined {
         for (const alias of command.getAliases()) {
-            if (alias.name === commandName) {
-                return [ alias.arguments ];
+            if (alias.alias === aliasName && alias.commandArguments) {
+                return [ alias.commandArguments ];
             }
         }
 

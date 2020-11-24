@@ -51,9 +51,9 @@ class WeaponCommand extends Command {
 
     public getAliases(): ICommandAlias[] {
         return [
-            { name: "rock", arguments: "rock"},
-            { name: "paper", arguments: "paper"},
-            { name: "scissors", arguments: "scissors"}
+            { alias: "rock", commandArguments: Weapon.Rock, commandName: "weapon" },
+            { alias: "paper", commandArguments: Weapon.Paper, commandName: "weapon"},
+            { alias: "scissors", commandArguments: Weapon.Scissors, commandName: "weapon" }
         ];
     }
 }
