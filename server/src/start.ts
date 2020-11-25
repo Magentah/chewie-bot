@@ -1,5 +1,6 @@
 import BotServer from "./botServer";
 import Logger from "./logger";
+import "./lang/index.ts";
 
 Logger.init();
 

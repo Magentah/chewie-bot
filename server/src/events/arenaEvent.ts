@@ -4,6 +4,7 @@ import { ParticipationEvent, EventState } from "../models/event";
 import { EventParticipant } from "../models/eventParticipant";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
+import { Lang } from "../lang";
 
 /**
  * Detailed description of an arena (tournament) event: http://wiki.deepbot.tv/arena
@@ -30,7 +31,7 @@ export class ArenaEvent extends ParticipationEvent<EventParticipant> {
 
     public start() {
         Logger.info(LogType.Command, `Arena initiated`);
-        this.sendMessage(`Duke ${this.initiatingUser.username} is announcing a grand Tournament Arena. The weak shall fall and only the strongest shall walk away with riches and glory. Entry cost is set at ${this.wager}. Are you strong enough? Type !joinarena to enter.`);
+        this.sendMessage(Lang.get("arena.start", this.initiatingUser.username, this.wager));
     }
 
     public participationPeriodEnded(): void {
