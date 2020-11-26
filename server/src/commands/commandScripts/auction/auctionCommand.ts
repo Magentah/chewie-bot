@@ -6,6 +6,7 @@ import { EventService } from "../../../services/eventService";
 import { AuctionEvent } from "../../../events/auctionEvent";
 import { UserLevelsRepository } from "./../../../database";
 import { EventState } from "../../../models/event";
+import { Lang } from "../../../lang";
 
 /**
  * Command for starting an auction.
@@ -33,12 +34,12 @@ export class AuctionCommand extends Command {
         } else {
             const minAmount = parseInt(minAmountOrAction, 10);
             if (isNaN(minAmount)) {
-                BotContainer.get(TwitchService).sendMessage(channel, user.username + ", minimum bid is not a number!");
+                BotContainer.get(TwitchService).sendMessage(channel, Lang.get("auction.bidnan", user.username));
                 return;
             }
 
             if (!item) {
-                BotContainer.get(TwitchService).sendMessage(channel, user.username + ", item to be auctioned needs to be specified!");
+                BotContainer.get(TwitchService).sendMessage(channel, Lang.get("auction.noitem", user.username));
                 return;
             }
 

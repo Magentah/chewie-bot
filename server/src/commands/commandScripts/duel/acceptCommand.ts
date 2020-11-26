@@ -6,6 +6,7 @@ import { DuelEvent } from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
 import { EventState } from "../../../models/event";
 import { Logger, LogType } from "../../../logger";
+import { Lang } from "../../../lang";
 
 export class AcceptCommand extends Command {
     public async execute(channel: string, user: IUser, target: string, wager: string): Promise<void> {
@@ -42,7 +43,7 @@ export class AcceptCommand extends Command {
         if (result) {
             BotContainer.get(TwitchService).sendMessage(
                 channel,
-                `It's time to D-D-D-D-D-D-D-D-Duel! Sir ${duel.participants[0].user.username}, Sir ${duel.participants[1].user.username}, please whisper me your weapon of choice using !rock, !paper, or !scissors`
+                Lang.get("duel.accepted", duel.participants[0].user.username, duel.participants[1].user.username)
             );
         } else {
             BotContainer.get(TwitchService).sendMessage(channel, msg);

@@ -6,6 +6,7 @@ import { EventService } from "../../../services/eventService";
 import { ParticipationEvent, EventState } from "../../../models/event";
 import { EventParticipant } from "../../../models/eventParticipant";
 import { AuctionEvent } from "../../../events/auctionEvent";
+import { Lang } from "../../../lang";
 
 /**
  * Command for joining an auction event.
@@ -26,16 +27,16 @@ export class BidCommand extends Command {
                 }
 
                 if (!auctionInProgress.addParticipant(new EventParticipant(user, bid), true)) {
-                    BotContainer.get(TwitchService).sendMessage(channel, `${user.username}, your bid needs to be higher than ${auctionInProgress.getHighestBidAmount()}!`);
+                    BotContainer.get(TwitchService).sendMessage(channel, Lang.get("auction.bidtoolow", user.username, auctionInProgress.getHighestBidAmount()));
                 }
                 return;
             } else if (auctionInProgress.state === EventState.BoardingCompleted) {
-                BotContainer.get(TwitchService).sendMessage(channel, user.username + ", the auction is closed!");
+                BotContainer.get(TwitchService).sendMessage(channel, Lang.get("auction.isclosed", user.username));
                 return;
             }
         }
 
-        BotContainer.get(TwitchService).sendMessage(channel, "No auction is currently in progress.");
+        BotContainer.get(TwitchService).sendMessage(channel, Lang.get("auction.notinprogress"));
     }
 }
 

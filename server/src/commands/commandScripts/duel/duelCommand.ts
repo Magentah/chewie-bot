@@ -5,6 +5,7 @@ import { IUser } from "../../../models";
 import { DuelEvent } from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
 import { ParticipationEvent } from "../../../models/event";
+import { Lang } from "../../../lang";
 
 /**
  * Command for starting a duel.
@@ -27,7 +28,7 @@ export class DuelCommand extends Command {
         }
 
         if (target && target.toString().toLowerCase() === user.username.toLowerCase()) {
-            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you cannot duel yourself.");
+            BotContainer.get(TwitchService).sendMessage(channel, Lang.get("duel.noselfduel", user.username));
             return;
         }
 
@@ -40,7 +41,7 @@ export class DuelCommand extends Command {
         if (target) {
             targetUser = await BotContainer.get(UserService).getUser(target);
             if (!targetUser) {
-                BotContainer.get(TwitchService).sendMessage(channel, `Who is ${target}?`);
+                BotContainer.get(TwitchService).sendMessage(channel, Lang.get("duel.userunknown", target));
                 return;
             }
         }

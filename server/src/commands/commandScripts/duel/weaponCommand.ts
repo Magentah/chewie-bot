@@ -6,6 +6,7 @@ import { DuelEvent, Weapon } from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
 import { EventState } from "../../../models/event";
 import { Logger, LogType } from "../../../logger";
+import { Lang } from "../../../lang";
 
 class WeaponCommand extends Command {
     protected chooseWeapon(channel: string, user: IUser, weapon: Weapon): void {
@@ -20,7 +21,7 @@ class WeaponCommand extends Command {
         for (const duel of runningDuels) {
             if (duel.state === EventState.BoardingCompleted) {
                 if (duel.setWeapon(user, weapon)) {
-                    BotContainer.get(TwitchService).sendWhisper(user.username, "Your current weapon is: " + weapon);
+                    BotContainer.get(TwitchService).sendWhisper(user.username, Lang.get("duel.curentweapon", weapon));
                     return;
                 }
             }
