@@ -3,6 +3,7 @@ import { BotContainer } from "src/inversify.config";
 import { InvalidSongUrlError } from "../errors";
 import { Logger, LogType } from "../logger";
 import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";
+import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
 
@@ -13,6 +14,7 @@ export class SongService {
 
     constructor(
         @inject(YoutubeService) private youtubeService: YoutubeService,
+        @inject(SpotifyService) private spotifyService: SpotifyService,
         @inject(WebsocketService) private websocketService: WebsocketService
     ) {
         //
@@ -40,8 +42,14 @@ export class SongService {
             song.source = SongSource.Youtube;
             song.sourceId = id;
         } else {
-            // Not a youtube url. Parse other urls in future
-            throw new InvalidSongUrlError("URL is not a valid YouTube URL.");
+            const sid = this.spotifyService.parseSpotifyUrl(url);
+            if (sid) {
+                song.source = SongSource.Spotify;
+                song.sourceId = sid;
+            } else {
+                // Not a youtube url. Parse other urls in future
+                throw new InvalidSongUrlError("URL is not a valid YouTube URL.");
+            }
         }
 
         song.id = this.nextSongId++;
@@ -60,6 +68,16 @@ export class SongService {
                     song.details = {
                         title: songDetails.snippet.title,
                         duration: this.youtubeService.getSongDuration(songDetails),
+                    };
+                }
+                break;
+            }
+            case SongSource.Spotify: {
+                const songDetails = await this.spotifyService.getSongDetails(song.sourceId);
+                if (songDetails) {
+                    song.details = {
+                        title: songDetails.name,
+                        duration: this.spotifyService.getSongDuration(songDetails),
                     };
                 }
                 break;

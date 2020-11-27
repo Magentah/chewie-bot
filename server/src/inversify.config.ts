@@ -25,6 +25,7 @@ botContainer.bind<Service.WebsocketService>(Service.WebsocketService).toSelf().i
 botContainer.bind<Service.TwitchService>(Service.TwitchService).toSelf().inSingletonScope();
 botContainer.bind<Service.CacheService>(Service.CacheService).toSelf().inSingletonScope();
 botContainer.bind<Service.YoutubeService>(Service.YoutubeService).toSelf().inSingletonScope();
+botContainer.bind<Service.SpotifyService>(Service.SpotifyService).toSelf().inSingletonScope();
 botContainer.bind<Service.CommandService>(Service.CommandService).toSelf().inSingletonScope();
 botContainer.bind<Service.SongService>(Service.SongService).toSelf().inSingletonScope();
 botContainer.bind<Service.UserService>(Service.UserService).toSelf().inSingletonScope();
