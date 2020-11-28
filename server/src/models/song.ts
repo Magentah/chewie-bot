@@ -5,6 +5,7 @@ export interface ISong {
     details: {
         title: string;
         duration: moment.Duration;
+        linkUrl: string
     };
     requestedBy: string;
     requesterStatus: {
@@ -15,6 +16,11 @@ export interface ISong {
     beenPlayed: boolean;
     source: SongSource;
     sourceId: string;
+    sourceUrl: string;
+    previewData: {
+        previewUrl: string,
+        linkUrl: string
+    }
 }
 
 export enum SongSource {

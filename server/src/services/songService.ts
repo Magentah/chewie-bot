@@ -53,6 +53,7 @@ export class SongService {
         }
 
         song.id = this.nextSongId++;
+        song.sourceUrl = url;
         return song;
     }
 
@@ -68,6 +69,11 @@ export class SongService {
                     song.details = {
                         title: songDetails.snippet.title,
                         duration: this.youtubeService.getSongDuration(songDetails),
+                        linkUrl: song.sourceUrl
+                    };
+                    song.previewData = {
+                        linkUrl: song.sourceUrl,
+                        previewUrl: this.youtubeService.getSongPreviewUrl(songDetails)
                     };
                 }
                 break;
@@ -78,6 +84,11 @@ export class SongService {
                     song.details = {
                         title: songDetails.name,
                         duration: this.spotifyService.getSongDuration(songDetails),
+                        linkUrl: song.sourceUrl
+                    };
+                    song.previewData = {
+                        linkUrl: song.sourceUrl,
+                        previewUrl: this.spotifyService.getSongPreviewUrl(songDetails)
                     };
                 }
                 break;

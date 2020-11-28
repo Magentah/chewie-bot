@@ -44,6 +44,23 @@ export class SpotifyService {
     }
 
     /**
+     * Get the URL to a thumbnail of the video.
+     * @param song The song to get the thumbnail for.
+     */
+    public getSongPreviewUrl(songDetails: ISpotifySong): string {
+        if (songDetails.album) {
+            // Use first image smaller than 600 px
+            for (const img of songDetails.album.images) {
+                if (img.height < 600) {
+                    return img.url;
+                }
+            }
+        }
+
+        return "";
+    }
+
+    /**
      * Get the duration of a song from spotify
      * @param song The song to get the duration for.
      */

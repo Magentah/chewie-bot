@@ -32,11 +32,10 @@ const getMuiTheme = () => {
 };
 
 const PreviewCell: React.FC<any> = (value) => {
-    const url = `https://img.youtube.com/vi/${value}/0.jpg`;
     return (
-        <div className="Pog">
-            <a href={`https://www.youtube.com/watch?v=${value}`}>
-                <Image src={url} thumbnail />
+        <div className="Pog2">
+            <a href={value.linkUrl}>
+                <Image src={value.previewUrl} thumbnail />
             </a>
         </div>
     );
@@ -48,7 +47,7 @@ const DetailCell: React.FC<any> = (value) => {
         <Grid style={{ marginBottom: 40 }}>
             <Grid item xs={12}>
                 <Typography component="div">
-                    <a href={`https://www.youtube.com/watch?v=${value?.sourceId}`}>{value?.title}</a>
+                    <a href={value?.linkUrl}>{value?.title}</a>
                 </Typography>
             </Grid>
             <Grid>
@@ -178,7 +177,7 @@ const SongQueue: React.FC<{}> = (props) => {
     const columns = [
         {
             label: "Preview",
-            name: "sourceId",
+            name: "previewData",
             options: { customBodyRender: PreviewCell, filter: false },
         },
         {
