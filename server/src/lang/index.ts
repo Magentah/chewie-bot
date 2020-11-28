@@ -1,4 +1,4 @@
-import "./events-arena.ts";
-import "./events-auction.ts";
-import "./events-bankheist.ts";
-import "./events-duel.ts";
+import "./eventsArena.ts";
+import "./eventsAuction.ts";
+import "./eventsBankheist.ts";
+import "./eventsDuel.ts";
