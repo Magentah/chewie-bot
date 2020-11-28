@@ -33,6 +33,7 @@ botContainer.bind<Repository.UserLevelsRepository>(Repository.UserLevelsReposito
 botContainer.bind<Repository.VIPLevelsRepository>(Repository.VIPLevelsRepository).toSelf();
 botContainer.bind<Repository.DonationsRepository>(Repository.DonationsRepository).toSelf();
 botContainer.bind<Repository.TextCommandsRepository>(Repository.TextCommandsRepository).toSelf();
+botContainer.bind<Repository.CommandAliasesRepository>(Repository.CommandAliasesRepository).toSelf();
 botContainer.bind<Service.EventService>(Service.EventService).toSelf().inSingletonScope();
 
 botContainer.bind<Controller.SongController>(Controller.SongController).toSelf();
