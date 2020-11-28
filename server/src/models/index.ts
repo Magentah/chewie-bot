@@ -25,3 +25,4 @@ export {
 } from "./youtubeApiResult";
 export { default as ISocketMessage, SocketMessageType } from "./socketMessage";
 export { default as IEvent } from "./event";
+export { default as ICommandAlias } from "./commandAlias";

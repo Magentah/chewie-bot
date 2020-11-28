@@ -1,7 +1,7 @@
 import { Command } from "../../command";
 import { TwitchService } from "../../../services";
 import { BotContainer } from "../../../inversify.config";
-import { IUser } from "../../../models";
+import { ICommandAlias, IUser } from "../../../models";
 import { DuelEvent, Weapon } from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
 import { EventState } from "../../../models/event";
@@ -9,6 +9,26 @@ import { Logger, LogType } from "../../../logger";
 import { Lang } from "../../../lang";
 
 class WeaponCommand extends Command {
+    public async execute(channel: string, user: IUser, weapon: string): Promise<void> {
+        if (!weapon) {
+            return;
+        }
+
+        switch (weapon.toLowerCase()) {
+            case "rock":
+                this.chooseWeapon(channel, user, Weapon.Rock);
+                break;
+
+            case "scissors":
+                this.chooseWeapon(channel, user, Weapon.Scissors);
+                break;
+
+            case "paper":
+                this.chooseWeapon(channel, user, Weapon.Paper);
+                break;
+        }
+    }
+
     protected chooseWeapon(channel: string, user: IUser, weapon: Weapon): void {
         // We only accept whispers for the choice of weapon.
         if (channel) {
@@ -28,6 +48,14 @@ class WeaponCommand extends Command {
         }
 
         Logger.info(LogType.Command, `Cannot set weapon because no duel is currently in progress.`);
+    }
+
+    public getAliases(): ICommandAlias[] {
+        return [
+            { alias: "rock", commandArguments: Weapon.Rock, commandName: "weapon" },
+            { alias: "paper", commandArguments: Weapon.Paper, commandName: "weapon"},
+            { alias: "scissors", commandArguments: Weapon.Scissors, commandName: "weapon" }
+        ];
     }
 }
 
