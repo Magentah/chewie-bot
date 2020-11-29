@@ -22,6 +22,7 @@ class TwitchStrategy extends OAuth2Strategy {
     }
 
     public userProfile(accessToken: string, done: (err?: Error | null | undefined, profile?: any) => void): void {
+        console.log("twitch-strategy userProfile")
         this._oauth2.get(`${Constants.TwitchAPIEndpoint}/users`, accessToken, (err, body, res) => {
             if (err) {
                 return done(new OAuth2Strategy.InternalOAuthError("Failed to get user profile.", err));

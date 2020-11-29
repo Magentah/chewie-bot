@@ -12,9 +12,10 @@ import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SongRouter, TwitchRouter } from "./routes";
 import { RouteLogger, UserCookie } from "./middleware";
-import { WebsocketService } from "./services";
+import { TwitchWebService, WebsocketService } from "./services";
 import { BotContainer } from "./inversify.config";
-import { IUser } from "./models";
+import { IUser } from './models';
+import { ITwitchUser } from "./models";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -98,10 +99,18 @@ class BotServer extends Server {
 
         // Login/Logout Routes
         this.app.get("/api/isloggedin", (req, res) => {
+            console.log("islogedin-----------------------" + JSON.stringify(req.user));
             if (!req.user) {
                 return res.status(403).json({ message: "No logged in user." });
             } else {
-                return res.status(200).json(req.user);
+                const user = req.user as IUser;
+                const twitchWebService: TwitchWebService = BotContainer.get(TwitchWebService);
+                
+                twitchWebService.fetchModerators(user.username).then((moderators: Array<ITwitchUser>) => {
+                    console.log("POG_-------------------");
+                    console.log(moderators);
+                });
+                return res.status(200).json(user);
             }
         });
         this.app.get("/api/logout", (req, res) => {

@@ -4,6 +4,7 @@ export default interface IUser {
     id?: number;
     username: string;
     idToken?: string;
+    accessToken?: string;
     refreshToken?: string;
     points: number;
     vipExpiry?: Date;
@@ -15,3 +16,5 @@ export default interface IUser {
     streamlabsToken?: string;
     streamlabsRefresh?: string;
 }
+
+

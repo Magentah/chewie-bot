@@ -135,6 +135,7 @@ export class DatabaseService {
                     table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
                     table.string("username").notNullable().unique();
                     table.string("refreshToken").unique();
+                    table.string("accessToken").unique();
                     table.string("idToken").unique();
                     table.decimal("points").notNullable();
                     table.dateTime("vipExpiry");

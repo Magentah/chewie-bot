@@ -53,3 +53,13 @@ export interface ITwitchChatters {
     global_mods: string[];
     viewers: string[];
 }
+
+export interface ITwitchProfile {
+    provider: string;
+    id: string;
+    username: string;
+    displayName: string;
+    profileImageUrl: string;
+    _raw: string | Buffer | undefined;
+    _json: JSON;
+}

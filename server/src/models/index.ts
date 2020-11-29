@@ -9,7 +9,9 @@ export {
     ITwitchIDToken,
     ITwitchRedirectResponse,
     ITwitchUser,
+    ITwitchProfile,
 } from "./twitchApi";
+export { IUserPrincipal, ProviderType } from "./userPrincipal";
 export { default as IUser } from "./user";
 export { default as IUserLevel } from "./userLevel";
 export { default as IVIPLevel } from "./vipLevel";
