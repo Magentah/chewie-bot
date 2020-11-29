@@ -5,6 +5,7 @@ import { IUser, IUserLevel } from "../../../models";
 import { EventService } from "../../../services/eventService";
 import { ArenaEvent } from "../../../events/arenaEvent";
 import { UserLevelsRepository } from "./../../../database";
+import { Lang } from "../../../lang";
 
 /**
  * Command for starting an arena.
@@ -23,7 +24,7 @@ export class StartArenaCommand extends Command {
 
     public async execute(channel: string, user: IUser, wager: number): Promise<void> {
         if (!wager || wager <= 0) {
-            BotContainer.get(TwitchService).sendMessage(channel, "The entrance fee needs to be specified, " + user.username);
+            BotContainer.get(TwitchService).sendMessage(channel, Lang.get("arena.nofeespecified", user.username));
             return;
         }
 

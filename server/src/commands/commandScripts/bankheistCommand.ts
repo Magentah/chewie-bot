@@ -6,6 +6,7 @@ import { BankheistEvent } from "../../events/bankheistEvent";
 import { EventService } from "../../services/eventService";
 import { ParticipationEvent, EventState } from "../../models/event";
 import { EventParticipant } from "../../models/eventParticipant";
+import { Lang } from "../../lang";
 
 /**
  * Command for starting a bankheist.
@@ -27,7 +28,7 @@ export class BankheistCommand extends Command {
                 if (!heistInProgress.addParticipant(new EventParticipant(user, wager))) {
                     BotContainer.get(TwitchService).sendMessage(
                         channel,
-                        user.username + ", you already joined the bank heist!"
+                        Lang.get("bankheist.alreadyjoined", user.username)
                     );
                 }
                 return;

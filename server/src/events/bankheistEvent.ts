@@ -4,6 +4,7 @@ import ParticipationEvent, { EventState } from "../models/event";
 import { EventParticipant } from "../models/eventParticipant";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
+import { Lang } from "../lang";
 
 /**
  * Detailed description of a bankheist: http://wiki.deepbot.tv/bankheist
@@ -46,9 +47,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
     public start() {
         Logger.info(LogType.Command, `Bankheist initiated`);
-        this.sendMessage(
-            `${this.participants[0].user.username} has started planning a bank heist! Looking for a bigger crew for a bigger score. Join in! Type !bankheist [x] to enter.`
-        );
+        this.sendMessage(Lang.get("bankheist.start", this.participants[0].user.username));
     }
 
     public addParticipant(participant: EventParticipant): boolean {
@@ -58,11 +57,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             // If a new level has been reached after a participant has been added, make an announcement.
             const newLevel = this.getHeistLevel();
             if (newLevel.level > oldLevel.level && newLevel.level < this.heistLevels.length) {
-                this.sendMessage(
-                    `With this crew, we can now hit the ${
-                        newLevel.bankname
-                    }. Lets see if we can get a bigger crew to hit the ${this.heistLevels[newLevel.level]}!`
-                );
+                this.sendMessage(Lang.get("bankheist.newlevel", newLevel.bankname, this.heistLevels[newLevel.level]));
             }
 
             return true;
@@ -92,19 +87,13 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         if (runningEvent instanceof BankheistEvent) {
             switch (runningEvent.state) {
                 case EventState.Ended:
-                    return [
-                        false,
-                        `Chewie and his highly inept security guards request some downtime, have a heart and let them rest will ya?`,
-                    ];
+                    return [false, Lang.get("bankheist.cooldown")];
 
                 case EventState.BoardingCompleted:
-                    return [
-                        false,
-                        `Sorry ${user.username}, you are too late. The crew is in the middle of a heist. Come back for the next one?`,
-                    ];
+                    return [false, Lang.get("bankheist.participationover", user.username)];
 
                 default:
-                    return [false, `A bankheist is currently in progress, use !bankheist <wager> to join!`];
+                    return [false, Lang.get("bankheist.inprogess")];
             }
         }
 
@@ -118,9 +107,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             LogType.Command,
             `Bankheist started with ${this.participants.length} participants (level ${level.level})`
         );
-        this.sendMessage(
-            "It's time to sneak into Chewie's Piggy Bank. Can we really get out with the chews? NotLikeThis"
-        );
+        this.sendMessage(Lang.get("bankheist.commencing", level.bankname));
 
         // Suspense
         await this.delay(10000);
@@ -148,7 +135,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             this.sendMessage(winMessages[msgIndex]);
 
             // List all winners
-            let winMessage = "These monsters stole this from poor ol Chewie: ";
+            let winMessage = Lang.get("bankheist.winners");
             for (const winner of winners) {
                 winMessage += `${winner.participant.user.username} - ${winner.pointsWon} (${winner.participant.points}), `;
             }
@@ -164,7 +151,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
     public onCooldownComplete(): void {
         Logger.info(LogType.Command, `Bankheist cooldown ended`);
-        this.sendMessage("Looks like you can bankheist again... If you dare ( ͡° ͜ʖ ͡°)");
+        this.sendMessage(Lang.get("bankheist.cooldownEnd"));
     }
 }
 

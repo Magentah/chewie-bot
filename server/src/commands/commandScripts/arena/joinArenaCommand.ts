@@ -6,6 +6,7 @@ import { EventService } from "../../../services/eventService";
 import { ParticipationEvent, EventState } from "../../../models/event";
 import { EventParticipant } from "../../../models/eventParticipant";
 import { ArenaEvent } from "../../../events/arenaEvent";
+import { Lang } from "../../../lang";
 
 /**
  * Command for joining an arena event.
@@ -26,16 +27,16 @@ export class JoinArenaCommand extends Command {
                 }
 
                 if (!arenaInProgress.addParticipant(new EventParticipant(user, arenaInProgress.wager), true)) {
-                    BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you already joined the arena!");
+                    BotContainer.get(TwitchService).sendMessage(channel, Lang.get("arena.alreadyjoined", user.username));
                 }
                 return;
             } else if (arenaInProgress.state === EventState.BoardingCompleted) {
-                BotContainer.get(TwitchService).sendMessage(channel, user.username + ", the tournament has already started. Join next time!");
+                BotContainer.get(TwitchService).sendMessage(channel, Lang.get("arena.alreadstarted", user.username));
                 return;
             }
         }
 
-        BotContainer.get(TwitchService).sendMessage(channel, "No tournament is currently in progress. Use !startarena to start one.");
+        BotContainer.get(TwitchService).sendMessage(channel, Lang.get("arena.notinprogress"));
     }
 }
 
