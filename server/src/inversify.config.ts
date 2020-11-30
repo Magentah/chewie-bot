@@ -28,13 +28,13 @@ botContainer.bind<Service.YoutubeService>(Service.YoutubeService).toSelf().inSin
 botContainer.bind<Service.CommandService>(Service.CommandService).toSelf().inSingletonScope();
 botContainer.bind<Service.SongService>(Service.SongService).toSelf().inSingletonScope();
 botContainer.bind<Service.UserService>(Service.UserService).toSelf().inSingletonScope();
+botContainer.bind<Service.UserPermissionService>(Service.UserPermissionService).toSelf().inSingletonScope();
 botContainer.bind<Service.TwitchWebService>(Service.TwitchWebService).toSelf().inSingletonScope();
 botContainer.bind<Repository.UsersRepository>(Repository.UsersRepository).toSelf();
 botContainer.bind<Repository.UserLevelsRepository>(Repository.UserLevelsRepository).toSelf();
 botContainer.bind<Repository.VIPLevelsRepository>(Repository.VIPLevelsRepository).toSelf();
 botContainer.bind<Repository.DonationsRepository>(Repository.DonationsRepository).toSelf();
 botContainer.bind<Repository.TextCommandsRepository>(Repository.TextCommandsRepository).toSelf();
-
 botContainer.bind<Controller.SongController>(Controller.SongController).toSelf();
 botContainer.bind<Controller.TwitchController>(Controller.TwitchController).toSelf();
 export { botContainer as BotContainer };

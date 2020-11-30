@@ -63,3 +63,13 @@ export interface ITwitchProfile {
     _raw: string | Buffer | undefined;
     _json: JSON;
 }
+
+
+export interface ITwitchSubscription {
+    broadcaster_id: string,
+    broadcaster_name: string,
+    is_gift: string,
+    plan_name: string,
+    user_id: string,
+    user_name: string,
+}

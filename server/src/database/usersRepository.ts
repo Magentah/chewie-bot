@@ -111,7 +111,7 @@ export class UsersRepository {
      * @param user User to get
      * @returns True if the user exists in the database, false if the user does not exist.
      */
-    private async userExists(user: IUser): Promise<boolean> {
+private async userExists(user: IUser): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         if (user.id && user.id > 0) {
             const result = await databaseService

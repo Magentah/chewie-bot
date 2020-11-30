@@ -2,14 +2,14 @@ import { Command } from "../command";
 import { TextCommandsRepository, UserLevelsRepository } from "./../../database";
 import { TwitchService } from "./../../services";
 import { BotContainer } from "../../inversify.config";
-import { IUser, IUserLevel } from "../../models";
+import { IUser, IUserLevel, UserLevelName } from "../../models";
 
 export class AddCmdCommand extends Command {
     constructor() {
         super();
         // TODO: make userlevels constants
         BotContainer.get(UserLevelsRepository)
-            .get("Broadcaster")
+            .get(UserLevelName.Broadcaster)
             .then((userLevel: IUserLevel) => {
                 this.minimumUserLevel = userLevel;
             });

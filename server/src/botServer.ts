@@ -106,10 +106,15 @@ class BotServer extends Server {
                 const user = req.user as IUser;
                 const twitchWebService: TwitchWebService = BotContainer.get(TwitchWebService);
                 
-                twitchWebService.fetchModerators(user.username).then((moderators: Array<ITwitchUser>) => {
-                    console.log("POG_-------------------");
-                    console.log(moderators);
-                });
+                // twitchWebService.fetchModerators().then((moderators: Array<ITwitchUser>) => {
+                //     console.log("\nMODS_-------------------");
+                //     console.log(moderators);
+                // });
+
+                twitchWebService.fetchSubscribers().then((data: any) => {
+                    console.log("\nSUBS-------------------");
+                    console.log(data);
+                })
                 return res.status(200).json(user);
             }
         });

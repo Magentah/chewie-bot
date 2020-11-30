@@ -10,10 +10,11 @@ export {
     ITwitchRedirectResponse,
     ITwitchUser,
     ITwitchProfile,
+    ITwitchSubscription,
 } from "./twitchApi";
 export { IUserPrincipal, ProviderType } from "./userPrincipal";
 export { default as IUser } from "./user";
-export { default as IUserLevel } from "./userLevel";
+export { default as IUserLevel, UserLevelName } from "./userLevel";
 export { default as IVIPLevel } from "./vipLevel";
 export {
     IYoutubeContentDetails,

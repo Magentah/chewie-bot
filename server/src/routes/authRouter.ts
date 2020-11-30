@@ -1,11 +1,12 @@
 import * as express from "express";
 import * as passport from "passport";
+import { UserPermissionService } from 'src/services/userPermissionService';
 import * as Config from "../config.json";
 import Constants from "../constants";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
-import { IUser, IUserPrincipal, ProviderType, ITwitchUser} from "../models";
-import { TwitchWebService, UserService } from "../services";
+import { IUser } from "../models";
+import { UserService } from "../services";
 import { TwitchStrategy, StreamlabsStrategy } from "../strategy";
 
 const authRouter: express.Router = express.Router();
@@ -33,27 +34,17 @@ export function setupPassport(): void {
                 done: (err: undefined, user: IUser) => any
             ) => {
                 const userService: UserService = BotContainer.get(UserService);
-                const twitchWebService: TwitchWebService = BotContainer.get(TwitchWebService);
+                // const userPermissionService: UserPermissionService = BotContainer.get(UserPermissionService);
                 
                 await userService.addUser(profile.username);
 
                 const user: IUser = await userService.getUser(profile.username);
 
-                const userCtx: IUserPrincipal = {
-                    username: user.username,
-                    accessToken: _accessToken,
-                    refreshToken: _refreshToken,
-                    providerType: ProviderType.Twitch,
-                };
-
-                const moderators: Array<ITwitchUser> = await twitchWebService.fetchModerators(userCtx);
-                // TODO - code & refactor ACL logic
-
                 user.accessToken = _accessToken;    
                 user.refreshToken = _refreshToken;
-
                 await userService.updateUser(user);
 
+                // await userPermissionService.updateUserLevels(user)
                 
                 return done(undefined, user);
             }
