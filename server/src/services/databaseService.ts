@@ -12,7 +12,8 @@ export enum DatabaseTables {
     Donations = "donations",
     DonationTypes = "donationTypes",
     VIPLevels = "vipLevels",
-    CommandAliases = "commandAliases"
+    CommandAliases = "commandAliases",
+    BotSettings = "botSettings",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -62,22 +63,25 @@ export class DatabaseService {
 
     private db: knex;
     private isInit: boolean = false;
+    private inSetup: boolean = false;
 
     public async initDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            if (!this.isInit) {
-                // Set first, otherwise there is a possibility for this to run twice concurrently.
-                this.isInit = true;
+            if (!this.isInit && !this.inSetup) {
+                this.inSetup = true;
                 Logger.info(LogType.Database, "Creating database tables");
                 await this.createUserLevelTable();
                 await this.createVIPLevelTable();
                 await this.createUserTable();
                 await this.createDonationsTable();
                 await this.createTextCommandsTable();
+                await this.createCommandAliasTable();
+                await this.createBotSettingsTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
-                await this.createCommandAliasTable();
                 Logger.info(LogType.Database, "Database init finished.");
+                this.inSetup = false;
+                this.isInit = true;
             }
             resolve();
         });
@@ -87,133 +91,89 @@ export class DatabaseService {
         return this.db.schema.hasTable(tableName);
     }
 
-    private async createUserLevelTable(): Promise<void> {
+    private async createTable(tableName: DatabaseTables, callback: (table: knex.TableBuilder) => any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const hasUserLevelTable = await this.hasTable(DatabaseTables.UserLevels);
-            if (!hasUserLevelTable) {
-                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} being created.`);
-                await this.db.schema.createTable(DatabaseTables.UserLevels, (table) => {
-                    table.increments("id").primary().notNullable();
-                    table.string("name").notNullable().unique();
-                    table.integer("rank").notNullable();
-                    Logger.info(LogType.Database, `${DatabaseTables.UserLevels} table created.`);
-                    resolve();
-                });
+            const hasTable = await this.hasTable(tableName);
+            if (!hasTable) {
+                Logger.info(LogType.Database, `${tableName} being created.`);
+                await this.db.schema.createTable(tableName, callback);
+                resolve();
             } else {
-                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} already exists.`);
+                Logger.info(LogType.Database, `${tableName} already exists.`);
                 resolve();
             }
+        });
+    }
+
+    private async createUserLevelTable(): Promise<void> {
+        return this.createTable(DatabaseTables.UserLevels, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("name").notNullable().unique();
+            table.integer("rank").notNullable();
         });
     }
 
     private async createVIPLevelTable(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const hasVIPLevelTable = await this.hasTable(DatabaseTables.VIPLevels);
-            if (!hasVIPLevelTable) {
-                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} being created.`);
-                await this.db.schema.createTable(DatabaseTables.VIPLevels, (table) => {
-                    table.increments("id").primary().notNullable();
-                    table.string("name").notNullable().unique();
-                    table.integer("rank").notNullable();
-                    Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} table created.`);
-                    resolve();
-                });
-            } else {
-                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} already exists.`);
-                resolve();
-            }
+        return this.createTable(DatabaseTables.VIPLevels, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("name").notNullable().unique();
+            table.integer("rank").notNullable();
         });
     }
 
     private async createUserTable(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const hasUserTable = await this.hasTable(DatabaseTables.Users);
-            if (!hasUserTable) {
-                Logger.info(LogType.Database, `${DatabaseTables.Users} being created.`);
-                await this.db.schema.createTable(DatabaseTables.Users, (table) => {
-                    table.increments("id").primary().notNullable();
-                    table.integer("vipLevelKey").unsigned();
-                    table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
-                    table.integer("userLevelKey").unsigned();
-                    table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
-                    table.string("username").notNullable().unique();
-                    table.string("refreshToken").unique();
-                    table.string("idToken").unique();
-                    table.decimal("points").notNullable();
-                    table.dateTime("vipExpiry");
-                    table.boolean("hasLogin").notNullable();
-                    table.string("streamlabsToken");
-                    table.string("streamlabsRefresh");
-                    Logger.info(LogType.Database, `${DatabaseTables.Users} table created.`);
-                    resolve();
-                });
-            } else {
-                Logger.info(LogType.Database, `${DatabaseTables.Users} already exists.`);
-                resolve();
-            }
+        return this.createTable(DatabaseTables.Users, (table) => {
+            table.increments("id").primary().notNullable();
+            table.integer("vipLevelKey").unsigned();
+            table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
+            table.integer("userLevelKey").unsigned();
+            table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
+            table.string("username").notNullable().unique();
+            table.string("refreshToken").unique();
+            table.string("idToken").unique();
+            table.decimal("points").notNullable();
+            table.dateTime("vipExpiry");
+            table.boolean("hasLogin").notNullable();
+            table.string("streamlabsToken");
+            table.string("streamlabsRefresh");
         });
     }
 
     private async createTextCommandsTable(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const hasTextCommandsTable = await this.hasTable(DatabaseTables.TextCommands);
-            if (!hasTextCommandsTable) {
-                Logger.info(LogType.Database, `${DatabaseTables.TextCommands} being created.`);
-                await this.db.schema.createTable(DatabaseTables.TextCommands, (table) => {
-                    table.increments("id").primary().notNullable();
-                    table.string("commandName").notNullable();
-                    table.string("message").notNullable();
-                    table.integer("minimumUserLevelKey").unsigned();
-                    table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
-                    Logger.info(LogType.Database, `${DatabaseTables.TextCommands} table created.`);
-                    resolve();
-                });
-            } else {
-                Logger.info(LogType.Database, `${DatabaseTables.TextCommands} already exists.`);
-                resolve();
-            }
+        return this.createTable(DatabaseTables.TextCommands, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("commandName").notNullable();
+            table.string("message").notNullable();
+            table.integer("minimumUserLevelKey").unsigned();
+            table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
         });
     }
 
     private async createDonationsTable(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const hasDonationsTable = await this.hasTable(DatabaseTables.Donations);
-            if (!hasDonationsTable) {
-                Logger.info(LogType.Database, `${DatabaseTables.Donations} being created.`);
-                await this.db.schema.createTable(DatabaseTables.Donations, (table) => {
-                    table.increments("id").primary().notNullable();
-                    table.string("username").notNullable();
-                    table.dateTime("date").notNullable();
-                    table.string("type").notNullable();
-                    table.string("message");
-                    table.decimal("amount").notNullable();
-                    Logger.info(LogType.Database, `${DatabaseTables.Donations} table created.`);
-                    resolve();
-                });
-            } else {
-                Logger.info(LogType.Database, `${DatabaseTables.Donations} already exists.`);
-                resolve();
-            }
+        return this.createTable(DatabaseTables.Donations, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("username").notNullable();
+            table.dateTime("date").notNullable();
+            table.string("type").notNullable();
+            table.string("message");
+            table.decimal("amount").notNullable();
         });
     }
 
     private async createCommandAliasTable(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const hasTable = await this.hasTable(DatabaseTables.CommandAliases);
-            if (!hasTable) {
-                Logger.info(LogType.Database, `${DatabaseTables.CommandAliases} being created.`);
-                await this.db.schema.createTable(DatabaseTables.CommandAliases, (table) => {
-                    table.increments("id").primary().notNullable();
-                    table.string("alias").unique().notNullable();
-                    table.string("commandName").notNullable();
-                    table.string("commandArguments");
-                    Logger.info(LogType.Database, `${DatabaseTables.CommandAliases} table created.`);
-                    resolve();
-                });
-            } else {
-                Logger.info(LogType.Database, `${DatabaseTables.CommandAliases} already exists.`);
-                resolve();
-            }
+        return this.createTable(DatabaseTables.CommandAliases, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("alias").unique().notNullable();
+            table.string("commandName").notNullable();
+            table.string("commandArguments");
+        });
+    }
+
+    private async createBotSettingsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.BotSettings, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("username").unique().notNullable();
+            table.string("oauth").notNullable();
         });
     }
 
