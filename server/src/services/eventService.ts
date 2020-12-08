@@ -1,8 +1,8 @@
 import { inject, injectable } from "inversify";
-import ParticipationEvent, { EventState } from "../models/event";
+import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
 import Logger, { LogType } from "../logger";
-import { IEvent, IUser } from "../models";
+import { IUser } from "../models";
 
 @injectable()
 
@@ -35,7 +35,10 @@ export class EventService {
             }
         }
 
-        Logger.info(LogType.Command, `Adding event ${event.constructor.name} initiated by ${user.username} to the event list, starting participation period of ${event.initialParticipationPeriod} ms.`);
+        Logger.info(
+            LogType.Command,
+            `Adding event ${event.constructor.name} initiated by ${user.username} to the event list, starting participation period of ${event.initialParticipationPeriod} ms.`
+        );
         this.runningEvents.push(event);
         event.start();
         this.startParticipation(event);
@@ -68,7 +71,10 @@ export class EventService {
      * @param event Event to end
      */
     public async stopEventStartCooldown(event: ParticipationEvent<EventParticipant>) {
-        Logger.info(LogType.Command, `Ending event ${event.constructor.name} with cooldown of ${event.cooldownPeriod} ms`);
+        Logger.info(
+            LogType.Command,
+            `Ending event ${event.constructor.name} with cooldown of ${event.cooldownPeriod} ms`
+        );
 
         event.state = EventState.Ended;
         await this.delay(event.cooldownPeriod);
@@ -77,7 +83,7 @@ export class EventService {
     }
 
     private delay(ms: number) {
-        return new Promise( (resolve) => setTimeout(resolve, ms) );
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**

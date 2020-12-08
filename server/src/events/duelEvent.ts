@@ -1,18 +1,12 @@
-import { EventService, UserService } from "../services";
+import { EventService, UserService, TwitchService } from "../services";
 import { IUser } from "../models";
-import { EventState, ParticipationEvent } from "../models/event";
+import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
-import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
 import { DuelEventParticipant } from "./duelEventParticipant";
+import { DuelWeapon } from "./duelWeapon";
+import { inject } from "inversify";
 import { Lang } from "../lang";
-
-export enum Weapon {
-    None = "",
-    Rock = "Rock",
-    Paper = "Paper",
-    Scissors = "Scissors",
-}
 
 /**
  * Rough description of a duel:
@@ -27,11 +21,18 @@ export enum Weapon {
 const DuelParticipationPeriod = 60 * 1000;
 const DuelCooldownPeriod = 2 * 60 * 1000;
 
-export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
+export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
     private wager: any;
 
-    constructor(initiatingUser: IUser, targetUser: IUser | undefined, wager: number) {
-        super(DuelParticipationPeriod, DuelCooldownPeriod);
+    constructor(
+        @inject(TwitchService) twitchService: TwitchService,
+        @inject(UserService) userService: UserService,
+        @inject(EventService) private eventService: EventService,
+        initiatingUser: IUser,
+        targetUser: IUser | undefined,
+        wager: number
+    ) {
+        super(twitchService, userService, DuelParticipationPeriod, DuelCooldownPeriod);
 
         this.participants.push(new DuelEventParticipant(initiatingUser, wager, true));
 
@@ -48,8 +49,14 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         Logger.info(LogType.Command, `Duel initialised with ${this.participants.length} participants`);
 
         if (this.participants.length > 1) {
-            this.sendMessage(Lang.get("duel.start", this.participants[0].user.username,
-                this.participants[1].user.username, this.wager));
+            this.sendMessage(
+                Lang.get(
+                    "duel.start",
+                    this.participants[0].user.username,
+                    this.participants[1].user.username,
+                    this.wager
+                )
+            );
         } else {
             // Public announcement so that anyone can join
             this.sendMessage(Lang.get("duel.startopen", this.participants[0].user.username, this.wager));
@@ -62,13 +69,13 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         // Participants missing?
         if (this.state === EventState.Open) {
             this.sendMessage(Lang.get("duel.noparticipants", this.participants[0].user.username));
-            BotContainer.get(EventService).stopEvent(this);
+            this.eventService.stopEvent(this);
         } else if (this.state === EventState.BoardingCompleted && !this.participants[1].accepted) {
             // Participant may have been entered by the challenger, but he might have not accepted.
             this.sendMessage(
                 Lang.get("duel.notaccepted", this.participants[0].user.username, this.participants[1].user.username)
             );
-            BotContainer.get(EventService).stopEvent(this);
+            this.eventService.stopEvent(this);
         }
     }
 
@@ -87,7 +94,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         return [true, ""];
     }
 
-    public setWeapon(user: IUser, weapon: Weapon): boolean {
+    public setWeapon(user: IUser, weapon: DuelWeapon): boolean {
         Logger.info(LogType.Command, `Attempting to set weapon for user ${user.username}`);
 
         const participant = this.getParticipant(user) as DuelEventParticipant;
@@ -139,7 +146,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
             }
 
             // Deduct chews now so that they cannot be spent while choosing weapons.
-            BotContainer.get(UserService).changeUsersPoints(
+            this.userService.changeUsersPoints(
                 this.participants.map((x) => x.user),
                 -this.wager
             );
@@ -157,17 +164,13 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         // Wait one minute for both participants to choose a weapon.
         await this.delay(60 * 1000);
 
-        if (this.participants[0].weapon === Weapon.None) {
-            BotContainer.get(EventService).stopEvent(this);
-            this.sendMessage(
-                Lang.get("duel.calledoffbyinitiator", this.participants[0].user.username)
-            );
+        if (this.participants[0].weapon === DuelWeapon.None) {
+            this.eventService.stopEvent(this);
+            this.sendMessage(Lang.get("duel.calledoffbyinitiator", this.participants[0].user.username));
             this.returnChews();
-        } else if (this.participants[1].weapon === Weapon.None) {
-            BotContainer.get(EventService).stopEvent(this);
-            this.sendMessage(
-                Lang.get("duel.calledoffbyopponent", this.participants[1].user.username)
-            );
+        } else if (this.participants[1].weapon === DuelWeapon.None) {
+            this.eventService.stopEvent(this);
+            this.sendMessage(Lang.get("duel.calledoffbyopponent", this.participants[1].user.username));
             this.returnChews();
         } else {
             this.startDuel();
@@ -177,7 +180,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
     private returnChews() {
         Logger.info(LogType.Command, `Returning chews to duel participants`);
 
-        BotContainer.get(UserService).changeUsersPoints(
+        this.userService.changeUsersPoints(
             this.participants.map((x) => x.user),
             this.wager
         );
@@ -189,26 +192,38 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
             `Starting duel with weapons ${this.participants[0].weapon} and ${this.participants[1].weapon}`
         );
 
-        BotContainer.get(EventService).stopEventStartCooldown(this);
+        this.eventService.stopEventStartCooldown(this);
 
         // Check for draw first
         if (this.participants[0].weapon === this.participants[1].weapon) {
             switch (this.participants[0].weapon) {
-                case Weapon.Rock:
+                case DuelWeapon.Rock:
                     this.sendMessage(
-                        Lang.get("duel.drawrock", this.participants[0].user.username, this.participants[1].user.username)
+                        Lang.get(
+                            "duel.drawrock",
+                            this.participants[0].user.username,
+                            this.participants[1].user.username
+                        )
                     );
                     break;
 
-                case Weapon.Paper:
+                case DuelWeapon.Paper:
                     this.sendMessage(
-                        Lang.get("duel.drawpaper", this.participants[0].user.username, this.participants[1].user.username)
+                        Lang.get(
+                            "duel.drawpaper",
+                            this.participants[0].user.username,
+                            this.participants[1].user.username
+                        )
                     );
                     break;
 
-                case Weapon.Scissors:
+                case DuelWeapon.Scissors:
                     this.sendMessage(
-                        Lang.get("duel.drawscissors", this.participants[0].user.username, this.participants[1].user.username)
+                        Lang.get(
+                            "duel.drawscissors",
+                            this.participants[0].user.username,
+                            this.participants[1].user.username
+                        )
                     );
                     break;
             }
@@ -221,7 +236,7 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
                 LogType.Command,
                 `Duel ended in a draw, returning ${this.wager - chewsLost} to duel participants`
             );
-            BotContainer.get(UserService).changeUsersPoints(
+            this.userService.changeUsersPoints(
                 this.participants.map((x) => x.user),
                 this.wager - chewsLost
             );
@@ -230,9 +245,11 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
             let winner;
             let loser;
             if (
-                (this.participants[0].weapon === Weapon.Paper && this.participants[1].weapon === Weapon.Rock) ||
-                (this.participants[0].weapon === Weapon.Rock && this.participants[1].weapon === Weapon.Scissors) ||
-                (this.participants[0].weapon === Weapon.Scissors && this.participants[1].weapon === Weapon.Paper)
+                (this.participants[0].weapon === DuelWeapon.Paper && this.participants[1].weapon === DuelWeapon.Rock) ||
+                (this.participants[0].weapon === DuelWeapon.Rock &&
+                    this.participants[1].weapon === DuelWeapon.Scissors) ||
+                (this.participants[0].weapon === DuelWeapon.Scissors &&
+                    this.participants[1].weapon === DuelWeapon.Paper)
             ) {
                 winner = this.participants[0];
                 loser = this.participants[1];
@@ -243,25 +260,19 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
 
             // Winner gets his chews back plus the loser's chews.
             Logger.info(LogType.Command, `Duel won by ${winner.user.username}, awarding ${this.wager} chews to winner`);
-            BotContainer.get(UserService).changeUserPoints(winner.user, this.wager * 2);
+            this.userService.changeUserPoints(winner.user, this.wager * 2);
 
             switch (winner.weapon) {
-                case Weapon.Rock:
-                    this.sendMessage(
-                        Lang.get("duel.winrock", winner.user.username, loser.user.username)
-                    );
+                case DuelWeapon.Rock:
+                    this.sendMessage(Lang.get("duel.winrock", winner.user.username, loser.user.username));
                     break;
 
-                case Weapon.Paper:
-                    this.sendMessage(
-                        Lang.get("duel.winpaper", winner.user.username, loser.user.username)
-                    );
+                case DuelWeapon.Paper:
+                    this.sendMessage(Lang.get("duel.winpaper", winner.user.username, loser.user.username));
                     break;
 
-                case Weapon.Scissors:
-                    this.sendMessage(
-                        Lang.get("duel.winscissors", winner.user.username, loser.user.username)
-                    );
+                case DuelWeapon.Scissors:
+                    this.sendMessage(Lang.get("duel.winscissors", winner.user.username, loser.user.username));
                     break;
             }
 
@@ -274,5 +285,3 @@ export class DuelEvent extends ParticipationEvent<DuelEventParticipant> {
         this.sendMessage(Lang.get("duel.cooldownEnd"));
     }
 }
-
-export default DuelEvent;

@@ -1,9 +1,9 @@
-import { EventService, UserService } from "../services";
+import { EventService, UserService, TwitchService } from "../services";
 import { IUser } from "../models";
-import { ParticipationEvent, EventState } from "../models/event";
+import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
-import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
+import { inject } from "inversify";
 import { Lang } from "../lang";
 
 /**
@@ -18,12 +18,18 @@ import { Lang } from "../lang";
 const ArenaParticipationPeriod = 2 * 60 * 1000;
 const ArenaCooldownPeriod = 5 * 60 * 1000;
 
-export class ArenaEvent extends ParticipationEvent<EventParticipant> {
+export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
     private initiatingUser: IUser;
     public wager: number;
 
-    constructor(initiatingUser: IUser, wager: number) {
-        super(ArenaParticipationPeriod, ArenaCooldownPeriod);
+    constructor(
+        @inject(TwitchService) twitchService: TwitchService,
+        @inject(UserService) userService: UserService,
+        @inject(EventService) private eventService: EventService,
+        initiatingUser: IUser,
+        wager: number
+    ) {
+        super(twitchService, userService, ArenaParticipationPeriod, ArenaCooldownPeriod);
 
         this.wager = wager;
         this.initiatingUser = initiatingUser;
@@ -41,7 +47,7 @@ export class ArenaEvent extends ParticipationEvent<EventParticipant> {
         // Participants missing?
         if (this.participants.length < 4) {
             this.sendMessage(Lang.get("arena.insufficientparticipants"));
-            BotContainer.get(EventService).stopEvent(this);
+            this.eventService.stopEvent(this);
         } else {
             this.startArena();
         }
@@ -73,7 +79,7 @@ export class ArenaEvent extends ParticipationEvent<EventParticipant> {
         const winners = [];
         while (winners.length < 3) {
             const winIndex = Math.floor(Math.random() * Math.floor(fighters.length));
-            winners.push({ user : fighters[winIndex], points: 0 });
+            winners.push({ user: fighters[winIndex], points: 0 });
         }
 
         // Payoffs are 60% for 1st place, 25% for 2nd place, and 15% for 3rd place.
@@ -83,7 +89,7 @@ export class ArenaEvent extends ParticipationEvent<EventParticipant> {
         winners[2].points = Math.floor(totalPoints * 0.15);
 
         for (const winner of winners) {
-            BotContainer.get(UserService).changeUserPoints(winner.user, winner.points);
+            this.userService.changeUserPoints(winner.user, winner.points);
         }
 
         // Number of wins needed to be first place should be log2(n). This is only an approximation
@@ -91,11 +97,15 @@ export class ArenaEvent extends ParticipationEvent<EventParticipant> {
         // In the end this is all a bit fake but it shouldn't really matter.
         const numberOfWinsNeeded = Math.floor(Math.log(this.participants.length) / Math.log(2));
 
-        this.sendMessage(Lang.get("arena.result3rd", numberOfWinsNeeded - 1, winners[2].points, winners[2].user.username));
-        this.sendMessage(Lang.get("arena.result2nd", numberOfWinsNeeded - 1, winners[1].points, winners[1].user.username));
+        this.sendMessage(
+            Lang.get("arena.result3rd", numberOfWinsNeeded - 1, winners[2].points, winners[2].user.username)
+        );
+        this.sendMessage(
+            Lang.get("arena.result2nd", numberOfWinsNeeded - 1, winners[1].points, winners[1].user.username)
+        );
         this.sendMessage(Lang.get("arena.result1st", numberOfWinsNeeded, winners[0].points, winners[0].user.username));
 
-        BotContainer.get(EventService).stopEventStartCooldown(this);
+        this.eventService.stopEventStartCooldown(this);
     }
 
     public onCooldownComplete(): void {
@@ -103,5 +113,3 @@ export class ArenaEvent extends ParticipationEvent<EventParticipant> {
         this.sendMessage(Lang.get("arena.cooldownEnd"));
     }
 }
-
-export default ArenaEvent;

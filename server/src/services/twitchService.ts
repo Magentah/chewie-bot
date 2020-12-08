@@ -1,56 +1,121 @@
 import axios from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
-import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
-import { ITwitchChatList, SocketMessageType } from "../models";
+import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType } from "../models";
+import { Response } from "../helpers";
 
 // Required to do it this way instead of from "../services" due to inversify breaking otherwise
 import CommandService from "../services/commandService";
 import UserService from "../services/userService";
 import WebsocketService from "../services/websocketService";
+import BotSettingsService from "../services/botSettingsService";
 
 export interface IBotTwitchStatus {
     connected: boolean;
 }
 
+export type TwitchServiceProvider = () => Promise<TwitchService>;
+
 @injectable()
 export class TwitchService {
-    private client: tmi.Client;
-    private options: tmi.Options;
+    private client!: tmi.Client;
+    private options!: tmi.Options;
     private channelUserList: Map<string, ITwitchChatList>;
+    public hasInitialized: boolean = false;
+    private commandCallback!: (channel: string, username: string, message: string) => void;
 
     constructor(
-        @inject(CommandService) private commandService: CommandService,
         @inject(UserService) private users: UserService,
-        @inject(WebsocketService) private websocketService: WebsocketService
+        @inject(WebsocketService) private websocketService: WebsocketService,
+        @inject(BotSettingsService) private botSettingsService: BotSettingsService
     ) {
         this.channelUserList = new Map<string, ITwitchChatList>();
-        this.options = this.setupOptions(Config.twitch.username, Config.twitch.oauth, Config.twitch.username);
-        this.client = tmi.Client(this.options);
-        this.setupEventHandlers(this.client);
     }
 
-    public sendMessage(channel: string, message: string): void {
-        this.client.say(channel, message);
+    public async initialize(): Promise<IServiceResponse> {
+        if (this.hasInitialized) {
+            this.hasInitialized = false;
+            Logger.warn(
+                LogType.Twitch,
+                `Twitch Bot reinitializing. Current client ${
+                    this.client.getOptions().identity?.username
+                } being overwritten.`
+            );
+
+            if (this.client.readyState() !== "CLOSED") {
+                const response = await this.disconnect();
+                if (response.status === ResponseStatus.Error) {
+                    return response;
+                }
+            }
+        }
+
+        const options = await this.setupOptions();
+        Logger.info(LogType.Twitch, JSON.stringify(options));
+        if (options.identity?.username && options.identity.password) {
+            this.client = tmi.client(this.options);
+            this.setupEventHandlers(this.client);
+            this.hasInitialized = true;
+
+            return Response.Success();
+        }
+
+        return Response.Error("No valid bot username or oauth key.");
     }
 
-    public sendWhisper(username: string, message: string): void {
-        this.client.whisper(username, message);
+    public setCommandCallback(callback: (channel: string, username: string, message: string) => void) {
+        this.commandCallback = callback;
     }
 
-    public joinChannel(channel: string): void {
-        Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
-        this.client.join(channel);
+    public async sendMessage(channel: string, message: string): Promise<IServiceResponse> {
+        try {
+            await this.client.say(channel, message);
+            return Response.Success();
+        } catch (error) {
+            Logger.warn(LogType.Twitch, error);
+            return Response.Error(undefined, error);
+        }
     }
 
-    public leaveChannel(channel: string): void {
-        Logger.info(LogType.Twitch, `Bot left channel ${channel}`);
-        this.client.part(channel);
+    public async sendWhisper(username: string, message: string): Promise<IServiceResponse> {
+        try {
+            this.client.whisper(username, message);
+            return Response.Success();
+        } catch (error) {
+            Logger.warn(LogType.Twitch, error);
+            return Response.Error(undefined, error);
+        }
     }
 
-    public getStatus(): string {
-        return this.client.readyState();
+    public async joinChannel(channel: string): Promise<IServiceResponse> {
+        try {
+            Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
+            this.client.join(channel);
+            return Response.Success();
+        } catch (error) {
+            Logger.warn(LogType.Twitch, error);
+            return Response.Error(undefined, error);
+        }
+    }
+
+    public async leaveChannel(channel: string): Promise<IServiceResponse> {
+        try {
+            Logger.info(LogType.Twitch, `Bot left channel ${channel}`);
+            this.client.part(channel);
+            return Response.Success();
+        } catch (error) {
+            Logger.warn(LogType.Twitch, error);
+            return Response.Error(undefined, error);
+        }
+    }
+
+    public getStatus(): IServiceResponse {
+        try {
+            return Response.Success(undefined, { state: this.client.readyState() });
+        } catch (error) {
+            return Response.Error(undefined, error);
+        }
     }
 
     /**
@@ -66,20 +131,41 @@ export class TwitchService {
         this.users.addUsersFromChatList(data);
     }
 
-    private setupOptions(username: string, password: string, channel: string): tmi.Options {
-        return {
-            options: {
-                debug: true,
-            },
-            connection: {
-                reconnect: true,
-                secure: true,
-            },
-            identity: {
-                username,
-                password,
-            },
-        };
+    private async setupOptions(): Promise<tmi.Options> {
+        try {
+            let settings = await this.botSettingsService.getSettings();
+            if (!settings) {
+                settings = { username: "", oauth: "" };
+            }
+
+            return {
+                options: {
+                    debug: true,
+                },
+                connection: {
+                    reconnect: true,
+                    secure: true,
+                },
+                identity: {
+                    username: settings.username,
+                    password: settings.oauth,
+                },
+            };
+        } catch (error) {
+            return {
+                options: {
+                    debug: true,
+                },
+                connection: {
+                    reconnect: true,
+                    secure: true,
+                },
+                identity: {
+                    username: "",
+                    password: "",
+                },
+            };
+        }
     }
 
     private setupEventHandlers(client: tmi.Client): void {
@@ -177,7 +263,7 @@ export class TwitchService {
             return;
         }
 
-        this.commandService.handleMessage(channel, userstate.username ?? "", message);
+        this.commandCallback(channel, userstate.username ?? "", message);
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {
@@ -377,17 +463,39 @@ export class TwitchService {
             return;
         }
 
-        this.commandService.handleMessage("", userstate.username ?? "", message);
+        this.commandCallback("", userstate.username ?? "", message);
     }
 
-    public connect(): void {
-        Logger.info(LogType.Twitch, "Connecting to Twitch.tv with tmi.js");
-        this.client.connect();
+    public async connect(): Promise<IServiceResponse> {
+        if (this.hasInitialized) {
+            Logger.info(LogType.Twitch, "Connecting to Twitch.tv with tmi.js");
+            try {
+                const result = await this.client.connect();
+                return Response.Success();
+            } catch (error) {
+                Logger.err(LogType.Twitch, error);
+                return Response.Error(undefined, error);
+            }
+        } else {
+            Logger.warn(LogType.Twitch, "Attempted to connect to Twitch.tv without having username and oauth set.");
+            return Response.Error();
+        }
     }
 
-    public disconnect(): void {
-        Logger.info(LogType.Twitch, "Disconnecting from Twitch.tv");
-        this.client.disconnect();
+    public async disconnect(): Promise<IServiceResponse> {
+        if (this.client.readyState() === "OPEN") {
+            Logger.info(LogType.Twitch, "Disconnecting from Twitch.tv");
+            try {
+                this.client.disconnect();
+                return Response.Success();
+            } catch (error) {
+                Logger.err(LogType.Twitch, error);
+                return Response.Error(undefined, error);
+            }
+        } else {
+            Logger.warn(LogType.Twitch, "Attempted to disconnect from Twitch.tv when client is not connected.");
+            return Response.Error();
+        }
     }
 }
 

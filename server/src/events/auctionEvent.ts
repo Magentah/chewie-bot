@@ -1,9 +1,9 @@
-import { EventService, UserService } from "../services";
+import { EventService, UserService, TwitchService } from "../services";
 import { IUser } from "../models";
-import { ParticipationEvent, EventState } from "../models/event";
+import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
-import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
+import { inject } from "inversify";
 import { Lang } from "../lang";
 
 /**
@@ -19,18 +19,25 @@ const AuctionCooldownPeriod = 0;
 const SnipeProtectionPeriod = 10 * 1000;
 const SnipeProtectionExtensionPeriod = 20 * 1000;
 
-export class AuctionEvent extends ParticipationEvent<EventParticipant> {
+export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
     private item: string;
     private durationLeft: number;
     private minimumBid: number;
 
-    constructor(minimumBid: number, item: string, durationInMinutes: number) {
+    constructor(
+        @inject(TwitchService) twitchService: TwitchService,
+        @inject(UserService) userService: UserService,
+        @inject(EventService) private eventService: EventService,
+        minimumBid: number,
+        item: string,
+        durationInMinutes: number
+    ) {
         // Since we need snipe protection, don't let EventService close the event
         // based on the initial participation period.
-        super(0, AuctionCooldownPeriod);
+        super(twitchService, userService, 0, AuctionCooldownPeriod);
 
         // No duration means manual closing of the auction.
-        this.durationLeft = (durationInMinutes ? durationInMinutes * 60 * 1000 : 0);
+        this.durationLeft = durationInMinutes ? durationInMinutes * 60 * 1000 : 0;
         this.minimumBid = minimumBid;
         this.item = item;
     }
@@ -40,7 +47,9 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
 
         if (this.durationLeft) {
             // Auction with time limit
-            this.sendMessage(Lang.get("auction.starttimelimit", this.item, this.minimumBid, this.durationLeft / 60 / 1000));
+            this.sendMessage(
+                Lang.get("auction.starttimelimit", this.item, this.minimumBid, this.durationLeft / 60 / 1000)
+            );
 
             // Run 1s timer to check if the auction is over.
             // Duration left might be increased if a bid happens within the last 20 s.
@@ -51,7 +60,7 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
                     this.endAction();
                 }
 
-                if (this.state !== EventState.Open)  {
+                if (this.state !== EventState.Open) {
                     clearInterval(intervalId);
                 }
             }, intervalLength);
@@ -87,12 +96,12 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
         this.declareWinner();
     }
 
-     /**
-      * Registers a bid for a user. The same user may make multiple bids.
-      * @param participant User and points to register
-      * @param deductPoints (ignored)
-      * @returns false if the bid was not high enough.
-      */
+    /**
+     * Registers a bid for a user. The same user may make multiple bids.
+     * @param participant User and points to register
+     * @param deductPoints (ignored)
+     * @returns false if the bid was not high enough.
+     */
     public addParticipant(participant: EventParticipant, deductPoints: boolean): boolean {
         // Only accept bid if > minimum bid and > current max bid.
         if (participant.points < this.minimumBid) {
@@ -106,7 +115,10 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
 
         // Snipe protection: Keep auction running for a while longer if a bid comes in.
         if (this.durationLeft > 0 && this.durationLeft < SnipeProtectionPeriod) {
-            Logger.info(LogType.Command, `Snipe protection activated, increasing auction duration by ${SnipeProtectionExtensionPeriod} ms`);
+            Logger.info(
+                LogType.Command,
+                `Snipe protection activated, increasing auction duration by ${SnipeProtectionExtensionPeriod} ms`
+            );
             this.durationLeft += SnipeProtectionExtensionPeriod;
         }
 
@@ -147,13 +159,13 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
     private declareWinner() {
         const highestBid = this.getHighestBid();
         if (highestBid) {
-            BotContainer.get(UserService).changeUserPoints(highestBid.user, -highestBid.points);
+            this.userService.changeUserPoints(highestBid.user, -highestBid.points);
             this.sendMessage(Lang.get("auction.closedwin", highestBid.user.username, highestBid.points));
         } else {
             this.sendMessage(Lang.get("auction.closed"));
         }
 
-        BotContainer.get(EventService).stopEventStartCooldown(this);
+        this.eventService.stopEventStartCooldown(this);
     }
 
     public checkForOngoingEvent(runningEvent: ParticipationEvent<EventParticipant>, user: IUser): [boolean, string] {
@@ -173,5 +185,3 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
         Logger.info(LogType.Command, `Auction cooldown ended`);
     }
 }
-
-export default AuctionEvent;

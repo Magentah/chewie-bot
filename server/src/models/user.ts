@@ -1,4 +1,5 @@
-import { IUserLevel, IVIPLevel } from "./";
+import IUserLevel from "./userLevel";
+import IVIPLevel from "./vipLevel";
 
 export default interface IUser {
     id?: number;

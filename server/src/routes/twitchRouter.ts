@@ -11,4 +11,7 @@ twitchRouter.get("/api/twitch/status", (res, req) => twitchController.getStatus(
 twitchRouter.get("/api/twitch/connect", (res, req) => twitchController.connect(res, req));
 twitchRouter.get("/api/twitch/disconnect", (res, req) => twitchController.disconnect(res, req));
 
+twitchRouter.get("/api/twitch/botsettings", (res, req) => twitchController.getBotSettings(res, req));
+twitchRouter.post("/api/twitch/botSettings", (res, req) => twitchController.saveBotSettings(res, req));
+
 export default twitchRouter;
