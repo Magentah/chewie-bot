@@ -1,9 +1,9 @@
-import { EventService, UserService } from "../services";
+import { EventService, UserService, TwitchService } from "../services";
 import { IUser } from "../models";
-import ParticipationEvent, { EventState } from "../models/event";
+import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
-import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
+import { inject } from "inversify";
 
 /**
  * Detailed description of a bankheist: http://wiki.deepbot.tv/bankheist
@@ -38,8 +38,14 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     ];
     private readonly loseMessages = ["Something with kaputcheese and lactose intolerance..."];
 
-    constructor(initiatingUser: IUser, wager: number) {
-        super(BankheistParticipationPeriod, BankheistCooldownPeriod);
+    constructor(
+        @inject(TwitchService) twitchService: TwitchService,
+        @inject(UserService) userService: UserService,
+        @inject(EventService) private eventService: EventService,
+        initiatingUser: IUser,
+        wager: number
+    ) {
+        super(twitchService, userService, BankheistParticipationPeriod, BankheistCooldownPeriod);
 
         this.addParticipant(new EventParticipant(initiatingUser, wager));
     }
@@ -133,7 +139,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 const pointsWon = Math.floor(participant.points * level.payoutMultiplier);
                 winners.push({ participant, pointsWon });
 
-                BotContainer.get(UserService).changeUserPoints(participant.user, pointsWon);
+                this.userService.changeUserPoints(participant.user, pointsWon);
             }
         }
 
@@ -159,7 +165,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             this.sendMessage(this.loseMessages[msgIndex]);
         }
 
-        BotContainer.get(EventService).stopEventStartCooldown(this);
+        this.eventService.stopEventStartCooldown(this);
     }
 
     public onCooldownComplete(): void {

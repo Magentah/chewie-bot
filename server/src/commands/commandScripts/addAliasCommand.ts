@@ -1,22 +1,26 @@
 import { Command } from "../command";
 import { CommandAliasesRepository, UserLevelsRepository } from "./../../database";
 import { TwitchService } from "./../../services";
+import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
-import { IUser, IUserLevel } from "../../models";
 
 /**
  * Allows adding a new alias for an existing command.
  * Usage: !addalias <name> <command> [<arguments>]
  */
-export class AddAliasCommand extends Command {
+export default class AddAliasCommand extends Command {
+    private commandAliases: CommandAliasesRepository;
+    private twitchService: TwitchService;
+    private userLevels: UserLevelsRepository;
+
     constructor() {
         super();
-        // TODO: make userlevels constants
-        BotContainer.get(UserLevelsRepository)
-            .get("Broadcaster")
-            .then((userLevel: IUserLevel) => {
-                this.minimumUserLevel = userLevel;
-            });
+
+        this.commandAliases = BotContainer.get(CommandAliasesRepository);
+        this.twitchService = BotContainer.get(TwitchService);
+        this.userLevels = BotContainer.get(UserLevelsRepository);
+
+        this.minimumUserLevel = UserLevels.Broadcaster;
     }
 
     public async execute(channel: string, user: IUser, newAlias: string, command: string, args: string): Promise<void> {
@@ -24,8 +28,8 @@ export class AddAliasCommand extends Command {
             return;
         }
 
-        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel.rank) {
-            let alias = await BotContainer.get(CommandAliasesRepository).get(newAlias);
+        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel) {
+            let alias = await this.commandAliases.get(newAlias);
             if (!alias) {
                 // Remove all preceding exclamation marks if present.
                 if (newAlias.startsWith("!")) {
@@ -39,14 +43,12 @@ export class AddAliasCommand extends Command {
                 alias = {
                     alias: newAlias,
                     commandName: command,
-                    commandArguments: args
+                    commandArguments: args,
                 };
 
-                await BotContainer.get(CommandAliasesRepository).add(alias);
-                await BotContainer.get(TwitchService).sendMessage(channel, `!${newAlias} has been added!`);
+                await this.commandAliases.add(alias);
+                await this.twitchService.sendMessage(channel, `!${newAlias} has been added!`);
             }
         }
     }
 }
-
-export default AddAliasCommand;

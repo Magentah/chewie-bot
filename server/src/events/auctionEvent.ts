@@ -1,9 +1,9 @@
-import { EventService, UserService } from "../services";
+import { EventService, UserService, TwitchService } from "../services";
 import { IUser } from "../models";
-import { ParticipationEvent, EventState } from "../models/event";
+import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
-import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
+import { inject } from "inversify";
 
 /**
  * Auction:
@@ -18,18 +18,25 @@ const AuctionCooldownPeriod = 0;
 const SnipeProtectionPeriod = 10 * 1000;
 const SnipeProtectionExtensionPeriod = 20 * 1000;
 
-export class AuctionEvent extends ParticipationEvent<EventParticipant> {
+export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
     private item: string;
     private durationLeft: number;
     private minimumBid: number;
 
-    constructor(minimumBid: number, item: string, durationInMinutes: number) {
+    constructor(
+        @inject(TwitchService) twitchService: TwitchService,
+        @inject(UserService) userService: UserService,
+        @inject(EventService) private eventService: EventService,
+        minimumBid: number,
+        item: string,
+        durationInMinutes: number
+    ) {
         // Since we need snipe protection, don't let EventService close the event
         // based on the initial participation period.
-        super(0, AuctionCooldownPeriod);
+        super(twitchService, userService, 0, AuctionCooldownPeriod);
 
         // No duration means manual closing of the auction.
-        this.durationLeft = (durationInMinutes ? durationInMinutes * 60 * 1000 : 0);
+        this.durationLeft = durationInMinutes ? durationInMinutes * 60 * 1000 : 0;
         this.minimumBid = minimumBid;
         this.item = item;
     }
@@ -39,7 +46,11 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
 
         if (this.durationLeft) {
             // Auction with time limit
-            this.sendMessage(`Auction for ${this.item} opened for bidding for all users using Chews with a min bid of ${this.minimumBid}. Time limit: ${this.durationLeft / 60 / 1000} minutes. Type !bid [x] to register your bid.`);
+            this.sendMessage(
+                `Auction for ${this.item} opened for bidding for all users using Chews with a min bid of ${
+                    this.minimumBid
+                }. Time limit: ${this.durationLeft / 60 / 1000} minutes. Type !bid [x] to register your bid.`
+            );
 
             // Run 1s timer to check if the auction is over.
             // Duration left might be increased if a bid happens within the last 20 s.
@@ -50,13 +61,15 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
                     this.endAction();
                 }
 
-                if (this.state !== EventState.Open)  {
+                if (this.state !== EventState.Open) {
                     clearInterval(intervalId);
                 }
             }, intervalLength);
         } else {
             // Auction without time limit (needs be manually closed)
-            this.sendMessage(`Auction for ${this.item} opened for bidding for all users using Chews with a min bid of ${this.minimumBid}. Type !bid [x] to register your bid.`);
+            this.sendMessage(
+                `Auction for ${this.item} opened for bidding for all users using Chews with a min bid of ${this.minimumBid}. Type !bid [x] to register your bid.`
+            );
         }
 
         this.runAnnouncmentTimer();
@@ -71,7 +84,9 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
 
             const highestBid = this.getHighestBid();
             if (this.state === EventState.Open && highestBid) {
-                this.sendMessage(`Auction for ${this.item} currently running! ${highestBid.user.username} is currently winning with a bid of ${highestBid.points} Chews.`);
+                this.sendMessage(
+                    `Auction for ${this.item} currently running! ${highestBid.user.username} is currently winning with a bid of ${highestBid.points} Chews.`
+                );
             }
         }
     }
@@ -86,12 +101,12 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
         this.declareWinner();
     }
 
-     /**
-      * Registers a bid for a user. The same user may make multiple bids.
-      * @param participant User and points to register
-      * @param deductPoints (ignored)
-      * @returns false if the bid was not high enough.
-      */
+    /**
+     * Registers a bid for a user. The same user may make multiple bids.
+     * @param participant User and points to register
+     * @param deductPoints (ignored)
+     * @returns false if the bid was not high enough.
+     */
     public addParticipant(participant: EventParticipant, deductPoints: boolean): boolean {
         // Only accept bid if > minimum bid and > current max bid.
         if (participant.points < this.minimumBid) {
@@ -105,7 +120,10 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
 
         // Snipe protection: Keep auction running for a while longer if a bid comes in.
         if (this.durationLeft > 0 && this.durationLeft < SnipeProtectionPeriod) {
-            Logger.info(LogType.Command, `Snipe protection activated, increasing auction duration by ${SnipeProtectionExtensionPeriod} ms`);
+            Logger.info(
+                LogType.Command,
+                `Snipe protection activated, increasing auction duration by ${SnipeProtectionExtensionPeriod} ms`
+            );
             this.durationLeft += SnipeProtectionExtensionPeriod;
         }
 
@@ -146,13 +164,15 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
     private declareWinner() {
         const highestBid = this.getHighestBid();
         if (highestBid) {
-            BotContainer.get(UserService).changeUserPoints(highestBid.user, -highestBid.points);
-            this.sendMessage(`Auction closed. The winner is: ${highestBid.user.username} with a bid of ${highestBid.points} Chews.`);
+            this.userService.changeUserPoints(highestBid.user, -highestBid.points);
+            this.sendMessage(
+                `Auction closed. The winner is: ${highestBid.user.username} with a bid of ${highestBid.points} Chews.`
+            );
         } else {
             this.sendMessage(`Auction closed. No one made a bid though.`);
         }
 
-        BotContainer.get(EventService).stopEventStartCooldown(this);
+        this.eventService.stopEventStartCooldown(this);
     }
 
     public checkForOngoingEvent(runningEvent: ParticipationEvent<EventParticipant>, user: IUser): [boolean, string] {
@@ -172,5 +192,3 @@ export class AuctionEvent extends ParticipationEvent<EventParticipant> {
         Logger.info(LogType.Command, `Auction cooldown ended`);
     }
 }
-
-export default AuctionEvent;

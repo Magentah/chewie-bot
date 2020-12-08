@@ -1,5 +1,4 @@
 import { inject, injectable } from "inversify";
-import { BotContainer } from "src/inversify.config";
 import { InvalidSongUrlError } from "../errors";
 import { Logger, LogType } from "../logger";
 import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";

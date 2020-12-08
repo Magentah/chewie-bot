@@ -1,14 +1,17 @@
 import { Command } from "../command";
 import { TwitchService } from "../../services";
-import { BotContainer } from "../../inversify.config";
 import { IUser } from "../../models";
+import { BotContainer } from "../../inversify.config";
 
 export class TestCommand extends Command {
+    private twitchService: TwitchService;
     constructor() {
         super();
+        this.twitchService = BotContainer.get(TwitchService);
     }
+
     public execute(channel: string, user: IUser): void {
-        BotContainer.get(TwitchService).sendMessage(channel, "Test message from a command!");
+        this.twitchService.sendMessage(channel, "Test message from a command!");
     }
 }
 

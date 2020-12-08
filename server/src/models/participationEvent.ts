@@ -1,5 +1,6 @@
-import { BotContainer } from "../inversify.config";
-import { TwitchService, UserService } from "../services";
+import { inject } from "inversify";
+import TwitchService from "../services/twitchService";
+import UserService from "../services/userService";
 import { EventParticipant } from "./eventParticipant";
 import IUser from "./user";
 
@@ -17,10 +18,10 @@ export enum EventState {
     /**
      * Finished, but in cooldown.
      */
-    Ended = 3
+    Ended = 3,
 }
 
-export abstract class ParticipationEvent<T extends EventParticipant> {
+export default abstract class ParticipationEvent<T extends EventParticipant> {
     /**
      * Specifies if the event is currently open (gathering participants).
      */
@@ -41,20 +42,28 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
      */
     public readonly cooldownPeriod: number;
 
-    constructor(initialParticipationPeriod: number, cooldownPeriod: number) {
+    constructor(
+        @inject(TwitchService) protected twitchService: TwitchService,
+        @inject(UserService) protected userService: UserService,
+        initialParticipationPeriod: number,
+        cooldownPeriod: number
+    ) {
         this.initialParticipationPeriod = initialParticipationPeriod;
         this.cooldownPeriod = cooldownPeriod;
     }
 
-    public static validatePoints(user: IUser, channel: string, wager: number): boolean {
+    public validatePoints(user: IUser, channel: string, wager: number): boolean {
         if (!wager || wager <= 0) {
-            BotContainer.get(TwitchService).sendMessage(channel, "Your wager needs to be more than that, " + user.username);
+            this.twitchService.sendMessage(channel, "Your wager needs to be more than that, " + user.username);
             return false;
         }
 
         // Check if initiating user has enough points.
         if (user.points < wager) {
-            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you do not have enough chews to wager that much!");
+            this.twitchService.sendMessage(
+                channel,
+                user.username + ", you do not have enough chews to wager that much!"
+            );
             return false;
         }
 
@@ -93,7 +102,7 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
 
         if (deductPoints) {
             // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
-            BotContainer.get(UserService).changeUserPoints(participant.user, -participant.points);
+            this.userService.changeUserPoints(participant.user, -participant.points);
         }
 
         this.participants.push(participant);
@@ -128,8 +137,6 @@ export abstract class ParticipationEvent<T extends EventParticipant> {
     }
 
     protected delay(ms: number) {
-        return new Promise( (resolve) => setTimeout(resolve, ms) );
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 }
-
-export default ParticipationEvent;

@@ -1,18 +1,22 @@
 import { Command } from "../command";
 import { CommandAliasesRepository, UserLevelsRepository } from "./../../database";
 import { TwitchService } from "./../../services";
+import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
-import { IUser, IUserLevel } from "../../models";
 
 export class DelAliasCommand extends Command {
+    private twitchService: TwitchService;
+    private commandAliases: CommandAliasesRepository;
+    private userLevels: UserLevelsRepository;
+
     constructor() {
         super();
-        // TODO: make userlevels constants
-        BotContainer.get(UserLevelsRepository)
-            .get("Broadcaster")
-            .then((userLevel: IUserLevel) => {
-                this.minimumUserLevel = userLevel;
-            });
+
+        this.twitchService = BotContainer.get(TwitchService);
+        this.userLevels = BotContainer.get(UserLevelsRepository);
+        this.commandAliases = BotContainer.get(CommandAliasesRepository);
+
+        this.minimumUserLevel = UserLevels.Broadcaster;
     }
 
     public async execute(channel: string, user: IUser, alias: string): Promise<void> {
@@ -20,10 +24,10 @@ export class DelAliasCommand extends Command {
             return;
         }
 
-        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel.rank) {
-            const deleted = await BotContainer.get(CommandAliasesRepository).delete(alias);
+        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel) {
+            const deleted = await this.commandAliases.delete(alias);
             if (deleted) {
-                await BotContainer.get(TwitchService).sendMessage(channel, `!${alias} has been removed!`);
+                await this.twitchService.sendMessage(channel, `!${alias} has been removed!`);
             }
         }
     }

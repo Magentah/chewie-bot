@@ -1,18 +1,22 @@
 import { Command } from "../command";
 import { TwitchService } from "../../services";
-import { BotContainer } from "../../inversify.config";
 import { IUser } from "../../models";
+import { BotContainer } from "../../inversify.config";
 
 // I think it's better to have a "command" to handle all text commands instead of having the
 // command service directly call the twitchservice.sendmessage with the text command.
 // This is only supposed to be used by the bot for internal use.
 export class TextCommand extends Command {
+    private twitchService: TwitchService;
+
     constructor() {
         super();
+
+        this.twitchService = BotContainer.get(TwitchService);
         this.isInternalCommand = true;
     }
     public execute(channel: string, user: IUser, message: string): void {
-        BotContainer.get(TwitchService).sendMessage(channel, message);
+        this.twitchService.sendMessage(channel, message);
     }
 }
 

@@ -1,31 +1,44 @@
 import { Command } from "../../command";
 import { TwitchService } from "../../../services";
-import { BotContainer } from "../../../inversify.config";
-import { IUser, IUserLevel } from "../../../models";
+import { IUser, UserLevels } from "../../../models";
 import { EventService } from "../../../services/eventService";
-import { AuctionEvent } from "../../../events/auctionEvent";
-import { UserLevelsRepository } from "./../../../database";
-import { EventState } from "../../../models/event";
+import { UserService } from "../../../services/userService";
+import AuctionEvent from "../../../events/auctionEvent";
+import { EventState } from "../../../models/participationEvent";
+import { BotContainer } from "../../../inversify.config";
+import { UserLevelsRepository } from "../../../database";
 
 /**
  * Command for starting an auction.
  * For further details see auctionEvent.ts
  */
-export class AuctionCommand extends Command {
+export default class AuctionCommand extends Command {
+    private twitchService: TwitchService;
+    private eventService: EventService;
+    private userService: UserService;
+    private userLevels: UserLevelsRepository;
+
     constructor() {
         super();
 
-        BotContainer.get(UserLevelsRepository)
-                .get("Moderator")
-                .then((userLevel: IUserLevel) => {
-                    this.minimumUserLevel = userLevel;
-        });
+        this.twitchService = BotContainer.get(TwitchService);
+        this.eventService = BotContainer.get(EventService);
+        this.userService = BotContainer.get(UserService);
+        this.userLevels = BotContainer.get(UserLevelsRepository);
+
+        this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async execute(channel: string, user: IUser, minAmountOrAction: string, item: string, durationInMinutes: number): Promise<void> {
+    public async execute(
+        channel: string,
+        user: IUser,
+        minAmountOrAction: string,
+        item: string,
+        durationInMinutes: number
+    ): Promise<void> {
         if (minAmountOrAction === "close") {
             // Close existing auction
-            for (const auctionInProgress of BotContainer.get(EventService).getEvents<AuctionEvent>()) {
+            for (const auctionInProgress of this.eventService.getEvents<AuctionEvent>()) {
                 if (auctionInProgress.state === EventState.Open) {
                     auctionInProgress.endAction();
                 }
@@ -33,28 +46,36 @@ export class AuctionCommand extends Command {
         } else {
             const minAmount = parseInt(minAmountOrAction, 10);
             if (isNaN(minAmount)) {
-                BotContainer.get(TwitchService).sendMessage(channel, user.username + ", minimum bid is not a number!");
+                this.twitchService.sendMessage(channel, user.username + ", minimum bid is not a number!");
                 return;
             }
 
             if (!item) {
-                BotContainer.get(TwitchService).sendMessage(channel, user.username + ", item to be auctioned needs to be specified!");
+                this.twitchService.sendMessage(
+                    channel,
+                    user.username + ", item to be auctioned needs to be specified!"
+                );
                 return;
             }
 
-            const auction = new AuctionEvent(minAmount, item, durationInMinutes);
-            auction.sendMessage = (msg) => BotContainer.get(TwitchService).sendMessage(channel, msg);
+            const auction = new AuctionEvent(
+                this.twitchService,
+                this.userService,
+                this.eventService,
+                minAmount,
+                item,
+                durationInMinutes
+            );
+            auction.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
             function isEvent(event: string | AuctionEvent): event is AuctionEvent {
                 return (event as AuctionEvent).state !== undefined;
             }
 
-            const result = BotContainer.get(EventService).startEvent(auction, user);
+            const result = this.eventService.startEvent(auction, user);
             if (!isEvent(result)) {
-                BotContainer.get(TwitchService).sendMessage(channel, result);
+                this.twitchService.sendMessage(channel, result);
             }
         }
     }
 }
-
-export default AuctionCommand;

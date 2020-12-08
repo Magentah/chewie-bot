@@ -1,4 +1,4 @@
-import * as Commands from "../commands/commandScripts";
+//import * as Commands from "../commands/commandScripts";
 import { injectable, inject } from "inversify";
 import { Logger, LogType } from "../logger";
 import { TwitchChatParser } from "../helpers";
@@ -7,34 +7,21 @@ import { Command } from "../commands/command";
 import { TextCommandsRepository } from "../database/textCommands";
 import { IUser } from "../models";
 import { UserService } from "./userService";
+import { TwitchService } from "./twitchService";
 import { CommandAliasesRepository } from "../database/commandAliases";
 
 @injectable()
 export class CommandService {
-    private commands: Map<string, Command>;
-
     constructor(
         @inject(TextCommandsRepository)
         private textCommands: TextCommandsRepository,
         private aliasCommands: CommandAliasesRepository,
-        @inject(UserService) private users: UserService
+        @inject(UserService) private users: UserService,
+        @inject("Commands") private commandList: Map<string, Command>,
+        @inject(TwitchService) private twitchService: TwitchService
     ) {
-        this.commands = new Map<string, Command>();
-        this.findCommands();
-    }
-
-    /**
-     * Iterate through the Commands object from commandScripts/index.ts to find all commands and add them to the map
-     */
-    private findCommands(): void {
-        Object.keys(Commands).forEach((val, index) => {
-            const commandName = val.substr(0, val.toLowerCase().indexOf("command"));
-            const command = new (Object.values(Commands)[index])();
-            this.commands.set(commandName.toLowerCase(), command);
-            for (const alias of command.getAliases()) {
-                this.commands.set(alias.alias.toLowerCase(), command);
-            }
-        });
+        console.log(this.commandList);
+        this.twitchService.setCommandCallback(this.handleMessage);
     }
 
     /**
@@ -44,17 +31,23 @@ export class CommandService {
      * @param {string} channel The channel the execute the command in
      */
     private async executeCommand(commandName: string, channel: string, user: IUser, ...args: string[]): Promise<void> {
-        if (this.commands.has(commandName)) {
+        if (this.commandList.has(commandName)) {
             // Execute a system defined command
-            const command = this.commands.get(commandName);
+            const command = this.commandList.get(commandName);
             this.executeCommandInternal(command, commandName, channel, user, args);
         } else {
             // Execute a command by user defined command alias
             const commandAlias = await this.aliasCommands.get(commandName);
             if (commandAlias) {
-                const command = this.commands.get(commandAlias.commandName);
+                const command = this.commandList.get(commandAlias.commandName);
                 if (commandAlias.commandArguments) {
-                    this.executeCommandInternal(command, commandName, channel, user, commandAlias.commandArguments.split(" "));
+                    this.executeCommandInternal(
+                        command,
+                        commandName,
+                        channel,
+                        user,
+                        commandAlias.commandArguments.split(" ")
+                    );
                 } else {
                     this.executeCommandInternal(command, commandName, channel, user, args);
                 }
@@ -62,8 +55,8 @@ export class CommandService {
                 // Execute a user defined text command
                 const textCommand = await this.textCommands.get(commandName);
                 if (textCommand) {
-                    if (this.commands.has("text")) {
-                        const command = this.commands.get("text") as Command;
+                    if (this.commandList.has("text")) {
+                        const command = this.commandList.get("text") as Command;
                         command.execute(channel, user, textCommand.message);
                     }
                 }
@@ -71,7 +64,13 @@ export class CommandService {
         }
     }
 
-    private executeCommandInternal(command: Command | undefined, commandName: string, channel: string, user: IUser, args: string[]) {
+    private executeCommandInternal(
+        command: Command | undefined,
+        commandName: string,
+        channel: string,
+        user: IUser,
+        args: string[]
+    ) {
         if (command && !command.isInternal()) {
             const aliasArgs = this.getAliasArgs(command, commandName);
             if (aliasArgs) {
@@ -96,7 +95,7 @@ export class CommandService {
     private getAliasArgs(command: Command, aliasName: string): string[] | undefined {
         for (const alias of command.getAliases()) {
             if (alias.alias === aliasName && alias.commandArguments) {
-                return [ alias.commandArguments ];
+                return [alias.commandArguments];
             }
         }
 

@@ -1,4 +1,4 @@
-import { IUser } from ".";
+import IUser from "./user";
 
 export default interface ISocketMessage {
     type: SocketMessageType;

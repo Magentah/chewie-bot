@@ -2,7 +2,7 @@ import { injectable } from "inversify";
 import * as knex from "knex";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
-import { IUser } from "../models";
+import { IBotSettings, IUser } from "../models";
 
 export enum DatabaseTables {
     Users = "users",
@@ -46,17 +46,17 @@ export class DatabaseService {
         },
         useNullAsDefault: true,
         log: {
-            warn(message) {
-                Logger.warn(LogType.Database, message);
+            warn(message: any) {
+                Logger.warn(LogType.Database, "knex.warn", message);
             },
-            error(message) {
-                Logger.err(LogType.Database, message);
+            error(message: any) {
+                Logger.err(LogType.Database, "knex.err", message);
             },
-            deprecate(message) {
-                Logger.notice(LogType.Database, message);
+            deprecate(message: any) {
+                Logger.notice(LogType.Database, "knex.deprecated", message);
             },
-            debug(message) {
-                Logger.debug(LogType.Database, message);
+            debug(message: any) {
+                Logger.debug(LogType.Database, `knex.debug -- ${message.sql}`, message);
             },
         },
     };
@@ -79,6 +79,7 @@ export class DatabaseService {
                 await this.createBotSettingsTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
+                await this.addDefaultBotSettings();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -91,15 +92,20 @@ export class DatabaseService {
         return this.db.schema.hasTable(tableName);
     }
 
+    /**
+     * Helper function to create a table.
+     * @param tableName Name of the table to create
+     * @param callback Callback function called to create the table.
+     */
     private async createTable(tableName: DatabaseTables, callback: (table: knex.TableBuilder) => any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             const hasTable = await this.hasTable(tableName);
             if (!hasTable) {
-                Logger.info(LogType.Database, `${tableName} being created.`);
+                Logger.debug(LogType.Database, `${tableName} being created.`);
                 await this.db.schema.createTable(tableName, callback);
                 resolve();
             } else {
-                Logger.info(LogType.Database, `${tableName} already exists.`);
+                Logger.debug(LogType.Database, `${tableName} already exists.`);
                 resolve();
             }
         });
@@ -128,7 +134,7 @@ export class DatabaseService {
             table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
             table.integer("userLevelKey").unsigned();
             table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
-            table.string("username").notNullable().unique();
+            table.string("username").notNullable();
             table.string("refreshToken").unique();
             table.string("idToken").unique();
             table.decimal("points").notNullable();
@@ -177,6 +183,9 @@ export class DatabaseService {
         });
     }
 
+    /**
+     * Adds user and vip levels to the database if they don't exist.
+     */
     private async populateDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             const userLevelsAdded = await this.db(DatabaseTables.UserLevels).select();
@@ -189,9 +198,9 @@ export class DatabaseService {
                     { name: "Broadcaster", rank: 5 },
                 ];
                 await this.db(DatabaseTables.UserLevels).insert(userLevels);
-                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} populated with initial data.`);
+                Logger.debug(LogType.Database, `${DatabaseTables.UserLevels} populated with initial data.`);
             } else {
-                Logger.info(LogType.Database, `${DatabaseTables.UserLevels} already has data.`);
+                Logger.debug(LogType.Database, `${DatabaseTables.UserLevels} already has data.`);
             }
             const vipLevelsAdded = await this.db(DatabaseTables.VIPLevels).select();
             if (vipLevelsAdded.length === 0) {
@@ -202,14 +211,17 @@ export class DatabaseService {
                     { name: "Gold", rank: 4 },
                 ];
                 await this.db(DatabaseTables.VIPLevels).insert(vipLevels);
-                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
+                Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
             } else {
-                Logger.info(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
+                Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
             }
             resolve();
         });
     }
 
+    /**
+     * Adds config.json configured broadcaster as a user with broadcaster status to the database if it exists.
+     */
     private async addBroadcaster(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             const username: string = "";
@@ -225,6 +237,32 @@ export class DatabaseService {
 
                 await this.db(DatabaseTables.Users).insert(user);
             }
+            resolve();
+        });
+    }
+
+    /**
+     * Adds bot settings for config.json to the database if they exist.
+     */
+    private async addDefaultBotSettings(): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            if (
+                Config.twitch.username &&
+                Config.twitch.username.length > 0 &&
+                Config.twitch.oauth &&
+                Config.twitch.oauth.length > 0
+            ) {
+                if (!(await this.db(DatabaseTables.BotSettings).first().where("username", Config.twitch.username))) {
+                    const botSettings: IBotSettings = {
+                        username: Config.twitch.username,
+                        oauth: Config.twitch.oauth,
+                    };
+                    await this.db(DatabaseTables.BotSettings).insert(botSettings);
+                }
+            } else {
+                reject();
+            }
+
             resolve();
         });
     }
