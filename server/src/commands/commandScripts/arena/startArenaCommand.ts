@@ -5,6 +5,7 @@ import { EventService } from "../../../services/eventService";
 import ArenaEvent from "../../../events/arenaEvent";
 import { UserLevelsRepository } from "./../../../database";
 import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 /**
  * Command for starting an arena.
@@ -29,7 +30,7 @@ export default class StartArenaCommand extends Command {
 
     public async execute(channel: string, user: IUser, wager: number): Promise<void> {
         if (!wager || wager <= 0) {
-            this.twitchService.sendMessage(channel, "The entrance fee needs to be specified, " + user.username);
+            this.twitchService.sendMessage(channel, Lang.get("arena.nofeespecified", user.username));
             return;
         }
 

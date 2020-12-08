@@ -4,6 +4,7 @@ import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
+import { Lang } from "../lang";
 
 /**
  * Auction:
@@ -47,9 +48,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
         if (this.durationLeft) {
             // Auction with time limit
             this.sendMessage(
-                `Auction for ${this.item} opened for bidding for all users using Chews with a min bid of ${
-                    this.minimumBid
-                }. Time limit: ${this.durationLeft / 60 / 1000} minutes. Type !bid [x] to register your bid.`
+                Lang.get("auction.starttimelimit", this.item, this.minimumBid, this.durationLeft / 60 / 1000)
             );
 
             // Run 1s timer to check if the auction is over.
@@ -67,9 +66,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
             }, intervalLength);
         } else {
             // Auction without time limit (needs be manually closed)
-            this.sendMessage(
-                `Auction for ${this.item} opened for bidding for all users using Chews with a min bid of ${this.minimumBid}. Type !bid [x] to register your bid.`
-            );
+            this.sendMessage(Lang.get("auction.start", this.item, this.minimumBid));
         }
 
         this.runAnnouncmentTimer();
@@ -84,9 +81,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
 
             const highestBid = this.getHighestBid();
             if (this.state === EventState.Open && highestBid) {
-                this.sendMessage(
-                    `Auction for ${this.item} currently running! ${highestBid.user.username} is currently winning with a bid of ${highestBid.points} Chews.`
-                );
+                this.sendMessage(Lang.get("auction.status", this.item, highestBid.user.username, highestBid.points));
             }
         }
     }
@@ -127,7 +122,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
             this.durationLeft += SnipeProtectionExtensionPeriod;
         }
 
-        this.sendMessage(`New top bid of ${participant.points} registered by ${participant.user.username}.`);
+        this.sendMessage(Lang.get("auction.newbid", participant.points, participant.user.username));
 
         // Change bid of participating user.
         for (const p of this.participants) {
@@ -165,11 +160,9 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
         const highestBid = this.getHighestBid();
         if (highestBid) {
             this.userService.changeUserPoints(highestBid.user, -highestBid.points);
-            this.sendMessage(
-                `Auction closed. The winner is: ${highestBid.user.username} with a bid of ${highestBid.points} Chews.`
-            );
+            this.sendMessage(Lang.get("auction.closedwin", highestBid.user.username, highestBid.points));
         } else {
-            this.sendMessage(`Auction closed. No one made a bid though.`);
+            this.sendMessage(Lang.get("auction.closed"));
         }
 
         this.eventService.stopEventStartCooldown(this);
@@ -179,9 +172,9 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
         if (runningEvent instanceof AuctionEvent) {
             if (runningEvent.state === EventState.Ended) {
                 // Cooldown is currently 0, so this shouldn't really happen.
-                return [false, `Auction on cooldown.`];
+                return [false, Lang.get("auction.cooldown")];
             } else {
-                return [false, `An auction is currently in progress, use !bid <wager> to join!`];
+                return [false, Lang.get("auction.inprogress")];
             }
         }
 

@@ -5,6 +5,7 @@ import DuelEvent from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
 import EventHelper from "../../../helpers/eventHelper";
 import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 /**
  * Command for starting a duel.
@@ -34,7 +35,7 @@ export default class DuelCommand extends Command {
         }
 
         if (target && target.toString().toLowerCase() === user.username.toLowerCase()) {
-            this.twitchService.sendMessage(channel, user.username + ", you cannot duel yourself.");
+            this.twitchService.sendMessage(channel, Lang.get("duel.noselfduel", user.username));
             return;
         }
 
@@ -49,7 +50,7 @@ export default class DuelCommand extends Command {
         if (target) {
             targetUser = await this.userService.getUser(target);
             if (!targetUser) {
-                this.twitchService.sendMessage(channel, `Who is ${target}?`);
+                this.twitchService.sendMessage(channel, Lang.get("duel.userunknown", target));
                 return;
             }
         }

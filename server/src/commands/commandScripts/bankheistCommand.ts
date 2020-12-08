@@ -9,6 +9,8 @@ import { EventParticipant } from "../../models/eventParticipant";
 import EventHelper from "../../helpers/eventHelper";
 import { BotContainer } from "../../inversify.config";
 
+import { Lang } from "../../lang";
+
 /**
  * Command for starting a bankheist.
  * For further details see bankheistEvent.ts
@@ -37,7 +39,7 @@ export class BankheistCommand extends Command {
         for (const heistInProgress of this.eventService.getEvents<BankheistEvent>()) {
             if (heistInProgress.state === EventState.Open) {
                 if (!heistInProgress.addParticipant(new EventParticipant(user, wager))) {
-                    this.twitchService.sendMessage(channel, user.username + ", you already joined the bank heist!");
+                    this.twitchService.sendMessage(channel, Lang.get("bankheist.alreadyjoined", user.username));
                 }
                 return;
             }

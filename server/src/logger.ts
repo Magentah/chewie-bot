@@ -15,6 +15,7 @@ enum LogType {
     Youtube = "Youtube",
     Song = "Song",
     WebSocket = "WebSocket",
+    Language = "Lang"
 }
 
 enum LogLevel {

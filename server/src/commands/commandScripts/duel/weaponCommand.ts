@@ -6,6 +6,7 @@ import { EventService, TwitchService } from "../../../services";
 import { EventState } from "../../../models/participationEvent";
 import { Logger, LogType } from "../../../logger";
 import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 export default class WeaponCommand extends Command {
     private twitchService: TwitchService;
@@ -49,7 +50,7 @@ export default class WeaponCommand extends Command {
         for (const duel of runningDuels) {
             if (duel.state === EventState.BoardingCompleted) {
                 if (duel.setWeapon(user, weapon)) {
-                    this.twitchService.sendWhisper(user.username, "Your current weapon is: " + weapon);
+                    this.twitchService.sendWhisper(user.username, Lang.get("duel.curentweapon", weapon));
                     return;
                 }
             }

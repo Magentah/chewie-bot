@@ -7,6 +7,7 @@ import AuctionEvent from "../../../events/auctionEvent";
 import { EventState } from "../../../models/participationEvent";
 import { BotContainer } from "../../../inversify.config";
 import { UserLevelsRepository } from "../../../database";
+import { Lang } from "../../../lang";
 
 /**
  * Command for starting an auction.
@@ -46,15 +47,12 @@ export default class AuctionCommand extends Command {
         } else {
             const minAmount = parseInt(minAmountOrAction, 10);
             if (isNaN(minAmount)) {
-                this.twitchService.sendMessage(channel, user.username + ", minimum bid is not a number!");
+                this.twitchService.sendMessage(channel, Lang.get("auction.bidnan", user.username));
                 return;
             }
 
             if (!item) {
-                this.twitchService.sendMessage(
-                    channel,
-                    user.username + ", item to be auctioned needs to be specified!"
-                );
+                this.twitchService.sendMessage(channel, Lang.get("auction.noitem", user.username));
                 return;
             }
 

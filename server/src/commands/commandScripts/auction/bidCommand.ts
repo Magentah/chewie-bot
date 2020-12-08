@@ -6,6 +6,7 @@ import { EventParticipant } from "../../../models/eventParticipant";
 import AuctionEvent from "../../../events/auctionEvent";
 import EventHelper from "../../../helpers/eventHelper";
 import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 /**
  * Command for joining an auction event.
@@ -36,16 +37,15 @@ export default class BidCommand extends Command {
                 if (!auctionInProgress.addParticipant(new EventParticipant(user, bid), true)) {
                     this.twitchService.sendMessage(
                         channel,
-                        `${user.username}, your bid needs to be higher than ${auctionInProgress.getHighestBidAmount()}!`
+                        Lang.get("auction.bidtoolow", user.username, auctionInProgress.getHighestBidAmount())
                     );
                 }
                 return;
             } else if (auctionInProgress.state === EventState.BoardingCompleted) {
-                this.twitchService.sendMessage(channel, user.username + ", the auction is closed!");
+                this.twitchService.sendMessage(channel, Lang.get("auction.isclosed", user.username));
                 return;
             }
         }
-
-        this.twitchService.sendMessage(channel, "No auction is currently in progress.");
+        this.twitchService.sendMessage(channel, Lang.get("auction.notinprogress"));
     }
 }

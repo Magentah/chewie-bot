@@ -6,6 +6,7 @@ import { UserLevelsRepository } from "../../../database";
 import { EventState } from "../../../models/participationEvent";
 import { Logger, LogType } from "../../../logger";
 import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 export default class AcceptCommand extends Command {
     private twitchService: TwitchService;
@@ -51,7 +52,7 @@ export default class AcceptCommand extends Command {
         if (result) {
             this.twitchService.sendMessage(
                 channel,
-                `It's time to D-D-D-D-D-D-D-D-Duel! Sir ${duel.participants[0].user.username}, Sir ${duel.participants[1].user.username}, please whisper me your weapon of choice using !rock, !paper, or !scissors`
+                Lang.get("duel.accepted", duel.participants[0].user.username, duel.participants[1].user.username)
             );
         } else {
             this.twitchService.sendMessage(channel, msg);

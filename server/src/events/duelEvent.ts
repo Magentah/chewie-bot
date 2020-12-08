@@ -6,6 +6,7 @@ import { Logger, LogType } from "../logger";
 import { DuelEventParticipant } from "./duelEventParticipant";
 import { DuelWeapon } from "./duelWeapon";
 import { inject } from "inversify";
+import { Lang } from "../lang";
 
 /**
  * Rough description of a duel:
@@ -49,13 +50,16 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
 
         if (this.participants.length > 1) {
             this.sendMessage(
-                `Sir ${this.participants[0].user.username} has challenged Sir ${this.participants[1].user.username} to a duel for ${this.wager} chews! Sir ${this.participants[1].user.username}, to accept this duel, type !accept`
+                Lang.get(
+                    "duel.start",
+                    this.participants[0].user.username,
+                    this.participants[1].user.username,
+                    this.wager
+                )
             );
         } else {
             // Public announcement so that anyone can join
-            this.sendMessage(
-                `Sir ${this.participants[0].user.username} has issued an open duel with the wager of ${this.wager} chews! Is there anyone who would !accept this challenge?`
-            );
+            this.sendMessage(Lang.get("duel.startopen", this.participants[0].user.username, this.wager));
         }
     }
 
@@ -64,14 +68,12 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
 
         // Participants missing?
         if (this.state === EventState.Open) {
-            this.sendMessage(
-                `Oh Sir ${this.participants[0].user.username}, it appears your challenge has not been answered. The duel has been called off.`
-            );
+            this.sendMessage(Lang.get("duel.noparticipants", this.participants[0].user.username));
             this.eventService.stopEvent(this);
         } else if (this.state === EventState.BoardingCompleted && !this.participants[1].accepted) {
             // Participant may have been entered by the challenger, but he might have not accepted.
             this.sendMessage(
-                `Oh Sir ${this.participants[0].user.username}, it appears ${this.participants[1].user.username} did not answer your challenge. The duel has been called off.`
+                Lang.get("duel.notaccepted", this.participants[0].user.username, this.participants[1].user.username)
             );
             this.eventService.stopEvent(this);
         }
@@ -83,12 +85,9 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
     ): [boolean, string] {
         if (runningEvent instanceof DuelEvent) {
             if (runningEvent.state === EventState.Ended) {
-                return [
-                    false,
-                    `A duel has just finished @${user.username}. Please wait while we clean up the battleground.`,
-                ];
+                return [false, Lang.get("duel.cooldown", user.username)];
             } else {
-                return [false, `A duel is underway @${user.username}. Please wait for the current duel to finish.`];
+                return [false, Lang.get("duel.inprogress", user.username)];
             }
         }
 
@@ -127,7 +126,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
     public canAccept(user: IUser): [boolean, string] {
         // Check if target user has enough points.
         if (user.points < this.wager) {
-            return [false, `@${user.username} does not have enough chews!`];
+            return [false, Lang.get("duel.notenoughchews", user.username)];
         }
 
         return [true, ""];
@@ -167,15 +166,11 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
 
         if (this.participants[0].weapon === DuelWeapon.None) {
             this.eventService.stopEvent(this);
-            this.sendMessage(
-                `How rude, Sir ${this.participants[0].user.username}, calling a duel and then not participating! The duel has been called off FeelsBadMan`
-            );
+            this.sendMessage(Lang.get("duel.calledoffbyinitiator", this.participants[0].user.username));
             this.returnChews();
         } else if (this.participants[1].weapon === DuelWeapon.None) {
             this.eventService.stopEvent(this);
-            this.sendMessage(
-                `Despite accepting the duel, it appears Sir ${this.participants[1].user.username} has run away! The duel has been called off FeelsBadMan`
-            );
+            this.sendMessage(Lang.get("duel.calledoffbyopponent", this.participants[1].user.username));
             this.returnChews();
         } else {
             this.startDuel();
@@ -204,25 +199,37 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             switch (this.participants[0].weapon) {
                 case DuelWeapon.Rock:
                     this.sendMessage(
-                        `Sir ${this.participants[0].user.username} and Sir ${this.participants[1].user.username} both threw Rock! They collide with such force they fuse to form nuclear isotope cozmium-322!`
+                        Lang.get(
+                            "duel.drawrock",
+                            this.participants[0].user.username,
+                            this.participants[1].user.username
+                        )
                     );
                     break;
 
                 case DuelWeapon.Paper:
                     this.sendMessage(
-                        `Sir ${this.participants[0].user.username} and Sir ${this.participants[1].user.username} both threw Paper! They combine into a paper airplane and fly away!`
+                        Lang.get(
+                            "duel.drawpaper",
+                            this.participants[0].user.username,
+                            this.participants[1].user.username
+                        )
                     );
                     break;
 
                 case DuelWeapon.Scissors:
                     this.sendMessage(
-                        `Sir ${this.participants[0].user.username} and Sir ${this.participants[1].user.username} both threw Scissors! They entangle and the audience is not quite sure if they're witnessing something indecent monkaS`
+                        Lang.get(
+                            "duel.drawscissors",
+                            this.participants[0].user.username,
+                            this.participants[1].user.username
+                        )
                     );
                     break;
             }
 
             const chewsLost = Math.round(this.wager * 0.1);
-            this.sendMessage(`Both participants lose ${chewsLost} chews chewieWUT`);
+            this.sendMessage(Lang.get("duel.chewslost", chewsLost));
 
             // 10 % of chews go into a (currently non existing) pool, the remaining chews are returned.
             Logger.info(
@@ -257,32 +264,24 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
 
             switch (winner.weapon) {
                 case DuelWeapon.Rock:
-                    this.sendMessage(
-                        `Sir ${winner.user.username} threw Rock and absolutely smashed Sir ${loser.user.username}'s Scissors!`
-                    );
+                    this.sendMessage(Lang.get("duel.winrock", winner.user.username, loser.user.username));
                     break;
 
                 case DuelWeapon.Paper:
-                    this.sendMessage(
-                        `Sir ${winner.user.username}'s Paper covered Sir ${loser.user.username}'s Rock. Hello darkness my old friend FeelsBadMan`
-                    );
+                    this.sendMessage(Lang.get("duel.winpaper", winner.user.username, loser.user.username));
                     break;
 
                 case DuelWeapon.Scissors:
-                    this.sendMessage(
-                        `Sir ${winner.user.username}'s Scissors cuts Sir ${loser.user.username}'s Paper into subatomic particles!`
-                    );
+                    this.sendMessage(Lang.get("duel.winscissors", winner.user.username, loser.user.username));
                     break;
             }
 
-            this.sendMessage(`Sir ${winner.user.username} wins ${this.wager} chews!`);
+            this.sendMessage(Lang.get("duel.chewswon", winner.user.username, this.wager));
         }
     }
 
     public onCooldownComplete(): void {
         Logger.info(LogType.Command, `Duel cooldown ended`);
-        this.sendMessage(
-            "The duelgrounds are ready for the next battle! Settle your grievances today with !duel <target> <wager>"
-        );
+        this.sendMessage(Lang.get("duel.cooldownEnd"));
     }
 }

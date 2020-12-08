@@ -7,6 +7,7 @@ import { EventParticipant } from "../../../models/eventParticipant";
 import ArenaEvent from "../../../events/arenaEvent";
 import EventHelper from "../../../helpers/eventHelper";
 import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 /**
  * Command for joining an arena event.
@@ -33,21 +34,16 @@ export default class JoinArenaCommand extends Command {
                 }
 
                 if (!arenaInProgress.addParticipant(new EventParticipant(user, arenaInProgress.wager), true)) {
-                    this.twitchService.sendMessage(channel, user.username + ", you already joined the arena!");
+                    this.twitchService.sendMessage(channel, Lang.get("arena.alreadyjoined", user.username));
                 }
                 return;
             } else if (arenaInProgress.state === EventState.BoardingCompleted) {
-                this.twitchService.sendMessage(
-                    channel,
-                    user.username + ", the tournament has already started. Join next time!"
-                );
+                this.twitchService.sendMessage(channel, Lang.get("arena.alreadstarted", user.username));
+
                 return;
             }
         }
 
-        this.twitchService.sendMessage(
-            channel,
-            "No tournament is currently in progress. Use !startarena to start one."
-        );
+        this.twitchService.sendMessage(channel, Lang.get("arena.notinprogress"));
     }
 }
