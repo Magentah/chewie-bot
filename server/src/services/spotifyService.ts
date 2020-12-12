@@ -6,6 +6,9 @@ import * as Config from "../config.json";
 import Constants from "../constants";
 import { Logger, LogType } from "../logger";
 import qs = require("qs");
+import { IUser } from "../models";
+import { BotContainer } from '../inversify.config';
+import { UserService } from '.';
 
 @injectable()
 export class SpotifyService {
@@ -41,6 +44,38 @@ export class SpotifyService {
             Logger.err(LogType.Youtube, `Attempted to get details for invalid Spotify id ${id}`);
             return undefined;
         }
+    }
+
+    /**
+     * Gets a new access token using the refresh token from the Spotify authorization service.
+     * May also receive a new refresh token.
+     * @param user User to get new refresh token for.
+     */
+    public async getNewAccessToken(user: IUser): Promise<string> {
+        if (!user.spotifyRefresh) {
+            return "";
+        }
+
+        const base64Auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64");
+        const refreshToken = user.spotifyRefresh;
+        const authOptions = {
+            headers: { "Authorization": "Basic " + base64Auth, "content-type": "application/x-www-form-urlencoded" }
+        };
+
+        const postData = qs.stringify({ grant_type: "refresh_token", refresh_token: refreshToken });
+
+        const authResponse = await axios.post(Constants.SpotifyTokenUrl, postData, authOptions);
+        if (authResponse.data) {
+            // Save potential new refresh token
+            if (authResponse.data.refresh_token) {
+                user.spotifyRefresh = authResponse.data.refresh_token;
+                BotContainer.get(UserService).updateUser(user);
+            }
+
+            return authResponse.data.access_token;
+        }
+        
+        return "";
     }
 
     /**

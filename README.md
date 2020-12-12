@@ -30,7 +30,7 @@
 
 -   ### Spotify
     
-    -   Setup an ap at [https://developer.spotify.com/dashboard/applications](https://developer.spotify.com/dashboard/applications) and copy the Client ID and Client Secret.
+    -   Setup an app at [https://developer.spotify.com/dashboard/applications](https://developer.spotify.com/dashboard/applications) and copy the Client ID and Client Secret.
 
 -   #### Database
 
