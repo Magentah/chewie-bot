@@ -113,7 +113,14 @@ export class SpotifyService {
         const token = "spotify.com/track/";
         const index = url.indexOf(token);
         if (index > -1) {
-            return url.slice(index + token.length);
+            // Cut off any parameters attached to the URL
+            const indexParams = url.indexOf("?", index);
+            const startIndex = index + token.length;
+            if (indexParams > 0) {
+                return url.slice(startIndex, indexParams);
+            } else {
+                return url.slice(startIndex);
+            }            
         } else {
             return undefined;
         }
