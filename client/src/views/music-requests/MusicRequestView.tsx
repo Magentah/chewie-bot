@@ -1,17 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, Box } from "@material-ui/core";
 import SongQueue from "../../components/songqueue/SongQueue";
+import SongPlayer from "../../components/songqueue/SongPlayer";
 
-const MusicRequestView: React.FC<{}> = (props) => {
-    return (
+class MusicRequestView extends React.Component {
+    private songPlayerRef: React.RefObject<SongPlayer>;
+
+    constructor(props: any) {
+        super(props);
+        this.songPlayerRef = React.createRef();
+    }
+
+    playSong(id: string) {
+        this.songPlayerRef.current?.playSong(id);
+    }
+
+    render() { 
+        return (
         <Box>
             <Card>
                 <CardContent>
-                    <SongQueue />
+                    <SongQueue onPlaySong={(id: string) => this.playSong(id)} />
                 </CardContent>
             </Card>
-        </Box>
-    );
+            <SongPlayer ref={this.songPlayerRef} />
+        </Box>)
+    };
 };
 
 export default MusicRequestView;

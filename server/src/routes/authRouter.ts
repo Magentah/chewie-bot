@@ -1,4 +1,5 @@
 import * as express from "express";
+import { StatusCodes } from 'http-status-codes';
 import * as passport from "passport";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -124,12 +125,26 @@ authRouter.get(
     }
 );
 authRouter.get("/api/auth/spotify", passport.authorize("spotify"));
+authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
+    let sessionUser = req.user as IUser;
+    if (sessionUser) {
+        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+        if (user.spotifyRefresh) {
+            res.send(true);
+            return;
+        }
+    }
+
+    res.send(false);
+} );
 authRouter.get("/api/auth/spotify/access", async (req, res) => {
-    const sessionUser = req.user as IUser;
+    let sessionUser = req.user as IUser;
     if (sessionUser) {
         const user = await BotContainer.get(UserService).getUser(sessionUser.username);
         const newToken = await BotContainer.get(SpotifyService).getNewAccessToken(user);
-        res.status(200).send(newToken);
+        res.status(StatusCodes.OK).send(newToken);
+    } else {
+        res.sendStatus(StatusCodes.FORBIDDEN);
     }
 } );
 

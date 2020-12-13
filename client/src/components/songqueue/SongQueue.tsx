@@ -3,6 +3,8 @@ import MUIDataTable from "mui-datatables";
 import { Image } from "react-bootstrap";
 import { Grid, Typography, Box } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
+import IconButton from "@material-ui/core/IconButton";
+import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
@@ -41,13 +43,16 @@ const PreviewCell: React.FC<any> = (value) => {
     );
 };
 
-const DetailCell: React.FC<any> = (value) => {
-    const duration = moment.utc(moment.duration(value.duration).asMilliseconds()).format("HH:mm:ss");
+const DetailCell: React.FC<{value: any, onPlaySong: (id: string) => void}> = (props) => {
+    const duration = moment.utc(moment.duration(props.value.duration).asMilliseconds()).format("HH:mm:ss");
     return (
         <Grid style={{ marginBottom: 40 }}>
+            <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
+                <PlayCircleOutlineIcon />
+            </IconButton>
             <Grid item xs={12}>
                 <Typography component="div">
-                    <a href={value?.linkUrl}>{value?.title}</a>
+                    <a href={props.value?.linkUrl}>{props.value?.title}</a>
                 </Typography>
             </Grid>
             <Grid>
@@ -97,6 +102,10 @@ const RequestedWithCell: React.FC<any> = (value) => {
 };
 
 interface Song {
+    previewData: {
+        previewUrl: string,
+        linkUrl: string
+    },
     details: {
         title: string;
         duration: moment.Duration;
@@ -113,7 +122,7 @@ interface Song {
     requestSource: string;
 }
 
-const SongQueue: React.FC<{}> = (props) => {
+const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
 
@@ -133,7 +142,7 @@ const SongQueue: React.FC<{}> = (props) => {
     };
 
     useEffect(() => {
-        axios.get("api/songs").then((response) => {
+        axios.get("/api/songs").then((response) => {
             setSongs(response.data);
         });
     }, []);
@@ -184,7 +193,7 @@ const SongQueue: React.FC<{}> = (props) => {
             label: "Song Title",
             name: "details",
             options: {
-                customBodyRender: DetailCell,
+                customBodyRender: (value: any) => <DetailCell value={value} onPlaySong={props.onPlaySong} />,
                 filterOptions: {
                     names: Array.from(
                         new Set(
