@@ -40,6 +40,7 @@ interface IState {
 export class SongPlayer extends React.Component<IProps, IState> {
     private readonly SpotifyPlayerPlayUrl: string = "https://api.spotify.com/v1/me/player/play";
     private player?: WebPlaybackPlayer;
+    private seekTimerintervalId: NodeJS.Timeout | undefined;
 
     constructor(props: any) {
         super(props);
@@ -53,22 +54,72 @@ export class SongPlayer extends React.Component<IProps, IState> {
     }
 
     public componentDidMount() {
-        this.initPlayer();
+        if (!this.player) {
+            this.initializePlayer();
+        }
     }
 
-    public componentDidUpdate() {
-        this.initPlayer();
+    public componentDidUpdate() {        
     }
 
     public componentWillUnmount() {
         // TODO: remove listeners?
+        this.stopSeekTimer();
         this.player?.disconnect();
     }
 
-    private initPlayer() {
-        if (this.player == null) {
-            this.appendSdkScript();
+    /**
+     * Starts a timer that progresses the playback position
+     * to avoid making constant requests to the Spotify API.
+     */
+    private startSeekTimer() {
+        if (this.seekTimerintervalId) {
+            return;
         }
+
+        const intervalLength = 500;
+        this.seekTimerintervalId = setInterval(() => {
+            this.setState({
+                ...this.state,
+                playbackPosMs: this.state.playbackPosMs + intervalLength,
+            });
+            
+        }, intervalLength);
+    }
+
+    private stopSeekTimer() {        
+        if (this.seekTimerintervalId)  {
+            clearInterval(this.seekTimerintervalId);
+            this.seekTimerintervalId = undefined;
+        }
+    }
+
+    /**
+     * Appends the client-side API script to the document.
+     * Whenever the script has been loaded it will
+     * set the isLoaded state to true.
+     */
+    private loadSpotifySdk(): Promise<any> {
+        return new Promise<void>((resolve, reject) => {
+            // Make sure that script is only included once
+            const scriptTag = document.querySelector('script#spotify-sdk');
+        
+            if (scriptTag) {
+                scriptTag.parentNode?.removeChild(scriptTag);
+            }
+            
+            const script = document.createElement('script');            
+            script.id = 'spotify-sdk'
+            script.type = 'text/javascript';
+            script.async = true;
+            script.defer = true;
+            script.src = 'https://sdk.scdn.co/spotify-player.js';
+            script.crossOrigin = 'anonymous';
+            script.onload = () => resolve();
+            script.onerror = (error: any) => reject(new Error(`loadSpotifySdk: ${error.message}`));
+        
+            document.body.append(script);
+        });
     }
 
     /**
@@ -83,11 +134,10 @@ export class SongPlayer extends React.Component<IProps, IState> {
     }
 
     /**
-     * Appends the client-side API script to the document.
-     * Whenever the script has been loaded it will
-     * set the isLoaded state to true.
+     * Checks if Spotify can be used (is configured), prepares the callback function
+     * for the Spotify SDK and loads the SDK script.
      */
-    private async appendSdkScript() {
+    private async initializePlayer() {
         // Only load Spotify if user has configured access token.
         try {
             const userHasToken = await axios.get("/api/auth/spotify/hasconfig", {
@@ -107,20 +157,6 @@ export class SongPlayer extends React.Component<IProps, IState> {
             isPlaying: false,
             playerState: SpotifyPlayerState.Initializing
         });
-
-        // Make sure that script is only included once
-        const existingScriptElement = document.querySelector('script#spotify-sdk');
-        if (existingScriptElement) {
-            existingScriptElement.parentNode?.removeChild(existingScriptElement);
-        }
-
-        const script = document.createElement('script')
-        script.id = 'spotify-sdk'
-        script.src = 'https://sdk.scdn.co/spotify-player.js'
-        script.async = true
-        script.defer = true
-        script.crossOrigin = 'anonymous'
-        document.body.append(script);
 
         // @ts-ignore
         window.onSpotifyWebPlaybackSDKReady = () => {
@@ -149,9 +185,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
             this.player.addListener('ready', ({ device_id }: WebPlaybackReady) => {
                 console.log('Ready with Device ID', device_id);
                 this.setState({
-                    playbackPosMs: 0,
-                    playbackDurationMs: 0,
-                    isPlaying: false,
+                    ...this.state,
                     playerState: SpotifyPlayerState.Ready
                 });
             });
@@ -159,9 +193,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
             this.player.addListener('authentication_error', ({ message }) => {
                 console.error('Failed to authenticate', message);
                 this.setState({
-                    playbackPosMs: 0,
-                    playbackDurationMs: 0,
-                    isPlaying: false,
+                    ...this.state,
                     playerState: SpotifyPlayerState.Failed
                 });
             });
@@ -175,29 +207,35 @@ export class SongPlayer extends React.Component<IProps, IState> {
                         playbackDurationMs: playerState.duration,
                         isPlaying: !playerState.paused,
                         playerState: this.state.playerState
-                     });
+                    });
 
+                    if (playerState.paused) {
+                        this.stopSeekTimer();
+                    } else {
+                        this.startSeekTimer();
+                    }
                 } else {
                     this.setState( {
                         playbackPosMs: 0,
                         playbackDurationMs: 0,
                         isPlaying: false,
                         playerState: this.state.playerState
-                     });
+                    });
+
+                    this.stopSeekTimer();
                 }
               });
 
             this.player.connect().then(null, (reason) => {
                 this.setState( {
-                    playbackPosMs: 0,
-                    playbackDurationMs: 0,
-                    isPlaying: false,
+                    ...this.state,
                     playerState: SpotifyPlayerState.Failed
                  });
             });
-
-            // TODO: Use this.player.getCurrentState() to update the slider more often.
         }
+
+        // Make sure that script is only included once
+        await this.loadSpotifySdk();
     };
 
     private togglePlayback() {
@@ -222,13 +260,15 @@ export class SongPlayer extends React.Component<IProps, IState> {
         }
 
         if (newPercentage) {
-            this.player.getCurrentState().then((playbackState: WebPlaybackState | null) => {
-                if (playbackState) {
-                    const newPlaybackPos = playbackState.duration * (newPercentage as number) / 100.0;
-                    this.player?.seek(newPlaybackPos).then(() => {
-                        console.log('Seek!');
-                    });
-                }
+            const newPlaybackPos = this.state.playbackDurationMs * (newPercentage as number) / 100.0;
+
+            // Do not update if current state equals playback pos (probably updated by timer)
+            if (this.state.playbackPosMs == newPlaybackPos) {
+                return;
+            }
+
+            this.player?.seek(newPlaybackPos).then(() => {
+                console.log('Seek!');
             });
         }
     }
