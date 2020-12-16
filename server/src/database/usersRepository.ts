@@ -5,9 +5,7 @@ import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
 export class UsersRepository {
-    constructor(
-        @inject("DatabaseProvider") private databaseProvider: DatabaseProvider
-    ) {
+    constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
         // Empty
     }
 
@@ -21,39 +19,19 @@ export class UsersRepository {
             LogType.Database,
             databaseService
                 .getQueryBuilder(DatabaseTables.Users)
-                .join(
-                    DatabaseTables.UserLevels,
-                    "userLevels.id",
-                    "users.userLevelKey"
-                )
-                .join(
-                    DatabaseTables.VIPLevels,
-                    "vipLevels.id",
-                    "users.vipLevelKey"
-                )
+                .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
+                .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
                 .where("users.username", "like", username)
-                .first([
-                    "vipLevels.name as vipLevel",
-                    "userLevels.name as userLevel",
-                    "users.*",
-                ])
+                .first(["vipLevels.name as vipLevel", "userLevels.name as userLevel", "users.*"])
                 .toSQL().sql
         );
 
         const user = await databaseService
             .getQueryBuilder(DatabaseTables.Users)
-            .join(
-                DatabaseTables.UserLevels,
-                "userLevels.id",
-                "users.userLevelKey"
-            )
+            .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
             .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
             .where("users.username", "like", username)
-            .first([
-                "vipLevels.name as vipLevel",
-                "userLevels.name as userLevel",
-                "users.*",
-            ]);
+            .first(["vipLevels.name as vipLevel", "userLevels.name as userLevel", "users.*"]);
 
         return user as IUser;
     }
@@ -63,7 +41,7 @@ export class UsersRepository {
      * @param user Updated user
      * @param points Number of points to add or remove (if negative)
      */
-    public async incrementPoints(user: IUser, points : number): Promise<void> {
+    public async incrementPoints(user: IUser, points: number): Promise<void> {
         if (!(await this.userExists(user))) {
             return;
         }
@@ -74,15 +52,12 @@ export class UsersRepository {
             LogType.Database,
             databaseService
                 .getQueryBuilder(DatabaseTables.Users)
-                .increment('points', points)
+                .increment("points", points)
                 .where({ id: user.id })
                 .toSQL().sql
         );
 
-        await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .increment('points', points)
-            .where({ id: user.id });
+        await databaseService.getQueryBuilder(DatabaseTables.Users).increment("points", points).where({ id: user.id });
     }
 
     /**
@@ -93,11 +68,7 @@ export class UsersRepository {
         const databaseService = await this.databaseProvider();
         Logger.debug(
             LogType.Database,
-            databaseService
-                .getQueryBuilder(DatabaseTables.Users)
-                .update(user)
-                .where({ id: user.id })
-                .toSQL().sql
+            databaseService.getQueryBuilder(DatabaseTables.Users).update(user).where({ id: user.id }).toSQL().sql
         );
         if (!(await this.userExists(user))) {
             return;
@@ -105,10 +76,7 @@ export class UsersRepository {
 
         delete user.userLevel;
         delete user.vipLevel;
-        await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .update(user)
-            .where({ id: user.id });
+        await databaseService.getQueryBuilder(DatabaseTables.Users).update(user).where({ id: user.id });
     }
 
     /**
@@ -121,16 +89,8 @@ export class UsersRepository {
             return;
         }
 
-        Logger.debug(
-            LogType.Database,
-            databaseService
-                .getQueryBuilder(DatabaseTables.Users)
-                .insert(user)
-                .toSQL().sql
-        );
-        await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .insert(user);
+        Logger.debug(LogType.Database, databaseService.getQueryBuilder(DatabaseTables.Users).insert(user).toSQL().sql);
+        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(user);
     }
 
     /**
@@ -141,10 +101,7 @@ export class UsersRepository {
     private async userExists(user: IUser): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         if (user.id && user.id > 0) {
-            const result = await databaseService
-                .getQueryBuilder(DatabaseTables.Users)
-                .first()
-                .where({ id: user.id });
+            const result = await databaseService.getQueryBuilder(DatabaseTables.Users).first().where({ id: user.id });
             if (result) {
                 return true;
             }

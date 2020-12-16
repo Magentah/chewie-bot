@@ -1,6 +1,6 @@
 import { IUser } from "../models";
 import { EventParticipant } from "../models/eventParticipant";
-import { Weapon } from "./duelEvent";
+import { DuelWeapon } from "./duelWeapon";
 
 export class DuelEventParticipant extends EventParticipant {
     constructor(user: IUser, wager: number, accepted: boolean) {
@@ -8,6 +8,6 @@ export class DuelEventParticipant extends EventParticipant {
         this.accepted = accepted;
     }
 
-    public weapon: Weapon = Weapon.None;
+    public weapon: DuelWeapon = DuelWeapon.None;
     public accepted: boolean;
 }

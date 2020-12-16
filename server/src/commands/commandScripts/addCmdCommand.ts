@@ -1,34 +1,36 @@
 import { Command } from "../command";
 import { TextCommandsRepository, UserLevelsRepository } from "./../../database";
 import { TwitchService } from "./../../services";
+import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
-import { IUser, IUserLevel } from "../../models";
 
-export class AddCmdCommand extends Command {
+export default class AddCmdCommand extends Command {
+    private textCommands: TextCommandsRepository;
+    private twitchService: TwitchService;
+    private userLevels: UserLevelsRepository;
+
     constructor() {
         super();
-        // TODO: make userlevels constants
-        BotContainer.get(UserLevelsRepository)
-            .get("Broadcaster")
-            .then((userLevel: IUserLevel) => {
-                this.minimumUserLevel = userLevel;
-            });
+
+        this.textCommands = BotContainer.get(TextCommandsRepository);
+        this.twitchService = BotContainer.get(TwitchService);
+        this.userLevels = BotContainer.get(UserLevelsRepository);
+
+        this.minimumUserLevel = UserLevels.Broadcaster;
     }
 
     public async execute(channel: string, user: IUser, commandName: string, message: string): Promise<void> {
-        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel.rank) {
-            let command = await BotContainer.get(TextCommandsRepository).get(commandName);
+        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel) {
+            let command = await this.textCommands.get(commandName);
             if (!command) {
                 command = {
                     commandName,
                     message,
                 };
 
-                await BotContainer.get(TextCommandsRepository).add(command);
-                await BotContainer.get(TwitchService).sendMessage(channel, `!${commandName} has been added!`);
+                await this.textCommands.add(command);
+                await this.twitchService.sendMessage(channel, `!${commandName} has been added!`);
             }
         }
     }
 }
-
-export default AddCmdCommand;

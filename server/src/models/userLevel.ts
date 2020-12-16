@@ -3,3 +3,11 @@ export default interface IUserLevel {
     name: string;
     rank: number;
 }
+
+export enum UserLevels {
+    Viewer = 1,
+    Subscriber,
+    Moderator,
+    Bot,
+    Broadcaster,
+}

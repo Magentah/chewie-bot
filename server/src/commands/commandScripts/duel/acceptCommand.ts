@@ -1,18 +1,28 @@
 import { Command } from "../../command";
-import { TwitchService } from "../../../services";
-import { BotContainer } from "../../../inversify.config";
 import { IUser } from "../../../models";
-import { DuelEvent } from "../../../events/duelEvent";
-import { EventService } from "../../../services/eventService";
-import { EventState } from "../../../models/event";
+import DuelEvent from "../../../events/duelEvent";
+import { TwitchService, EventService, UserService } from "../../../services/";
+import { UserLevelsRepository } from "../../../database";
+import { EventState } from "../../../models/participationEvent";
 import { Logger, LogType } from "../../../logger";
+import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
-export class AcceptCommand extends Command {
+export default class AcceptCommand extends Command {
+    private twitchService: TwitchService;
+    private eventService: EventService;
+
+    constructor() {
+        super();
+        this.twitchService = BotContainer.get(TwitchService);
+        this.eventService = BotContainer.get(EventService);
+    }
+
     public async execute(channel: string, user: IUser, target: string, wager: string): Promise<void> {
         // Find duel that is aimed at the current user.
         Logger.info(LogType.Command, `Looking for a duel for ${user.username} to accept`);
 
-        const runningDuels = BotContainer.get(EventService).getEvents<DuelEvent>();
+        const runningDuels = this.eventService.getEvents<DuelEvent>();
         for (const duel of runningDuels) {
             if (
                 duel.state === EventState.BoardingCompleted &&
@@ -40,14 +50,12 @@ export class AcceptCommand extends Command {
     private acceptDuel(duel: DuelEvent, user: IUser, channel: string) {
         const [result, msg] = duel.accept(user);
         if (result) {
-            BotContainer.get(TwitchService).sendMessage(
+            this.twitchService.sendMessage(
                 channel,
-                `It's time to D-D-D-D-D-D-D-D-Duel! Sir ${duel.participants[0].user.username}, Sir ${duel.participants[1].user.username}, please whisper me your weapon of choice using !rock, !paper, or !scissors`
+                Lang.get("duel.accepted", duel.participants[0].user.username, duel.participants[1].user.username)
             );
         } else {
-            BotContainer.get(TwitchService).sendMessage(channel, msg);
+            this.twitchService.sendMessage(channel, msg);
         }
     }
 }
-
-export default AcceptCommand;

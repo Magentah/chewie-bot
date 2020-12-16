@@ -5,6 +5,7 @@ import { Notifications, AccountBoxOutlined, LiveTv, Link, LinkOff } from "@mater
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
 import { ActionImportantDevices } from "material-ui/svg-icons";
+import { STATUS_CODES } from "http";
 
 type NavBarProps = {};
 const sidebarWidth = 230;
@@ -45,11 +46,15 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
 
     const connectBot = async () => {
         if (botConnected) {
-            await axios.get("/api/twitch/disconnect");
-            setBotConnected(false);
+            const result = await axios.get("/api/twitch/disconnect");
+            if (result.status === 200) {
+                setBotConnected(false);
+            }
         } else {
-            await axios.get("/api/twitch/connect");
-            setBotConnected(true);
+            const result = await axios.get("/api/twitch/connect");
+            if (result.status === 200) {
+                setBotConnected(true);
+            }
         }
     };
 

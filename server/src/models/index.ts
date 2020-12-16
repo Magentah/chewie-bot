@@ -11,7 +11,7 @@ export {
     ITwitchUser,
 } from "./twitchApi";
 export { default as IUser } from "./user";
-export { default as IUserLevel } from "./userLevel";
+export { default as IUserLevel, UserLevels } from "./userLevel";
 export { default as IVIPLevel } from "./vipLevel";
 export {
     IYoutubeContentDetails,
@@ -24,4 +24,6 @@ export {
     IYoutubeVideoListResponsePageInfo,
 } from "./youtubeApiResult";
 export { default as ISocketMessage, SocketMessageType } from "./socketMessage";
-export { default as IEvent } from "./event";
+export { default as ICommandAlias } from "./commandAlias";
+export { default as IBotSettings } from "./botSettings";
+export { default as IServiceResponse, ResponseStatus } from "./serviceResponse";

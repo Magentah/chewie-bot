@@ -1,18 +1,26 @@
 import { Command } from "../../command";
 import { TwitchService, UserService } from "../../../services";
-import { BotContainer } from "../../../inversify.config";
 import { IUser } from "../../../models";
-import { DuelEvent } from "../../../events/duelEvent";
+import DuelEvent from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
-import { ParticipationEvent } from "../../../models/event";
+import EventHelper from "../../../helpers/eventHelper";
+import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 /**
  * Command for starting a duel.
  * For further details see duelEvent.ts
  */
-export class DuelCommand extends Command {
+export default class DuelCommand extends Command {
+    private twitchService: TwitchService;
+    private userService: UserService;
+    private eventService: EventService;
+
     constructor() {
         super();
+        this.twitchService = BotContainer.get(TwitchService);
+        this.userService = BotContainer.get(UserService);
+        this.eventService = BotContainer.get(EventService);
     }
 
     public async execute(channel: string, user: IUser, usernameOrWager: string, wager: number): Promise<void> {
@@ -27,32 +35,41 @@ export class DuelCommand extends Command {
         }
 
         if (target && target.toString().toLowerCase() === user.username.toLowerCase()) {
-            BotContainer.get(TwitchService).sendMessage(channel, user.username + ", you cannot duel yourself.");
+            this.twitchService.sendMessage(channel, Lang.get("duel.noselfduel", user.username));
             return;
         }
 
-        if (!ParticipationEvent.validatePoints(user, channel, wagerValue)) {
+        const result = EventHelper.validatePoints(user, wagerValue);
+        if (!result[0]) {
+            this.twitchService.sendMessage(channel, result[1]);
             return;
         }
 
         // If target user is specified, get the user's details.
         let targetUser;
         if (target) {
-            targetUser = await BotContainer.get(UserService).getUser(target);
+            targetUser = await this.userService.getUser(target);
             if (!targetUser) {
-                BotContainer.get(TwitchService).sendMessage(channel, `Who is ${target}?`);
+                this.twitchService.sendMessage(channel, Lang.get("duel.userunknown", target));
                 return;
             }
         }
 
-        const duel = new DuelEvent(user, targetUser, wagerValue);
-        duel.sendMessage = (msg) => BotContainer.get(TwitchService).sendMessage(channel, msg);
+        const duel = new DuelEvent(
+            this.twitchService,
+            this.userService,
+            this.eventService,
+            user,
+            targetUser,
+            wagerValue
+        );
+        duel.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         // If target user known, check if he can accept at all (check number of chews)
         if (targetUser) {
             const [validateResult, msg] = duel.canAccept(targetUser);
             if (!validateResult) {
-                BotContainer.get(TwitchService).sendMessage(channel, msg);
+                this.twitchService.sendMessage(channel, msg);
                 return;
             }
         }
@@ -61,11 +78,9 @@ export class DuelCommand extends Command {
             return (event as DuelEvent).state !== undefined;
         }
 
-        const result = BotContainer.get(EventService).startEvent(duel, user);
-        if (!isEvent(result)) {
-            BotContainer.get(TwitchService).sendMessage(channel, result);
+        const eventResult = this.eventService.startEvent(duel, user);
+        if (!isEvent(eventResult)) {
+            this.twitchService.sendMessage(channel, eventResult);
         }
     }
 }
-
-export default DuelCommand;
