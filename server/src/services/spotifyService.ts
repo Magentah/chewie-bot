@@ -7,8 +7,6 @@ import Constants from "../constants";
 import { Logger, LogType } from "../logger";
 import qs = require("qs");
 import { IUser } from "../models";
-import { BotContainer } from '../inversify.config';
-import { UserService } from '.';
 
 @injectable()
 export class SpotifyService {
@@ -51,9 +49,9 @@ export class SpotifyService {
      * May also receive a new refresh token.
      * @param user User to get new refresh token for.
      */
-    public async getNewAccessToken(user: IUser): Promise<string> {
+    public async getNewAccessToken(user: IUser): Promise<{accessToken: string, newRefreshToken?: string}> {
         if (!user.spotifyRefresh) {
-            return "";
+            return { accessToken: "" };
         }
 
         const base64Auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64");
@@ -68,14 +66,13 @@ export class SpotifyService {
         if (authResponse.data) {
             // Save potential new refresh token
             if (authResponse.data.refresh_token) {
-                user.spotifyRefresh = authResponse.data.refresh_token;
-                BotContainer.get(UserService).updateUser(user);
+                return { accessToken: authResponse.data.access_token, newRefreshToken: authResponse.data.refresh_token };
             }
 
-            return authResponse.data.access_token;
+            return { accessToken: authResponse.data.access_token };
         }
         
-        return "";
+        return { accessToken: "" };
     }
 
     /**

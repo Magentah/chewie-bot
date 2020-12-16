@@ -142,7 +142,12 @@ authRouter.get("/api/auth/spotify/access", async (req, res) => {
     if (sessionUser) {
         const user = await BotContainer.get(UserService).getUser(sessionUser.username);
         const newToken = await BotContainer.get(SpotifyService).getNewAccessToken(user);
-        res.status(StatusCodes.OK).send(newToken);
+        if (newToken.newRefreshToken) {
+            user.refreshToken = newToken.newRefreshToken;
+            BotContainer.get(UserService).updateUser(user);
+        }
+        
+        res.status(StatusCodes.OK).send(newToken.accessToken);
     } else {
         res.sendStatus(StatusCodes.FORBIDDEN);
     }
