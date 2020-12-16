@@ -45,23 +45,30 @@ const PreviewCell: React.FC<any> = (value) => {
 
 const DetailCell: React.FC<{value: any, onPlaySong: (id: string) => void}> = (props) => {
     const duration = moment.utc(moment.duration(props.value.duration).asMilliseconds()).format("HH:mm:ss");
+    
+    const playButton = props.value.source == SongSource.Spotify ? (<Grid item>
+        <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
+            <PlayCircleOutlineIcon />
+        </IconButton>
+    </Grid>) : undefined;
+
     return (
-        <Grid style={{ marginBottom: 40 }}>
-            <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
-                <PlayCircleOutlineIcon />
-            </IconButton>
-            <Grid item xs={12}>
-                <Typography component="div">
-                    <a href={props.value?.linkUrl}>{props.value?.title}</a>
-                </Typography>
-            </Grid>
+        <Grid container style={{ marginBottom: 40 }}>
             <Grid>
-                <Typography component="div">
-                    <Box fontStyle="italic" fontSize={14}>
-                        Song Length: {duration}{" "}
-                    </Box>
-                </Typography>
+                <Grid item xs={12}>
+                    <Typography component="div">
+                        {props.value?.title}
+                    </Typography>
+                </Grid>
+                <Grid>
+                    <Typography component="div">
+                        <Box fontStyle="italic" fontSize={14}>
+                            Song Length: {duration}{" "}
+                        </Box>
+                    </Typography>
+                </Grid>
             </Grid>
+            {playButton}
         </Grid>
     );
 };
@@ -101,6 +108,11 @@ const RequestedWithCell: React.FC<any> = (value) => {
     );
 };
 
+export enum SongSource {
+    Youtube = "Youtube",
+    Spotify = "Spotify",
+}
+
 interface Song {
     previewData: {
         previewUrl: string,
@@ -110,6 +122,7 @@ interface Song {
         title: string;
         duration: moment.Duration;
         sourceId: string;
+        source: SongSource;
     };
     source: number;
     sourceId: string;

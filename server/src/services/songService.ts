@@ -69,7 +69,8 @@ export class SongService {
                     song.details = {
                         title: songDetails.snippet.title,
                         duration: this.youtubeService.getSongDuration(songDetails),
-                        linkUrl: song.sourceUrl
+                        sourceId: song.sourceId,
+                        source: song.source
                     };
                     song.previewData = {
                         linkUrl: song.sourceUrl,
@@ -84,7 +85,8 @@ export class SongService {
                     song.details = {
                         title: songDetails.name,
                         duration: this.spotifyService.getSongDuration(songDetails),
-                        linkUrl: song.sourceUrl
+                        sourceId: song.sourceId,
+                        source: song.source
                     };
                     song.previewData = {
                         linkUrl: song.sourceUrl,

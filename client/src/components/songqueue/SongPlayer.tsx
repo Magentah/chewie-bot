@@ -37,6 +37,14 @@ interface IState {
     playerState: SpotifyPlayerState
 }
 
+/**
+ * Player component for playing Spotify songs.
+ * Can be extended as needed to play songs from other sources if necessary.
+ * 
+ * Resources:
+ * Reference for the Web Playback SDK: https://developer.spotify.com/documentation/web-playback-sdk/reference/
+ * Implementation for reference: https://github.com/gilbarbara/react-spotify-web-playback
+ */
 export class SongPlayer extends React.Component<IProps, IState> {
     private readonly SpotifyPlayerPlayUrl: string = "https://api.spotify.com/v1/me/player/play";
     private player?: WebPlaybackPlayer;
@@ -162,7 +170,6 @@ export class SongPlayer extends React.Component<IProps, IState> {
         window.onSpotifyWebPlaybackSDKReady = () => {
             const playerName = 'Chewie-Bot Web Player';
 
-            // Reference for the Web Playback SDK: https://developer.spotify.com/documentation/web-playback-sdk/reference/
             // @ts-ignore
             this.player = new window.Spotify.Player({
               name: playerName,
@@ -262,7 +269,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
         if (newPercentage) {
             const newPlaybackPos = this.state.playbackDurationMs * (newPercentage as number) / 100.0;
 
-            // Do not update if current state equals playback pos (probably updated by timer)
+            // Do not update if current state equals playback pos
             if (this.state.playbackPosMs == newPlaybackPos) {
                 return;
             }
