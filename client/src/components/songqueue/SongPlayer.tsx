@@ -2,6 +2,7 @@ import React from "react";
 import { Grid, Typography, Box, CircularProgress, Card } from "@material-ui/core";
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
+import ErrorIcon from '@material-ui/icons/Error';
 import IconButton from "@material-ui/core/IconButton";
 import Slider from "@material-ui/core/Slider";
 
@@ -34,7 +35,8 @@ interface IState {
     playbackPosMs: number,
     playbackDurationMs: number,
     isPlaying: boolean,
-    playerState: SpotifyPlayerState
+    playerState: SpotifyPlayerState,
+    errorMessage: string
 }
 
 /**
@@ -43,7 +45,7 @@ interface IState {
  * 
  * Resources:
  * Reference for the Web Playback SDK: https://developer.spotify.com/documentation/web-playback-sdk/reference/
- * Implementation for reference: https://github.com/gilbarbara/react-spotify-web-playback
+ * Sample implementation: https://github.com/gilbarbara/react-spotify-web-playback
  */
 export class SongPlayer extends React.Component<IProps, IState> {
     private readonly SpotifyPlayerPlayUrl: string = "https://api.spotify.com/v1/me/player/play";
@@ -57,7 +59,8 @@ export class SongPlayer extends React.Component<IProps, IState> {
             playbackPosMs: 0,
             playbackDurationMs: 0,
             isPlaying: false,
-            playerState: SpotifyPlayerState.NotLoaded
+            playerState: SpotifyPlayerState.NotLoaded,
+            errorMessage: ""
         };
     }
 
@@ -71,8 +74,11 @@ export class SongPlayer extends React.Component<IProps, IState> {
     }
 
     public componentWillUnmount() {
-        // TODO: remove listeners?
         this.stopSeekTimer();
+
+        this.player?.removeListener('ready');
+        this.player?.removeListener('authentication_error');
+        this.player?.removeListener('player_state_changed');
         this.player?.disconnect();
     }
 
@@ -104,8 +110,6 @@ export class SongPlayer extends React.Component<IProps, IState> {
 
     /**
      * Appends the client-side API script to the document.
-     * Whenever the script has been loaded it will
-     * set the isLoaded state to true.
      */
     private loadSpotifySdk(): Promise<any> {
         return new Promise<void>((resolve, reject) => {
@@ -201,7 +205,8 @@ export class SongPlayer extends React.Component<IProps, IState> {
                 console.error('Failed to authenticate', message);
                 this.setState({
                     ...this.state,
-                    playerState: SpotifyPlayerState.Failed
+                    playerState: SpotifyPlayerState.Failed,
+                    errorMessage: message
                 });
             });
             
@@ -241,7 +246,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
             });
         }
 
-        // Make sure that script is only included once
+        // Load script after callback onSpotifyWebPlaybackSDKReady is set up.
         await this.loadSpotifySdk();
     };
 
@@ -251,13 +256,9 @@ export class SongPlayer extends React.Component<IProps, IState> {
         }
 
         if (this.state.isPlaying) {
-            this.player.pause().then(() => {
-                console.log('Paused!');
-            });
+            this.player.pause();
         } else {
-            this.player.resume().then(() => {
-                console.log('Resumed!');
-            });
+            this.player.resume();
         }
     }
 
@@ -274,9 +275,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
                 return;
             }
 
-            this.player?.seek(newPlaybackPos).then(() => {
-                console.log('Seek!');
-            });
+            this.player?.seek(newPlaybackPos);
         }
     }
 
@@ -306,7 +305,12 @@ export class SongPlayer extends React.Component<IProps, IState> {
                 return null;
 
             case SpotifyPlayerState.Failed:
-                return null;
+                content = (
+                    <Grid container spacing={2} alignItems="center">
+                        <Grid item><ErrorIcon /></Grid>
+                        <Grid item><Typography>{`Cannot connect to Spotify: ${this.state.errorMessage}`}</Typography></Grid>
+                    </Grid>);
+                break;
 
             case SpotifyPlayerState.Initializing:
                 // Show progress while initialising the Spotify player
@@ -319,7 +323,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
 
             case SpotifyPlayerState.Ready:
                 // Start showing player only when we have a valid Spotify configuration (that is, we got an access token from the server).
-                let icon =  <PlayCircleOutlineIcon />;
+                let icon = <PlayCircleOutlineIcon />;
                 if (this.state.isPlaying) {
                     icon = <PauseCircleOutlineIcon />;
                 }
@@ -331,7 +335,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
                                               onChange={(event: object, newPercentage: number | number[]) => this.seek(newPercentage)} /></Grid>
                         <Grid item><Typography>{this.formatTime(this.state.playbackDurationMs)}</Typography></Grid>
                         <Grid item>
-                            <IconButton  onClick={() => this.togglePlayback()}>
+                            <IconButton onClick={() => this.togglePlayback()}>
                                 {icon}
                             </IconButton>
                         </Grid>
