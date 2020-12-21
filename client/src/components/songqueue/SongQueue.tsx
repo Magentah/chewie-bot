@@ -3,6 +3,8 @@ import MUIDataTable from "mui-datatables";
 import { Image } from "react-bootstrap";
 import { Grid, Typography, Box } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
+import IconButton from "@material-ui/core/IconButton";
+import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
@@ -32,32 +34,41 @@ const getMuiTheme = () => {
 };
 
 const PreviewCell: React.FC<any> = (value) => {
-    const url = `https://img.youtube.com/vi/${value}/0.jpg`;
     return (
-        <div className="Pog">
-            <a href={`https://www.youtube.com/watch?v=${value}`}>
-                <Image src={url} thumbnail />
+        <div className="Pog2">
+            <a href={value.linkUrl}>
+                <Image src={value.previewUrl} thumbnail />
             </a>
         </div>
     );
 };
 
-const DetailCell: React.FC<any> = (value) => {
-    const duration = moment.utc(moment.duration(value.duration).asMilliseconds()).format("HH:mm:ss");
+const DetailCell: React.FC<{value: any, onPlaySong: (id: string) => void}> = (props) => {
+    const duration = moment.utc(moment.duration(props.value.duration).asMilliseconds()).format("HH:mm:ss");
+    
+    const playButton = props.value.source == SongSource.Spotify ? (<Grid item>
+        <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
+            <PlayCircleOutlineIcon />
+        </IconButton>
+    </Grid>) : undefined;
+
     return (
-        <Grid style={{ marginBottom: 40 }}>
-            <Grid item xs={12}>
-                <Typography component="div">
-                    <a href={`https://www.youtube.com/watch?v=${value?.sourceId}`}>{value?.title}</a>
-                </Typography>
-            </Grid>
+        <Grid container style={{ marginBottom: 40 }}>
             <Grid>
-                <Typography component="div">
-                    <Box fontStyle="italic" fontSize={14}>
-                        Song Length: {duration}{" "}
-                    </Box>
-                </Typography>
+                <Grid item xs={12}>
+                    <Typography component="div">
+                        {props.value?.title}
+                    </Typography>
+                </Grid>
+                <Grid>
+                    <Typography component="div">
+                        <Box fontStyle="italic" fontSize={14}>
+                            Song Length: {duration}{" "}
+                        </Box>
+                    </Typography>
+                </Grid>
             </Grid>
+            {playButton}
         </Grid>
     );
 };
@@ -97,11 +108,21 @@ const RequestedWithCell: React.FC<any> = (value) => {
     );
 };
 
+export enum SongSource {
+    Youtube = "Youtube",
+    Spotify = "Spotify",
+}
+
 interface Song {
+    previewData: {
+        previewUrl: string,
+        linkUrl: string
+    },
     details: {
         title: string;
         duration: moment.Duration;
         sourceId: string;
+        source: SongSource;
     };
     source: number;
     sourceId: string;
@@ -114,7 +135,7 @@ interface Song {
     requestSource: string;
 }
 
-const SongQueue: React.FC<{}> = (props) => {
+const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
 
@@ -134,7 +155,7 @@ const SongQueue: React.FC<{}> = (props) => {
     };
 
     useEffect(() => {
-        axios.get("api/songs").then((response) => {
+        axios.get("/api/songs").then((response) => {
             setSongs(response.data);
         });
     }, []);
@@ -178,14 +199,14 @@ const SongQueue: React.FC<{}> = (props) => {
     const columns = [
         {
             label: "Preview",
-            name: "sourceId",
+            name: "previewData",
             options: { customBodyRender: PreviewCell, filter: false },
         },
         {
             label: "Song Title",
             name: "details",
             options: {
-                customBodyRender: DetailCell,
+                customBodyRender: (value: any) => <DetailCell value={value} onPlaySong={props.onPlaySong} />,
                 filterOptions: {
                     names: Array.from(
                         new Set(

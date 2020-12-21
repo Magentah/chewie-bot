@@ -52,6 +52,14 @@ const useStyles = makeStyles((theme) => ({
         width: "130px",
         padding: "6px",
     },
+    spotifyButton: {
+        backgroundColor: "#1ED760",
+        margin: theme.spacing(0, 1, 0),
+        textTransform: "none",
+        "&:hover, &:focus": {
+            backgroundColor: darken("#1ED760", 0.25),
+        },
+    },
 }));
 
 function Alert(props: AlertProps) {
@@ -168,6 +176,13 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                 src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
                             />
                             <Typography component="span">Connect to Streamlabs</Typography>
+                        </Button>
+                        <Button className={classes.spotifyButton} href="/api/auth/spotify">
+                            <Image
+                                src={"assets/Spotify_Icon_RGB_Black.png"}
+                                style={{ width: "30px", margin: "1px 3px 2px 0px" }}
+                            />
+                            <Typography component="span">Connect to Spotify</Typography>
                         </Button>
                     </Grid>
                 </Grid>

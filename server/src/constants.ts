@@ -19,4 +19,10 @@ export default class Constants {
 
     // Youtube
     public static readonly YoutubeVideoUrl = "https://www.googleapis.com/youtube/v3/videos";
+
+    // Spotify
+    public static readonly SpotifyAuthUrl = "https://accounts.spotify.com/authorize";
+    public static readonly SpotifyTokenUrl = "https://accounts.spotify.com/api/token";
+    public static readonly SpotifyTracksUrl = "https://api.spotify.com/v1/tracks";
+    public static readonly SpotifyScopes = "streaming user-read-email user-modify-playback-state user-read-private";
 }

@@ -6,6 +6,7 @@ import WebsocketService from "./services/websocketService";
 import TwitchService, { TwitchServiceProvider } from "./services/twitchService";
 import CacheService from "./services/cacheService";
 import YoutubeService from "./services/youtubeService";
+import SpotifyService from "./services/spotifyService";
 import CommandService from "./services/commandService";
 import SongService from "./services/songService";
 import UserService from "./services/userService";
@@ -62,6 +63,7 @@ botContainer.bind<TwitchServiceProvider>("TwitchServiceProvider").toProvider((co
 });
 botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
 botContainer.bind<YoutubeService>(YoutubeService).toSelf().inSingletonScope();
+botContainer.bind<SpotifyService>(SpotifyService).toSelf().inSingletonScope();
 botContainer.bind<SongService>(SongService).toSelf().inSingletonScope();
 botContainer.bind<UserService>(UserService).toSelf().inSingletonScope();
 botContainer.bind<EventService>(EventService).toSelf().inSingletonScope();

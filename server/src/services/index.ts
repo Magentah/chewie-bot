@@ -5,6 +5,7 @@ export { default as SongService } from "./songService";
 export { default as TwitchService, TwitchServiceProvider } from "./twitchService";
 export { default as UserService } from "./userService";
 export { default as YoutubeService } from "./youtubeService";
+export { default as SpotifyService } from "./spotifyService";
 export { default as WebsocketService } from "./websocketService";
 export { default as EventService } from "./eventService";
 export { default as BotSettingsService } from "./botSettingsService";

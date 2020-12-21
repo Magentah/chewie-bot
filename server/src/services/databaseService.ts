@@ -142,6 +142,7 @@ export class DatabaseService {
             table.boolean("hasLogin").notNullable();
             table.string("streamlabsToken");
             table.string("streamlabsRefresh");
+            table.string("spotifyRefresh");
         });
     }
 
