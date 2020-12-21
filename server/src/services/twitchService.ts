@@ -54,7 +54,7 @@ export class TwitchService {
         const options = await this.setupOptions();
         Logger.info(LogType.Twitch, JSON.stringify(options));
         if (options.identity?.username && options.identity.password) {
-            this.client = tmi.client(this.options);
+            this.client = tmi.client(options);
             this.setupEventHandlers(this.client);
             this.hasInitialized = true;
 
@@ -263,7 +263,9 @@ export class TwitchService {
             return;
         }
 
-        this.commandCallback(channel, userstate.username ?? "", message);
+        if (this.commandCallback) {
+            this.commandCallback(channel, userstate.username ?? "", message);
+        }
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {

@@ -21,7 +21,9 @@ export class CommandService {
         @inject(TwitchService) private twitchService: TwitchService
     ) {
         console.log(this.commandList);
-        this.twitchService.setCommandCallback(this.handleMessage);
+        this.twitchService.setCommandCallback((channel: string, username: string, message: string) =>
+            this.handleMessage(channel, username, message)
+        );
     }
 
     /**
@@ -117,7 +119,7 @@ export class CommandService {
                 if (args) {
                     this.executeCommand(commandName, channel, user, ...args);
                 } else {
-                    this.executeCommand(commandName, channel, user);
+                    this.executeCommand(commandName, channel, user, "");
                 }
             } catch (err) {
                 if (err instanceof CommandNotExistError) {
