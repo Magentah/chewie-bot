@@ -15,4 +15,5 @@ export default interface IUser {
     hasLogin: boolean;
     streamlabsToken?: string;
     streamlabsRefresh?: string;
+    spotifyRefresh?: string;
 }

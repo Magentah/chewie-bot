@@ -34,6 +34,14 @@ export class YoutubeService {
     }
 
     /**
+     * Get the URL to a thumbnail of the video.
+     * @param song The song to get the thumbnail for.
+     */
+    public getSongPreviewUrl(songDetails: IYoutubeSong): string {
+        return `https://img.youtube.com/vi/${songDetails.id}/0.jpg`;
+    }
+
+    /**
      * Get the duration of a song from youtube
      * @param song The song to get the duration for.
      */

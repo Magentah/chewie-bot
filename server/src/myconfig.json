@@ -16,6 +16,10 @@
         "apiKey": "",
         "clientId": ""
     },
+    "spotify": {
+        "clientSecret": "",
+        "clientId": ""
+    },
     "secretKey": "",
     "log": {
         "levels": "syslog",

@@ -14,7 +14,7 @@ import NotFound from "./components/error/404";
 export type Route = {
     path: string;
     name: string;
-    component: React.FC;
+    component: any;
     icon: OverridableComponent<SvgIconTypeMap<{}, "svg">>;
 };
 

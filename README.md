@@ -28,6 +28,10 @@
     -   Setup an app at [https://streamlabs.com/dashboard#/settings/api-settings](https://streamlabs.com/dashboard#/settings/api-settings) and copy the Client ID and Client Secret.
     -   The redirect URL should be `http://localhost/api/auth/streamlabs/callback` by default.
 
+-   ### Spotify
+    
+    -   Setup an app at [https://developer.spotify.com/dashboard/applications](https://developer.spotify.com/dashboard/applications) and copy the Client ID and Client Secret.
+
 -   #### Database
 
     -   The path is from the root directory. By default the database is `chewiebot.db` in the root directory.
