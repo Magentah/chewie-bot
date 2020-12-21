@@ -24,7 +24,6 @@ import EventController from "./controllers/eventController";
 
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
-import { Console } from "winston/lib/winston/transports";
 
 const botContainer = new Container();
 
