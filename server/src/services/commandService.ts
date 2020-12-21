@@ -20,7 +20,6 @@ export class CommandService {
         @inject("Commands") private commandList: Map<string, Command>,
         @inject(TwitchService) private twitchService: TwitchService
     ) {
-        console.log(this.commandList);
         this.twitchService.setCommandCallback((channel: string, username: string, message: string) =>
             this.handleMessage(channel, username, message)
         );
