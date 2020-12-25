@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import MUIDataTable from "mui-datatables";
+import MUIDataTable, { MUIDataTableOptions } from "mui-datatables";
 import { Image } from "react-bootstrap";
-import { Grid, Typography, Box } from "@material-ui/core";
+import { Grid, Typography, Box, makeStyles } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import IconButton from "@material-ui/core/IconButton";
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
+import useUser, { UserLevels } from "../../hooks/user";
 
 type YTVideo = {
     idx: number;
@@ -37,7 +38,7 @@ const PreviewCell: React.FC<any> = (value) => {
     return (
         <div className="Pog2">
             <a href={value.linkUrl}>
-                <Image src={value.previewUrl} thumbnail />
+                <Image style={{ maxHeight: "100px" }} src={value.previewUrl} thumbnail />
             </a>
         </div>
     );
@@ -138,6 +139,7 @@ interface Song {
 const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
+    const [user, loadUser] = useUser();
 
     const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
     const deleteSong = (songIndex: number) =>
@@ -161,6 +163,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     }, []);
 
     useEffect(() => {
+        loadUser();
+
         websocket.current = new WebsocketService();
 
         return () => {
@@ -270,13 +274,43 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         },
     ];
 
+    // Don't allow selecting songs for deletion without permission.
+    let tableOptions: MUIDataTableOptions = { elevation: 0, download: false, print: false, onRowsDelete: undefined, selectableRows: "none" };
+    if (user.userLevelKey >= UserLevels.Moderator) {
+        tableOptions = {
+            ...tableOptions,
+            selectableRows: "multiple",
+            onRowsDelete: onSongDeleted
+        }
+    }
+
+    // Find own requested songs and list them.
+    let ownSongQueue;
+    let ownSongs: Song[] = [];
+    for (const song of songs) {
+        if (song.requestedBy === user.username) {
+            ownSongs.push(song);
+        }
+    }
+
+    if (ownSongs.length > 0) {
+        ownSongQueue = 
+            <MUIDataTable
+                title="Your requests"
+                data={ownSongs}
+                columns={columns}
+                options={{ elevation: 0, download: false, print: false, selectableRows: "none", filter: false, pagination: false, search: false }}
+            />;
+    }
+
     return (
         <MuiThemeProvider theme={getMuiTheme()}>
+            {ownSongQueue}
             <MUIDataTable
                 title="Song Queue"
                 data={songs}
                 columns={columns}
-                options={{ elevation: 0, download: false, print: false, onRowsDelete: onSongDeleted }}
+                options={tableOptions}
             />
         </MuiThemeProvider>
     );

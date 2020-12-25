@@ -6,6 +6,7 @@ import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
 import { ActionImportantDevices } from "material-ui/svg-icons";
 import { STATUS_CODES } from "http";
+import useUser, { UserLevels } from "../../hooks/user";
 
 type NavBarProps = {};
 const sidebarWidth = 230;
@@ -38,6 +39,7 @@ const useStyles = makeStyles((theme) => ({
 
 const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const [botConnected, setBotConnected] = useState(false);
+    const [user, loadUser] = useUser();
 
     const classes = useStyles();
     const watchChewie = () => {
@@ -68,21 +70,24 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         });
     }, []);
 
+    let connectBotButton = (user.userLevelKey < UserLevels.Broadcaster) ? undefined :
+        <IconButton color="inherit" onClick={connectBot}>
+            {botConnected ? (
+                <Link className={classes.connectedIcon} />
+            ) : (
+                <LinkOff className={classes.notConnectedIcon} />
+            )}
+            <Typography variant="caption" className={classes.botConnectedStatusMessage}>
+                {botConnected ? "Bot is connected" : "Bot is not connected"}
+            </Typography>
+        </IconButton>;
+
     return (
         <AppBar position="fixed" className={classes.appBar}>
             <Toolbar>
                 <Typography variant="h6">Chewie Melodies</Typography>
                 <div className={classes.rightMenu}>
-                    <IconButton color="inherit" onClick={connectBot}>
-                        {botConnected ? (
-                            <Link className={classes.connectedIcon} />
-                        ) : (
-                            <LinkOff className={classes.notConnectedIcon} />
-                        )}
-                        <Typography variant="caption" className={classes.botConnectedStatusMessage}>
-                            {botConnected ? "Bot is connected" : "Bot is not connected"}
-                        </Typography>
-                    </IconButton>
+                    {connectBotButton}
                     <IconButton
                         color="inherit"
                         className={classes.iconButton}
