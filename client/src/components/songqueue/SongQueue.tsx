@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import MUIDataTable, { MUIDataTableOptions } from "mui-datatables";
 import { Image } from "react-bootstrap";
-import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, Tooltip, TextField, Button, Snackbar } from "@material-ui/core";
+import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress } from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import IconButton from "@material-ui/core/IconButton";
@@ -155,6 +155,25 @@ interface OwnRequest {
     song: Song
 }
 
+type NoSongRequestState = {
+    state: undefined;
+};
+
+type AddedSongRequestState = {
+    state: "success";
+};
+
+type AddingSongRequestState = {
+    state: "progress";
+};
+
+type FailedSongRequestState = {
+    state: "failed";
+    message: string;
+};
+   
+type SongRequestState = NoSongRequestState | AddedSongRequestState | AddingSongRequestState | FailedSongRequestState;
+
 function Alert(props: AlertProps) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -164,11 +183,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [user, loadUser] = useUser();
     const [songRequestUrl, setsongRequestUrl] = useState<string>();
-    const [saved, setSaved] = useState(false);
-    const [saveFailed, setSaveFailed] = useState({
-        failed: false,
-        message: ""
-    });
+    const [songRequestState, setSongRequestState] = useState<SongRequestState>();
 
     const classes = useStyles();
 
@@ -193,9 +208,9 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         });
     }, []);
 
-    useEffect(() => {
-        loadUser();
+    useEffect(() => { loadUser(); });
 
+    useEffect(() => {
         websocket.current = new WebsocketService();
 
         return () => {
@@ -307,24 +322,22 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const submitSongRequest = async () => {
         try {
+            setSongRequestState({state: "progress"});
+
             const result = await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: 'Bot UI' },
                     { validateStatus: function(status) {  return true; }});
             if (result.status === 200) {
-                setSaveFailed({
-                    failed: false,
-                    message: ""
-                });
-                setSaved(true);
+                setSongRequestState({state: "success"});
                 setsongRequestUrl("");
             } else {
-                setSaveFailed({
-                    failed: true,
+                setSongRequestState({
+                    state: "failed",
                     message: result.data.error.message
                 });
             }
         } catch (error) {
-            setSaveFailed({
-                failed: true,
+            setSongRequestState({
+                state: "failed",
                 message: error.message
             });
         }
@@ -334,10 +347,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         if (reason === "clickaway") {
             return;
         }
-        setSaved(false);
-        setSaveFailed({
-            failed: false,
-            message: ""
+        setSongRequestState({
+            state: undefined
         });
     };
     
@@ -363,30 +374,32 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     }
 
-    if (ownSongs.length > 0) {
-        ownSongQueue = 
+    ownSongQueue = 
         <Box mb={1}>
             <Typography variant="h5">
                 Your requests
             </Typography>
-            <div className={classes.root}>
-                <GridList cellHeight={140} cols={3}>
-                    {ownSongs.map((tile) => (
-                        <GridListTile key={tile.song.previewData.previewUrl}>
-                            <img src={tile.song.previewData.previewUrl} alt={tile.song.details.title} />
-                            <GridListTileBar
-                                title={tile.song.details.title}
-                                subtitle={<span>Position: {tile.index + 1}</span>}
-                                actionIcon={
-                                    <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
-                                        <OpenInNewIcon />
-                                    </IconButton>
-                                }
-                            />
-                        </GridListTile>
-                    ))}
-                </GridList>
-            </div>
+            {(ownSongs.length === 0)
+             ? <Typography>No song requests made.</Typography>
+             : <div className={classes.root}>
+                   <GridList cellHeight={140} cols={3}>
+                       {ownSongs.map((tile) => (
+                           <GridListTile key={tile.song.previewData.previewUrl}>
+                               <img src={tile.song.previewData.previewUrl} alt={tile.song.details.title} />
+                               <GridListTileBar
+                                   title={tile.song.details.title}
+                                   subtitle={<span>Position: {tile.index + 1}</span>}
+                                   actionIcon={
+                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
+                                           <OpenInNewIcon />
+                                       </IconButton>
+                                   }
+                               />
+                           </GridListTile>
+                       ))}
+                   </GridList>
+               </div>
+            }
             <Grid item xs={12}>
                 <form onSubmit={submitSongRequest}>
                     <Grid container spacing={2} justify="flex-start">
@@ -403,28 +416,29 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                startIcon={<AddIcon />}
+                                startIcon={songRequestState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
                                 onClick={submitSongRequest}
-                                className={classes.addButton}>
+                                className={classes.addButton}
+                                disabled={songRequestState?.state === "progress"}>
                                 Request
                             </Button>
                         </Grid>
                     </Grid>
                 </form>
-                <Snackbar open={saved} autoHideDuration={4000} onClose={handleClose}>
+                <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="success">
                         Song request added.
                     </Alert>
                 </Snackbar>
-                <Snackbar open={saveFailed.failed} autoHideDuration={4000} onClose={handleClose}>
+                { songRequestState?.state === "failed" ?
+                <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="error">
-                        Song request could not be added: {saveFailed.message}
+                        Song request could not be added: {songRequestState.message}
                     </Alert>
-                </Snackbar>
+                </Snackbar> : undefined}
             </Grid>
             <Divider />
         </Box>
-    }
 
     return (
         <MuiThemeProvider theme={getMuiTheme()}>
