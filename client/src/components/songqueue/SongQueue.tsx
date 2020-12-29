@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import MUIDataTable, { MUIDataTableOptions } from "mui-datatables";
 import { Image } from "react-bootstrap";
-import { Grid, Typography, Box, makeStyles, GridList, GridListTile, ListSubheader, GridListTileBar, Divider, Tooltip } from "@material-ui/core";
+import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, Tooltip, TextField, Button, Snackbar } from "@material-ui/core";
+import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import IconButton from "@material-ui/core/IconButton";
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import AddIcon from '@material-ui/icons/Add';
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
@@ -37,11 +39,11 @@ const useStyles = makeStyles((theme) => ({
       marginBottom: '2em',
       marginTop: '1em'
     },
-    gridList: {
-      width: 500,
-    },
     icon: {
       color: 'rgba(255, 255, 255, 0.54)',
+    },
+    addButton: {
+        margin: theme.spacing(2, 0, 2),
     },
 }));
 
@@ -153,10 +155,21 @@ interface OwnRequest {
     song: Song
 }
 
+function Alert(props: AlertProps) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [user, loadUser] = useUser();
+    const [songRequestUrl, setsongRequestUrl] = useState<string>();
+    const [saved, setSaved] = useState(false);
+    const [saveFailed, setSaveFailed] = useState({
+        failed: false,
+        message: ""
+    });
+
     const classes = useStyles();
 
     const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
@@ -292,6 +305,42 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         },
     ];
 
+    const submitSongRequest = async () => {
+        try {
+            const result = await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: 'Bot UI' },
+                    { validateStatus: function(status) {  return true; }});
+            if (result.status === 200) {
+                setSaveFailed({
+                    failed: false,
+                    message: ""
+                });
+                setSaved(true);
+                setsongRequestUrl("");
+            } else {
+                setSaveFailed({
+                    failed: true,
+                    message: result.data.error.message
+                });
+            }
+        } catch (error) {
+            setSaveFailed({
+                failed: true,
+                message: error.message
+            });
+        }
+    };
+
+    const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        setSaved(false);
+        setSaveFailed({
+            failed: false,
+            message: ""
+        });
+    };
+    
     // Don't allow selecting songs for deletion without permission.
     let tableOptions: MUIDataTableOptions = { elevation: 0, download: false, print: false, onRowsDelete: undefined, selectableRows: "none" };
     if (user.userLevelKey >= UserLevels.Moderator) {
@@ -321,25 +370,58 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 Your requests
             </Typography>
             <div className={classes.root}>
-                <GridList cellHeight={140} className={classes.gridList}>
+                <GridList cellHeight={140} cols={3}>
                     {ownSongs.map((tile) => (
                         <GridListTile key={tile.song.previewData.previewUrl}>
                             <img src={tile.song.previewData.previewUrl} alt={tile.song.details.title} />
-                            <Tooltip title={tile.song.details.title}>
-                                <GridListTileBar
-                                    title={tile.song.details.title}
-                                    subtitle={<span>Position: {tile.index + 1}</span>}
-                                    actionIcon={
-                                        <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
-                                            <OpenInNewIcon />
-                                        </IconButton>
-                                    }
-                                />
-                                </Tooltip>
+                            <GridListTileBar
+                                title={tile.song.details.title}
+                                subtitle={<span>Position: {tile.index + 1}</span>}
+                                actionIcon={
+                                    <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
+                                        <OpenInNewIcon />
+                                    </IconButton>
+                                }
+                            />
                         </GridListTile>
                     ))}
                 </GridList>
             </div>
+            <Grid item xs={12}>
+                <form onSubmit={submitSongRequest}>
+                    <Grid container spacing={2} justify="flex-start">
+                        <Grid item xs={12} sm={4}>
+                            <TextField
+                                id="song-url"
+                                label="Add song request (URL)"
+                                fullWidth
+                                value={songRequestUrl}
+                                onChange={(e) => setsongRequestUrl(e.target.value)}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={2}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<AddIcon />}
+                                onClick={submitSongRequest}
+                                className={classes.addButton}>
+                                Request
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </form>
+                <Snackbar open={saved} autoHideDuration={4000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="success">
+                        Song request added.
+                    </Alert>
+                </Snackbar>
+                <Snackbar open={saveFailed.failed} autoHideDuration={4000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="error">
+                        Song request could not be added: {saveFailed.message}
+                    </Alert>
+                </Snackbar>
+            </Grid>
             <Divider />
         </Box>
     }
