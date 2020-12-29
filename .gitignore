@@ -12,3 +12,5 @@ client/Dockerfile.test
 server/src/config.json
 .vscode/launch.json
 secret.config.json
+
+/client/nginx/server*

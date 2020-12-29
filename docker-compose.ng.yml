@@ -12,6 +12,7 @@ services:
             - "/usr/src/chewiebot/client/node_modules/"
         ports:
             - 80:80
+            - 443:443
             - 8020:8020
         expose:
             - 80

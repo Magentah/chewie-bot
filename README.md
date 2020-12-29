@@ -29,7 +29,7 @@
     -   The redirect URL should be `http://localhost/api/auth/streamlabs/callback` by default.
 
 -   ### Spotify
-    
+
     -   Setup an app at [https://developer.spotify.com/dashboard/applications](https://developer.spotify.com/dashboard/applications) and copy the Client ID and Client Secret.
 
 -   #### Database
@@ -79,6 +79,189 @@
 ### Accessing the site
 
 -   Open a browser to `localhost:8080`.
+
+### SSL and HTTPS
+
+-   To setup HTTPS, you will need to generate a cert and key.
+-   Install openssl. This can be done in a docker container or on a host machine.
+-   Run the following commands. The examples are from running a shell in a docker container:
+
+```bash
+root@f6ef5d97cbf9:/# openssl genrsa -des3 -out server.key 2048
+
+Generating RSA private key, 2048 bit long modulus
+......+++++
+..........+++++
+e is 65537 (0x010001)
+Enter pass phrase for server.key: # some cool password
+Verifying - Enter pass phrase for server.key: # same as you typed
+
+```
+
+```bash
+root@f6ef5d97cbf9:/# openssl req -new -key server.key -out server.csr
+
+Enter pass phrase for server.key: # same password you typed
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:JP # type you like
+State or Province Name (full name) [Some-State]:Tokyo # type you like
+Locality Name (eg, city) []:Shibuya # type you like
+Organization Name (eg, company) [Internet Widgits Pty Ltd]: # just push enter
+Organizational Unit Name (eg, section) []: # just push enter
+Common Name (e.g. server FQDN or YOUR name) []: # just push enter
+Email Address []: # just push enter
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []: # just push enter
+An optional company name []: # just push enter
+
+```
+
+```bash
+root@f6ef5d97cbf9:/# cp server.key server.key.org
+root@f6ef5d97cbf9:/# openssl rsa -in server.key.org -out server.key
+
+Enter pass phrase for server.key.org: # same PW you typed
+writing RSA key
+
+root@f6ef5d97cbf9:/# openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+Signature ok
+subject=C = JP, ST = Tokyo, L = Shibuya, O = Internet Widgits Pty Ltd
+Getting Private key
+
+```
+
+-   Once the key and cert are created, copy them to the host machine:
+
+```bash
+docker cp <container-id>:server.crt ./path/to/server.crt
+docker cp <container-id>:server.key ./path/to/server.key
+```
+
+-   Then copy these files to the `/client/nginx/` folder. They will be copied from this folder during docker startup to enable https.
+-   Update the `default.conf` file to the following:
+
+```bash
+# Close websocket connection when upgrade header set to ''
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+# map to websocket port
+upstream websocket {
+    server backend:8001;
+}
+
+server {
+    listen      8020;
+    listen [::]:8020;
+    server_name _;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header HOST $host;
+        proxy_pass http://websocket;
+    }
+}
+
+
+# If not using SSL and HTTPS, remove this server section.
+
+server {
+    listen 80;
+    server_name _;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    # If not using SSL and HTTPS, uncomment these:
+    # listen        80;
+    # listen  [::]:80;
+
+    # If not using SSL and HTTPS, comment out the listen lines below.
+    listen       443 ssl;
+    listen  [::]:443 ssl;
+    server_name  _;
+
+    # If not using SSL and HTTPS, comment out the below ssl_certificate and ssl_certificate_key lines.
+    ssl_certificate /etc/nginx/server.crt;
+    ssl_certificate_key /etc/nginx/server.key;
+
+    #charset koi8-r;
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    location /api/ {
+        proxy_set_header HOST $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://backend:8080;
+    }
+
+    location /ws/ {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header HOST $host;
+        proxy_pass http://websocket;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+```
 
 ## Known Issues
 
