@@ -4,6 +4,7 @@ import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
 import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType } from "../models";
 import { Response } from "../helpers";
+import * as Config from "../config.json";
 
 // Required to do it this way instead of from "../services" due to inversify breaking otherwise
 import CommandService from "../services/commandService";
@@ -23,6 +24,7 @@ export class TwitchService {
     private options!: tmi.Options;
     private channelUserList: Map<string, ITwitchChatList>;
     public hasInitialized: boolean = false;
+    private channel: string;
     private commandCallback!: (channel: string, username: string, message: string) => void;
 
     constructor(
@@ -30,6 +32,7 @@ export class TwitchService {
         @inject(WebsocketService) private websocketService: WebsocketService,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService
     ) {
+        this.channel = `#${Config.twitch.broadcasterName}`;
         this.channelUserList = new Map<string, ITwitchChatList>();
     }
 
@@ -54,7 +57,7 @@ export class TwitchService {
         const options = await this.setupOptions();
         Logger.info(LogType.Twitch, JSON.stringify(options));
         if (options.identity?.username && options.identity.password) {
-            this.client = tmi.client(this.options);
+            this.client = tmi.client(options);
             this.setupEventHandlers(this.client);
             this.hasInitialized = true;
 
@@ -263,7 +266,9 @@ export class TwitchService {
             return;
         }
 
-        this.commandCallback(channel, userstate.username ?? "", message);
+        if (this.commandCallback) {
+            this.commandCallback(channel, userstate.username ?? "", message);
+        }
     }
 
     private cheerEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string) {
@@ -471,6 +476,9 @@ export class TwitchService {
             Logger.info(LogType.Twitch, "Connecting to Twitch.tv with tmi.js");
             try {
                 const result = await this.client.connect();
+                if (this.channel) {
+                    return await this.joinChannel(this.channel);
+                }
                 return Response.Success();
             } catch (error) {
                 Logger.err(LogType.Twitch, error);

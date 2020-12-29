@@ -260,8 +260,6 @@ export class DatabaseService {
                     };
                     await this.db(DatabaseTables.BotSettings).insert(botSettings);
                 }
-            } else {
-                reject();
             }
 
             resolve();

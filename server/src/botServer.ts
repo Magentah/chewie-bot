@@ -12,7 +12,7 @@ import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SongRouter, TwitchRouter } from "./routes";
 import { RouteLogger, UserCookie } from "./middleware";
-import { WebsocketService } from "./services";
+import { CommandService, WebsocketService } from "./services";
 import { BotContainer } from "./inversify.config";
 import { IUser } from "./models";
 
@@ -22,11 +22,16 @@ class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
     private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
     private socket: WebsocketService;
+    private commands: CommandService;
+
     constructor() {
         super(true);
         setupPassport();
         this.setupApp();
+
+        // Force call constructor before they're used by anything else. Probably a better way to do this...
         this.socket = BotContainer.get<WebsocketService>(WebsocketService);
+        this.commands = BotContainer.get<CommandService>(CommandService);
     }
 
     public start(port: number): void {
@@ -71,7 +76,6 @@ class BotServer extends Server {
                 saveUninitialized: true,
                 cookie: {
                     httpOnly: true,
-                    sameSite: true,
                     secure: false,
                     path: "/",
                 },
