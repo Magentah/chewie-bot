@@ -10,7 +10,14 @@ WORKDIR /usr/src/chewiebot/client
 COPY . ./
 RUN yarn build
 
-FROM nginx:stable-alpine
+FROM nginx:stable-alpine AS dep
+RUN apk add vim --no-cache
+RUN apk add openssl --no-cache
+
+FROM dep
 COPY --from=build /usr/src/chewiebot/client/build /usr/share/nginx/html
-COPY default.conf /etc/nginx/conf.d/
+COPY ./nginx/default.conf /etc/nginx/conf.d/
+COPY ./nginx/server.crt /etc/nginx/
+COPY ./nginx/server.key /etc/nginx
+
 EXPOSE 80
