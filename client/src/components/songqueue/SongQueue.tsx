@@ -1,22 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import MUIDataTable, { MUIDataTableOptions } from "mui-datatables";
 import { Image } from "react-bootstrap";
-import { Grid, Typography, Box, makeStyles } from "@material-ui/core";
+import { Grid, Typography, Box, makeStyles, GridList, GridListTile, ListSubheader, GridListTileBar, Divider, Tooltip } from "@material-ui/core";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
 import IconButton from "@material-ui/core/IconButton";
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
 import useUser, { UserLevels } from "../../hooks/user";
-
-type YTVideo = {
-    idx: number;
-    id: string;
-    duration: string;
-    name: string;
-    channel: string;
-};
 
 const x: any = {
     MUIDataTableHeadCell: {
@@ -33,6 +26,25 @@ const getMuiTheme = () => {
         overrides: x,
     });
 };
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-start',
+      overflow: 'hidden',
+      backgroundColor: theme.palette.background.paper,
+      marginBottom: '2em',
+      marginTop: '1em'
+    },
+    gridList: {
+      width: 500,
+    },
+    icon: {
+      color: 'rgba(255, 255, 255, 0.54)',
+    },
+}));
+
 
 const PreviewCell: React.FC<any> = (value) => {
     return (
@@ -136,10 +148,16 @@ interface Song {
     requestSource: string;
 }
 
+interface OwnRequest {
+    index: number,
+    song: Song
+}
+
 const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [user, loadUser] = useUser();
+    const classes = useStyles();
 
     const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
     const deleteSong = (songIndex: number) =>
@@ -286,21 +304,44 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     // Find own requested songs and list them.
     let ownSongQueue;
-    let ownSongs: Song[] = [];
+    let ownSongs: OwnRequest[] = [];
     for (const song of songs) {
         if (song.requestedBy === user.username) {
-            ownSongs.push(song);
+            ownSongs.push({
+                index: songs.indexOf(song),
+                song: song
+            });
         }
     }
 
     if (ownSongs.length > 0) {
         ownSongQueue = 
-            <MUIDataTable
-                title="Your requests"
-                data={ownSongs}
-                columns={columns}
-                options={{ elevation: 0, download: false, print: false, selectableRows: "none", filter: false, pagination: false, search: false }}
-            />;
+        <Box mb={1}>
+            <Typography variant="h5">
+                Your requests
+            </Typography>
+            <div className={classes.root}>
+                <GridList cellHeight={140} className={classes.gridList}>
+                    {ownSongs.map((tile) => (
+                        <GridListTile key={tile.song.previewData.previewUrl}>
+                            <img src={tile.song.previewData.previewUrl} alt={tile.song.details.title} />
+                            <Tooltip title={tile.song.details.title}>
+                                <GridListTileBar
+                                    title={tile.song.details.title}
+                                    subtitle={<span>Position: {tile.index + 1}</span>}
+                                    actionIcon={
+                                        <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
+                                            <OpenInNewIcon />
+                                        </IconButton>
+                                    }
+                                />
+                                </Tooltip>
+                        </GridListTile>
+                    ))}
+                </GridList>
+            </div>
+            <Divider />
+        </Box>
     }
 
     return (

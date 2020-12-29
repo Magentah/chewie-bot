@@ -61,6 +61,8 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     };
 
     useEffect(() => {
+        loadUser();
+        
         axios.get("/api/twitch/status").then((response) => {
             if (response.data === "OPEN") {
                 setBotConnected(true);
