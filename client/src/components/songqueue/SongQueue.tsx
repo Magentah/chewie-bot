@@ -39,6 +39,9 @@ const useStyles = makeStyles((theme) => ({
       marginBottom: '2em',
       marginTop: '1em'
     },
+    gridList: {
+        width: '100%'
+    },
     icon: {
       color: 'rgba(255, 255, 255, 0.54)',
     },
@@ -208,7 +211,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         });
     }, []);
 
-    useEffect(() => { loadUser(); });
+    useEffect(loadUser, []);
 
     useEffect(() => {
         websocket.current = new WebsocketService();
@@ -382,7 +385,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             {(ownSongs.length === 0)
              ? <Typography>No song requests made.</Typography>
              : <div className={classes.root}>
-                   <GridList cellHeight={140} cols={3}>
+                   <GridList cellHeight={140} cols={3} className={classes.gridList}>
                        {ownSongs.map((tile) => (
                            <GridListTile key={tile.song.previewData.previewUrl}>
                                <img src={tile.song.previewData.previewUrl} alt={tile.song.details.title} />

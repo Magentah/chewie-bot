@@ -38,7 +38,7 @@ const SideBar: React.FC<any> = (props: any) => {
     
     console.log("SideBar", location.pathname);
 
-    useEffect(() => { loadUser() });
+    useEffect(loadUser, []);
     
     const reroute = (path: string) => {
         console.log("reroute", path);
