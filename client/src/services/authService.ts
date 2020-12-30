@@ -1,5 +1,4 @@
 import axios from "axios";
-import { ResponsiveEmbed } from "react-bootstrap";
 
 axios.interceptors.response.use(
     (response) => response,

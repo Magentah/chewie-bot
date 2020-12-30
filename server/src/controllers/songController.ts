@@ -53,21 +53,27 @@ class SongController {
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a valid request source."));
             return;
         }
-        const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username);
 
-        if (song === undefined) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
-            res.send(
-                APIHelper.error(
-                    StatusCodes.INTERNAL_SERVER_ERROR,
-                    "There was an error when attempting to add the song request."
-                )
-            );
-            return;
+        try {
+            const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username);
+
+            if (song === undefined) {
+                res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+                res.send(
+                    APIHelper.error(
+                        StatusCodes.INTERNAL_SERVER_ERROR,
+                        "There was an error when attempting to add the song request."
+                    )
+                );
+                return;
+            }
+
+            res.status(StatusCodes.OK);
+            res.send(song);
+        } catch (err) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
         }
-
-        res.status(StatusCodes.OK);
-        res.send(song);
     }
 
     /**
