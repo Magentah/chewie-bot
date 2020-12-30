@@ -10,6 +10,11 @@ export enum UserLevels {
     Broadcaster,
 }
 
+/**
+ * Custom hook for accessing the data of the currently logged in user.
+ * 
+ * @returns User object and callback to load the user data.
+ */
 const useUser = () => {
     const defaultUser: any = {
         streamlabsToken: null,
@@ -37,7 +42,6 @@ const useUser = () => {
         });
     };
 
-    // do something with them
     return [user, loadUser];
 }
 
