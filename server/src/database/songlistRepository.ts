@@ -34,7 +34,7 @@ export class SonglistRepository {
         const databaseService = await this.databaseProvider();
         await databaseService
             .getQueryBuilder(DatabaseTables.Songlist)
-            .update({ item })
+            .update(item)
             .where({ id: item.id });
     }
 

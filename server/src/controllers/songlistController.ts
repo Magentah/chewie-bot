@@ -31,10 +31,27 @@ class SonglistController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public updateSong(req: Request, res: Response): void {
-        /*const songs = this.songlistService.update(req.params.song);
-        res.status(StatusCodes.OK);
-        res.send(songs);*/;
+    public async updateSong(req: Request, res: Response): Promise<void> {
+        const newSong = req.body as ISonglistItem;
+        if (!newSong) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
+            return;
+        }
+        
+        try {
+            await this.songlistService.update(newSong);
+            res.status(StatusCodes.OK);
+            res.send(newSong);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song."
+                )
+            );
+        }
     }
 
     /**
@@ -43,15 +60,18 @@ class SonglistController {
      * @param res Express HTTP Response
      */
     public async addSong(req: Request, res: Response): Promise<void> {
-        if (req.body.song === undefined) {
+        const newSong = req.body as ISonglistItem;
+        if (!newSong) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
             return;
         }
         
-        const song = await this.songlistService.add(req.body as ISonglistItem);
-
-        if (song === undefined) {
+        try {
+            await this.songlistService.add(newSong);
+            res.status(StatusCodes.OK);
+            res.send(newSong);
+        } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
                 APIHelper.error(
@@ -59,11 +79,7 @@ class SonglistController {
                     "There was an error when attempting to add the song."
                 )
             );
-            return;
         }
-
-        res.status(StatusCodes.OK);
-        res.send(song);
     }
 
     /**
@@ -72,10 +88,16 @@ class SonglistController {
      * @param res Express HTTP Response
      */
     public removeSong(req: Request, res: Response): void {
-        const songIds = Array.from<ISong>(req.body.songs);
-        songIds.forEach((song) => {
-            this.songlistService.delete(song.id);
-        });
+        const song = req.body as ISonglistItem;
+        if (song) {
+            this.songlistService.delete(song);
+        } else if (Number(req.body)) {
+            this.songlistService.delete(req.body);
+        } else {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
+            return;
+        }
 
         res.sendStatus(StatusCodes.OK);
     }
