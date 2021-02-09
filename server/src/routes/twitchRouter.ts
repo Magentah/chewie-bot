@@ -14,4 +14,6 @@ twitchRouter.get("/api/twitch/disconnect", (res, req) => twitchController.discon
 twitchRouter.get("/api/twitch/botsettings", (res, req) => twitchController.getBotSettings(res, req));
 twitchRouter.post("/api/twitch/botSettings", (res, req) => twitchController.saveBotSettings(res, req));
 
+twitchRouter.get("/api/twitch/webhook/callback", (res, req) => undefined);
+
 export default twitchRouter;
