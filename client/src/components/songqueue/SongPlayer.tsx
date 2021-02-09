@@ -271,7 +271,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
             const newPlaybackPos = this.state.playbackDurationMs * (newPercentage as number) / 100.0;
 
             // Do not update if current state equals playback pos
-            if (this.state.playbackPosMs == newPlaybackPos) {
+            if (this.state.playbackPosMs === newPlaybackPos) {
                 return;
             }
 
@@ -289,7 +289,7 @@ export class SongPlayer extends React.Component<IProps, IState> {
             const authOptions = {
                 headers: { "Authorization": `Bearer ${token}`, "content-type": "application/json" }
             };
-            const response = axios.put(`${this.SpotifyPlayerPlayUrl}?device_id=${this.player?._options.id}`, postData, authOptions);
+            axios.put(`${this.SpotifyPlayerPlayUrl}?device_id=${this.player?._options.id}`, postData, authOptions);
             return "";
         };
 
