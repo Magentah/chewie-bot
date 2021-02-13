@@ -74,7 +74,9 @@ export class UserService {
         }
         const combinedChatList = Object.keys(chatList.chatters).reduce((chatterList, key) => {
             const chatters = (chatList.chatters as any)[key] as string[];
-            chatterList.push((chatList.chatters as any)[key]);
+            chatters.forEach((user: string) => {
+                chatterList.push(user);
+            });
             return chatterList;
         }, Array<string>());
 

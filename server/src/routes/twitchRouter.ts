@@ -14,6 +14,10 @@ twitchRouter.get("/api/twitch/disconnect", (res, req) => twitchController.discon
 twitchRouter.get("/api/twitch/botsettings", (res, req) => twitchController.getBotSettings(res, req));
 twitchRouter.post("/api/twitch/botSettings", (res, req) => twitchController.saveBotSettings(res, req));
 
-twitchRouter.get("/api/twitch/webhook/callback", (res, req) => undefined);
+twitchRouter.post("/api/twitch/eventsub/callback", (res, req) => twitchController.eventsubCallback(res, req));
+twitchRouter.get("/api/twitch/eventsub/subscriptions", (res, req) =>
+    twitchController.getEventSubSubscriptions(res, req)
+);
+twitchRouter.post("/api/twitch/eventsub/subscription", (res, req) => twitchController.subscribeEventSub(res, req));
 
 export default twitchRouter;

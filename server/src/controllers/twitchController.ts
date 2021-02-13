@@ -89,6 +89,16 @@ class TwitchController {
         }
     }
 
+    public async getEventSubSubscriptions(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.getSubscriptions();
+        res.sendStatus(StatusCodes.OK);
+    }
+
+    public async subscribeEventSub(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.subscribeEvent(req.body.event, req.body.userId);
+        res.sendStatus(StatusCodes.ACCEPTED);
+    }
+
     public async eventsubCallback(req: Request, res: Response): Promise<void> {
         Logger.info(LogType.Twitch, req.body);
         const verified = await this.twitchEventService.verifySignature(req);

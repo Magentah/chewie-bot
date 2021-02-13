@@ -5,7 +5,7 @@ import { Logger, LogType } from "../logger";
 import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType } from "../models";
 import { Response } from "../helpers";
 import * as Config from "../config.json";
-
+import Constants from "../constants";
 // Required to do it this way instead of from "../services" due to inversify breaking otherwise
 import CommandService from "../services/commandService";
 import UserService from "../services/userService";
@@ -95,6 +95,8 @@ export class TwitchService {
         try {
             Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
             this.client.join(channel);
+            const test = await this.channelSearch("chewiemelodies");
+            Logger.info(LogType.Twitch, "Test channel search", test);
             return Response.Success();
         } catch (error) {
             Logger.warn(LogType.Twitch, error);
@@ -121,6 +123,35 @@ export class TwitchService {
         }
     }
 
+    public async channelSearch(channelName: string): Promise<any> {
+        const accessDetails = await this.getAccessToken();
+        const options = {
+            headers: {
+                Authorization: `Bearer ${accessDetails.token}`,
+                "Client-Id": accessDetails.clientId,
+            },
+        };
+        const { data } = await axios.get(
+            `${Constants.TwitchAPIEndpoint}/search/channels?query=${channelName}`,
+            options
+        );
+        return data;
+    }
+
+    private async getAccessToken(): Promise<any> {
+        const clientId = Config.twitch.clientId;
+        const clientSecret = Config.twitch.clientSecret;
+        const scopes = Constants.TwitchScopes;
+        const { data } = await axios.post(
+            `${Constants.TwitchTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=${scopes}`
+        );
+
+        return {
+            clientId,
+            token: data.access_token,
+        };
+    }
+
     /**
      * Get the chat list for a channel.
      * @param channel The channel name to get the chat list for.
@@ -128,7 +159,7 @@ export class TwitchService {
     private async getChatList(channel: string): Promise<void> {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
 
-        const { data } = await axios.get(`https://tmi.twitch.tv/group/user/${channel}/chatters`);
+        const { data } = await axios.get(`https://tmi.twitch.tv/group/user/${channel.slice(1)}/chatters`);
         Logger.info(LogType.Twitch, `GetChatList: ${data}`);
         this.channelUserList.set(channel, data);
         this.users.addUsersFromChatList(data);

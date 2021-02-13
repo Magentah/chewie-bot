@@ -9,10 +9,13 @@ import { Request } from "express";
 import * as crypto from "crypto";
 
 interface ISubscriptionData {
+    id?: string;
+    status?: string;
     type: string;
     version: string;
     condition: ISubscriptionCondition;
     transport: ISubscriptionTransport;
+    createdAt?: Date;
 }
 
 interface ISubscriptionResponse extends ISubscriptionData {
@@ -31,11 +34,14 @@ interface ISubscriptionTransport {
     secret: string;
 }
 
-interface ISubscriptionHeaders {}
-
 interface IAccessToken {
     token: string;
     expiry: number;
+}
+
+interface IEventSubNotification {
+    subscription: ISubscriptionData;
+    event: any;
 }
 
 enum EventTypes {
@@ -68,7 +74,50 @@ export default class TwitchEventService {
         return signature === req.headers["Twitch-Eventsub-Message-Signature"];
     }
 
-    public async handleNotification(req: Request): Promise<void> {}
+    public async handleNotification(notification: IEventSubNotification): Promise<void> {
+        if (notification.subscription.type) {
+            switch (notification.subscription.type) {
+                case EventTypes.ChannelPointsRedeemed: {
+                    this.channelPointsRedeemedEvent(notification.event);
+                    break;
+                }
+                case EventTypes.StreamOnline: {
+                    this.channelOnlineEvent(notification.event);
+                    break;
+                }
+                case EventTypes.StreamOffline: {
+                    this.channelOfflineEvent(notification.event);
+                    break;
+                }
+                default: {
+                    Logger.warn(
+                        LogType.Twitch,
+                        `Twitch EventSub Notification received for event type ${notification.subscription.type}, but that event type is not handled.`,
+                        notification
+                    );
+                    break;
+                }
+            }
+        }
+    }
+
+    private channelPointsRedeemedEvent(notificationEvent: any): void {
+        Logger.info(LogType.Twitch, notificationEvent);
+    }
+
+    private channelOnlineEvent(notificationEvent: any): void {
+        Logger.info(LogType.Twitch, notificationEvent);
+    }
+
+    private channelOfflineEvent(notificationEvent: any): void {
+        Logger.info(LogType.Twitch, notificationEvent);
+    }
+
+    public async subscribeEvent(event: EventTypes, userId: string): Promise<void> {
+        const data = this.getSubscriptionData(event, userId);
+        const result = await this.createSubscription(data);
+        Logger.info(LogType.Twitch, `Created subscription for event type: ${event} for user id: ${userId}`, result);
+    }
 
     public async subscribeStreamOnline(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventTypes.StreamOnline, userId);
@@ -100,20 +149,20 @@ export default class TwitchEventService {
         };
     }
 
-    private async getSubscriptions(): Promise<void> {
-        let options = await this.getOptions();
+    public async getSubscriptions(): Promise<void> {
+        const options = await this.getOptions();
 
         const result = await axios.get(Constants.TwitchEventSubEndpoint, options);
         Logger.info(LogType.Twitch, result.data);
     }
 
     private async deleteSubscription(id: string): Promise<void> {
-        let options = await this.getOptions();
+        const options = await this.getOptions();
         const result = await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
     }
 
     private async createSubscription(data: ISubscriptionData): Promise<ISubscriptionResponse | undefined> {
-        let options = await this.getOptions("application/json");
+        const options = await this.getOptions("application/json");
 
         data.transport.secret = this.verificationSecret;
         const result = await axios.post(Constants.TwitchEventSubEndpoint, data, options);
@@ -143,7 +192,7 @@ export default class TwitchEventService {
 
     private async getOptions(contentType?: string): Promise<AxiosRequestConfig> {
         await this.refreshToken();
-        let options: AxiosRequestConfig = {
+        const options: AxiosRequestConfig = {
             headers: {
                 "Client-Id": Config.twitch.clientId,
                 Authorization: `Bearer ${this.accessToken.token}`,
