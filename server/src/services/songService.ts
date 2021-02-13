@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { InvalidSongUrlError } from "../errors";
+import { InvalidSongUrlError, SongAlreadyInQueueError } from "../errors";
 import { Logger, LogType } from "../logger";
 import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";
 import SpotifyService from "./spotifyService";
@@ -107,6 +107,15 @@ export class SongService {
     public async addSong(url: string, requestSource: RequestSource, username: string): Promise<ISong> {
         try {
             let song = this.parseUrl(url);
+            
+            const existingSong = Object.values(this.songQueue).filter((s) => {
+                return s.sourceId === song.sourceId && s.source === song.source;
+            })[0];
+
+            if (existingSong) {
+                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
+            }
+
             song = await this.getSongDetails(song);
             this.songQueue[song.id] = song;
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);

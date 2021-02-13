@@ -22,6 +22,7 @@ import { Image } from "react-bootstrap";
 import { Save, Visibility, VisibilityOff } from "@material-ui/icons";
 import AuthService from "../../services/authService";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
+import useUser from "../../hooks/user";
 
 const useStyles = makeStyles((theme) => ({
     title: {
@@ -70,36 +71,14 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const classes = useStyles();
     const isDev = true;
 
-    const defaultUser: any = {
-        streamlabsToken: null,
-        username: null,
-    };
-
-    const [user, setUser] = useState(defaultUser);
+    const [user, loadUser] = useUser();
     const [botUsername, setBotUsername] = useState("");
     const [botOAuth, setBotOAuth] = useState("");
     const [saved, setSaved] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
     const [showBotOAuth, setShowBotOAuth] = useState(false);
 
-    useEffect(() => {
-        axios
-            .get("api/isloggedin", {
-                withCredentials: true,
-            })
-            .then((response: AxiosResponse<any>) => {
-                if (response.status === 200) {
-                    const userWrapper: any = { user: response.data };
-                    console.log("login", userWrapper);
-                    setUser(userWrapper.user);
-                } else if (response.status === 403) {
-                    //
-                }
-            })
-            .catch((err: AxiosError<any>) => {
-                console.log("ERR", err);
-            });
-    }, []);
+    useEffect(() => { loadUser() }, []);
 
     useEffect(() => {
         axios.get("api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {

@@ -3,13 +3,20 @@ import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { ResponseStatus } from "../models";
 import { Logger, LogType } from "../logger";
-import { TwitchService, TwitchServiceProvider, BotSettingsService } from "../services";
+import { TwitchService, TwitchServiceProvider, BotSettingsService, TwitchEventService } from "../services";
+
+enum TwitchEventMessageType {
+    Verification,
+    Notification,
+    Revocation,
+}
 
 @injectable()
 class TwitchController {
     constructor(
         @inject("TwitchServiceProvider") private twitchProvider: TwitchServiceProvider,
-        @inject(BotSettingsService) private botSettingsService: BotSettingsService
+        @inject(BotSettingsService) private botSettingsService: BotSettingsService,
+        @inject(TwitchEventService) private twitchEventService: TwitchEventService
     ) {
         //
     }
@@ -79,6 +86,45 @@ class TwitchController {
             }
         } catch (error) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
+        }
+    }
+
+    public async eventsubCallback(req: Request, res: Response): Promise<void> {
+        Logger.info(LogType.Twitch, req.body);
+        const verified = await this.twitchEventService.verifySignature(req);
+
+        if (!verified) {
+            res.sendStatus(StatusCodes.FORBIDDEN);
+        }
+
+        const type = this.getTwitchEventMessageType(req);
+
+        switch (type) {
+            case TwitchEventMessageType.Verification: {
+                res.send(req.body.challenge);
+                break;
+            }
+            case TwitchEventMessageType.Notification: {
+                res.sendStatus(StatusCodes.ACCEPTED);
+                this.twitchEventService.handleNotification(req.body);
+                break;
+            }
+            case TwitchEventMessageType.Revocation: {
+                res.sendStatus(StatusCodes.ACCEPTED);
+                break;
+            }
+        }
+    }
+
+    public async eventsubNotification(req: Request, res: Response): Promise<void> {}
+
+    private getTwitchEventMessageType(req: Request): TwitchEventMessageType {
+        if ((req.headers["Twitch-Eventsub-Message-Type"] as string) === "webhook_callback_verification") {
+            return TwitchEventMessageType.Verification;
+        } else if ((req.headers["Twitch-Eventsub-Message-Type"] as string) === "revocation") {
+            return TwitchEventMessageType.Revocation;
+        } else {
+            return TwitchEventMessageType.Notification;
         }
     }
 }

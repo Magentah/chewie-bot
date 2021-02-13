@@ -9,3 +9,4 @@ export { default as SpotifyService } from "./spotifyService";
 export { default as WebsocketService } from "./websocketService";
 export { default as EventService } from "./eventService";
 export { default as BotSettingsService } from "./botSettingsService";
+export { default as TwitchEventService } from "./twitchEventService";

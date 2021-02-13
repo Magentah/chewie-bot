@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer } from "@material-ui/core";
 
 import { Route, DashboardRoutes } from "../../Routes";
+import useUser from "../../hooks/user";
 
 const width = 230;
 const useStyles = makeStyles((theme) => {
@@ -33,14 +34,22 @@ const SideBar: React.FC<any> = (props: any) => {
     const location = useLocation();
     const history = useHistory();
     const classes = useStyles();
+    const [user, loadUser] = useUser();
+    
     console.log("SideBar", location.pathname);
 
+    useEffect(loadUser, []);
+    
     const reroute = (path: string) => {
         console.log("reroute", path);
         history.push(path);
     };
     const renderRoutes = (routes: Array<Route>) => {
         const listItems = routes.map((r: Route, i: number) => {
+            if (user.userLevelKey < r.minUserLevel) {
+                return null;
+            }
+
             return (
                 <React.Fragment key={r.name}>
                     <Divider />
@@ -52,7 +61,7 @@ const SideBar: React.FC<any> = (props: any) => {
                         )}
                         <ListItemText primary={r.name} />
                     </ListItem>
-                    {i == routes.length - 1 && <Divider />}
+                    {i === routes.length - 1 && <Divider />}
                 </React.Fragment>
             );
         });
