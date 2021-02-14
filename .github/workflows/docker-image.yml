@@ -15,8 +15,7 @@ jobs:
             # Updates the config.json file name, as we store an example config.json file in the repository and don't commit the actual config file.
             # It uses a different name just so that it's less hassle when commiting
             - name: Update config file name
-              run: cp "./server/src/myconfig.json" "./server/src/config.json"
-            - uses: actions/checkout@v2
+              run: cp ./server/src/myconfig.json ./server/src/config.json
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
             - name: Set up Docker Buildx
