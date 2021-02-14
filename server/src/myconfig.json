@@ -4,21 +4,21 @@
         "clientSecret": "",
         "redirectUri": "",
         "username": "",
-        "broadcasterName": "",
-        "oauth": ""
+        "oauth": "",
+        "broadcasterName": ""
     },
     "streamlabs": {
         "clientId": "",
         "clientSecret": "",
         "redirectUri": ""
     },
-    "youtube": {
-        "apiKey": "",
-        "clientId": ""
-    },
     "spotify": {
+        "clientId": "",
         "clientSecret": "",
-        "clientId": ""
+        "redirectUri": ""
+    },
+    "youtube": {
+        "apiKey": ""
     },
     "secretKey": "",
     "log": {

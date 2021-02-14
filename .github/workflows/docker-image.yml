@@ -11,15 +11,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            # Updates the config.json file name, as we store an example config.json file in the repository and don't commit the actual config file.
+            # It uses a different name just so that it's less hassle when commiting
+            - name: Update config file name
+              run: cp "./server/src/myconfig.json" "./server/src/config.json"
             - uses: actions/checkout@v2
-
-            - name: Create config.json
-              id: create-json
-              uses: jsdaniell/create-json@1.1.2
-              with:
-                  name: "config.json"
-                  json: ${{ secrets.chewieBotConfig }}
-                  dir: "./server/src/"
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
             - name: Set up Docker Buildx
@@ -38,12 +34,17 @@ jobs:
                   twitch.clientId: ${{ secrets.twitchClientId }}
                   twitch.clientSecret: ${{ secrets.twitchClientSecret }}
                   twitch.redirectUri: ${{ secrets.twitchRedirectUri }}
+                  twitch.username: ${{ secrets.twitchUsername }}
                   twitch.oauth: ${{ secrets.twitchClientOauth }}
+                  twitch.broadcasterName: ${{ secrets.twitchBroadcasterName }}
                   youtube.apiKey: ${{ secrets.youtubeApi }}
                   secretKey: ${{ secrets.botSecretKey }}
                   streamlabs.clientId: ${{ secrets.streamlabsClientId }}
                   streamlabs.clientSecret: ${{ secrets.streamlabsClientSecret }}
                   streamlabs.redirectUri: ${{ secrets.streamlabsRedirectUri }}
+                  spotify.clientId: ${{ secrets.spotifyClientId }}
+                  spotify.clientSecret: ${{ secrets.spotifyClientSecret }}
+                  spotify.redirectUri: ${{ secrets.spotifyRedirectUri }}
             - name: Build Server Docker Image
               uses: docker/build-push-action@v2
               with:
