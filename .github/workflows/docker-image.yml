@@ -11,6 +11,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - uses: actions/checkout@v2
             # Updates the config.json file name, as we store an example config.json file in the repository and don't commit the actual config file.
             # It uses a different name just so that it's less hassle when commiting
             - name: Update config file name
