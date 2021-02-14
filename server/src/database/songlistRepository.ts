@@ -1,6 +1,7 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 import { ISonglistItem } from "../models";
+import { now } from "moment";
 
 @injectable()
 export class SonglistRepository {
@@ -27,6 +28,7 @@ export class SonglistRepository {
 
     public async add(item: ISonglistItem): Promise<void> {
         const databaseService = await this.databaseProvider();
+        item.created = new Date();
         await databaseService.getQueryBuilder(DatabaseTables.Songlist).insert(item);
     }
 

@@ -9,6 +9,7 @@ import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Lens
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
 import MusicRequestView from "./views/music-requests/MusicRequestView";
+import SongList from "./components/songlist/songlist";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
 
@@ -50,7 +51,7 @@ const DashboardRoutes: Array<Route> = [
         path: "/songlist",
         name: "Songlist",
         icon: LibraryMusic,
-        component: DefaultComponent,
+        component: SongList,
         minUserLevel: UserLevels.Viewer
     },
     {

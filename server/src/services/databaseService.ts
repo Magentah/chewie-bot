@@ -192,6 +192,7 @@ export class DatabaseService {
             table.string("album").notNullable();
             table.string("title").notNullable();
             table.string("genre").notNullable();
+            table.dateTime("created").notNullable();
         });
     }
 

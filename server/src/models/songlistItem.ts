@@ -3,4 +3,5 @@ export default interface ISonglistItem {
     album: string;
     title: string;
     genre: string;
+    created: Date
 }
