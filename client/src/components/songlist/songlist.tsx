@@ -31,9 +31,47 @@ type FailedSongListState = {
    
 type SongListState = NoSongListState | AddedSongListState | AddingSongListState | FailedSongListState;
 
+function fallbackCopyTextToClipboard(text: string) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+  
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+  
+    try {
+      var successful = document.execCommand('copy');
+      var msg = successful ? 'successful' : 'unsuccessful';
+      console.log('Fallback: Copying text command was ' + msg);
+    } catch (err) {
+      console.error('Fallback: Oops, unable to copy', err);
+    }
+  
+    document.body.removeChild(textArea);
+}
+
+function copyTextToClipboard(text: string) {
+    if (!navigator.clipboard) {
+        fallbackCopyTextToClipboard(text);
+        return;
+    }
+    navigator.clipboard.writeText(text).then(function() {
+        console.log('Async: Copying to clipboard was successful!');
+    }, function(err) {
+        console.error('Async: Could not copy text: ', err);
+    });
+}
+  
 const SongList: React.FC<any> = (props: any) => {
+    type RowData = {title: string, album: string, genre: string};
+
     const classes = useStyles();
-    const [songlist, setSonglist] = useState([] as any);
+    const [songlist, setSonglist] = useState([] as RowData[]);
     const [user, loadUser] = useUser();
 
     const [songlistOrigin, setSonglistOrigin] = useState<string>();
@@ -53,7 +91,7 @@ const SongList: React.FC<any> = (props: any) => {
         try {
             setSongListState({state: "progress"});
 
-            const newData = { album: songlistOrigin, title: songlistTitle, genre: songlistGenre };
+            const newData = { album: songlistOrigin, title: songlistTitle, genre: songlistGenre } as RowData;
             const result = await axios.post("/api/songlist/add", newData,
                     { validateStatus: function(status) {  return true; }});
             if (result.status === 200) {
@@ -139,6 +177,17 @@ const SongList: React.FC<any> = (props: any) => {
                     actionsColumnIndex: 3,
                     showTitle: false
                 }}
+                actions={[
+                    {
+                      icon: 'content_copy',
+                      tooltip: 'Copy to clipboard',
+                      onClick: (event, rowData) => {
+                        if ((rowData as RowData).title !== undefined) {
+                            copyTextToClipboard((rowData as RowData).album + " - " + (rowData as RowData).title);
+                        }
+                      }
+                    }
+                ]}
                 data = {songlist}
                 editable = {(user.userLevelKey < UserLevels.Moderator) ? undefined :
                     {
