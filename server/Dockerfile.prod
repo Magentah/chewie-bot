@@ -25,7 +25,7 @@ WORKDIR /usr/src/chewiebot/server
 # Copy src
 COPY . .
 # Install and run typescript
-RUN yarn global add typescript -y
+RUN yarn global add typescript
 RUN tsc
 
 # --- Production ---
