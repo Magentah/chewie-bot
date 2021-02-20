@@ -3,8 +3,9 @@ import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from 'material-table'
 import useUser, { UserLevels } from "../../hooks/user";
-import { Grid, TextField, Button, CircularProgress, Box, Card } from "@material-ui/core";
+import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon } from "@material-ui/core";
 import AddIcon from '@material-ui/icons/Add';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 const useStyles = makeStyles((theme) => ({
     addButton: {
@@ -114,11 +115,29 @@ const SongList: React.FC<any> = (props: any) => {
         }
     };
 
+    const songrequestRules = (<Box mb={2}>
+        <Accordion defaultExpanded={true}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography>Rules when requesting songs</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+            <Typography>
+                <ul>
+                    <li>Songs can be requested during medleys or song suggestion sections (usually after live-learns are done). </li>
+                    <li>To suggest, just post the title in chat (no links please). You can copy to clipboard using the <Icon fontSize={"small"}>content_copy</Icon> icon in each row.</li>
+                    <li>Feel free to ask multiple times if your song is not played, but don't spam.</li>
+                    <li>If Chewie continues to ignore your suggestion during medley, he might have forgotten how to play it temporarily. Try again another time!</li>
+                </ul>
+            </Typography>
+            </AccordionDetails>
+        </Accordion>
+    </Box>);
+
     const addForm = (user.userLevelKey < UserLevels.Moderator) ? undefined :
         <Box mb={2}>
             <Card><Box py={1} px={2}>
                 <form onSubmit={submitSongList}>
-                    <Grid container spacing={2} justify="flex-start">
+                    <Grid container spacing={2} justify="flex-start" wrap={"nowrap"}>
                         <Grid item xs={4}>
                             <TextField
                                 id="song-origin"
@@ -146,7 +165,7 @@ const SongList: React.FC<any> = (props: any) => {
                                 onChange={(e) => setSonglistGenre(e.target.value)}
                             />
                         </Grid>
-                        <Grid item xs={1}>
+                        <Grid item xs={1} style={{minWidth: "7em"}} >
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -163,6 +182,7 @@ const SongList: React.FC<any> = (props: any) => {
         </Box>;
 
     return <div>
+            {songrequestRules}
             {addForm}
             <MaterialTable
                 columns = {[

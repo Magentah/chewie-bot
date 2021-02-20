@@ -1,7 +1,6 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 import { ISonglistItem } from "../models";
-import { now } from "moment";
 
 @injectable()
 export class SonglistRepository {
