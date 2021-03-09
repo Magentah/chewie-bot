@@ -1,6 +1,6 @@
 import BotServer from "./botServer";
 import Logger from "./logger";
-import "./lang/index.ts";
+import "./lang/index";
 
 process.on("warning", (e) => console.log(e.stack));
 process.on("error", (e) => console.log(e.stack));
