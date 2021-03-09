@@ -14,6 +14,7 @@ export enum DatabaseTables {
     VIPLevels = "vipLevels",
     CommandAliases = "commandAliases",
     BotSettings = "botSettings",
+    Songlist = "songlist",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -77,6 +78,7 @@ export class DatabaseService {
                 await this.createTextCommandsTable();
                 await this.createCommandAliasTable();
                 await this.createBotSettingsTable();
+                await this.createSonglistTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -181,6 +183,16 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("username").unique().notNullable();
             table.string("oauth").notNullable();
+        });
+    }
+
+    private async createSonglistTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Songlist, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("album").notNullable();
+            table.string("title").notNullable();
+            table.string("genre").notNullable();
+            table.dateTime("created").notNullable();
         });
     }
 

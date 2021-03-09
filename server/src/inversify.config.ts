@@ -23,9 +23,11 @@ import CommandAliasesRepository from "./database/commandAliases";
 import SongController from "./controllers/songController";
 import TwitchController from "./controllers/twitchController";
 import EventController from "./controllers/eventController";
+import SonglistController from "./controllers/songlistController";
 
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
+import { SonglistRepository } from "./database";
 
 const botContainer = new Container();
 
@@ -78,10 +80,12 @@ botContainer.bind<DonationsRepository>(DonationsRepository).toSelf();
 botContainer.bind<TextCommandsRepository>(TextCommandsRepository).toSelf();
 botContainer.bind<CommandAliasesRepository>(CommandAliasesRepository).toSelf();
 botContainer.bind<BotSettingsRepository>(BotSettingsRepository).toSelf();
+botContainer.bind<SonglistRepository>(SonglistRepository).toSelf();
 
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();
 botContainer.bind<EventController>(EventController).toSelf();
+botContainer.bind<SonglistController>(SonglistController).toSelf();
 
 /*botContainer.bind<Command>(Commands.AcceptCommand).to(Commands.AcceptCommand);
 botContainer.bind<Command>(Commands.AddAliasCommand).to(Commands.AddAliasCommand);
