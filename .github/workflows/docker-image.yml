@@ -45,6 +45,19 @@ jobs:
                   spotify.clientId: ${{ secrets.spotifyClientId }}
                   spotify.clientSecret: ${{ secrets.spotifyClientSecret }}
                   spotify.redirectUri: ${{ secrets.spotifyRedirectUri }}
+                
+            - name: Copy SSL Config
+              run: 'echo "$SSL_KEY" > ./client/nginx/server.key'
+              shell: bash
+              env: 
+                SSL_KEY: ${{secrets.SSL_KEY}}
+                
+            - name: Copy SSL Config
+              run: 'echo "$SSL_CERT" > ./client/nginx/server.crt'
+              shell: bash
+              env:
+                SSL_CERT: ${{secrets.SSL_CERT}}
+            
             - name: Build Server Docker Image
               uses: docker/build-push-action@v2
               with:
