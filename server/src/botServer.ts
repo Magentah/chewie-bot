@@ -80,7 +80,7 @@ class BotServer extends Server {
                     path: "/",
                 },
                 name: "chewiebot.sid",
-                store: new RedisStore({ client: redisClient }),
+                store: new RedisStore({ client: redisClient as any }),
             })
         );
         this.app.use(passport.initialize());
