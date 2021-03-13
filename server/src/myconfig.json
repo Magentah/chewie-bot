@@ -41,7 +41,7 @@
         "client": "sqlite3",
         "version": "",
         "connection": {
-            "name": "chewiebot.db",
+            "name": "db/chewiebot.db",
             "host": "",
             "username": "",
             "password": ""

@@ -21,11 +21,11 @@ services:
     backend:
         build:
             context: ./server
-            dockerfile: Dockerfile
+            dockerfile: Dockerfile.prod
         volumes:
             - ./server:/usr/src/chewiebot/server
-            - chewiebot-db:/usr/src/chewiebot/server/db
+            - chewiebot-db:/usr/src/chewiebot/server/dist/db
             - "/usr/src/chewiebot/server/node_modules/"
         environment:
-            NODE_ENV: development
-        command: ["pm2-dev", "ecosystem.config.json"]
+            NODE_ENV: production
+        command: ["pm2-runtime", "start.js"]
