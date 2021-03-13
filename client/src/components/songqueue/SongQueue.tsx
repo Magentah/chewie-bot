@@ -255,7 +255,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     }
 
     // Find own requested songs and list them.
-    let ownSongQueue;
     let ownSongs: OwnRequest[] = [];
     for (const song of songs) {
         if (song.requestedBy === user.username) {
@@ -266,7 +265,47 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     }
 
-    ownSongQueue = 
+    let addSongrequestsForm = (user.userLevelKey >= UserLevels.Moderator)
+        ? <Grid item xs={12}>
+            <form onSubmit={submitSongRequest}>
+                <Grid container spacing={2} justify="flex-start">
+                    <Grid item xs={12} sm={4}>
+                        <TextField
+                            id="song-url"
+                            label="Add song request (URL)"
+                            fullWidth
+                            value={songRequestUrl}
+                            onChange={(e) => setsongRequestUrl(e.target.value)}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={2}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={songRequestState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
+                            onClick={submitSongRequest}
+                            className={classes.addButton}
+                            disabled={songRequestState?.state === "progress"}>
+                            Add
+                        </Button>
+                    </Grid>
+                </Grid>
+            </form>
+            <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="success">
+                    Song request added.
+                </Alert>
+            </Snackbar>
+            { songRequestState?.state === "failed" ?
+            <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="error">
+                    Song request could not be added: {songRequestState.message}
+                </Alert>
+            </Snackbar> : undefined}
+        </Grid>
+        : undefined;
+
+    let ownSongQueue = 
         <Box mb={1}>
             <Typography variant="h5">
                 Your requests
@@ -292,43 +331,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                    </GridList>
                </div>
             }
-            <Grid item xs={12}>
-                <form onSubmit={submitSongRequest}>
-                    <Grid container spacing={2} justify="flex-start">
-                        <Grid item xs={12} sm={4}>
-                            <TextField
-                                id="song-url"
-                                label="Add song request (URL)"
-                                fullWidth
-                                value={songRequestUrl}
-                                onChange={(e) => setsongRequestUrl(e.target.value)}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={2}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={songRequestState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
-                                onClick={submitSongRequest}
-                                className={classes.addButton}
-                                disabled={songRequestState?.state === "progress"}>
-                                Request
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </form>
-                <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="success">
-                        Song request added.
-                    </Alert>
-                </Snackbar>
-                { songRequestState?.state === "failed" ?
-                <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="error">
-                        Song request could not be added: {songRequestState.message}
-                    </Alert>
-                </Snackbar> : undefined}
-            </Grid>
+            {addSongrequestsForm}
             <Divider />
         </Box>
 
