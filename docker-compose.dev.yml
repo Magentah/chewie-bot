@@ -2,6 +2,7 @@
 version: "3"
 volumes:
     node_modules:
+    chewie-db:
 services:
     ui:
         build:
@@ -23,7 +24,10 @@ services:
             dockerfile: Dockerfile
         volumes:
             - ./server:/usr/src/chewiebot/server
+            - chewie-db:/usr/src/chewiebot/server/db
             - "/usr/src/chewiebot/server/node_modules/"
+        ports:
+            - 8080:8080
         environment:
             NODE_ENV: development
         command: ["pm2-dev", "ecosystem.config.json"]
