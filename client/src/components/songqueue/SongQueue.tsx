@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Image } from "react-bootstrap";
 import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress, Paper } from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
@@ -33,6 +33,11 @@ const useStyles = makeStyles((theme) => ({
         margin: theme.spacing(2, 0, 2),
     },
 }));
+
+export enum SongSource {
+    Youtube = "Youtube",
+    Spotify = "Spotify",
+}
 
 const PreviewCell: React.FC<any> = (value) => {
     return (
@@ -92,11 +97,6 @@ const RequesterStatusCell: React.FC<any> = (value: Song) => {
         </Grid>
     );
 };
-
-export enum SongSource {
-    Youtube = "Youtube",
-    Spotify = "Spotify",
-}
 
 interface Song {
     previewData: {
@@ -164,13 +164,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             return state.filter((_, i) => i !== songIndex);
         });
 
-    const onSongAdded = (message: ISocketMessage) => {
+    const onSongAdded = useCallback((message: ISocketMessage) => {
         if (message.data && message.data.details && message.data.sourceId) {
             message.data.details.sourceId = message.data.sourceId;
         }
         console.log(`song added`);
         addSong(message.data);
-    };
+    }, []);
 
     useEffect(() => {
         axios.get("/api/songs").then((response) => {
@@ -195,7 +195,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         console.log(`songqueue websocket connected`);
 
         websocket.current.onMessage(SocketMessageType.SongAdded, onSongAdded);
-    }, []);
+    }, [onSongAdded]);
 
     const onSongDeleted = (rowsDeleted: Song[]) => {
         axios.post("api/songs/delete", { songs: rowsDeleted }).then((response) => {

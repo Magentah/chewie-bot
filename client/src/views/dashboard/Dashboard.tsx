@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
 import { Switch, Route, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Typography, Divider } from "@material-ui/core";
