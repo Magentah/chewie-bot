@@ -14,7 +14,9 @@ import { AuthRouter, setupPassport, SonglistRouter, SongRouter, TwitchRouter } f
 import { RouteLogger, UserCookie } from "./middleware";
 import { CommandService, WebsocketService } from "./services";
 import { BotContainer } from "./inversify.config";
-import { IUser } from "./models";
+import { TwitchMessageSignatureError } from "./errors";
+import TwitchHelper from "./helpers/twitchHelper";
+import { StatusCodes } from "http-status-codes";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -62,11 +64,26 @@ class BotServer extends Server {
             port: 6379,
         });
 
-        this.app.use(bodyParser.json());
+        this.app.use(
+            bodyParser.json({
+                verify: (req, res, buf, encoding) =>
+                    TwitchHelper.verifyTwitchEventsubSignature(req, res, buf, encoding),
+            })
+        );
+
+        // Catch error from verifyTwitchEventsubSignature and return a 403 if verification fails.
+        this.app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+            if (err instanceof TwitchMessageSignatureError) {
+                Logger.err(LogType.Twitch, "Signature Failed for Twitch EventSub Message", err);
+                res.sendStatus(StatusCodes.UNAUTHORIZED);
+            } else {
+                next();
+            }
+        });
+
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(cookieParser(CryptoHelper.getSecret()));
         this.app.use(cors());
-        this.app.use(RouteLogger);
         this.app.set("views", dir);
         this.app.use(express.static(dir));
         this.app.use(
@@ -92,6 +109,7 @@ class BotServer extends Server {
             next();
         });
         this.app.use(UserCookie);
+        this.app.use(RouteLogger);
         this.app.get("/", (req, res) => {
             res.redirect("/");
         });
