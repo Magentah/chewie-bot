@@ -4,7 +4,6 @@ import { Button, Card, CardContent, Container, Divider, Grid, Typography } from 
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import { Image } from "react-bootstrap";
-import { useHistory } from "react-router-dom";
 
 type LoginProps = {};
 
@@ -69,10 +68,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 const Login: React.FC<LoginProps> = (props: LoginProps) => {
     const classes = useStyles();
-    const history = useHistory();
     const renderLinks = (links: Array<AffiliateLink>) => {
         return links.map((link: AffiliateLink, i: number) => (
-            <Grid item xs={12} style={{ paddingBottom: i == links.length - 1 ? 20 : 0 }} key={i}>
+            <Grid item xs={12} style={{ paddingBottom: i === links.length - 1 ? 20 : 0 }} key={i}>
                 <Button
                     className={classes.button}
                     style={{ backgroundColor: link.color }}

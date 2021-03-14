@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, Box } from "@material-ui/core";
 import SongQueue from "../../components/songqueue/SongQueue";
 import SongPlayer from "../../components/songqueue/SongPlayer";
