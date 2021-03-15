@@ -8,20 +8,27 @@ import { TwitchMessageSignatureError } from "../errors";
 const twitchRouter: express.Router = express.Router();
 const twitchController: TwitchController = BotContainer.get(TwitchController);
 
-twitchRouter.get("/api/twitch/:channel/join", (res, req) => twitchController.joinChannel(res, req));
-twitchRouter.get("/api/twitch/:channel/leave", (res, req) => twitchController.leaveChannel(res, req));
-twitchRouter.get("/api/twitch/status", (res, req) => twitchController.getStatus(res, req));
-twitchRouter.get("/api/twitch/connect", (res, req) => twitchController.connect(res, req));
-twitchRouter.get("/api/twitch/disconnect", (res, req) => twitchController.disconnect(res, req));
+twitchRouter.get("/api/twitch/:channel/join", (req, res) => twitchController.joinChannel(req, res));
+twitchRouter.get("/api/twitch/:channel/leave", (req, res) => twitchController.leaveChannel(req, res));
+twitchRouter.get("/api/twitch/status", (req, res) => twitchController.getStatus(req, res));
+twitchRouter.get("/api/twitch/connect", (req, res) => twitchController.connect(req, res));
+twitchRouter.get("/api/twitch/disconnect", (req, res) => twitchController.disconnect(req, res));
 
-twitchRouter.get("/api/twitch/botsettings", (res, req) => twitchController.getBotSettings(res, req));
-twitchRouter.post("/api/twitch/botSettings", (res, req) => twitchController.saveBotSettings(res, req));
+twitchRouter.get("/api/twitch/botsettings", (req, res) => twitchController.getBotSettings(req, res));
+twitchRouter.post("/api/twitch/botSettings", (req, res) => twitchController.saveBotSettings(req, res));
 
-twitchRouter.post("/api/twitch/eventsub/callback", (res, req) => twitchController.eventsubCallback(res, req));
-twitchRouter.get("/api/twitch/eventsub/subscriptions", (res, req) =>
-    twitchController.getEventSubSubscriptions(res, req)
+twitchRouter.post("/api/twitch/eventsub/callback", (req, res) => twitchController.eventsubCallback(req, res));
+twitchRouter.get("/api/twitch/eventsub/subscriptions", (req, res) =>
+    twitchController.getEventSubSubscriptions(req, res)
 );
-twitchRouter.post("/api/twitch/eventsub/subscription", (res, req) => twitchController.subscribeEventSub(res, req));
-twitchRouter.post("/api/twitch/eventsub/setcallback", (res, req) => twitchController.setEventSubCallbackUrl(res, req));
+twitchRouter.delete("/api/twitch/eventsub/subscriptions", (req, res) => {
+    if (req.query.all === "true") {
+        twitchController.deleteAllSubscriptions(req, res);
+    } else {
+        twitchController.deleteInactiveSubscriptions(req, res);
+    }
+});
+twitchRouter.post("/api/twitch/eventsub/subscription", (req, res) => twitchController.subscribeEventSub(req, res));
+twitchRouter.post("/api/twitch/eventsub/setcallback", (req, res) => twitchController.setEventSubCallbackUrl(req, res));
 
 export default twitchRouter;

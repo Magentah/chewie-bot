@@ -45,8 +45,34 @@ interface IEventSubNotification {
 enum EventTypes {
     StreamOnline = "stream.online",
     StreamOffline = "stream.offline",
+    ChannelUpdate = "channel.update",
     ChannelFollow = "channel.follow",
+    ChannelSubscribe = "channel.subscribe",
+    ChannelChear = "channel.cheer",
+    ChannelRaid = "channel.raid",
+    ChannelBan = "channel.ban",
+    ChannelUnban = "channel.unban",
+    ChannelModeratorAdd = "channel.moderator.add",
+    ChannelModeratorRemove = "channel.moderator.remove",
+    ChannelPointsRewardAdd = "channel.channel_points_custom_reward.add",
+    ChannelPointsRewardUpdate = "channel.channel_points_custom_reward.update",
+    ChannelPointsRewardRemove = "channel.channel_points_custom_reward.remove",
     ChannelPointsRedeemed = "channel.channel_points_custom_reward_redemption.add",
+    ChannelPointsRedeemedUpdate = "channel.channel_points_custom_reward_redemption.update",
+    HypeTrainBegin = "channel.hype_train.begin",
+    HypeTrainProgress = "channel.hype_train.progress",
+    HypeTrainEnd = "channel.hype_train.end",
+    UserAuthorizationRevoke = "user.authorization.revoke",
+    UserUpdate = "user.update",
+}
+
+enum SubscriptionStatus {
+    Enabled = "enabled",
+    VerificationPending = "webhook_callback_verification_pending",
+    VerificationFailed = "webhook_callback_verification_failed",
+    NotificationFailuresExceeded = "notification_failures_exceeded",
+    AuthorizationRevoked = "authorization_revoked",
+    UserRemoved = "user_removed",
 }
 
 @injectable()
@@ -143,10 +169,15 @@ export default class TwitchEventService {
         };
     }
 
-    public async getSubscriptions(): Promise<any> {
+    public async getSubscriptions(status?: SubscriptionStatus): Promise<any[]> {
         const options = await this.getOptions();
 
-        const result = (await axios.get(Constants.TwitchEventSubEndpoint, options)).data;
+        let url: string = Constants.TwitchEventSubEndpoint;
+        if (status) {
+            url += `?status=${status}`;
+        }
+
+        const result = (await axios.get(url, options)).data;
         Logger.info(LogType.Twitch, result.data);
         return result.data;
     }
@@ -154,6 +185,22 @@ export default class TwitchEventService {
     public async setBaseCallbackUrl(url: string): Promise<void> {
         this.baseCallbackUrl = url;
         Logger.info(LogType.Twitch, `Set Base EventSub Callback URL to ${url}`);
+    }
+
+    public async deleteAllSubscriptions(): Promise<void> {
+        const subscriptions = await this.getSubscriptions();
+        subscriptions.forEach(async (value) => {
+            await this.deleteSubscription(value.id);
+        });
+    }
+
+    public async deleteInactiveSubscriptions(): Promise<void> {
+        const subscriptions = await this.getSubscriptions();
+        subscriptions.forEach(async (value) => {
+            if (value.status !== "enabled") {
+                await this.deleteSubscription(value.id);
+            }
+        });
     }
 
     private async deleteSubscription(id: string): Promise<void> {

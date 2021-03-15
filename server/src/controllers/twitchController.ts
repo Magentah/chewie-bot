@@ -104,6 +104,16 @@ class TwitchController {
         res.sendStatus(StatusCodes.ACCEPTED);
     }
 
+    public async deleteInactiveSubscriptions(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.deleteInactiveSubscriptions();
+        res.sendStatus(StatusCodes.OK);
+    }
+
+    public async deleteAllSubscriptions(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.deleteAllSubscriptions();
+        res.sendStatus(StatusCodes.OK);
+    }
+
     public async eventsubCallback(req: Request, res: Response): Promise<void> {
         Logger.info(LogType.Twitch, req.body);
 
