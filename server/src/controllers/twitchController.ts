@@ -95,8 +95,8 @@ class TwitchController {
     }
 
     public async getEventSubSubscriptions(req: Request, res: Response): Promise<void> {
-        await this.twitchEventService.getSubscriptions();
-        res.sendStatus(StatusCodes.OK);
+        const subscriptions = await this.twitchEventService.getSubscriptions();
+        res.status(StatusCodes.OK).send(subscriptions);
     }
 
     public async subscribeEventSub(req: Request, res: Response): Promise<void> {

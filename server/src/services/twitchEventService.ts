@@ -79,6 +79,10 @@ export default class TwitchEventService {
                     this.channelOfflineEvent(notification.subscription);
                     break;
                 }
+                case EventTypes.ChannelFollow: {
+                    Logger.info(LogType.TwitchEvents, `Received event`, notification);
+                    break;
+                }
                 default: {
                     Logger.warn(
                         LogType.Twitch,
@@ -139,11 +143,12 @@ export default class TwitchEventService {
         };
     }
 
-    public async getSubscriptions(): Promise<void> {
+    public async getSubscriptions(): Promise<any> {
         const options = await this.getOptions();
 
         const result = (await axios.get(Constants.TwitchEventSubEndpoint, options)).data;
         Logger.info(LogType.Twitch, result.data);
+        return result.data;
     }
 
     public async setBaseCallbackUrl(url: string): Promise<void> {
