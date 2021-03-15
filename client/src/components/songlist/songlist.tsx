@@ -80,9 +80,9 @@ const SongList: React.FC<any> = (props: any) => {
     const [songlistGenre, setSonglistGenre] = useState<string>();
     const [songListState, setSongListState] = useState<SongListState>();
 
-    useEffect(() => {
-        loadUser();
-        
+    useEffect(loadUser, []);
+
+    useEffect(() => {       
         axios.get("/api/songlist").then((response) => {
             setSonglist(response.data);
         });

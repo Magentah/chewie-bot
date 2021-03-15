@@ -7,12 +7,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Slider from "@material-ui/core/Slider";
 
 import {
-    SpotifyDevice,
     SpotifyPlayerCallback,
-    SpotifyPlayerStatus,
-    WebPlaybackAlbum,
-    WebPlaybackError,
-    WebPlaybackImage,
     WebPlaybackPlayer,
     WebPlaybackReady,
     WebPlaybackState,

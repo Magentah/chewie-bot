@@ -16,7 +16,7 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { darken } from "@material-ui/core/styles/colorManipulator";
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import React, { useEffect, useState } from "react";
 import { Image } from "react-bootstrap";
 import { Save, Visibility, VisibilityOff } from "@material-ui/icons";
@@ -78,7 +78,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const [saveFailed, setSaveFailed] = useState(false);
     const [showBotOAuth, setShowBotOAuth] = useState(false);
 
-    useEffect(() => { loadUser() }, []);
+    useEffect(loadUser, [])
 
     useEffect(() => {
         axios.get("api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {

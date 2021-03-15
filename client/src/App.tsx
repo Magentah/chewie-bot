@@ -14,7 +14,6 @@ library.add(fab);
 
 const App: React.FC<{}> = (props) => {
     const [isLoaded, setIsLoaded] = useState(false);
-    const [user, setUser] = useState<any>();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
@@ -22,7 +21,6 @@ const App: React.FC<{}> = (props) => {
             .get("/api/isloggedin")
             .then((response) => {
                 if (response.status === 200) {
-                    setUser(response.data);
                     setIsLoggedIn(true);
                     setIsLoaded(true);
                 } else {

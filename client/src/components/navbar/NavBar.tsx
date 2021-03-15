@@ -1,11 +1,9 @@
-import React, { Props, useEffect, useState } from "react";
-import { makeStyles, fade } from "@material-ui/core/styles";
-import { AppBar, Toolbar, IconButton, Badge, Typography } from "@material-ui/core";
-import { Notifications, AccountBoxOutlined, LiveTv, Link, LinkOff } from "@material-ui/icons";
+import React, { useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import { AppBar, Toolbar, IconButton, Typography } from "@material-ui/core";
+import { LiveTv, Link, LinkOff, Chat } from "@material-ui/icons";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
-import { ActionImportantDevices } from "material-ui/svg-icons";
-import { STATUS_CODES } from "http";
 import useUser, { UserLevels } from "../../hooks/user";
 
 type NavBarProps = {};
@@ -45,6 +43,9 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const watchChewie = () => {
         window.open("https://www.twitch.tv/chewiemelodies", "_blank");
     };
+    const openDiscord = () => {
+        window.open("https://discord.gg/chewiemelodies", "_blank");
+    };
 
     const connectBot = async () => {
         if (botConnected) {
@@ -60,9 +61,8 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         }
     };
 
-    useEffect(() => {
-        loadUser();
-        
+    useEffect(loadUser, []);
+    useEffect(() => {       
         axios.get("/api/twitch/status").then((response) => {
             if (response.data === "OPEN") {
                 setBotConnected(true);
@@ -94,15 +94,15 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
                         color="inherit"
                         className={classes.iconButton}
                         onClick={watchChewie}
-                        title="Watch ChewieMelodies on Twitch!"
-                    >
+                        title="Watch ChewieMelodies on Twitch!">
                         <LiveTv />
                     </IconButton>
-                    <IconButton color="inherit" className={classes.iconButton}>
-                        <Notifications />
-                    </IconButton>
-                    <IconButton color="inherit" className={classes.iconButton}>
-                        <AccountBoxOutlined />
+                    <IconButton
+                        color="inherit"
+                        className={classes.iconButton}
+                        onClick={openDiscord}
+                        title="Join ChewieMelodies on Discord!">
+                        <Chat />
                     </IconButton>
                     <NavBarMenu />
                 </div>

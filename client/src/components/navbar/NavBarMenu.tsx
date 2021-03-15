@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
     Avatar,
@@ -6,14 +6,16 @@ import {
     Menu,
     MenuItem,
     Typography,
-    ListItem,
     ListItemIcon,
     ListItemText,
     SvgIconTypeMap,
+    Grid,
+    Box,
 } from "@material-ui/core";
 
 import { Face, Settings, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
+import useUser from "../../hooks/user";
 
 type NavMenuItem = {
     name: string;
@@ -41,6 +43,7 @@ const useStyles = makeStyles((theme) => ({
 const NavBarMenu: React.FC<any> = (props: any) => {
     const classes = useStyles();
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+    const [user, loadUser] = useUser();
     const navMenuItems: Array<NavMenuItem> = [
         { name: "Profile", iconComponent: Face },
         { name: "Settings", iconComponent: Settings },
@@ -59,10 +62,7 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         return Boolean(anchor);
     };
 
-    const user = {
-        avatar:
-            "https://static-cdn.jtvnw.net/jtv_user_pictures/d86a44c2-eeb9-4416-b365-560fc2f81904-profile_image-70x70.png",
-    };
+    useEffect(loadUser, []);
 
     const renderNavMenuItems = (navMenuItems: Array<NavMenuItem>) => {
         return navMenuItems.map((item) => (
@@ -79,7 +79,16 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         <React.Fragment>
             <IconButton className={classes.root} onClick={clickMenu} aria-owns={anchor ? "navbar-menu" : undefined}>
                 <div className={classes.root}>
-                    <Avatar src={user.avatar} className={classes.small} />
+                    <Grid container alignItems="center">
+                        <Grid item>
+                            <Avatar className={classes.small}>{user.username.toUpperCase()[0]}</Avatar>
+                        </Grid>
+                        <Grid item>
+                            <Box ml={1}>
+                                <Typography>{user.username}</Typography>
+                            </Box>
+                        </Grid>
+                    </Grid>
                 </div>
             </IconButton>
             <Menu
