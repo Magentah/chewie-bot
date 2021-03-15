@@ -13,7 +13,7 @@ export default function userCookie(req: Request, res: Response, next: NextFuncti
                 vipStatus: sessionUser.vipLevel,
                 twitchUserProfile: sessionUser.twitchUserProfile,
             };
-            res.cookie("user", JSON.stringify(user));
+            res.cookie("user", JSON.stringify(user), { expires: new Date(Date.now() + 5 * 60 * 1000) });
             Logger.debug(LogType.Server, "Setting user cookie", { user });
         }
     } else {
