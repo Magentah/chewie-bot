@@ -5,7 +5,11 @@
         "redirectUri": "",
         "username": "",
         "oauth": "",
-        "broadcasterName": ""
+        "broadcasterName": "",
+        "eventSub": {
+            "secret": "",
+            "callbackBaseUri": ""
+        }
     },
     "streamlabs": {
         "clientId": "",
@@ -32,6 +36,7 @@
             "oauth": true,
             "songs": true,
             "twitch": true,
+            "twitchevents": true,
             "server": true,
             "serverinfo": true,
             "websocket": true

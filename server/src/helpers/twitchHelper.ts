@@ -3,6 +3,7 @@
 const parser = require("minimist-string");
 import * as crypto from "crypto";
 import * as http from "http";
+import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
 import { TwitchMessageSignatureError } from "../errors";
 import { HttpTransportInstance } from "winston/lib/winston/transports";
@@ -68,7 +69,7 @@ export class TwitchHelper {
             const id: string = req.headers["twitch-eventsub-message-id"] as string;
             const timestamp: string = req.headers["twitch-eventsub-message-timestamp"] as string;
             const sha = crypto
-                .createHmac("sha256", "asdfghaslkdjash")
+                .createHmac("sha256", Config.twitch.eventSub.secret)
                 .update(id + timestamp + buf)
                 .digest("hex");
             const signature = `sha256=${sha}`;

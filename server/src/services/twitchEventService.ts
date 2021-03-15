@@ -78,8 +78,8 @@ enum SubscriptionStatus {
 @injectable()
 export default class TwitchEventService {
     private accessToken: IAccessToken;
-    private verificationSecret: string = "asdfghaslkdjash";
-    private baseCallbackUrl: string = "https://localhost";
+    private verificationSecret: string = Config.twitch.eventSub.secret;
+    private baseCallbackUrl: string = Config.twitch.eventSub.callbackBaseUri;
     private channelRewards: any[];
 
     constructor() {
