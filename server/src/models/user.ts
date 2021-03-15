@@ -1,5 +1,6 @@
 import IUserLevel from "./userLevel";
 import IVIPLevel from "./vipLevel";
+import ITwitchUserProfile from "./twitchUserProfile";
 
 export default interface IUser {
     id?: number;
@@ -16,4 +17,6 @@ export default interface IUser {
     streamlabsToken?: string;
     streamlabsRefresh?: string;
     spotifyRefresh?: string;
+    twitchProfileKey?: number;
+    twitchUserProfile?: ITwitchUserProfile;
 }

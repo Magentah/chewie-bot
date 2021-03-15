@@ -27,7 +27,8 @@ import SonglistController from "./controllers/songlistController";
 
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
-import { SonglistRepository } from "./database";
+import { SonglistRepository, TwitchUserProfileRepository } from "./database";
+import { TwitchUserProfileService } from "./services";
 
 const botContainer = new Container();
 
@@ -72,6 +73,7 @@ botContainer.bind<SongService>(SongService).toSelf().inSingletonScope();
 botContainer.bind<UserService>(UserService).toSelf().inSingletonScope();
 botContainer.bind<EventService>(EventService).toSelf().inSingletonScope();
 botContainer.bind<BotSettingsService>(BotSettingsService).toSelf().inSingletonScope();
+botContainer.bind<TwitchUserProfileService>(TwitchUserProfileService).toSelf().inSingletonScope();
 
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
 botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();
@@ -81,6 +83,7 @@ botContainer.bind<TextCommandsRepository>(TextCommandsRepository).toSelf();
 botContainer.bind<CommandAliasesRepository>(CommandAliasesRepository).toSelf();
 botContainer.bind<BotSettingsRepository>(BotSettingsRepository).toSelf();
 botContainer.bind<SonglistRepository>(SonglistRepository).toSelf();
+botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSelf();
 
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();

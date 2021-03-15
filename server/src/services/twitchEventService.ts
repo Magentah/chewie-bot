@@ -75,6 +75,12 @@ enum SubscriptionStatus {
     UserRemoved = "user_removed",
 }
 
+enum ChannelPointRedemptionStatus {
+    Unfulfilled = "UNFULFILLED",
+    Fulfilled = "FULFILLED",
+    Cancelled = "CANCELLED",
+}
+
 @injectable()
 export default class TwitchEventService {
     private accessToken: IAccessToken;
@@ -95,6 +101,10 @@ export default class TwitchEventService {
             switch (notification.subscription.type) {
                 case EventTypes.ChannelPointsRedeemed: {
                     this.channelPointsRedeemedEvent(notification.subscription);
+                    break;
+                }
+                case EventTypes.ChannelPointsRedeemedUpdate: {
+                    this.channelPointsRedeemedUpdateEvent(notification.subscription);
                     break;
                 }
                 case EventTypes.StreamOnline: {
@@ -121,16 +131,28 @@ export default class TwitchEventService {
         }
     }
 
-    private channelPointsRedeemedEvent(notificationEvent: any): void {
-        Logger.info(LogType.Twitch, notificationEvent);
+    /**
+     * Notification for when a user redeems a channel point reward. This does not mean that it has succeeded.
+     * @param notificationEvent
+     */
+    private channelPointsRedeemedEvent(notificationEvent: ISubscriptionData): void {
+        Logger.info(LogType.Twitch, "Channel Points Redeemed Add", notificationEvent);
     }
 
-    private channelOnlineEvent(notificationEvent: any): void {
-        Logger.info(LogType.Twitch, notificationEvent);
+    /**
+     * Notification for when a user redemption for a channel point reward updates it's status to FULFILLED or CANCELLED.
+     * @param notificationEvent
+     */
+    private channelPointsRedeemedUpdateEvent(notificationEvent: ISubscriptionData): void {
+        Logger.info(LogType.TwitchEvents, "Channel Points Redeemed Update", notificationEvent);
     }
 
-    private channelOfflineEvent(notificationEvent: any): void {
-        Logger.info(LogType.Twitch, notificationEvent);
+    private channelOnlineEvent(notificationEvent: ISubscriptionData): void {
+        Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
+    }
+
+    private channelOfflineEvent(notificationEvent: ISubscriptionData): void {
+        Logger.info(LogType.Twitch, "Channel Offline", notificationEvent);
     }
 
     public async subscribeEvent(event: EventTypes, userId: string): Promise<void> {
