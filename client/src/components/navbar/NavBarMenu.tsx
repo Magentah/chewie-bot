@@ -16,6 +16,7 @@ import {
 import { Face, Settings, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import useUser from "../../hooks/user";
+import * as Cookie from "js-cookie";
 
 type NavMenuItem = {
     name: string;
@@ -41,9 +42,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const NavBarMenu: React.FC<any> = (props: any) => {
+    const userProfile = Cookie.getJSON("user");
     const classes = useStyles();
     const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-    const [user, loadUser] = useUser();
     const navMenuItems: Array<NavMenuItem> = [
         { name: "Profile", iconComponent: Face },
         { name: "Settings", iconComponent: Settings },
@@ -62,8 +63,6 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         return Boolean(anchor);
     };
 
-    useEffect(loadUser, []);
-
     const renderNavMenuItems = (navMenuItems: Array<NavMenuItem>) => {
         return navMenuItems.map((item) => (
             <MenuItem button onClick={onClose} key={item.name}>
@@ -81,11 +80,14 @@ const NavBarMenu: React.FC<any> = (props: any) => {
                 <div className={classes.root}>
                     <Grid container alignItems="center">
                         <Grid item>
-                            <Avatar className={classes.small}>{user.username.toUpperCase()[0]}</Avatar>
+                            <Avatar
+                                className={classes.small}
+                                src={userProfile.twitchUserProfile.profileImageUrl}
+                            ></Avatar>
                         </Grid>
                         <Grid item>
                             <Box ml={1}>
-                                <Typography>{user.username}</Typography>
+                                <Typography>{userProfile.twitchUserProfile.displayName}</Typography>
                             </Box>
                         </Grid>
                     </Grid>
