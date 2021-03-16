@@ -1,12 +1,12 @@
 import * as express from "express";
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from "http-status-codes";
 import * as passport from "passport";
 import * as Config from "../config.json";
 import Constants from "../constants";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
-import { IUser } from "../models";
-import { SpotifyService, UserService } from "../services";
+import { IUser, ITwitchUserProfile } from "../models";
+import { SpotifyService, UserService, TwitchUserProfileService } from "../services";
 import { TwitchStrategy, StreamlabsStrategy, SpotifyStrategy } from "../strategy";
 
 const authRouter: express.Router = express.Router();
@@ -30,11 +30,32 @@ export function setupPassport(): void {
                 _accessToken: any,
                 // tslint:disable-next-line: variable-name
                 _refreshToken: any,
-                profile: { username: string },
+                profile: { id: number; username: string; displayName: string; profileImageUrl: string },
                 done: (err: undefined, user: IUser) => any
             ) => {
-                await BotContainer.get(UserService).addUser(profile.username);
-                const user = await BotContainer.get(UserService).getUser(profile.username);
+                const twitchProfile = await BotContainer.get(TwitchUserProfileService).addTwitchUserProfile({
+                    id: profile.id,
+                    displayName: profile.displayName,
+                    profileImageUrl: profile.profileImageUrl,
+                    username: profile.username,
+                });
+                const newUser: IUser = {
+                    username: profile.username,
+                    twitchProfileKey: twitchProfile.id,
+                    userLevelKey: 1,
+                    vipLevelKey: 1,
+                    points: 0,
+                    hasLogin: false,
+                };
+                let user = await BotContainer.get(UserService).addUser(newUser);
+
+                // If the user exists but doesn't have a twitchProfile assigned, the user was added in another way.
+                // Assign the twitchProfile and update instead.
+                if (!user.twitchUserProfile) {
+                    user.twitchProfileKey = twitchProfile.id;
+                    await BotContainer.get(UserService).updateUser(user);
+                    user = await BotContainer.get(UserService).getUser(user.username);
+                }
                 return done(undefined, user);
             }
         )
@@ -126,7 +147,7 @@ authRouter.get(
 );
 authRouter.get("/api/auth/spotify", passport.authorize("spotify"));
 authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
-    let sessionUser = req.user as IUser;
+    const sessionUser = req.user as IUser;
     if (sessionUser) {
         const user = await BotContainer.get(UserService).getUser(sessionUser.username);
         if (user.spotifyRefresh) {
@@ -136,9 +157,9 @@ authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
     }
 
     res.send(false);
-} );
+});
 authRouter.get("/api/auth/spotify/access", async (req, res) => {
-    let sessionUser = req.user as IUser;
+    const sessionUser = req.user as IUser;
     if (sessionUser) {
         const user = await BotContainer.get(UserService).getUser(sessionUser.username);
         const newToken = await BotContainer.get(SpotifyService).getNewAccessToken(user);
@@ -146,19 +167,15 @@ authRouter.get("/api/auth/spotify/access", async (req, res) => {
             user.refreshToken = newToken.newRefreshToken;
             BotContainer.get(UserService).updateUser(user);
         }
-        
+
         res.status(StatusCodes.OK).send(newToken.accessToken);
     } else {
         res.sendStatus(StatusCodes.FORBIDDEN);
     }
-} );
+});
 
-authRouter.get(
-    "/api/auth/spotify/callback",
-    passport.authorize("spotify", { failureRedirect: "/" }),
-    (req, res) => {
-        res.redirect("/");
-    }
-);
+authRouter.get("/api/auth/spotify/callback", passport.authorize("spotify", { failureRedirect: "/" }), (req, res) => {
+    res.redirect("/");
+});
 
 export default authRouter;

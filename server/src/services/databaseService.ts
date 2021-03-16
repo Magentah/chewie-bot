@@ -15,6 +15,7 @@ export enum DatabaseTables {
     CommandAliases = "commandAliases",
     BotSettings = "botSettings",
     Songlist = "songlist",
+    TwitchUserProfile = "twitchUserProfile",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -82,6 +83,7 @@ export class DatabaseService {
                 await this.populateDatabase();
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
+                await this.createTwitchProfileTable();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -145,6 +147,17 @@ export class DatabaseService {
             table.string("streamlabsToken");
             table.string("streamlabsRefresh");
             table.string("spotifyRefresh");
+            table.integer("twitchProfileKey").unsigned();
+            table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
+        });
+    }
+
+    private async createTwitchProfileTable(): Promise<void> {
+        return this.createTable(DatabaseTables.TwitchUserProfile, (table) => {
+            table.integer("id").primary().notNullable().unique();
+            table.string("username").notNullable();
+            table.string("displayName").notNullable();
+            table.string("profileImageUrl");
         });
     }
 

@@ -26,14 +26,47 @@ export class UsersRepository {
                 .toSQL().sql
         );
 
-        const user = await databaseService
+        const userResult = await databaseService
             .getQueryBuilder(DatabaseTables.Users)
             .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
             .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
+            .leftJoin(DatabaseTables.TwitchUserProfile, "twitchUserProfile.id", "users.twitchProfileKey")
             .where("users.username", "like", username)
-            .first(["vipLevels.name as vipLevel", "userLevels.name as userLevel", "users.*"]);
+            .first([
+                "vipLevels.name as vipLevel",
+                "userLevels.name as userLevel",
+                "twitchUserProfile.id as profileId",
+                "twitchUserProfile.displayName as profileDisplayName",
+                "twitchUserProfile.profileImageUrl as profileImageUrl",
+                "users.*",
+            ]);
 
-        return user as IUser;
+        // Need to map from SQLResult to the correct model.
+        const user: IUser = {
+            hasLogin: userResult.hasLogin,
+            points: userResult.points,
+            username: userResult.username,
+            id: userResult.id,
+            idToken: userResult.idToken,
+            refreshToken: userResult.refreshToken,
+            spotifyRefresh: userResult.spotifyRefresh,
+            streamlabsRefresh: userResult.streamlabsRefresh,
+            streamlabsToken: userResult.streamlabsToken,
+            twitchProfileKey: userResult.twitchProfileKey,
+            userLevel: userResult.userLevel,
+            vipLevel: userResult.vipLevel,
+            vipExpiry: userResult.vipExpiry,
+            userLevelKey: userResult.userLevelKey,
+            vipLevelKey: userResult.vipLevelKey,
+            twitchUserProfile: {
+                username: userResult.username,
+                displayName: userResult.profileDisplayName,
+                id: userResult.profileId,
+                profileImageUrl: userResult.profileImageUrl,
+            },
+        };
+
+        return user;
     }
 
     /**
@@ -76,6 +109,7 @@ export class UsersRepository {
 
         delete user.userLevel;
         delete user.vipLevel;
+        delete user.twitchUserProfile;
         await databaseService.getQueryBuilder(DatabaseTables.Users).update(user).where({ id: user.id });
     }
 

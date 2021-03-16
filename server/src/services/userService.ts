@@ -12,7 +12,7 @@ export class UserService {
      * Adds a new user if the user doesn't already exist.
      * @param {string | IUser} user Username of the user to add, or the User object
      */
-    public async addUser(user: string | IUser): Promise<void> {
+    public async addUser(user: string | IUser): Promise<IUser> {
         let newUser: IUser = {} as IUser;
         if (typeof user === "string") {
             newUser = {
@@ -27,6 +27,8 @@ export class UserService {
         }
 
         await this.users.add(newUser);
+
+        return await this.getUser(newUser.username);
     }
 
     /**

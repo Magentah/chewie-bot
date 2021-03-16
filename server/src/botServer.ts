@@ -11,7 +11,7 @@ import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SonglistRouter, SongRouter, TwitchRouter } from "./routes";
-import { RouteLogger, UserCookie } from "./middleware";
+import { UserCookie } from "./middleware";
 import { CommandService, WebsocketService } from "./services";
 import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
