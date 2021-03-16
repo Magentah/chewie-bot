@@ -13,6 +13,7 @@ import UserService from "./services/userService";
 import EventService from "./services/eventService";
 import TwitchEventService from "./services/twitchEventService";
 import BotSettingsService from "./services/botSettingsService";
+import DiscordService from "./services/discordService";
 import BotSettingsRepository from "./database/botSettings";
 import UsersRepository from "./database/usersRepository";
 import UserLevelsRepository from "./database/userLevelsRepository";
@@ -74,6 +75,7 @@ botContainer.bind<UserService>(UserService).toSelf().inSingletonScope();
 botContainer.bind<EventService>(EventService).toSelf().inSingletonScope();
 botContainer.bind<BotSettingsService>(BotSettingsService).toSelf().inSingletonScope();
 botContainer.bind<TwitchUserProfileService>(TwitchUserProfileService).toSelf().inSingletonScope();
+botContainer.bind<DiscordService>(DiscordService).toSelf().inSingletonScope();
 
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
 botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();

@@ -6,6 +6,7 @@ import Constants from "../constants";
 import * as moment from "moment";
 import { StatusCodes } from "http-status-codes";
 import { UserService } from "./userService";
+import DiscordService from "./discordService";
 import * as EventSub from "../models";
 
 @injectable()
@@ -15,7 +16,10 @@ export default class TwitchEventService {
     private baseCallbackUrl: string = Config.twitch.eventSub.callbackBaseUri;
     private channelRewards: any[];
 
-    constructor(@inject(UserService) private users: UserService) {
+    constructor(
+        @inject(UserService) private users: UserService,
+        @inject(DiscordService) private discord: DiscordService
+    ) {
         this.accessToken = {
             token: "",
             expiry: 0,
@@ -104,10 +108,12 @@ export default class TwitchEventService {
 
     private channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): void {
         Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
+        this.discord.sendStreamOnline();
     }
 
     private channelOfflineEvent(notificationEvent: EventSub.IStreamOfflineEvent): void {
         Logger.info(LogType.Twitch, "Channel Offline", notificationEvent);
+        this.discord.sendStreamOffline();
     }
 
     public async subscribeEvent(event: EventSub.EventTypes, userId: string): Promise<void> {
