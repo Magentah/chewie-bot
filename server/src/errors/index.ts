@@ -3,3 +3,4 @@ export { default as CommandNotExistError } from "./commandNotExist";
 export { default as InvalidSongUrlError } from "./invalidSongUrl";
 export { default as SongAlreadyInQueueError } from "./songAlreadyInQueue";
 export { default as DatabaseNotInitError } from "./databaseNotInit";
+export { default as TwitchMessageSignatureError } from "./twitchSignature";

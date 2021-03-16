@@ -5,8 +5,6 @@ import * as Config from "../config.json";
 import Constants from "../constants";
 import * as moment from "moment";
 import { StatusCodes } from "http-status-codes";
-import { Request } from "express";
-import * as crypto from "crypto";
 
 interface ISubscriptionData {
     id?: string;
@@ -47,13 +45,41 @@ interface IEventSubNotification {
 enum EventTypes {
     StreamOnline = "stream.online",
     StreamOffline = "stream.offline",
+    ChannelUpdate = "channel.update",
+    ChannelFollow = "channel.follow",
+    ChannelSubscribe = "channel.subscribe",
+    ChannelChear = "channel.cheer",
+    ChannelRaid = "channel.raid",
+    ChannelBan = "channel.ban",
+    ChannelUnban = "channel.unban",
+    ChannelModeratorAdd = "channel.moderator.add",
+    ChannelModeratorRemove = "channel.moderator.remove",
+    ChannelPointsRewardAdd = "channel.channel_points_custom_reward.add",
+    ChannelPointsRewardUpdate = "channel.channel_points_custom_reward.update",
+    ChannelPointsRewardRemove = "channel.channel_points_custom_reward.remove",
     ChannelPointsRedeemed = "channel.channel_points_custom_reward_redemption.add",
+    ChannelPointsRedeemedUpdate = "channel.channel_points_custom_reward_redemption.update",
+    HypeTrainBegin = "channel.hype_train.begin",
+    HypeTrainProgress = "channel.hype_train.progress",
+    HypeTrainEnd = "channel.hype_train.end",
+    UserAuthorizationRevoke = "user.authorization.revoke",
+    UserUpdate = "user.update",
+}
+
+enum SubscriptionStatus {
+    Enabled = "enabled",
+    VerificationPending = "webhook_callback_verification_pending",
+    VerificationFailed = "webhook_callback_verification_failed",
+    NotificationFailuresExceeded = "notification_failures_exceeded",
+    AuthorizationRevoked = "authorization_revoked",
+    UserRemoved = "user_removed",
 }
 
 @injectable()
 export default class TwitchEventService {
     private accessToken: IAccessToken;
-    private verificationSecret: string = "asdfgh";
+    private verificationSecret: string = Config.twitch.eventSub.secret;
+    private baseCallbackUrl: string = Config.twitch.eventSub.callbackBaseUri;
     private channelRewards: any[];
 
     constructor() {
@@ -64,29 +90,23 @@ export default class TwitchEventService {
         this.channelRewards = [];
     }
 
-    public async verifySignature(req: Request): Promise<boolean> {
-        const message: string =
-            (req.headers["Twitch-Eventsub-Message-Id"] as string) +
-            (req.headers["Twitch-Eventsub-Message-Timestamp"] as string) +
-            req.body;
-        const sha = crypto.createHmac("sha256", this.verificationSecret).update(message).digest("base64");
-        const signature = `sha256=${sha}`;
-        return signature === req.headers["Twitch-Eventsub-Message-Signature"];
-    }
-
     public async handleNotification(notification: IEventSubNotification): Promise<void> {
         if (notification.subscription.type) {
             switch (notification.subscription.type) {
                 case EventTypes.ChannelPointsRedeemed: {
-                    this.channelPointsRedeemedEvent(notification.event);
+                    this.channelPointsRedeemedEvent(notification.subscription);
                     break;
                 }
                 case EventTypes.StreamOnline: {
-                    this.channelOnlineEvent(notification.event);
+                    this.channelOnlineEvent(notification.subscription);
                     break;
                 }
                 case EventTypes.StreamOffline: {
-                    this.channelOfflineEvent(notification.event);
+                    this.channelOfflineEvent(notification.subscription);
+                    break;
+                }
+                case EventTypes.ChannelFollow: {
+                    Logger.info(LogType.TwitchEvents, `Received event`, notification);
                     break;
                 }
                 default: {
@@ -143,17 +163,44 @@ export default class TwitchEventService {
             },
             transport: {
                 method: "webhook",
-                callback: "https://localhost/api/twitch/eventsub/callback",
+                callback: `${this.baseCallbackUrl}/api/twitch/eventsub/callback`,
                 secret: this.verificationSecret,
             },
         };
     }
 
-    public async getSubscriptions(): Promise<void> {
+    public async getSubscriptions(status?: SubscriptionStatus): Promise<any[]> {
         const options = await this.getOptions();
 
-        const result = await axios.get(Constants.TwitchEventSubEndpoint, options);
+        let url: string = Constants.TwitchEventSubEndpoint;
+        if (status) {
+            url += `?status=${status}`;
+        }
+
+        const result = (await axios.get(url, options)).data;
         Logger.info(LogType.Twitch, result.data);
+        return result.data;
+    }
+
+    public async setBaseCallbackUrl(url: string): Promise<void> {
+        this.baseCallbackUrl = url;
+        Logger.info(LogType.Twitch, `Set Base EventSub Callback URL to ${url}`);
+    }
+
+    public async deleteAllSubscriptions(): Promise<void> {
+        const subscriptions = await this.getSubscriptions();
+        subscriptions.forEach(async (value) => {
+            await this.deleteSubscription(value.id);
+        });
+    }
+
+    public async deleteInactiveSubscriptions(): Promise<void> {
+        const subscriptions = await this.getSubscriptions();
+        subscriptions.forEach(async (value) => {
+            if (value.status !== "enabled") {
+                await this.deleteSubscription(value.id);
+            }
+        });
     }
 
     private async deleteSubscription(id: string): Promise<void> {
