@@ -140,6 +140,7 @@ export class DatabaseService {
             table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
             table.string("username").notNullable();
             table.string("refreshToken").unique();
+            table.string("accessToken").unique();
             table.string("idToken").unique();
             table.decimal("points").notNullable();
             table.dateTime("vipExpiry");
@@ -250,9 +251,8 @@ export class DatabaseService {
      */
     private async addBroadcaster(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const username: string = "";
-            if (!(await this.db(DatabaseTables.Users).first().where("username", "like", username))) {
-                const broadcasterUsername = Config.twitch.broadcasterName;
+            const broadcasterUsername = Config.twitch.broadcasterName;
+            if (!(await this.db(DatabaseTables.Users).first().where("username", "like", broadcasterUsername))) {
                 const user: IUser = {
                     username: broadcasterUsername,
                     userLevelKey: 5,
