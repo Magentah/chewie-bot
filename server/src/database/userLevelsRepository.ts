@@ -13,15 +13,15 @@ export class UserLevelsRepository {
         const databaseService = await this.databaseProvider();
         Logger.info(
             LogType.Database,
-            databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ name: level }).toSQL().sql
+            databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ id: level }).toSQL().sql
         );
-        const userLevel = await databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ name: level });
+        const userLevel = await databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ id: level });
         return userLevel as IUserLevel;
     }
 
     public async add(level: UserLevels): Promise<void> {
         const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.UserLevels).insert({ name: level });
+        await databaseService.getQueryBuilder(DatabaseTables.UserLevels).insert({ id: level });
     }
 }
 

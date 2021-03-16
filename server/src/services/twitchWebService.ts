@@ -7,6 +7,10 @@ import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
 import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser } from "../models";
 
+/**
+ * Provides acces to Twitch API endpoint for checking a user's
+ * permission and getting the user profile.
+ */
 @injectable()
 export class TwitchWebService {
     private readonly twitchExecutor: HttpClient = new HttpClient(Constants.TwitchAPIEndpoint);
@@ -19,12 +23,18 @@ export class TwitchWebService {
     }
 
     public async fetchUserProfile(user: string): Promise<ITwitchUserProfile> {
-        const ctx: IUserPrincipal = await this.getTwitchUserPrincipal(user);
+        let ctx: IUserPrincipal = await this.getTwitchUserPrincipal(user);
+
+        // User might not have authorised with our bot yet, use broadcaster's
+        // authorisation to access API.
+        if (!ctx.accessToken) {
+            ctx = await this.getBroadcasterUserPrincipal();
+        }
 
         const header: any = this.buildHeaderFromUserPrincipal(ctx);
         const execute = this.twitchExecutor.build(header);
 
-        return await execute(HttpMethods.GET, this.getUserProfileUrl)
+        return await execute(HttpMethods.GET, this.getUserProfileUrl + `?login=${user}`)
             .then((resp: AxiosResponse) => {
                 if (resp.data === undefined) {
                     throw new Error("malformed data");
@@ -81,6 +91,10 @@ export class TwitchWebService {
                 }
 
                 const json: any = resp.data;
+                if (!json.data) {
+                    // List empty: return empty array
+                    return [] as ITwitchUser[];
+                }
                 const moderators: ITwitchUser[] = json.data;
                 return moderators;
             });
@@ -97,7 +111,7 @@ export class TwitchWebService {
         const broadcasterCtx: IUserPrincipal = await this.getBroadcasterUserPrincipal();
         const broadcasterProfile: ITwitchUserProfile = await this.fetchUserProfile(broadcasterCtx.username);
 
-        let getModeratorsUrl = `${this.getSubscribersUrl}?broadcaster_id=${broadcasterProfile.id}`;
+        let getSubsUrl = `${this.getSubscribersUrl}?broadcaster_id=${broadcasterProfile.id}`;
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(users.map(async (user: string) => {
@@ -106,14 +120,14 @@ export class TwitchWebService {
             }));
 
             userIds.forEach((userId: number) => {
-                getModeratorsUrl += `&user_id=${userId}`;
+                getSubsUrl += `&user_id=${userId}`;
             });
         }
 
         const header: any = this.buildHeaderFromUserPrincipal(broadcasterCtx);
         const execute = this.twitchExecutor.build(header);
 
-        return await execute(HttpMethods.GET, getModeratorsUrl)
+        return await execute(HttpMethods.GET, getSubsUrl)
             .then((resp: AxiosResponse) => {
                 if (resp.data === undefined) {
                     throw new Error("malformed data");
@@ -126,7 +140,7 @@ export class TwitchWebService {
     }
 
     private buildHeaderFromUserPrincipal(ctx: IUserPrincipal): any {
-        if (ctx.accessToken === undefined) {
+        if (ctx.accessToken === undefined || ctx.accessToken === "") {
             throw new Error(`no access token for ${ctx}`);
         }
         return {
