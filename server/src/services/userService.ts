@@ -29,7 +29,7 @@ export class UserService {
 
         await this.users.add(newUser);
 
-        return await this.getUser(newUser.username);
+        return await this.getUser(newUser.username) as IUser;
     }
 
     /**
@@ -92,11 +92,11 @@ export class UserService {
      * Gets a user
      * @param {string} username The username of the user to get.
      */
-    public async getUser(username: string): Promise<IUser> {
+    public async getUser(username: string): Promise<IUser | undefined> {
         return await this.users.get(username);
     }
 
-    public async getUserPrincipal(username: string, providerType: ProviderType): Promise<IUserPrincipal> {
+    public async getUserPrincipal(username: string, providerType: ProviderType): Promise<IUserPrincipal | undefined> {
         const userPrincipal: IUserPrincipal = {
             username,
             accessToken: "",
@@ -104,10 +104,14 @@ export class UserService {
             providerType
         };
 
-        const user: IUser = await this.getUser(username);
+        const user: IUser | undefined = await this.getUser(username);
+        if (!user) {
+            return undefined;
+        }
+
         switch (providerType) {
             case ProviderType.Twitch:
-                if (user.accessToken === undefined || user.refreshToken === undefined) {
+                if (!user.accessToken || !user.refreshToken) {
                     throw new Error("Twitch tokens are not set up");
                 }
                 userPrincipal.accessToken = user.accessToken;
@@ -115,7 +119,7 @@ export class UserService {
                 break;
 
             case ProviderType.Streamlabs:
-                if (user.streamlabsToken === undefined || user.streamlabsRefresh === undefined) {
+                if (!user.streamlabsToken || !user.streamlabsRefresh) {
                     throw new Error("Streamlabs tokens are not setup");
                 }
                 userPrincipal.accessToken = user.streamlabsToken;

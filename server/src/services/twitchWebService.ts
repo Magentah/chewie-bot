@@ -22,13 +22,17 @@ export class TwitchWebService {
         this.twitchExecutor.setLogging(true);
     }
 
-    public async fetchUserProfile(user: string): Promise<ITwitchUserProfile> {
-        let ctx: IUserPrincipal = await this.getTwitchUserPrincipal(user);
+    public async fetchUserProfile(user: string): Promise<ITwitchUserProfile | undefined> {
+        let ctx: IUserPrincipal | undefined = await this.getTwitchUserPrincipal(user);
 
         // User might not have authorised with our bot yet, use broadcaster's
         // authorisation to access API.
-        if (!ctx.accessToken) {
+        if (!ctx?.accessToken) {
             ctx = await this.getBroadcasterUserPrincipal();
+        }
+
+        if (ctx === undefined) {
+            return undefined;
         }
 
         const header: any = this.buildHeaderFromUserPrincipal(ctx);
@@ -36,6 +40,10 @@ export class TwitchWebService {
 
         return await execute(HttpMethods.GET, this.getUserProfileUrl + `?login=${user}`)
             .then((resp: AxiosResponse) => {
+                if (resp === undefined) {
+                    return undefined;
+                }
+
                 if (resp.data === undefined) {
                     throw new Error("malformed data");
                 }
@@ -53,7 +61,7 @@ export class TwitchWebService {
             });
     }
 
-    public async fetchBroadcasterProfile(): Promise<ITwitchUserProfile> {
+    public async fetchBroadcasterProfile(): Promise<ITwitchUserProfile | undefined> {
         return this.fetchUserProfile(Config.twitch.broadcasterName);
     }
 
@@ -65,15 +73,22 @@ export class TwitchWebService {
      * @param users (optional) - name of users that wants to validate for moderators
      */
     public async fetchModerators(users?: string[]): Promise<ITwitchUser[]> {
-        const broadcasterCtx: IUserPrincipal = await this.getBroadcasterUserPrincipal();
-        const broadcasterProfile: ITwitchUserProfile = await this.fetchUserProfile(broadcasterCtx.username);
+        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
+        if (broadcasterCtx === undefined) {
+            return [] as ITwitchUser[];
+        }
+
+        const broadcasterProfile: ITwitchUserProfile | undefined = await this.fetchUserProfile(broadcasterCtx.username);
+        if (broadcasterProfile === undefined) {
+            return [] as ITwitchUser[];
+        }
 
         let getModeratorsUrl = `${this.getModeratorsUrl}?broadcaster_id=${broadcasterProfile.id}`;
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(users.map(async (user: string) => {
-                const userProfile: ITwitchUserProfile = await this.fetchUserProfile(user);
-                return userProfile.id;
+                const userProfile: ITwitchUserProfile | undefined = await this.fetchUserProfile(user);
+                return userProfile?.id ?? 0;
             }));
 
             userIds.forEach((userId: number) => {
@@ -108,15 +123,22 @@ export class TwitchWebService {
      * @param users (optional) - name of users that wants to validate for moderators
      */
     public async fetchSubscribers(users?: string[]): Promise<ITwitchSubscription[]> {
-        const broadcasterCtx: IUserPrincipal = await this.getBroadcasterUserPrincipal();
-        const broadcasterProfile: ITwitchUserProfile = await this.fetchUserProfile(broadcasterCtx.username);
+        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
+        if (broadcasterCtx === undefined) {
+            return [] as ITwitchSubscription[];
+        }
+
+        const broadcasterProfile: ITwitchUserProfile | undefined = await this.fetchUserProfile(broadcasterCtx.username);
+        if (broadcasterProfile === undefined) {
+            return [] as ITwitchSubscription[];
+        }
 
         let getSubsUrl = `${this.getSubscribersUrl}?broadcaster_id=${broadcasterProfile.id}`;
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(users.map(async (user: string) => {
-                const userProfile: ITwitchUserProfile = await this.fetchUserProfile(user);
-                return userProfile.id;
+                const userProfile: ITwitchUserProfile | undefined = await this.fetchUserProfile(user);
+                return userProfile?.id ?? 0;
             }));
 
             userIds.forEach((userId: number) => {
@@ -149,8 +171,8 @@ export class TwitchWebService {
         };
     }
 
-    private async getTwitchUserPrincipal(user: string | IUserPrincipal): Promise<IUserPrincipal>  {
-        let ctx: IUserPrincipal;
+    private async getTwitchUserPrincipal(user: string | IUserPrincipal): Promise<IUserPrincipal | undefined>  {
+        let ctx: IUserPrincipal | undefined;
 
         if (typeof user === "string") {
             const username: string = user as string;
@@ -162,7 +184,7 @@ export class TwitchWebService {
         return ctx;
     }
 
-    private async getBroadcasterUserPrincipal(): Promise<IUserPrincipal> {
+    private async getBroadcasterUserPrincipal(): Promise<IUserPrincipal | undefined> {
         return this.userService.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
     }
 }
