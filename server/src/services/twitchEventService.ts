@@ -67,7 +67,7 @@ export default class TwitchEventService {
     }
 
     /**
-     * Notification for when a user redemption for a channel point reward updates it's status to FULFILLED or CANCELLED.
+     * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELLED.
      * @param notificationEvent
      */
     private async channelPointsRedeemedUpdateEvent(
