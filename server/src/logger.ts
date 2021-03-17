@@ -18,6 +18,7 @@ enum LogType {
     WebSocket = "WebSocket",
     Language = "Lang",
     Spotify = "Spotify",
+    Http = "Http",
 }
 
 enum LogLevel {

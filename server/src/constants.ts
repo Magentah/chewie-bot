@@ -3,7 +3,7 @@ export default class Constants {
     public static readonly TwitchAuthUrl = "https://id.twitch.tv/oauth2/authorize";
     public static readonly TwitchTokenUrl = "https://id.twitch.tv/oauth2/token";
     public static readonly TwitchScopes =
-        "channel:moderate chat:read chat:edit whispers:read whispers:edit channel:read:subscriptions channel:read:redemptions channel:manage:extensions";
+        "channel:moderate chat:read chat:edit whispers:read whispers:edit channel:read:subscriptions channel:read:redemptions channel:manage:extensions moderation:read";
     public static readonly TwitchClaims =
         // tslint:disable-next-line: quotemark
         '{"id_token":{"email_verified":null}, "userinfo":{"preferred_username"}}';

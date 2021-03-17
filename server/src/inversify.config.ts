@@ -28,7 +28,7 @@ import SonglistController from "./controllers/songlistController";
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
 import { SonglistRepository, TwitchUserProfileRepository } from "./database";
-import { TwitchUserProfileService } from "./services";
+import { TwitchUserProfileService, UserPermissionService, TwitchWebService } from "./services";
 
 const botContainer = new Container();
 
@@ -84,27 +84,13 @@ botContainer.bind<CommandAliasesRepository>(CommandAliasesRepository).toSelf();
 botContainer.bind<BotSettingsRepository>(BotSettingsRepository).toSelf();
 botContainer.bind<SonglistRepository>(SonglistRepository).toSelf();
 botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSelf();
+botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingletonScope();
+botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
 
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();
 botContainer.bind<EventController>(EventController).toSelf();
 botContainer.bind<SonglistController>(SonglistController).toSelf();
-
-/*botContainer.bind<Command>(Commands.AcceptCommand).to(Commands.AcceptCommand);
-botContainer.bind<Command>(Commands.AddAliasCommand).to(Commands.AddAliasCommand);
-botContainer.bind<Command>(Commands.AddCmdCommand).to(Commands.AddCmdCommand);
-botContainer.bind<Command>(Commands.AddSongCommand).to(Commands.AddSongCommand);
-botContainer.bind<Command>(Commands.AuctionCommand).to(Commands.AuctionCommand);
-botContainer.bind<Command>(Commands.BankheistCommand).to(Commands.BankheistCommand);
-botContainer.bind<Command>(Commands.BidCommand).to(Commands.BidCommand);
-botContainer.bind<Command>(Commands.DelAliasCommand).to(Commands.DelAliasCommand);
-botContainer.bind<Command>(Commands.DelCmdCommand).to(Commands.DelCmdCommand);
-botContainer.bind<Command>(Commands.DuelCommand).to(Commands.DuelCommand);
-botContainer.bind<Command>(Commands.JoinArenaCommand).to(Commands.JoinArenaCommand);
-botContainer.bind<Command>(Commands.StartArenaCommand).to(Commands.StartArenaCommand);
-botContainer.bind<Command>(Commands.TestCommand.name).to(Commands.TestCommand);
-botContainer.bind<Command>(Commands.TextCommand).to(Commands.TextCommand);
-botContainer.bind<Command>(Commands.WeaponCommand).to(Commands.WeaponCommand);*/
 
 const commandList: Map<string, Command> = new Map<string, Command>();
 Object.keys(Commands).forEach((val, index) => {
