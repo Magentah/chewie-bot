@@ -44,3 +44,4 @@ export {
     IStreamOnlineEvent,
     IStreamOfflineEvent,
 } from "./twitchEventSubEvents";
+export { default as ITwitchSubscription } from "./twitchSubscription";
