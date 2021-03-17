@@ -6,3 +6,4 @@ export { default as VIPLevelsRepository } from "./vipLevels";
 export { default as CommandAliasesRepository } from "./commandAliases";
 export { default as SonglistRepository } from "./songlistRepository";
 export { default as TwitchUserProfileRepository } from "./twitchUserProfileRepository";
+export { default as DiscordRepository } from "./discordRepository";

@@ -1,61 +1,116 @@
-import { injectable } from "inversify";
+import { inject, injectable } from "inversify";
 import * as Config from "../config.json";
 import axios, { AxiosRequestConfig } from "axios";
+import { DiscordRepository } from "../database";
+import { IDiscordSetting } from "../models";
+
+enum DiscordSettingName {
+    OnlineMessage = "online.message",
+    OnlineUrl = "online.url",
+    OnlineImage = "online.image",
+    OnlineAuthorName = "online.author.name",
+    OnlineAuthorUrl = "online.author.url",
+    OnlineAuthorIcon = "online.author.icon",
+    OnlineTitle = "online.title",
+    OnlineDescription = "online.description",
+    OnlineColor = "online.color",
+    OfflineMessage = "offline.message",
+    OfflineUrl = "offline.url",
+    OfflineImage = "offline.image",
+    OfflineAuthorName = "offline.author.name",
+    OfflineAuthorUrl = "offline.author.url",
+    OfflineAuthorIcon = "offline.author.icon",
+    OfflineTitle = "offline.title",
+    OfflineDescription = "offline.description",
+    OfflineColor = "offline.color",
+}
+
+// TODO: This all seems pretty badly done, should rethink a better way to handle this.
 
 @injectable()
 export default class DiscordService {
     private enabled: boolean = Config.discord.enabled;
-    constructor() {
-        // Empty
+    private hasInit: boolean = false;
+    private duringInit: boolean = false;
+    private settings!: { [name: string]: IDiscordSetting };
+    constructor(@inject(DiscordRepository) private discordRepo: DiscordRepository) {
+        this.getAllSettings().then(() => {
+            this.hasInit = true;
+        });
     }
 
+    /**
+     * Send SteamOnline message to Discord Webhook
+     */
     public async sendStreamOnline(): Promise<void> {
         if (!this.enabled) {
             return;
         }
-        const body = this.createRequestBody("Chewie is now online!", [
-            {
-                title: "Go to the stream!",
-                color: 1628627,
-                url: "https://twitch.tv/chewiemelodies",
-                image: {
-                    url: "https://panels-images.twitch.tv/panel-67955580-image-71043b75-1783-4a2b-9fa1-5944f0a051d0",
+        if (!this.hasInit) {
+            setTimeout(this.sendStreamOnline, 500);
+        } else {
+            const body = this.createRequestBody(this.setting(DiscordSettingName.OnlineMessage, ""), [
+                {
+                    title: this.setting(DiscordSettingName.OnlineTitle, "Chewie is online!"),
+                    description: this.setting(DiscordSettingName.OnlineDescription),
+                    color: this.setting(DiscordSettingName.OnlineColor),
+                    url: this.setting(DiscordSettingName.OnlineUrl, "https://www.twitch.tv/chewiemelodies"),
+                    image: {
+                        url: this.setting(DiscordSettingName.OnlineImage),
+                    },
+                    author: {
+                        name: this.setting(DiscordSettingName.OnlineAuthorName, "ChewieMelodies"),
+                        url: this.setting(DiscordSettingName.OnlineAuthorUrl, "https://www.twitch.tv/chewiemelodies"),
+                        icon_url: this.setting(
+                            DiscordSettingName.OnlineAuthorIcon,
+                            "https://static-cdn.jtvnw.net/jtv_user_pictures/eb7b3231-a3c1-4198-b67e-c53453d3f98f-profile_image-300x300.png"
+                        ),
+                    },
                 },
-                author: {
-                    name: "ChewieMelodies",
-                    url: "https://www.twitch.tv/chewiemelodies",
-                    icon_url:
-                        "https://static-cdn.jtvnw.net/jtv_user_pictures/eb7b3231-a3c1-4198-b67e-c53453d3f98f-profile_image-300x300.png",
-                },
-            },
-        ]);
-        await this.sendMessage(body);
+            ]);
+            await this.sendMessage(body);
+        }
     }
 
+    /**
+     * Send StreamOffline message to Discord webhook;
+     */
     public async sendStreamOffline(): Promise<void> {
         if (!this.enabled) {
             return;
         }
 
-        const body = this.createRequestBody("Chewie is now offline, check back later to see if he's online!", [
+        const body = this.createRequestBody(this.setting(DiscordSettingName.OfflineMessage), [
             {
-                title: "Current offline!",
-                color: 13178390,
-                url: "https://twitch.tv/chewiemelodies",
+                title: this.setting(
+                    DiscordSettingName.OfflineTitle,
+                    "Chewie is now offline, check back later to see if he's online!"
+                ),
+                description: this.setting(DiscordSettingName.OfflineDescription),
+                color: this.setting(DiscordSettingName.OfflineColor),
+                url: this.setting(DiscordSettingName.OfflineUrl, "https://www.twitch.tv/chewiemelodies"),
                 image: {
-                    url: "https://panels-images.twitch.tv/panel-67955580-image-71043b75-1783-4a2b-9fa1-5944f0a051d0",
+                    url: this.setting(DiscordSettingName.OfflineImage),
                 },
                 author: {
-                    name: "ChewieMelodies",
-                    url: "https://www.twitch.tv/chewiemelodies",
-                    icon_url:
-                        "https://static-cdn.jtvnw.net/jtv_user_pictures/eb7b3231-a3c1-4198-b67e-c53453d3f98f-profile_image-300x300.png",
+                    name: this.setting(DiscordSettingName.OfflineAuthorName, "ChewieMelodies"),
+                    url: this.setting(DiscordSettingName.OfflineAuthorUrl, "https://www.twitch.tv/chewiemelodies"),
+                    icon_url: this.setting(
+                        DiscordSettingName.OfflineAuthorIcon,
+                        "https://static-cdn.jtvnw.net/jtv_user_pictures/eb7b3231-a3c1-4198-b67e-c53453d3f98f-profile_image-300x300.png"
+                    ),
                 },
             },
         ]);
         await this.sendMessage(body);
     }
 
+    /**
+     * Helper for creating the body for discord webhook request
+     * @param message The message text for the discord message
+     * @param embed The embed for the discord message
+     * @returns
+     */
     private createRequestBody(message: string, embed?: any[]): any {
         return {
             content: message,
@@ -64,6 +119,10 @@ export default class DiscordService {
         };
     }
 
+    /**
+     * Sends a message to the discord webhook
+     * @param body The body of the request, containing all the details for the message
+     */
     private async sendMessage(body: any): Promise<void> {
         const options: AxiosRequestConfig = {
             headers: {
@@ -72,5 +131,53 @@ export default class DiscordService {
         };
 
         await axios.post(Config.discord.webhookUrl, body, options);
+    }
+
+    /**
+     * Gets all settings from the database and assigns them to a dictionary so we don't query the database every time.
+     * @returns
+     */
+    private async getAllSettings(): Promise<void> {
+        if (this.settings) {
+            return;
+        }
+
+        const dbSettings = await this.discordRepo.getAll();
+        this.settings = Object.assign({}, ...dbSettings.map((setting) => ({ [setting.name]: setting })));
+    }
+
+    /**
+     * Helper function to get the setting value of a setting from the dictionary.
+     * @param settingName The name of the setting to get the value of.
+     * @returns The value of the setting in the dictionary or a default string if there is no setting.
+     */
+    private setting(settingName: DiscordSettingName, defaultValue: string = ""): string {
+        if (!this.settings) {
+            return defaultValue;
+        }
+
+        const returnSetting: IDiscordSetting = this.settings[settingName];
+        if (!returnSetting) {
+            return defaultValue;
+        }
+
+        return returnSetting.value;
+    }
+
+    /**
+     * Gets a setting from the database.
+     * @param setting The name of the setting to get.
+     * @returns The setting name and value from the database.
+     */
+    public async getSetting(setting: DiscordSettingName): Promise<IDiscordSetting> {
+        return await this.discordRepo.get(setting);
+    }
+
+    /**
+     * Adds a setting to the database
+     * @param setting The name and value of the setting to add.
+     */
+    public async addSetting(setting: IDiscordSetting): Promise<void> {
+        await this.discordRepo.add(setting);
     }
 }

@@ -45,3 +45,4 @@ export {
     IStreamOfflineEvent,
 } from "./twitchEventSubEvents";
 export { default as ITwitchSubscription } from "./twitchSubscription";
+export { default as IDiscordSetting } from "./discordSetting";
