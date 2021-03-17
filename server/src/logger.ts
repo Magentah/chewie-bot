@@ -19,6 +19,7 @@ enum LogType {
     Language = "Lang",
     Spotify = "Spotify",
     Http = "Http",
+    Streamlabs = "Streamlabs",
 }
 
 enum LogLevel {

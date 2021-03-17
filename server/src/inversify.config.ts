@@ -13,6 +13,7 @@ import UserService from "./services/userService";
 import EventService from "./services/eventService";
 import TwitchEventService from "./services/twitchEventService";
 import BotSettingsService from "./services/botSettingsService";
+import StreamlabsService from "./services/streamlabsService";
 import BotSettingsRepository from "./database/botSettings";
 import UsersRepository from "./database/usersRepository";
 import UserLevelsRepository from "./database/userLevelsRepository";
@@ -86,6 +87,7 @@ botContainer.bind<SonglistRepository>(SonglistRepository).toSelf();
 botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSelf();
 botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingletonScope();
 botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
+botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
 
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();

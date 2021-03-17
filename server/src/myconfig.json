@@ -39,7 +39,8 @@
             "twitchevents": true,
             "server": true,
             "serverinfo": true,
-            "websocket": true
+            "websocket": true,
+            "streamlabs": true
         }
     },
     "database": {

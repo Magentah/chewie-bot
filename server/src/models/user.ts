@@ -6,7 +6,6 @@ export default interface IUser {
     id?: number;
     username: string;
     idToken?: string;
-    accessToken?: string;
     refreshToken?: string;
     points: number;
     vipExpiry?: Date;
@@ -16,6 +15,7 @@ export default interface IUser {
     userLevel?: IUserLevel;
     hasLogin: boolean;
     streamlabsToken?: string;
+    streamlabsSocketToken?: string;
     streamlabsRefresh?: string;
     spotifyRefresh?: string;
     twitchProfileKey?: number;
