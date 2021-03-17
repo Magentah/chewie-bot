@@ -6,6 +6,7 @@ export default interface IUser {
     id?: number;
     username: string;
     idToken?: string;
+    accessToken?: string;
     refreshToken?: string;
     points: number;
     vipExpiry?: Date;

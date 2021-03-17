@@ -227,7 +227,7 @@ export default class TwitchEventService {
         const options: AxiosRequestConfig = {
             headers: {
                 "Client-Id": Config.twitch.clientId,
-                Authorization: `Bearer ${this.accessToken.token}`,
+                "Authorization": `Bearer ${this.accessToken.token}`,
             },
         };
 

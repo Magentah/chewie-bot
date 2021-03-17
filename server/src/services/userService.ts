@@ -1,4 +1,5 @@
 import { injectable, inject } from "inversify";
+import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList } from "../models";
 
@@ -93,6 +94,38 @@ export class UserService {
      */
     public async getUser(username: string): Promise<IUser> {
         return await this.users.get(username);
+    }
+
+    public async getUserPrincipal(username: string, providerType: ProviderType): Promise<IUserPrincipal> {
+        const userPrincipal: IUserPrincipal = {
+            username,
+            accessToken: "",
+            refreshToken: "",
+            providerType
+        };
+
+        const user: IUser = await this.getUser(username);
+        switch (providerType) {
+            case ProviderType.Twitch:
+                if (user.accessToken === undefined || user.refreshToken === undefined) {
+                    throw new Error("Twitch tokens are not set up");
+                }
+                userPrincipal.accessToken = user.accessToken;
+                userPrincipal.refreshToken = user.refreshToken;
+                break;
+
+            case ProviderType.Streamlabs:
+                if (user.streamlabsToken === undefined || user.streamlabsRefresh === undefined) {
+                    throw new Error("Streamlabs tokens are not setup");
+                }
+                userPrincipal.accessToken = user.streamlabsToken;
+                userPrincipal.refreshToken = user.streamlabsRefresh;
+                break;
+            default:
+                throw new Error(`UserPrincipal not implemented for Provider: ${providerType}`);
+        }
+
+        return userPrincipal;
     }
 }
 

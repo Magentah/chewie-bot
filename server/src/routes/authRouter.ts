@@ -5,8 +5,8 @@ import * as Config from "../config.json";
 import Constants from "../constants";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
-import { IUser, ITwitchUserProfile } from "../models";
-import { SpotifyService, UserService, TwitchUserProfileService } from "../services";
+import { IUser } from "../models";
+import { SpotifyService, UserService, TwitchUserProfileService, UserPermissionService } from "../services";
 import { TwitchStrategy, StreamlabsStrategy, SpotifyStrategy } from "../strategy";
 
 const authRouter: express.Router = express.Router();
@@ -47,15 +47,20 @@ export function setupPassport(): void {
                     points: 0,
                     hasLogin: false,
                 };
-                let user = await BotContainer.get(UserService).addUser(newUser);
+
+                const user = await BotContainer.get(UserService).addUser(newUser);
+                user.accessToken = _accessToken;
+                user.refreshToken = _refreshToken;
 
                 // If the user exists but doesn't have a twitchProfile assigned, the user was added in another way.
                 // Assign the twitchProfile and update instead.
                 if (!user.twitchProfileKey) {
                     user.twitchProfileKey = twitchProfile.id;
-                    await BotContainer.get(UserService).updateUser(user);
-                    user = await BotContainer.get(UserService).getUser(user.username);
                 }
+
+                await BotContainer.get(UserService).updateUser(user);
+                await BotContainer.get(UserPermissionService).updateUserLevels(user);
+
                 return done(undefined, user);
             }
         )

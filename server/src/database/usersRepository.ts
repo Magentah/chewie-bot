@@ -48,6 +48,7 @@ export class UsersRepository {
             username: userResult.username,
             id: userResult.id,
             idToken: userResult.idToken,
+            accessToken: userResult.accessToken,
             refreshToken: userResult.refreshToken,
             spotifyRefresh: userResult.spotifyRefresh,
             streamlabsRefresh: userResult.streamlabsRefresh,
@@ -107,10 +108,13 @@ export class UsersRepository {
             return;
         }
 
-        delete user.userLevel;
-        delete user.vipLevel;
-        delete user.twitchUserProfile;
-        await databaseService.getQueryBuilder(DatabaseTables.Users).update(user).where({ id: user.id });
+        // Update should not manipulate original object.
+        const userData = { ...user };
+        delete userData.userLevel;
+        delete userData.vipLevel;
+        delete userData.twitchUserProfile;
+
+        await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ id: user.id });
     }
 
     /**
