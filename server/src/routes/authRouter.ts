@@ -162,7 +162,9 @@ authRouter.get(
         if (user) {
             user.account = req.account;
         }
-        BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
+        // TODO: At the moment we don't connect automatically to the streamlabs socket and wait until manually clicking on
+        // the connect button. Keeping this here just as it's still not decided if that's the best way.
+        // BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
         res.redirect("/");
     }
 );
