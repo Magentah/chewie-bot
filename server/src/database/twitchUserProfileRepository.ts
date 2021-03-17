@@ -4,7 +4,7 @@ import { ITwitchUserProfile } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services";
 
 @injectable()
-export default class TwitchUserProfileRepository {
+export class TwitchUserProfileRepository {
     constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
         // Empty
     }
@@ -59,3 +59,5 @@ export default class TwitchUserProfileRepository {
         return false;
     }
 }
+
+export default TwitchUserProfileRepository;
