@@ -142,6 +142,14 @@ const TwitchCard: React.FC<any> = (props: any) => {
                         {renderWelcome()}
                     </Grid>
                     <Grid item xs={12}>
+                        <Button className={classes.twitchButton} href="/api/auth/twitch/broadcaster">
+                            <Image
+                                src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
+                                style={{ width: "30px" }}
+                            />{" "}
+                            <span style={{ color: "white" }}>Authorize ChewieBot</span>
+                        </Button>
+
                         <Button className={classes.twitchButton} href={`/api/twitch/${user.username}/join`}>
                             <Image
                                 src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)

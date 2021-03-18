@@ -127,7 +127,7 @@ export class TwitchService {
         const accessDetails = await this.getAccessToken();
         const options = {
             headers: {
-                Authorization: `Bearer ${accessDetails.token}`,
+                "Authorization": `Bearer ${accessDetails.token}`,
                 "Client-Id": accessDetails.clientId,
             },
         };
@@ -141,7 +141,7 @@ export class TwitchService {
     private async getAccessToken(): Promise<any> {
         const clientId = Config.twitch.clientId;
         const clientSecret = Config.twitch.clientSecret;
-        const scopes = Constants.TwitchScopes;
+        const scopes = Constants.TwitchBroadcasterScopes;
         const { data } = await axios.post(
             `${Constants.TwitchTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=${scopes}`
         );
