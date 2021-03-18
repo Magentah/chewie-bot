@@ -103,8 +103,8 @@ export function setupPassport(): void {
                 if (user) {
                     user.streamlabsToken = accessToken;
                     user.streamlabsSocketToken = profile.socketToken;
+                    await BotContainer.get(UserService).updateUser(user);
                 }
-                await BotContainer.get(UserService).updateUser(user);
 
                 return done(undefined, profile);
             }
