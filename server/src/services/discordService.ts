@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import * as Config from "../config.json";
+import Constants from "../constants";
 import axios, { AxiosRequestConfig } from "axios";
 import { DiscordRepository } from "../database";
 import { IDiscordSetting } from "../models";
@@ -54,13 +55,19 @@ export default class DiscordService {
                     title: this.setting(DiscordSettingName.OnlineTitle, "Chewie is online!"),
                     description: this.setting(DiscordSettingName.OnlineDescription),
                     color: this.setting(DiscordSettingName.OnlineColor),
-                    url: this.setting(DiscordSettingName.OnlineUrl, "https://www.twitch.tv/chewiemelodies"),
+                    url: this.setting(
+                        DiscordSettingName.OnlineUrl,
+                        `${Constants.TwitchUri}/${Config.twitch.broadcasterName}`
+                    ),
                     image: {
                         url: this.setting(DiscordSettingName.OnlineImage),
                     },
                     author: {
-                        name: this.setting(DiscordSettingName.OnlineAuthorName, "ChewieMelodies"),
-                        url: this.setting(DiscordSettingName.OnlineAuthorUrl, "https://www.twitch.tv/chewiemelodies"),
+                        name: this.setting(DiscordSettingName.OnlineAuthorName, Config.twitch.broadcasterName),
+                        url: this.setting(
+                            DiscordSettingName.OnlineAuthorUrl,
+                            `${Constants.TwitchUri}/${Config.twitch.broadcasterName}`
+                        ),
                         icon_url: this.setting(
                             DiscordSettingName.OnlineAuthorIcon,
                             "https://static-cdn.jtvnw.net/jtv_user_pictures/eb7b3231-a3c1-4198-b67e-c53453d3f98f-profile_image-300x300.png"
