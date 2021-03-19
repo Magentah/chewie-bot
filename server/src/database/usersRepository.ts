@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import { CryptoHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { IUser } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
@@ -71,6 +72,16 @@ export class UsersRepository {
             },
         };
 
+        try {
+            user.accessToken = CryptoHelper.decryptString(userResult.accessToken);
+            user.refreshToken = CryptoHelper.decryptString(userResult.refreshToken);
+            user.spotifyRefresh =  CryptoHelper.decryptString(userResult.spotifyRefresh);
+            user.streamlabsRefresh = CryptoHelper.decryptString(userResult.streamlabsRefresh);
+            user.streamlabsToken = CryptoHelper.decryptString(userResult.streamlabsToken);
+        } catch {
+            Logger.warn(LogType.Database, `Cannot decrypt token for user ${user.id}`);
+        }
+
         return user;
     }
 
@@ -112,8 +123,9 @@ export class UsersRepository {
             return;
         }
 
-        // Update should not manipulate original object.
-        const userData = { ...user };
+        const userData = this.encryptUser(user);
+
+        // encryptUser() will return a copy of the object so we can safely delete here
         delete userData.userLevel;
         delete userData.vipLevel;
         delete userData.twitchUserProfile;
@@ -131,8 +143,10 @@ export class UsersRepository {
             return;
         }
 
-        Logger.debug(LogType.Database, databaseService.getQueryBuilder(DatabaseTables.Users).insert(user).toSQL().sql);
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(user);
+        const userData = this.encryptUser(user);
+
+        Logger.debug(LogType.Database, databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).toSQL().sql);
+        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData);
     }
 
     /**
@@ -157,6 +171,16 @@ export class UsersRepository {
             }
         }
         return false;
+    }
+
+    private encryptUser(user: IUser) : IUser {
+        const userData = { ...user };
+        userData.accessToken = CryptoHelper.encryptString(userData.accessToken);
+        userData.refreshToken = CryptoHelper.encryptString(userData.refreshToken);
+        userData.spotifyRefresh = CryptoHelper.encryptString(userData.spotifyRefresh);
+        userData.streamlabsToken = CryptoHelper.encryptString(userData.streamlabsToken);
+        userData.streamlabsRefresh = CryptoHelper.encryptString(userData.streamlabsRefresh);
+        return userData;
     }
 }
 

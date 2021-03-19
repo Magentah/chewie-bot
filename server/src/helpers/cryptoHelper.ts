@@ -27,7 +27,11 @@ export class CryptoHelper {
      * Returns an encrypted string.
      * @param text String to encrypt.
      */
-    public static encryptString(text: string): string {
+    public static encryptString(text: string | undefined): string {
+        if (!text) {
+            return "";
+        }
+
         const salt = Crypto.randomBytes(this.pbkdf2SaltSize);
         const key = Crypto.pbkdf2Sync(
             Buffer.from(this.secret, "utf8"),
@@ -45,6 +49,10 @@ export class CryptoHelper {
      * @param text String to decrypt.
      */
     public static decryptString(text: string): string {
+        if (!text) {
+            return "";
+        }
+
         const cipherTextAndNonceAndSalt = Buffer.from(text, "base64");
         const salt = cipherTextAndNonceAndSalt.slice(0, this.pbkdf2SaltSize);
         const cipherAndNonce = cipherTextAndNonceAndSalt.slice(this.pbkdf2SaltSize);
