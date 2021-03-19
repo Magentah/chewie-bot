@@ -24,7 +24,7 @@ services:
             dockerfile: Dockerfile
         volumes:
             - ./server:/usr/src/chewiebot/server
-            - ./db:/usr/src/chewiebot/server/db
+            - chewiebot-db:/usr/src/chewiebot/server/db
             - "/usr/src/chewiebot/server/node_modules/"
         environment:
             NODE_ENV: development
