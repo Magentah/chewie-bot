@@ -8,6 +8,7 @@ import { StatusCodes } from "http-status-codes";
 import { UserService } from "./userService";
 import DiscordService from "./discordService";
 import * as EventSub from "../models";
+import { TwitchAuthService } from ".";
 
 @injectable()
 export default class TwitchEventService {
@@ -18,7 +19,8 @@ export default class TwitchEventService {
 
     constructor(
         @inject(UserService) private users: UserService,
-        @inject(DiscordService) private discord: DiscordService
+        @inject(DiscordService) private discord: DiscordService,
+        @inject(TwitchAuthService) private authService: TwitchAuthService
     ) {
         this.accessToken = {
             token: "",
@@ -212,14 +214,7 @@ export default class TwitchEventService {
     }
 
     private async getAccessToken(): Promise<void> {
-        const result = await axios.post(
-            `${Constants.TwitchTokenUrl}?client_id=${Config.twitch.clientId}&client_secret=${Config.twitch.clientSecret}&grant_type=client_credentials`
-        );
-
-        this.accessToken = {
-            token: result.data.access_token,
-            expiry: moment.now() + result.data.expires_in,
-        };
+        this.accessToken = (await this.authService.getClientAccessToken("")).accessToken;
     }
 
     private async getOptions(contentType?: string): Promise<AxiosRequestConfig> {

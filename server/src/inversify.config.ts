@@ -11,6 +11,7 @@ import CommandService from "./services/commandService";
 import SongService from "./services/songService";
 import UserService from "./services/userService";
 import EventService from "./services/eventService";
+import TwitchAuthService from "./services/twitchAuthService";
 import TwitchEventService from "./services/twitchEventService";
 import BotSettingsService from "./services/botSettingsService";
 import TwitchUserProfileService from "./services/twitchUserProfileService";
@@ -70,6 +71,7 @@ botContainer.bind<TwitchServiceProvider>("TwitchServiceProvider").toProvider((co
     };
 });
 
+botContainer.bind<TwitchAuthService>(TwitchAuthService).toSelf().inSingletonScope();
 botContainer.bind<TwitchEventService>(TwitchEventService).toSelf().inSingletonScope();
 botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
 botContainer.bind<YoutubeService>(YoutubeService).toSelf().inSingletonScope();

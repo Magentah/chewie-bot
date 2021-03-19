@@ -6,6 +6,7 @@ import { IUserPrincipal, ProviderType} from "../models/userPrincipal";
 import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
 import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser } from "../models";
+import TwitchAuthService from "./twitchAuthService";
 
 /**
  * Provides acces to Twitch API endpoint for checking a user's
@@ -18,7 +19,8 @@ export class TwitchWebService {
     private readonly getModeratorsUrl: string = "moderation/moderators";
     private readonly getSubscribersUrl: string = "subscriptions";
 
-    constructor(@inject(UserService) private userService: UserService) {
+    constructor(@inject(UserService) private userService: UserService,
+                @inject(TwitchAuthService) private authService: TwitchAuthService) {
         this.twitchExecutor.setLogging(true);
     }
 
@@ -35,7 +37,7 @@ export class TwitchWebService {
             return undefined;
         }
 
-        const header: any = this.buildHeaderFromUserPrincipal(ctx);
+        const header: any = this.buildHeaderFromClientId();
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, this.getUserProfileUrl + `?login=${user}`)
@@ -168,6 +170,18 @@ export class TwitchWebService {
         return {
             "Authorization": `Bearer ${ctx.accessToken}`,
             "Client-ID": Config.twitch.clientId
+        };
+    }
+
+    private async buildHeaderFromClientId(): Promise<any> {
+        if (Config.twitch.clientId === undefined || Config.twitch.clientId === "") {
+            throw new Error(`No Twitch client id configured`);
+        }
+
+        const auth = await this.authService.getClientAccessToken("");
+        return {
+            "Authorization": `Bearer ${auth.accessToken.token}`,
+            "Client-ID": auth.clientId
         };
     }
 
