@@ -95,13 +95,13 @@ export default class DiscordService {
                 ),
                 description: this.setting(DiscordSettingName.OfflineDescription),
                 color: this.setting(DiscordSettingName.OfflineColor),
-                url: this.setting(DiscordSettingName.OfflineUrl, "https://www.twitch.tv/chewiemelodies"),
+                url: this.setting(DiscordSettingName.OfflineUrl, `${Constants.TwitchUri}/${Config.twitch.broadcasterName}`),
                 image: {
                     url: this.setting(DiscordSettingName.OfflineImage),
                 },
                 author: {
-                    name: this.setting(DiscordSettingName.OfflineAuthorName, "ChewieMelodies"),
-                    url: this.setting(DiscordSettingName.OfflineAuthorUrl, "https://www.twitch.tv/chewiemelodies"),
+                    name: this.setting(DiscordSettingName.OfflineAuthorName, Config.twitch.broadcasterName),
+                    url: this.setting(DiscordSettingName.OfflineAuthorUrl, `${Constants.TwitchUri}/${Config.twitch.broadcasterName}`),
                     icon_url: this.setting(
                         DiscordSettingName.OfflineAuthorIcon,
                         "https://static-cdn.jtvnw.net/jtv_user_pictures/eb7b3231-a3c1-4198-b67e-c53453d3f98f-profile_image-300x300.png"
