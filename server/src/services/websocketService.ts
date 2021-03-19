@@ -59,7 +59,7 @@ export class WebsocketService {
         });
     }
 
-    private async getUser(username: string): Promise<IUser> {
+    private async getUser(username: string): Promise<IUser | undefined> {
         const user = await this.userService.getUser(username);
         return user;
     }

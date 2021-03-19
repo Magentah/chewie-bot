@@ -9,7 +9,8 @@
         "eventSub": {
             "secret": "",
             "callbackBaseUri": ""
-        }
+        },
+        "pointRewardMultiplier": 1
     },
     "streamlabs": {
         "clientId": "",
