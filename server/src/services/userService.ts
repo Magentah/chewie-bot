@@ -107,11 +107,11 @@ export class UserService {
         const user: IUser = await this.getUser(username);
         switch (providerType) {
             case ProviderType.Twitch:
-                /*if (user.accessToken === undefined || user.refreshToken === undefined) {
+                if (user.accessToken === undefined || user.refreshToken === undefined) {
                     throw new Error("Twitch tokens are not set up");
-                }*/
-                //userPrincipal.accessToken = user.accessToken;
-                //userPrincipal.refreshToken = user.refreshToken;
+                }
+                userPrincipal.accessToken = user.accessToken;
+                userPrincipal.refreshToken = user.refreshToken;
                 break;
 
             case ProviderType.Streamlabs:

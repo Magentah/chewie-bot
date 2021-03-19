@@ -48,7 +48,7 @@ export class UsersRepository {
             username: userResult.username,
             id: userResult.id,
             idToken: userResult.idToken,
-            //accessToken: userResult.accessToken,
+            accessToken: userResult.accessToken,
             refreshToken: userResult.refreshToken,
             spotifyRefresh: userResult.spotifyRefresh,
             streamlabsRefresh: userResult.streamlabsRefresh,

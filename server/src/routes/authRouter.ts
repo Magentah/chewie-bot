@@ -132,6 +132,7 @@ export function setupPassport(): void {
                     refreshToken,
                     user: user.username,
                 };
+                // TODO: This shouldn't be using login. Login is done with TwitchStrategy, this should use authentication similar to StreamlabsStrategy.
                 /*req.logIn(user, (err) => {
                     if (!err) {
                         Logger.info(LogType.ServerInfo, `Logged in user ${user.username}`);
