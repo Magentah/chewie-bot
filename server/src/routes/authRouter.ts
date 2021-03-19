@@ -54,7 +54,7 @@ function MakeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strat
 
             // If the user exists but doesn't have a twitchProfile assigned, the user was added in another way.
             // Assign the twitchProfile and update instead.
-            if (!user.twitchUserProfile) {
+            if (!user.twitchProfileKey) {
                 user.twitchProfileKey = twitchProfile.id;
             }
 

@@ -16,6 +16,7 @@ export enum DatabaseTables {
     BotSettings = "botSettings",
     Songlist = "songlist",
     TwitchUserProfile = "twitchUserProfile",
+    DiscordSettings = "discordSettings",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -80,6 +81,7 @@ export class DatabaseService {
                 await this.createCommandAliasTable();
                 await this.createBotSettingsTable();
                 await this.createSonglistTable();
+                await this.createDiscordSettingTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -112,6 +114,13 @@ export class DatabaseService {
                 Logger.debug(LogType.Database, `${tableName} already exists.`);
                 resolve();
             }
+        });
+    }
+    private async createDiscordSettingTable(): Promise<void> {
+        return this.createTable(DatabaseTables.DiscordSettings, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("name").notNullable().unique();
+            table.string("value").notNullable();
         });
     }
 
