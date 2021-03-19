@@ -37,6 +37,7 @@ const App: React.FC<{}> = (props) => {
     if (!isLoaded) {
         return null;
     }
+
     return (
         <Router>
             <CssBaseLine />

@@ -51,7 +51,7 @@ const PreviewCell: React.FC<any> = (value) => {
 
 const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (props) => {
     const duration = moment.utc(moment.duration(props.value.duration).asMilliseconds()).format("HH:mm:ss");
-    
+
     const playButton = props.value.details.source === SongSource.Spotify ? (<Grid item>
         <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
             <PlayCircleOutlineIcon />
@@ -141,7 +141,7 @@ type FailedSongRequestState = {
     state: "failed";
     message: string;
 };
-   
+
 type SongRequestState = NoSongRequestState | AddedSongRequestState | AddingSongRequestState | FailedSongRequestState;
 
 function Alert(props: AlertProps) {
@@ -236,7 +236,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             state: undefined
         });
     };
-    
+
     // Don't allow selecting songs for deletion without permission.
     let tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 3 };
     let tableActions: Action<Song>[] = [];
@@ -247,25 +247,25 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
 
         tableActions = [ {
-              tooltip: 'Remove all',
-              icon: 'delete',
+              tooltip: "Remove all",
+              icon: "delete",
               onClick: (evt, data) => (data as Song[]).length ? onSongDeleted(data as Song[]) : onSongDeleted([ data as Song ])
             }
         ];
     }
 
     // Find own requested songs and list them.
-    let ownSongs: OwnRequest[] = [];
+    const ownSongs: OwnRequest[] = [];
     for (const song of songs) {
         if (song.requestedBy === user.username) {
             ownSongs.push({
                 index: songs.indexOf(song),
-                song: song
+                song
             });
         }
     }
 
-    let addSongrequestsForm = (user.userLevelKey >= UserLevels.Moderator)
+    const addSongrequestsForm = (user.userLevelKey >= UserLevels.Moderator)
         ? <Grid item xs={12}>
             <form onSubmit={submitSongRequest}>
                 <Grid container spacing={2} justify="flex-start">
@@ -305,7 +305,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         </Grid>
         : undefined;
 
-    let ownSongQueue = 
+    // Display only for known users, we can't indentify requests otherwise.
+    const ownSongQueue = !user.username ? undefined :
         <Box mb={1}>
             <Typography variant="h5">
                 Your requests
@@ -342,29 +343,29 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 title = "Song Queue"
                 columns = {[
                     {
-                        title: 'Preview',
-                        field: 'previewData.previewUrl', 
+                        title: "Preview",
+                        field: "previewData.previewUrl", 
                         filtering: false,
                         render: rowData => PreviewCell(rowData)
                     },
                     {
-                        title: 'Song Title',
-                        field: 'details.title',
+                        title: "Song Title",
+                        field: "details.title",
                         render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong})
                     },
                     {
-                         title: 'Requested By',
-                         field: 'requestedBy',
-                         align: 'left'
+                         title: "Requested By",
+                         field: "requestedBy",
+                         align: "left"
                     },
                     {
-                        title: 'Requester Status',
-                        field: 'requesterStatus.viewerStatus',
+                        title: "Requester Status",
+                        field: "requesterStatus.viewerStatus",
                         render: rowData => RequesterStatusCell(rowData)
                     },
                     {
-                        title: 'Requested With',
-                        field: 'requestSource'
+                        title: "Requested With",
+                        field: "requestSource"
                     }
                 ]}
                 options = {tableOptions}

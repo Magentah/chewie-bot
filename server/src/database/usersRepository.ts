@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { CryptoHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
-import { IUser } from "../models";
+import { IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -147,6 +147,30 @@ export class UsersRepository {
 
         Logger.debug(LogType.Database, databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).toSQL().sql);
         await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData);
+    }
+
+    /**
+     * Creates an user object that represents an anonymous user.
+     * @returns user object
+     */
+    public static getAnonUser() : IUser {
+        return {
+            username: "",
+            points: 0,
+            hasLogin: false,
+            userLevelKey: UserLevels.Viewer,
+            userLevel: {
+                id: UserLevels.Viewer,
+                name: "",
+                rank: 0
+            },
+            twitchUserProfile: {
+                id: 0,
+                displayName: "Anonymous",
+                username: "",
+                profileImageUrl: ""
+            }
+        };
     }
 
     /**
