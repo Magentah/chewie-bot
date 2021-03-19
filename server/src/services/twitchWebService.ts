@@ -25,19 +25,7 @@ export class TwitchWebService {
     }
 
     public async fetchUserProfile(user: string): Promise<ITwitchUserProfile | undefined> {
-        let ctx: IUserPrincipal | undefined = await this.getTwitchUserPrincipal(user);
-
-        // User might not have authorised with our bot yet, use broadcaster's
-        // authorisation to access API.
-        if (!ctx?.accessToken) {
-            ctx = await this.getBroadcasterUserPrincipal();
-        }
-
-        if (ctx === undefined) {
-            return undefined;
-        }
-
-        const header: any = this.buildHeaderFromClientId();
+        const header: any = await this.buildHeaderFromClientId();
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, this.getUserProfileUrl + `?login=${user}`)
@@ -63,10 +51,6 @@ export class TwitchWebService {
             });
     }
 
-    public async fetchBroadcasterProfile(): Promise<ITwitchUserProfile | undefined> {
-        return this.fetchUserProfile(Config.twitch.broadcasterName);
-    }
-
     /**
      *  Fetches the list of moderators if users is empty.
      *  If users are specified, then a moderator subset will be returned from the list.
@@ -80,12 +64,7 @@ export class TwitchWebService {
             return [] as ITwitchUser[];
         }
 
-        const broadcasterProfile: ITwitchUserProfile | undefined = await this.fetchUserProfile(broadcasterCtx.username);
-        if (broadcasterProfile === undefined) {
-            return [] as ITwitchUser[];
-        }
-
-        let getModeratorsUrl = `${this.getModeratorsUrl}?broadcaster_id=${broadcasterProfile.id}`;
+        let getModeratorsUrl = `${this.getModeratorsUrl}?broadcaster_id=${broadcasterCtx.userId}`;
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(users.map(async (user: string) => {
@@ -98,11 +77,15 @@ export class TwitchWebService {
             });
         }
 
-        const header: any = this.buildHeaderFromUserPrincipal(broadcasterCtx);
+        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, getModeratorsUrl)
             .then((resp: AxiosResponse) => {
+                if (resp === undefined) {
+                    return [] as ITwitchUser[];
+                }
+
                 if (resp.data === undefined) {
                     throw new Error("malformed data");
                 }
@@ -130,12 +113,7 @@ export class TwitchWebService {
             return [] as ITwitchSubscription[];
         }
 
-        const broadcasterProfile: ITwitchUserProfile | undefined = await this.fetchUserProfile(broadcasterCtx.username);
-        if (broadcasterProfile === undefined) {
-            return [] as ITwitchSubscription[];
-        }
-
-        let getSubsUrl = `${this.getSubscribersUrl}?broadcaster_id=${broadcasterProfile.id}`;
+        let getSubsUrl = `${this.getSubscribersUrl}?broadcaster_id=${broadcasterCtx.userId}`;
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(users.map(async (user: string) => {
@@ -148,7 +126,7 @@ export class TwitchWebService {
             });
         }
 
-        const header: any = this.buildHeaderFromUserPrincipal(broadcasterCtx);
+        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, getSubsUrl)
@@ -163,13 +141,23 @@ export class TwitchWebService {
 
     }
 
-    private buildHeaderFromUserPrincipal(ctx: IUserPrincipal): any {
+    private async buildHeaderFromUserPrincipal(ctx: IUserPrincipal): Promise<any> {
         if (ctx.accessToken === undefined || ctx.accessToken === "") {
             throw new Error(`no access token for ${ctx}`);
         }
+
+        const auth = await this.authService.getUserAccessToken(ctx);
+
+        const user = await this.userService.getUser(ctx.username);
+        if (user) {
+            user.accessToken = auth.accessToken.token;
+            user.refreshToken = auth.refreshToken;
+            this.userService.updateUser(user);
+        }
+
         return {
-            "Authorization": `Bearer ${ctx.accessToken}`,
-            "Client-ID": Config.twitch.clientId
+            "Authorization": `Bearer ${auth.accessToken.token}`,
+            "Client-ID": auth.clientId
         };
     }
 
@@ -183,19 +171,6 @@ export class TwitchWebService {
             "Authorization": `Bearer ${auth.accessToken.token}`,
             "Client-ID": auth.clientId
         };
-    }
-
-    private async getTwitchUserPrincipal(user: string | IUserPrincipal): Promise<IUserPrincipal | undefined>  {
-        let ctx: IUserPrincipal | undefined;
-
-        if (typeof user === "string") {
-            const username: string = user as string;
-            ctx = await this.userService.getUserPrincipal(username, ProviderType.Twitch);
-        } else {
-            ctx = user as IUserPrincipal;
-        }
-
-        return ctx;
     }
 
     private async getBroadcasterUserPrincipal(): Promise<IUserPrincipal | undefined> {

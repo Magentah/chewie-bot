@@ -10,4 +10,5 @@ export interface IUserPrincipal {
     accessToken: string;
     refreshToken: string;
     providerType: ProviderType;
+    userId?: number;
 }
