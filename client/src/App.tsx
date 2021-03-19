@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Switch, Route, Redirect } from "react-router-dom";
+import { HashRouter as Router, Route } from "react-router-dom";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fab } from "@fortawesome/free-brands-svg-icons";
 import CssBaseLine from "@material-ui/core/CssBaseline";
 
 import Dashboard from "./views/dashboard/Dashboard";
-import Login from "./views/login/Login";
 import axios from "axios";
 import UserContextProvider from "./contexts/userContext";
 
@@ -14,23 +13,16 @@ library.add(fab);
 
 const App: React.FC<{}> = (props) => {
     const [isLoaded, setIsLoaded] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+    // Wait until user profile cookie has been created.
     useEffect(() => {
         axios
             .get("/api/isloggedin")
             .then((response) => {
-                if (response.status === 200) {
-                    setIsLoggedIn(true);
-                    setIsLoaded(true);
-                } else {
-                    setIsLoaded(true);
-                    setIsLoggedIn(false);
-                }
+                setIsLoaded(true);
             })
             .catch((reason) => {
                 setIsLoaded(true);
-                setIsLoggedIn(false);
             });
     }, []);
 
@@ -41,14 +33,9 @@ const App: React.FC<{}> = (props) => {
     return (
         <Router>
             <CssBaseLine />
-            <Switch>
-                <Route path="/login">
-                    <Login />
-                </Route>
-                <UserContextProvider>
-                    <Route path="/">{isLoggedIn ? <Dashboard /> : <Redirect to="/login" />}</Route>
-                </UserContextProvider>
-            </Switch>
+            <UserContextProvider>
+                <Route path="/"><Dashboard /></Route>
+            </UserContextProvider>
         </Router>
     );
 };
