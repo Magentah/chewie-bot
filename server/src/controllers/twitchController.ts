@@ -3,7 +3,8 @@ import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { ResponseStatus } from "../models";
 import { Logger, LogType } from "../logger";
-import { TwitchService, TwitchServiceProvider, BotSettingsService, TwitchEventService } from "../services";
+import { TwitchServiceProvider, BotSettingsService, TwitchEventService, StreamlabsService } from "../services";
+import { ITwitchProfile } from "../strategy/twitchStrategy";
 
 enum TwitchEventMessageType {
     Verification,
@@ -16,7 +17,8 @@ class TwitchController {
     constructor(
         @inject("TwitchServiceProvider") private twitchProvider: TwitchServiceProvider,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
-        @inject(TwitchEventService) private twitchEventService: TwitchEventService
+        @inject(TwitchEventService) private twitchEventService: TwitchEventService,
+        @inject(StreamlabsService) private streamlabsService: StreamlabsService
     ) {
         //
     }
@@ -50,6 +52,15 @@ class TwitchController {
         try {
             const twitchService = await this.twitchProvider();
             twitchService.connect();
+
+            // Attempts to connect to the streamlabs socket on bot connection.
+            // TODO: Might be a good idea to change this? Maybe have the bot just connect to the websocket on
+            // startup if there's a token for the configured broadcaster? Not sure.
+            if (req.user) {
+                const user: ITwitchProfile = req.user as ITwitchProfile;
+                await this.streamlabsService.connectOnStartup(user);
+            }
+
             res.sendStatus(StatusCodes.OK);
         } catch (error) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
@@ -60,6 +71,7 @@ class TwitchController {
         try {
             const twitchService = await this.twitchProvider();
             twitchService.disconnect();
+            this.streamlabsService.disconnect();
             res.sendStatus(StatusCodes.OK);
         } catch (error) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);

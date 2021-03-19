@@ -16,6 +16,7 @@ export default interface IUser {
     userLevel?: IUserLevel;
     hasLogin: boolean;
     streamlabsToken?: string;
+    streamlabsSocketToken?: string;
     streamlabsRefresh?: string;
     spotifyRefresh?: string;
     twitchProfileKey?: number;

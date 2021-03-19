@@ -147,7 +147,7 @@ export class DatabaseService {
             table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
             table.integer("userLevelKey").unsigned();
             table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
-            table.string("username").notNullable();
+            table.string("username").notNullable().unique();
             table.string("refreshToken").unique();
             table.string("accessToken").unique();
             table.string("idToken").unique();
@@ -155,6 +155,7 @@ export class DatabaseService {
             table.dateTime("vipExpiry");
             table.boolean("hasLogin").notNullable();
             table.string("streamlabsToken");
+            table.string("streamlabsSocketToken");
             table.string("streamlabsRefresh");
             table.string("spotifyRefresh");
             table.integer("twitchProfileKey").unsigned();

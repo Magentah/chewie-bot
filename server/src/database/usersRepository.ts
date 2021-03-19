@@ -57,6 +57,7 @@ export class UsersRepository {
             spotifyRefresh: userResult.spotifyRefresh,
             streamlabsRefresh: userResult.streamlabsRefresh,
             streamlabsToken: userResult.streamlabsToken,
+            streamlabsSocketToken: userResult.streamlabsSocketToken,
             twitchProfileKey: userResult.twitchProfileKey,
             userLevel: userResult.userLevel,
             vipLevel: userResult.vipLevel,

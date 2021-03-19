@@ -101,7 +101,7 @@ export class UserService {
             username,
             accessToken: "",
             refreshToken: "",
-            providerType
+            providerType,
         };
 
         const user: IUser | undefined = await this.getUser(username);

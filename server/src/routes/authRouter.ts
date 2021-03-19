@@ -1,3 +1,4 @@
+import axios from "axios";
 import * as express from "express";
 import { StatusCodes } from "http-status-codes";
 import * as passport from "passport";
@@ -7,7 +8,13 @@ import Constants from "../constants";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
 import { IUser } from "../models";
-import { SpotifyService, UserService, TwitchUserProfileService, UserPermissionService } from "../services";
+import {
+    SpotifyService,
+    UserService,
+    TwitchUserProfileService,
+    UserPermissionService,
+    StreamlabsService,
+} from "../services";
 import { TwitchStrategy, StreamlabsStrategy, SpotifyStrategy } from "../strategy";
 
 const authRouter: express.Router = express.Router();
@@ -91,21 +98,21 @@ export function setupPassport(): void {
                 passReqToCallback: true,
             },
             async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
-                const user = await BotContainer.get(UserService).addUser(profile.username);
-                user.streamlabsRefresh = refreshToken;
-                user.streamlabsToken = accessToken;
-                await BotContainer.get(UserService).updateUser(user);
-                const account = {
-                    accessToken,
-                    refreshToken,
-                    user: user.username,
-                };
-                req.logIn(user, (err) => {
-                    if (!err) {
-                        Logger.info(LogType.ServerInfo, `Logged in user ${user.username}`);
-                    }
-                });
-                return done(undefined, account);
+                const socketTokenResult = await axios.get(
+                    `${Constants.StreamlabsSocketTokenUrl}?access_token=${accessToken}`
+                );
+                if (socketTokenResult.status === StatusCodes.OK) {
+                    profile.socketToken = socketTokenResult.data.socket_token;
+                }
+
+                const user = await BotContainer.get(UserService).getUser(profile.twitch.name);
+                if (user) {
+                    user.streamlabsToken = accessToken;
+                    user.streamlabsSocketToken = profile.socketToken;
+                    await BotContainer.get(UserService).updateUser(user);
+                }
+
+                return done(undefined, profile);
             }
         )
     );
@@ -131,11 +138,12 @@ export function setupPassport(): void {
                     refreshToken,
                     user: user.username,
                 };
-                req.logIn(user, (err) => {
+                // TODO: This shouldn't be using login. Login is done with TwitchStrategy, this should use authentication similar to StreamlabsStrategy.
+                /*req.logIn(user, (err) => {
                     if (!err) {
                         Logger.info(LogType.ServerInfo, `Logged in user ${user.username}`);
                     }
-                });
+                });*/
                 return done(undefined, account);
             }
         )
@@ -146,13 +154,25 @@ export function setupPassport(): void {
 authRouter.get("/api/auth/twitch", passport.authenticate("twitch"));
 authRouter.get("/api/auth/twitch/broadcaster", passport.authenticate("twitch-broadcaster"));
 authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { failureRedirect: "/" }), (req, res) => {
+    const user = req.user as IUser;
+    if (user.streamlabsSocketToken) {
+        BotContainer.get(StreamlabsService).startSocketConnect(user.streamlabsSocketToken);
+    }
     res.redirect("/");
 });
 authRouter.get("/api/auth/streamlabs", passport.authorize("streamlabs"));
 authRouter.get(
     "/api/auth/streamlabs/callback",
     passport.authorize("streamlabs", { failureRedirect: "/" }),
-    (req, res) => {
+    async (req, res) => {
+        Logger.info(LogType.Server, JSON.stringify(req.account));
+        const user = req.user;
+        if (user) {
+            user.account = req.account;
+        }
+        // TODO: At the moment we don't connect automatically to the streamlabs socket and wait until manually clicking on
+        // the connect button. Keeping this here just as it's still not decided if that's the best way.
+        // BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
         res.redirect("/");
     }
 );

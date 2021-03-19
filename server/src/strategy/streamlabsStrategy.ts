@@ -1,7 +1,7 @@
 import * as OAuth2Strategy from "passport-oauth2";
 import axios from "axios";
 import Constants from "../constants";
-import { OK, BAD_REQUEST } from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 import { BotContainer } from "../inversify.config";
 import { UserService } from "../services";
 
@@ -30,21 +30,21 @@ class StreamlabsStrategy extends OAuth2Strategy {
             },
         });
         switch (status) {
-            case OK:
+            case StatusCodes.OK:
                 const user: IStreamlabsUser = data as IStreamlabsUser;
-                if (user.twitch.name) {
-                    const existingUser = await BotContainer.get(UserService).getUser(user.twitch.name);
-                    done(undefined, existingUser);
-                }
+                user.accessToken = accessToken;
+                done(undefined, user);
                 break;
-            case BAD_REQUEST:
+            case StatusCodes.BAD_REQUEST:
             default:
                 done(new OAuth2Strategy.InternalOAuthError("Failed to get user profile", undefined));
         }
     }
 }
 
-interface IStreamlabsUser {
+export interface IStreamlabsUser {
+    accessToken: string;
+    socketToken: string;
     streamlabs: {
         id?: number;
         display_name?: string;

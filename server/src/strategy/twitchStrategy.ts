@@ -54,7 +54,7 @@ class TwitchStrategy extends OAuth2Strategy {
     }
 }
 
-interface ITwitchProfile {
+export interface ITwitchProfile {
     provider: string;
     id: number;
     username: string;
