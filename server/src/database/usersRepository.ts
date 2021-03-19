@@ -13,7 +13,7 @@ export class UsersRepository {
      * Gets a user from the database if the user exists.
      * @param username Username of the user to get
      */
-    public async get(username: string): Promise<IUser> {
+    public async get(username: string): Promise<IUser | undefined> {
         const databaseService = await this.databaseProvider();
         Logger.debug(
             LogType.Database,
@@ -40,6 +40,10 @@ export class UsersRepository {
                 "twitchUserProfile.profileImageUrl as profileImageUrl",
                 "users.*",
             ]);
+
+        if (!userResult) {
+            return undefined;
+        }
 
         // Need to map from SQLResult to the correct model.
         const user: IUser = {

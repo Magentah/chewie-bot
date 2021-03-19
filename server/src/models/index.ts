@@ -29,4 +29,19 @@ export { default as IBotSettings } from "./botSettings";
 export { default as IServiceResponse, ResponseStatus } from "./serviceResponse";
 export { default as ISonglistItem } from "./songlistItem";
 export { default as ITwitchUserProfile } from "./twitchUserProfile";
+export {
+    ISubscriptionData,
+    ISubscriptionResponse,
+    ISubscriptionCondition,
+    ISubscriptionTransport,
+    IAccessToken,
+    IEventSubNotification,
+    IRewardRedemeptionUpdateEvent,
+    IChannelReward,
+    EventTypes,
+    SubscriptionStatus,
+    ChannelPointRedemptionStatus,
+    IStreamOnlineEvent,
+    IStreamOfflineEvent,
+} from "./twitchEventSubEvents";
 export { default as ITwitchSubscription } from "./twitchSubscription";

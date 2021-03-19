@@ -113,7 +113,7 @@ export class CommandService {
         const commandName = TwitchHelper.getCommandName(message);
         if (commandName) {
             try {
-                const user = await this.users.getUser(username);
+                const user = await this.users.addUser(username);
                 const args = TwitchHelper.getCommandArgs(message);
                 if (args) {
                     this.executeCommand(commandName, channel, user, ...args);

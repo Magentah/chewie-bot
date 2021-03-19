@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import * as knex from "knex";
+import { Knex, knex } from "knex";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
 import { IBotSettings, IUser } from "../models";
@@ -37,7 +37,7 @@ export class DatabaseService {
         this.db = knex(this.dbConfig);
     }
 
-    private dbConfig: knex.Config = {
+    private dbConfig: Knex.Config = {
         client: Config.database.client,
         connection: {
             filename: Config.database.connection.name,
@@ -63,7 +63,7 @@ export class DatabaseService {
         },
     };
 
-    private db: knex;
+    private db: Knex;
     private isInit: boolean = false;
     private inSetup: boolean = false;
 
@@ -101,7 +101,7 @@ export class DatabaseService {
      * @param tableName Name of the table to create
      * @param callback Callback function called to create the table.
      */
-    private async createTable(tableName: DatabaseTables, callback: (table: knex.TableBuilder) => any): Promise<void> {
+    private async createTable(tableName: DatabaseTables, callback: (table: Knex.TableBuilder) => any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             const hasTable = await this.hasTable(tableName);
             if (!hasTable) {
@@ -296,7 +296,7 @@ export class DatabaseService {
         return this.isInit;
     }
 
-    public getQueryBuilder(tableName: string): knex.QueryBuilder {
+    public getQueryBuilder(tableName: string): Knex.QueryBuilder {
         return this.db(tableName);
     }
 }

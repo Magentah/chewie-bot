@@ -15,7 +15,7 @@ export class UserPermissionService {
 
     public async updateUserLevels(user: string | IUser): Promise<void> {
         let username: string;
-        let userData: IUser;
+        let userData: IUser | undefined;
 
         if (typeof user === "string") {
             username = user as string;
@@ -23,6 +23,10 @@ export class UserPermissionService {
         } else {
             username = user.username;
             userData = user as IUser;
+        }
+
+        if (!userData) {
+            return;
         }
 
         let newUserLevel: UserLevels;
