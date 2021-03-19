@@ -14,6 +14,10 @@ import EventService from "./services/eventService";
 import TwitchEventService from "./services/twitchEventService";
 import BotSettingsService from "./services/botSettingsService";
 import StreamlabsService from "./services/streamlabsService";
+import TwitchUserProfileService from "./services/twitchUserProfileService";
+import UserPermissionService from "./services/userPermissionService";
+import TwitchWebService from "./services/twitchWebService";
+import DiscordService from "./services/discordService";
 import BotSettingsRepository from "./database/botSettings";
 import UsersRepository from "./database/usersRepository";
 import UserLevelsRepository from "./database/userLevelsRepository";
@@ -21,6 +25,9 @@ import VIPLevelsRepository from "./database/vipLevels";
 import DonationsRepository from "./database/donations";
 import TextCommandsRepository from "./database/textCommands";
 import CommandAliasesRepository from "./database/commandAliases";
+import TwitchUserProfileRepository from "./database/twitchUserProfileRepository";
+import SonglistRepository from "./database/songlistRepository";
+import DiscordRepository from "./database/discordRepository";
 import SongController from "./controllers/songController";
 import TwitchController from "./controllers/twitchController";
 import EventController from "./controllers/eventController";
@@ -28,8 +35,6 @@ import SonglistController from "./controllers/songlistController";
 
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
-import { SonglistRepository, TwitchUserProfileRepository } from "./database";
-import { TwitchUserProfileService, UserPermissionService, TwitchWebService } from "./services";
 
 const botContainer = new Container();
 
@@ -75,6 +80,9 @@ botContainer.bind<UserService>(UserService).toSelf().inSingletonScope();
 botContainer.bind<EventService>(EventService).toSelf().inSingletonScope();
 botContainer.bind<BotSettingsService>(BotSettingsService).toSelf().inSingletonScope();
 botContainer.bind<TwitchUserProfileService>(TwitchUserProfileService).toSelf().inSingletonScope();
+botContainer.bind<DiscordService>(DiscordService).toSelf().inSingletonScope();
+botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingletonScope();
+botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
 
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
 botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();
@@ -88,6 +96,7 @@ botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSe
 botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingletonScope();
 botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
 botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
+botContainer.bind<DiscordRepository>(DiscordRepository).toSelf();
 
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();

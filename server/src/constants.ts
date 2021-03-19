@@ -12,6 +12,7 @@ export default class Constants {
     public static readonly TwitchJWKUri = "https://id.twitch.tv/oauth2/keys";
     public static readonly TwitchAPIEndpoint = "https://api.twitch.tv/helix";
     public static readonly TwitchEventSubEndpoint = "https://api.twitch.tv/helix/eventsub/subscriptions";
+    public static readonly TwitchUri = "https://www.twitch.tv";
 
     // Streamlabs
     public static readonly StreamlabsAuthUrl = "https://streamlabs.com/api/v1.0/authorize";

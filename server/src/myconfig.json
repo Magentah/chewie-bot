@@ -25,6 +25,10 @@
     "youtube": {
         "apiKey": ""
     },
+    "discord": {
+        "enabled": false,
+        "webhookUrl": ""
+    },
     "secretKey": "",
     "log": {
         "levels": "syslog",
