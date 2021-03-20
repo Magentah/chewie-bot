@@ -148,9 +148,9 @@ export class DatabaseService {
             table.integer("userLevelKey").unsigned();
             table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
             table.string("username").notNullable().unique();
-            table.string("refreshToken").unique();
-            table.string("accessToken").unique();
-            table.string("idToken").unique();
+            table.string("refreshToken");
+            table.string("accessToken");
+            table.string("idToken");
             table.decimal("points").notNullable();
             table.dateTime("vipExpiry");
             table.boolean("hasLogin").notNullable();
@@ -282,12 +282,7 @@ export class DatabaseService {
      */
     private async addDefaultBotSettings(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            if (
-                Config.twitch.username &&
-                Config.twitch.username.length > 0 &&
-                Config.twitch.oauth &&
-                Config.twitch.oauth.length > 0
-            ) {
+            if (Config.twitch.username && Config.twitch.username.length > 0 && Config.twitch.oauth && Config.twitch.oauth.length > 0) {
                 if (!(await this.db(DatabaseTables.BotSettings).first().where("username", Config.twitch.username))) {
                     const botSettings: IBotSettings = {
                         username: Config.twitch.username,
