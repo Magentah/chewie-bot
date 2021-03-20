@@ -7,10 +7,10 @@ import { Response } from "../helpers";
 import * as Config from "../config.json";
 import Constants from "../constants";
 // Required to do it this way instead of from "../services" due to inversify breaking otherwise
-import CommandService from "../services/commandService";
 import UserService from "../services/userService";
 import WebsocketService from "../services/websocketService";
 import BotSettingsService from "../services/botSettingsService";
+import TwitchAuthService from "../services/twitchAuthService";
 
 export interface IBotTwitchStatus {
     connected: boolean;
@@ -30,7 +30,8 @@ export class TwitchService {
     constructor(
         @inject(UserService) private users: UserService,
         @inject(WebsocketService) private websocketService: WebsocketService,
-        @inject(BotSettingsService) private botSettingsService: BotSettingsService
+        @inject(BotSettingsService) private botSettingsService: BotSettingsService,
+        @inject(TwitchAuthService) private authService: TwitchAuthService
     ) {
         this.channel = `#${Config.twitch.broadcasterName}`;
         this.channelUserList = new Map<string, ITwitchChatList>();
@@ -124,10 +125,10 @@ export class TwitchService {
     }
 
     public async channelSearch(channelName: string): Promise<any> {
-        const accessDetails = await this.getAccessToken();
+        const accessDetails = await this.authService.getClientAccessTokenWithScopes(Constants.TwitchBroadcasterScopes);
         const options = {
             headers: {
-                "Authorization": `Bearer ${accessDetails.token}`,
+                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
                 "Client-Id": accessDetails.clientId,
             },
         };
@@ -136,20 +137,6 @@ export class TwitchService {
             options
         );
         return data;
-    }
-
-    private async getAccessToken(): Promise<any> {
-        const clientId = Config.twitch.clientId;
-        const clientSecret = Config.twitch.clientSecret;
-        const scopes = Constants.TwitchBroadcasterScopes;
-        const { data } = await axios.post(
-            `${Constants.TwitchTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=${scopes}`
-        );
-
-        return {
-            clientId,
-            token: data.access_token,
-        };
     }
 
     /**

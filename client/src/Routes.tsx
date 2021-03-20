@@ -12,6 +12,7 @@ import MusicRequestView from "./views/music-requests/MusicRequestView";
 import SongList from "./components/songlist/songlist";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
+import Login from "./views/login/Login";
 
 export type Route = {
     path: string;
@@ -37,7 +38,7 @@ const DashboardRoutes: Array<Route> = [
         path: "/",
         name: "Home",
         icon: Home,
-        component: DefaultComponent,
+        component: Login,
         minUserLevel: UserLevels.Viewer
     },
     {

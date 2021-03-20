@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
     Avatar,
@@ -15,7 +15,6 @@ import {
 
 import { Face, Settings, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
-import useUser from "../../hooks/user";
 import * as Cookie from "js-cookie";
 
 type NavMenuItem = {
@@ -44,8 +43,8 @@ const useStyles = makeStyles((theme) => ({
 const NavBarMenu: React.FC<any> = (props: any) => {
     const userProfile = Cookie.getJSON("user");
     const classes = useStyles();
-    const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-    const navMenuItems: Array<NavMenuItem> = [
+    const [anchor, setAnchor] = useState<undefined | HTMLElement>(undefined);
+    const navMenuItems: NavMenuItem[] = [
         { name: "Profile", iconComponent: Face },
         { name: "Settings", iconComponent: Settings },
         { name: "Log Out", iconComponent: ExitToApp },
@@ -56,15 +55,15 @@ const NavBarMenu: React.FC<any> = (props: any) => {
     };
 
     const onClose = () => {
-        setAnchor(null);
+        setAnchor(undefined);
     };
 
     const isMenuOpened = () => {
         return Boolean(anchor);
     };
 
-    const renderNavMenuItems = (navMenuItems: Array<NavMenuItem>) => {
-        return navMenuItems.map((item) => (
+    const renderNavMenuItems = (navItems: NavMenuItem[]) => {
+        return navItems.map((item) => (
             <MenuItem button onClick={onClose} key={item.name}>
                 <ListItemIcon>
                     <item.iconComponent />
@@ -73,6 +72,17 @@ const NavBarMenu: React.FC<any> = (props: any) => {
             </MenuItem>
         ));
     };
+
+    const menu = !userProfile?.username ? undefined : <Menu
+            id="navbar-menu"
+            anchorEl={anchor}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "center" }}
+            getContentAnchorEl={undefined}
+            open={isMenuOpened()}
+            onClose={onClose}>
+        {renderNavMenuItems(navMenuItems)}
+    </Menu>;
 
     return (
         <React.Fragment>
@@ -93,17 +103,7 @@ const NavBarMenu: React.FC<any> = (props: any) => {
                     </Grid>
                 </div>
             </IconButton>
-            <Menu
-                id="navbar-menu"
-                anchorEl={anchor}
-                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                transformOrigin={{ vertical: "top", horizontal: "center" }}
-                getContentAnchorEl={null}
-                open={isMenuOpened()}
-                onClose={onClose}
-            >
-                {renderNavMenuItems(navMenuItems)}
-            </Menu>
+            {menu}
         </React.Fragment>
     );
 };

@@ -116,6 +116,7 @@ export class UserService {
                 }
                 userPrincipal.accessToken = user.accessToken;
                 userPrincipal.refreshToken = user.refreshToken;
+                userPrincipal.userId = user.twitchProfileKey;
                 break;
 
             case ProviderType.Streamlabs:

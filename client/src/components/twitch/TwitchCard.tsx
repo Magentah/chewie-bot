@@ -78,7 +78,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const [saveFailed, setSaveFailed] = useState(false);
     const [showBotOAuth, setShowBotOAuth] = useState(false);
 
-    useEffect(loadUser, [])
+    useEffect(loadUser, []);
 
     useEffect(() => {
         axios.get("api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {
