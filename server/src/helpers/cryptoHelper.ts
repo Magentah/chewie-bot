@@ -48,7 +48,7 @@ export class CryptoHelper {
      * Returns a decrypted string.
      * @param text String to decrypt.
      */
-    public static decryptString(text: string): string {
+    public static decryptString(text: string | undefined): string {
         if (!text) {
             return "";
         }

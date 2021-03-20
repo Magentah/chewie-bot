@@ -125,7 +125,7 @@ export class TwitchService {
     }
 
     public async channelSearch(channelName: string): Promise<any> {
-        const accessDetails = await this.authService.getClientAccessToken(Constants.TwitchBroadcasterScopes);
+        const accessDetails = await this.authService.getClientAccessTokenWithScopes(Constants.TwitchBroadcasterScopes);
         const options = {
             headers: {
                 "Authorization": `Bearer ${accessDetails.accessToken.token}`,

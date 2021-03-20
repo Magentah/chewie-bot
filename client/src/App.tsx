@@ -34,7 +34,7 @@ const App: React.FC<{}> = (props) => {
         <Router>
             <CssBaseLine />
             <UserContextProvider>
-                <Route path="/"><Dashboard /></Route>
+                <Dashboard />
             </UserContextProvider>
         </Router>
     );

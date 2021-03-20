@@ -9,7 +9,12 @@ import { IUserPrincipal } from "../models/userPrincipal";
 
 @injectable()
 export default class TwitchAuthService {
-    public async getClientAccessToken(scopes: string): Promise<{accessToken: IAccessToken, clientId: string}> {
+    public async getClientAccessToken(): Promise<{accessToken: IAccessToken, clientId: string}> {
+        const NoScopes = "";
+        return this.getClientAccessTokenWithScopes(NoScopes);
+    }
+
+    public async getClientAccessTokenWithScopes(scopes: string): Promise<{accessToken: IAccessToken, clientId: string}> {
         const clientId = Config.twitch.clientId;
         const clientSecret = Config.twitch.clientSecret;
         const { data } = await axios.post(

@@ -166,7 +166,7 @@ export class TwitchWebService {
             throw new Error(`No Twitch client id configured`);
         }
 
-        const auth = await this.authService.getClientAccessToken("");
+        const auth = await this.authService.getClientAccessToken();
         return {
             "Authorization": `Bearer ${auth.accessToken.token}`,
             "Client-ID": auth.clientId

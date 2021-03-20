@@ -214,7 +214,7 @@ export default class TwitchEventService {
     }
 
     private async getAccessToken(): Promise<void> {
-        this.accessToken = (await this.authService.getClientAccessToken("")).accessToken;
+        this.accessToken = (await this.authService.getClientAccessToken()).accessToken;
     }
 
     private async getOptions(contentType?: string): Promise<AxiosRequestConfig> {

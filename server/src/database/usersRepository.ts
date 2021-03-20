@@ -73,11 +73,7 @@ export class UsersRepository {
         };
 
         try {
-            user.accessToken = CryptoHelper.decryptString(userResult.accessToken);
-            user.refreshToken = CryptoHelper.decryptString(userResult.refreshToken);
-            user.spotifyRefresh =  CryptoHelper.decryptString(userResult.spotifyRefresh);
-            user.streamlabsRefresh = CryptoHelper.decryptString(userResult.streamlabsRefresh);
-            user.streamlabsToken = CryptoHelper.decryptString(userResult.streamlabsToken);
+            this.decryptUser(user);
         } catch {
             Logger.warn(LogType.Database, `Cannot decrypt token for user ${user.id}`);
         }
@@ -206,6 +202,15 @@ export class UsersRepository {
         userData.streamlabsRefresh = CryptoHelper.encryptString(userData.streamlabsRefresh);
         return userData;
     }
+
+    private decryptUser(user: IUser) {
+        user.accessToken = CryptoHelper.decryptString(user.accessToken);
+        user.refreshToken = CryptoHelper.decryptString(user.refreshToken);
+        user.spotifyRefresh =  CryptoHelper.decryptString(user.spotifyRefresh);
+        user.streamlabsRefresh = CryptoHelper.decryptString(user.streamlabsRefresh);
+        user.streamlabsToken = CryptoHelper.decryptString(user.streamlabsToken);
+    }
 }
 
 export default UsersRepository;
+
