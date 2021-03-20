@@ -39,6 +39,7 @@
         "@types/passport": "^1.0.6",
         "@types/passport-oauth2": "^1.4.10",
         "@types/redis": "^2.8.28",
+        "@types/socket.io-client": "^1.4.36",
         "@types/sqlite3": "^3.1.7",
         "@types/tmi.js": "^1.7.1",
         "@types/ws": "^7.4.0",
