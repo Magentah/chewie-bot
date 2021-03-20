@@ -17,6 +17,7 @@ import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
 import TwitchHelper from "./helpers/twitchHelper";
 import { StatusCodes } from "http-status-codes";
+import { UsersRepository } from "./database";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -115,7 +116,7 @@ class BotServer extends Server {
         // Login/Logout Routes
         this.app.get("/api/isloggedin", (req, res) => {
             if (!req.user) {
-                return res.status(403).json({ message: "No logged in user." });
+                return res.status(200).json(UsersRepository.getAnonUser());
             } else {
                 return res.status(200).json(req.user);
             }

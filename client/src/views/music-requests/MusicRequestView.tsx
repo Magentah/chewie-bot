@@ -15,7 +15,7 @@ class MusicRequestView extends React.Component {
         this.songPlayerRef.current?.playSong(id);
     }
 
-    render() { 
+    render() {
         return (
         <Box>
             <Card>

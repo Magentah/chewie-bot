@@ -1,9 +1,10 @@
 import { faDiscord, faPatreon, faSpotify, faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Card, CardContent, Container, Divider, Grid, Typography } from "@material-ui/core";
+import { Box, Button, Card, CardContent, Divider, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import { Image } from "react-bootstrap";
+import * as Cookie from "js-cookie";
 
 type LoginProps = {};
 
@@ -14,7 +15,7 @@ type AffiliateLink = {
     name: string;
 };
 
-const stubLinks: Array<AffiliateLink> = [
+const stubLinks: AffiliateLink[] = [
     {
         link: "https://www.twitch.tv/chewiemelodies",
         logo: <FontAwesomeIcon icon={faTwitch} />,
@@ -45,16 +46,13 @@ const stubLinks: Array<AffiliateLink> = [
         color: "#7289da",
         name: "Discord",
     },
-    // { link: "https://www.patreon.com/chewiemelodies", logo: "", color: "", name: "Spotify"},
 ];
 
 const useStyles = makeStyles((theme) => ({
     root: {
         textAlign: "center",
-        maxWidth: 750,
     },
     card: {
-        marginTop: theme.spacing(3),
     },
     sectionRow: {
         marginTop: theme.spacing(2),
@@ -68,7 +66,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 const Login: React.FC<LoginProps> = (props: LoginProps) => {
     const classes = useStyles();
-    const renderLinks = (links: Array<AffiliateLink>) => {
+    const renderLinks = (links: AffiliateLink[]) => {
         return links.map((link: AffiliateLink, i: number) => (
             <Grid item xs={12} style={{ paddingBottom: i === links.length - 1 ? 20 : 0 }} key={i}>
                 <Button
@@ -83,8 +81,34 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
             </Grid>
         ));
     };
+
+    const userProfile = Cookie.getJSON("user");
+
+    let loginHeader : JSX.Element | undefined;
+    let loginButton : JSX.Element | undefined;
+
+    // Do not show login button if already logged in
+    if (userProfile.username) {
+        loginHeader = loginButton = undefined;
+    } else {
+        loginHeader = <Grid item xs={12} className={classes.sectionRow}>
+            <Typography>Log in with your</Typography>
+        </Grid>;
+
+        loginButton = <Grid item xs={12}>
+            <Button
+                className={classes.button}
+                style={{ backgroundColor: "#9146ff" }}
+                href="/api/auth/twitch"
+                startIcon={<FontAwesomeIcon icon={faTwitch} />}
+            >
+                Twitch Account
+            </Button>
+        </Grid>;
+    }
+
     return (
-        <Container className={classes.root}>
+        <Box className={classes.root}>
             <Card className={classes.card}>
                 <CardContent>
                     <Grid>
@@ -92,19 +116,8 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
                             <Image src="/assets/chewie.jpg" />
                             <Typography variant="h4">Chewie Melodies Portal</Typography>
                         </Grid>
-                        <Grid item xs={12} className={classes.sectionRow}>
-                            <Typography>Log in with your</Typography>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button
-                                className={classes.button}
-                                style={{ backgroundColor: "#9146ff" }}
-                                href="/api/auth/twitch"
-                                startIcon={<FontAwesomeIcon icon={faTwitch} />}
-                            >
-                                Twitch Account
-                            </Button>
-                        </Grid>
+                        {loginHeader}
+                        {loginButton}
                         <Divider className={classes.sectionRow} />
                         <Grid item xs={12} className={classes.sectionRow}>
                             <Typography>You can also find Chewie on </Typography>
@@ -113,7 +126,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
                     </Grid>
                 </CardContent>
             </Card>
-        </Container>
+        </Box>
     );
 };
 

@@ -1,6 +1,7 @@
 import { inject, injectable } from "inversify";
+import { CryptoHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
-import { IUser } from "../models";
+import { IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -72,6 +73,12 @@ export class UsersRepository {
             },
         };
 
+        try {
+            this.decryptUser(user);
+        } catch {
+            Logger.warn(LogType.Database, `Cannot decrypt token for user ${user.id}`);
+        }
+
         return user;
     }
 
@@ -113,8 +120,9 @@ export class UsersRepository {
             return;
         }
 
-        // Update should not manipulate original object.
-        const userData = { ...user };
+        const userData = this.encryptUser(user);
+
+        // encryptUser() will return a copy of the object so we can safely delete here
         delete userData.userLevel;
         delete userData.vipLevel;
         delete userData.twitchUserProfile;
@@ -132,8 +140,34 @@ export class UsersRepository {
             return;
         }
 
-        Logger.debug(LogType.Database, databaseService.getQueryBuilder(DatabaseTables.Users).insert(user).toSQL().sql);
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(user);
+        const userData = this.encryptUser(user);
+
+        Logger.debug(LogType.Database, databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).toSQL().sql);
+        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData);
+    }
+
+    /**
+     * Creates an user object that represents an anonymous user.
+     * @returns user object
+     */
+    public static getAnonUser() : IUser {
+        return {
+            username: "",
+            points: 0,
+            hasLogin: false,
+            userLevelKey: UserLevels.Viewer,
+            userLevel: {
+                id: UserLevels.Viewer,
+                name: "",
+                rank: 0
+            },
+            twitchUserProfile: {
+                id: 0,
+                displayName: "Anonymous",
+                username: "",
+                profileImageUrl: ""
+            }
+        };
     }
 
     /**
@@ -159,6 +193,25 @@ export class UsersRepository {
         }
         return false;
     }
+
+    private encryptUser(user: IUser) : IUser {
+        const userData = { ...user };
+        userData.accessToken = CryptoHelper.encryptString(userData.accessToken);
+        userData.refreshToken = CryptoHelper.encryptString(userData.refreshToken);
+        userData.spotifyRefresh = CryptoHelper.encryptString(userData.spotifyRefresh);
+        userData.streamlabsToken = CryptoHelper.encryptString(userData.streamlabsToken);
+        userData.streamlabsRefresh = CryptoHelper.encryptString(userData.streamlabsRefresh);
+        return userData;
+    }
+
+    private decryptUser(user: IUser) {
+        user.accessToken = CryptoHelper.decryptString(user.accessToken);
+        user.refreshToken = CryptoHelper.decryptString(user.refreshToken);
+        user.spotifyRefresh =  CryptoHelper.decryptString(user.spotifyRefresh);
+        user.streamlabsRefresh = CryptoHelper.decryptString(user.streamlabsRefresh);
+        user.streamlabsToken = CryptoHelper.decryptString(user.streamlabsToken);
+    }
 }
 
 export default UsersRepository;
+

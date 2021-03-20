@@ -15,3 +15,4 @@ export { default as TwitchEventService } from "./twitchEventService";
 export { default as TwitchUserProfileService } from "./twitchUserProfileService";
 export { default as StreamlabsService } from "./streamlabsService";
 export { default as DiscordService } from "./discordService";
+export { default as TwitchAuthService } from "./twitchAuthService";

@@ -62,7 +62,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     };
 
     useEffect(loadUser, []);
-    useEffect(() => {       
+    useEffect(() => {
         axios.get("/api/twitch/status").then((response) => {
             if (response.data === "OPEN") {
                 setBotConnected(true);
@@ -72,7 +72,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         });
     }, []);
 
-    let connectBotButton = (user.userLevelKey < UserLevels.Broadcaster) ? undefined :
+    const connectBotButton = (user.userLevelKey < UserLevels.Broadcaster) ? undefined :
         <IconButton color="inherit" onClick={connectBot}>
             {botConnected ? (
                 <Link className={classes.connectedIcon} />
