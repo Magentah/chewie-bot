@@ -63,6 +63,7 @@ function MakeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strat
             // Assign the twitchProfile and update instead.
             if (!user.twitchProfileKey) {
                 user.twitchProfileKey = twitchProfile.id;
+                user.twitchUserProfile = twitchProfile;
             }
 
             await BotContainer.get(UserService).updateUser(user);
