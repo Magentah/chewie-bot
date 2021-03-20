@@ -88,22 +88,16 @@ export class UsersRepository {
      */
     public async add(user: IUser): Promise<void> {
         const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(user).onConflict("username").ignore();
-        if (await this.userExists(user)) {
-            return;
-        }
 
         const userData = this.encryptUser(user);
-
-        Logger.debug(LogType.Database, databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).toSQL().sql);
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData);
+        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).onConflict("username").ignore();
     }
 
     /**
      * Creates an user object that represents an anonymous user.
      * @returns user object
      */
-    public static getAnonUser() : IUser {
+    public static getAnonUser(): IUser {
         return {
             username: "",
             points: 0,
@@ -112,20 +106,23 @@ export class UsersRepository {
             userLevel: {
                 id: UserLevels.Viewer,
                 name: "",
-                rank: 0
+                rank: 0,
             },
             twitchUserProfile: {
                 id: 0,
                 displayName: "Anonymous",
                 username: "",
-                profileImageUrl: ""
-            }
+                profileImageUrl: "",
+            },
         };
     }
 
     public async addMultiple(users: IUser[]): Promise<void> {
         const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(users).onConflict("username").ignore();
+        const usersData = users.map((user) => {
+            return this.encryptUser(user);
+        });
+        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(usersData).onConflict("username").ignore();
     }
 
     private mapDBUserToUser(userResult: any): IUser {
@@ -155,10 +152,10 @@ export class UsersRepository {
             },
         };
 
-        return user;
+        return this.decryptUser(user);
     }
 
-    private encryptUser(user: IUser) : IUser {
+    private encryptUser(user: IUser): IUser {
         const userData = { ...user };
         userData.accessToken = CryptoHelper.encryptString(userData.accessToken);
         userData.refreshToken = CryptoHelper.encryptString(userData.refreshToken);
@@ -168,14 +165,14 @@ export class UsersRepository {
         return userData;
     }
 
-    private decryptUser(user: IUser) {
+    private decryptUser(user: IUser): IUser {
         user.accessToken = CryptoHelper.decryptString(user.accessToken);
         user.refreshToken = CryptoHelper.decryptString(user.refreshToken);
-        user.spotifyRefresh =  CryptoHelper.decryptString(user.spotifyRefresh);
+        user.spotifyRefresh = CryptoHelper.decryptString(user.spotifyRefresh);
         user.streamlabsRefresh = CryptoHelper.decryptString(user.streamlabsRefresh);
         user.streamlabsToken = CryptoHelper.decryptString(user.streamlabsToken);
+        return user;
     }
 }
 
 export default UsersRepository;
-
