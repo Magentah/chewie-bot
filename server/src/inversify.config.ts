@@ -11,8 +11,14 @@ import CommandService from "./services/commandService";
 import SongService from "./services/songService";
 import UserService from "./services/userService";
 import EventService from "./services/eventService";
+import TwitchAuthService from "./services/twitchAuthService";
 import TwitchEventService from "./services/twitchEventService";
 import BotSettingsService from "./services/botSettingsService";
+import StreamlabsService from "./services/streamlabsService";
+import TwitchUserProfileService from "./services/twitchUserProfileService";
+import UserPermissionService from "./services/userPermissionService";
+import TwitchWebService from "./services/twitchWebService";
+import DiscordService from "./services/discordService";
 import BotSettingsRepository from "./database/botSettings";
 import UsersRepository from "./database/usersRepository";
 import UserLevelsRepository from "./database/userLevelsRepository";
@@ -20,6 +26,9 @@ import VIPLevelsRepository from "./database/vipLevels";
 import DonationsRepository from "./database/donations";
 import TextCommandsRepository from "./database/textCommands";
 import CommandAliasesRepository from "./database/commandAliases";
+import TwitchUserProfileRepository from "./database/twitchUserProfileRepository";
+import SonglistRepository from "./database/songlistRepository";
+import DiscordRepository from "./database/discordRepository";
 import SongController from "./controllers/songController";
 import TwitchController from "./controllers/twitchController";
 import EventController from "./controllers/eventController";
@@ -27,7 +36,6 @@ import SonglistController from "./controllers/songlistController";
 
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
-import { SonglistRepository } from "./database";
 
 const botContainer = new Container();
 
@@ -64,6 +72,7 @@ botContainer.bind<TwitchServiceProvider>("TwitchServiceProvider").toProvider((co
     };
 });
 
+botContainer.bind<TwitchAuthService>(TwitchAuthService).toSelf().inSingletonScope();
 botContainer.bind<TwitchEventService>(TwitchEventService).toSelf().inSingletonScope();
 botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
 botContainer.bind<YoutubeService>(YoutubeService).toSelf().inSingletonScope();
@@ -72,6 +81,11 @@ botContainer.bind<SongService>(SongService).toSelf().inSingletonScope();
 botContainer.bind<UserService>(UserService).toSelf().inSingletonScope();
 botContainer.bind<EventService>(EventService).toSelf().inSingletonScope();
 botContainer.bind<BotSettingsService>(BotSettingsService).toSelf().inSingletonScope();
+botContainer.bind<TwitchUserProfileService>(TwitchUserProfileService).toSelf().inSingletonScope();
+botContainer.bind<DiscordService>(DiscordService).toSelf().inSingletonScope();
+botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingletonScope();
+botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
+botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
 
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
 botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();
@@ -81,27 +95,13 @@ botContainer.bind<TextCommandsRepository>(TextCommandsRepository).toSelf();
 botContainer.bind<CommandAliasesRepository>(CommandAliasesRepository).toSelf();
 botContainer.bind<BotSettingsRepository>(BotSettingsRepository).toSelf();
 botContainer.bind<SonglistRepository>(SonglistRepository).toSelf();
+botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSelf();
+botContainer.bind<DiscordRepository>(DiscordRepository).toSelf();
 
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();
 botContainer.bind<EventController>(EventController).toSelf();
 botContainer.bind<SonglistController>(SonglistController).toSelf();
-
-/*botContainer.bind<Command>(Commands.AcceptCommand).to(Commands.AcceptCommand);
-botContainer.bind<Command>(Commands.AddAliasCommand).to(Commands.AddAliasCommand);
-botContainer.bind<Command>(Commands.AddCmdCommand).to(Commands.AddCmdCommand);
-botContainer.bind<Command>(Commands.AddSongCommand).to(Commands.AddSongCommand);
-botContainer.bind<Command>(Commands.AuctionCommand).to(Commands.AuctionCommand);
-botContainer.bind<Command>(Commands.BankheistCommand).to(Commands.BankheistCommand);
-botContainer.bind<Command>(Commands.BidCommand).to(Commands.BidCommand);
-botContainer.bind<Command>(Commands.DelAliasCommand).to(Commands.DelAliasCommand);
-botContainer.bind<Command>(Commands.DelCmdCommand).to(Commands.DelCmdCommand);
-botContainer.bind<Command>(Commands.DuelCommand).to(Commands.DuelCommand);
-botContainer.bind<Command>(Commands.JoinArenaCommand).to(Commands.JoinArenaCommand);
-botContainer.bind<Command>(Commands.StartArenaCommand).to(Commands.StartArenaCommand);
-botContainer.bind<Command>(Commands.TestCommand.name).to(Commands.TestCommand);
-botContainer.bind<Command>(Commands.TextCommand).to(Commands.TextCommand);
-botContainer.bind<Command>(Commands.WeaponCommand).to(Commands.WeaponCommand);*/
 
 const commandList: Map<string, Command> = new Map<string, Command>();
 Object.keys(Commands).forEach((val, index) => {

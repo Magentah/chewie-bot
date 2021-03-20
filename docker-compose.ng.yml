@@ -2,6 +2,7 @@
 version: "3"
 volumes:
     node_modules:
+    chewiebot-db:
 services:
     ui:
         build:
@@ -23,6 +24,7 @@ services:
             dockerfile: Dockerfile
         volumes:
             - ./server:/usr/src/chewiebot/server
+            - chewiebot-db:/usr/src/chewiebot/server/db
             - "/usr/src/chewiebot/server/node_modules/"
         environment:
             NODE_ENV: development

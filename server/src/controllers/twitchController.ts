@@ -3,7 +3,8 @@ import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { ResponseStatus } from "../models";
 import { Logger, LogType } from "../logger";
-import { TwitchService, TwitchServiceProvider, BotSettingsService, TwitchEventService } from "../services";
+import { TwitchServiceProvider, BotSettingsService, TwitchEventService, StreamlabsService } from "../services";
+import { ITwitchProfile } from "../strategy/twitchStrategy";
 
 enum TwitchEventMessageType {
     Verification,
@@ -16,7 +17,8 @@ class TwitchController {
     constructor(
         @inject("TwitchServiceProvider") private twitchProvider: TwitchServiceProvider,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
-        @inject(TwitchEventService) private twitchEventService: TwitchEventService
+        @inject(TwitchEventService) private twitchEventService: TwitchEventService,
+        @inject(StreamlabsService) private streamlabsService: StreamlabsService
     ) {
         //
     }
@@ -50,6 +52,15 @@ class TwitchController {
         try {
             const twitchService = await this.twitchProvider();
             twitchService.connect();
+
+            // Attempts to connect to the streamlabs socket on bot connection.
+            // TODO: Might be a good idea to change this? Maybe have the bot just connect to the websocket on
+            // startup if there's a token for the configured broadcaster? Not sure.
+            if (req.user) {
+                const user: ITwitchProfile = req.user as ITwitchProfile;
+                await this.streamlabsService.connectOnStartup(user);
+            }
+
             res.sendStatus(StatusCodes.OK);
         } catch (error) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
@@ -60,6 +71,7 @@ class TwitchController {
         try {
             const twitchService = await this.twitchProvider();
             twitchService.disconnect();
+            this.streamlabsService.disconnect();
             res.sendStatus(StatusCodes.OK);
         } catch (error) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
@@ -89,9 +101,14 @@ class TwitchController {
         }
     }
 
-    public async getEventSubSubscriptions(req: Request, res: Response): Promise<void> {
-        await this.twitchEventService.getSubscriptions();
+    public async setEventSubCallbackUrl(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.setBaseCallbackUrl(req.body.url);
         res.sendStatus(StatusCodes.OK);
+    }
+
+    public async getEventSubSubscriptions(req: Request, res: Response): Promise<void> {
+        const subscriptions = await this.twitchEventService.getSubscriptions();
+        res.status(StatusCodes.OK).send(subscriptions);
     }
 
     public async subscribeEventSub(req: Request, res: Response): Promise<void> {
@@ -99,13 +116,18 @@ class TwitchController {
         res.sendStatus(StatusCodes.ACCEPTED);
     }
 
+    public async deleteInactiveSubscriptions(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.deleteInactiveSubscriptions();
+        res.sendStatus(StatusCodes.OK);
+    }
+
+    public async deleteAllSubscriptions(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.deleteAllSubscriptions();
+        res.sendStatus(StatusCodes.OK);
+    }
+
     public async eventsubCallback(req: Request, res: Response): Promise<void> {
         Logger.info(LogType.Twitch, req.body);
-        const verified = await this.twitchEventService.verifySignature(req);
-
-        if (!verified) {
-            res.sendStatus(StatusCodes.FORBIDDEN);
-        }
 
         const type = this.getTwitchEventMessageType(req);
 
@@ -115,8 +137,8 @@ class TwitchController {
                 break;
             }
             case TwitchEventMessageType.Notification: {
-                res.sendStatus(StatusCodes.ACCEPTED);
                 this.twitchEventService.handleNotification(req.body);
+                res.sendStatus(StatusCodes.ACCEPTED);
                 break;
             }
             case TwitchEventMessageType.Revocation: {
@@ -129,9 +151,9 @@ class TwitchController {
     public async eventsubNotification(req: Request, res: Response): Promise<void> {}
 
     private getTwitchEventMessageType(req: Request): TwitchEventMessageType {
-        if ((req.headers["Twitch-Eventsub-Message-Type"] as string) === "webhook_callback_verification") {
+        if ((req.headers["twitch-eventsub-message-type"] as string) === "webhook_callback_verification") {
             return TwitchEventMessageType.Verification;
-        } else if ((req.headers["Twitch-Eventsub-Message-Type"] as string) === "revocation") {
+        } else if ((req.headers["twitch-eventsub-message-type"] as string) === "revocation") {
             return TwitchEventMessageType.Revocation;
         } else {
             return TwitchEventMessageType.Notification;

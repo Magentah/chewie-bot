@@ -1,4 +1,5 @@
 import { injectable, inject } from "inversify";
+import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList } from "../models";
 
@@ -12,7 +13,7 @@ export class UserService {
      * Adds a new user if the user doesn't already exist.
      * @param {string | IUser} user Username of the user to add, or the User object
      */
-    public async addUser(user: string | IUser): Promise<void> {
+    public async addUser(user: string | IUser): Promise<IUser> {
         let newUser: IUser = {} as IUser;
         if (typeof user === "string") {
             newUser = {
@@ -27,6 +28,8 @@ export class UserService {
         }
 
         await this.users.add(newUser);
+
+        return await this.getUser(newUser.username) as IUser;
     }
 
     /**
@@ -89,8 +92,45 @@ export class UserService {
      * Gets a user
      * @param {string} username The username of the user to get.
      */
-    public async getUser(username: string): Promise<IUser> {
+    public async getUser(username: string): Promise<IUser | undefined> {
         return await this.users.get(username);
+    }
+
+    public async getUserPrincipal(username: string, providerType: ProviderType): Promise<IUserPrincipal | undefined> {
+        const userPrincipal: IUserPrincipal = {
+            username,
+            accessToken: "",
+            refreshToken: "",
+            providerType,
+        };
+
+        const user: IUser | undefined = await this.getUser(username);
+        if (!user) {
+            return undefined;
+        }
+
+        switch (providerType) {
+            case ProviderType.Twitch:
+                if (!user.accessToken || !user.refreshToken) {
+                    throw new Error("Twitch tokens are not set up");
+                }
+                userPrincipal.accessToken = user.accessToken;
+                userPrincipal.refreshToken = user.refreshToken;
+                userPrincipal.userId = user.twitchProfileKey;
+                break;
+
+            case ProviderType.Streamlabs:
+                if (!user.streamlabsToken || !user.streamlabsRefresh) {
+                    throw new Error("Streamlabs tokens are not setup");
+                }
+                userPrincipal.accessToken = user.streamlabsToken;
+                userPrincipal.refreshToken = user.streamlabsRefresh;
+                break;
+            default:
+                throw new Error(`UserPrincipal not implemented for Provider: ${providerType}`);
+        }
+
+        return userPrincipal;
     }
 }
 

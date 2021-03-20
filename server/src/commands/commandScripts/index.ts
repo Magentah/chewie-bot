@@ -20,3 +20,6 @@ export { default as StartArenaCommand } from "./arena/startArenaCommand";
 // Auction
 export { default as AuctionCommand } from "./auction/auctionCommand";
 export { default as BidCommand } from "./auction/bidCommand";
+
+export { default as PointsCommand } from "../commandScripts/pointsCommand";
+export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";

@@ -1,44 +1,83 @@
+import axios from "axios";
 import * as express from "express";
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from "http-status-codes";
 import * as passport from "passport";
+import { TwitchAuthorizationLevel } from "../strategy/twitchStrategy";
 import * as Config from "../config.json";
 import Constants from "../constants";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
 import { IUser } from "../models";
-import { SpotifyService, UserService } from "../services";
+import {
+    SpotifyService,
+    UserService,
+    TwitchUserProfileService,
+    UserPermissionService,
+    StreamlabsService,
+} from "../services";
 import { TwitchStrategy, StreamlabsStrategy, SpotifyStrategy } from "../strategy";
 
 const authRouter: express.Router = express.Router();
 
-export function setupPassport(): void {
-    passport.use(
-        new TwitchStrategy(
-            {
-                clientID: Config.twitch.clientId,
-                clientSecret: Config.twitch.clientSecret,
-                authorizationURL: Constants.TwitchAuthUrl,
-                tokenURL: Constants.TwitchTokenUrl,
-                callbackURL: Config.twitch.redirectUri,
-                scope: Constants.TwitchScopes.split(" "),
-                customHeaders: {
-                    "Client-ID": Config.twitch.clientId,
-                },
+function MakeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strategy {
+    return new TwitchStrategy(
+        {
+            clientID: Config.twitch.clientId,
+            clientSecret: Config.twitch.clientSecret,
+            authorizationURL: Constants.TwitchAuthUrl,
+            tokenURL: Constants.TwitchTokenUrl,
+            callbackURL: Config.twitch.redirectUri,
+            scope: authLevel === TwitchAuthorizationLevel.TwitchBroadcaster ? Constants.TwitchBroadcasterScopes.split(" ") : "",
+            customHeaders: {
+                "Client-ID": Config.twitch.clientId,
             },
-            async (
-                // tslint:disable-next-line: variable-name
-                _accessToken: any,
-                // tslint:disable-next-line: variable-name
-                _refreshToken: any,
-                profile: { username: string },
-                done: (err: undefined, user: IUser) => any
-            ) => {
-                await BotContainer.get(UserService).addUser(profile.username);
-                const user = await BotContainer.get(UserService).getUser(profile.username);
-                return done(undefined, user);
+        },
+        async (
+            // tslint:disable-next-line: variable-name
+            _accessToken: any,
+            // tslint:disable-next-line: variable-name
+            _refreshToken: any,
+            profile: { id: number; username: string; displayName: string; profileImageUrl: string },
+            done: (err: undefined, user: IUser) => any
+        ) => {
+            const twitchProfile = await BotContainer.get(TwitchUserProfileService).addTwitchUserProfile({
+                id: profile.id,
+                displayName: profile.displayName,
+                profileImageUrl: profile.profileImageUrl,
+                username: profile.username,
+            });
+            const newUser: IUser = {
+                username: profile.username,
+                twitchProfileKey: twitchProfile.id,
+                userLevelKey: 1,
+                vipLevelKey: 1,
+                points: 0,
+                hasLogin: false,
+            };
+
+            const user = await BotContainer.get(UserService).addUser(newUser);
+            user.accessToken = _accessToken;
+            user.refreshToken = _refreshToken;
+
+            // If the user exists but doesn't have a twitchProfile assigned, the user was added in another way.
+            // Assign the twitchProfile and update instead.
+            if (!user.twitchProfileKey) {
+                user.twitchProfileKey = twitchProfile.id;
+                user.twitchUserProfile = twitchProfile;
             }
-        )
+
+            await BotContainer.get(UserService).updateUser(user);
+            await BotContainer.get(UserPermissionService).updateUserLevels(user);
+
+            return done(undefined, user);
+        },
+        authLevel
     );
+}
+
+export function setupPassport(): void {
+    passport.use(MakeTwitchStrategy(TwitchAuthorizationLevel.Twitch));
+    passport.use(MakeTwitchStrategy(TwitchAuthorizationLevel.TwitchBroadcaster));
 
     passport.serializeUser((user: any, done) => {
         done(undefined, user);
@@ -60,21 +99,21 @@ export function setupPassport(): void {
                 passReqToCallback: true,
             },
             async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
-                const user = await BotContainer.get(UserService).getUser(profile.username);
-                user.streamlabsRefresh = refreshToken;
-                user.streamlabsToken = accessToken;
-                await BotContainer.get(UserService).updateUser(user);
-                const account = {
-                    accessToken,
-                    refreshToken,
-                    user: user.username,
-                };
-                req.logIn(user, (err) => {
-                    if (!err) {
-                        Logger.info(LogType.ServerInfo, `Logged in user ${user.username}`);
-                    }
-                });
-                return done(undefined, account);
+                const socketTokenResult = await axios.get(
+                    `${Constants.StreamlabsSocketTokenUrl}?access_token=${accessToken}`
+                );
+                if (socketTokenResult.status === StatusCodes.OK) {
+                    profile.socketToken = socketTokenResult.data.socket_token;
+                }
+
+                const user = await BotContainer.get(UserService).getUser(profile.twitch.name);
+                if (user) {
+                    user.streamlabsToken = accessToken;
+                    user.streamlabsSocketToken = profile.socketToken;
+                    await BotContainer.get(UserService).updateUser(user);
+                }
+
+                return done(undefined, profile);
             }
         )
     );
@@ -92,7 +131,7 @@ export function setupPassport(): void {
             },
             async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
                 const userData = JSON.parse(req.cookies.user);
-                const user = await BotContainer.get(UserService).getUser(userData.username);
+                const user = await BotContainer.get(UserService).addUser(userData.username);
                 user.spotifyRefresh = refreshToken;
                 await BotContainer.get(UserService).updateUser(user);
                 const account = {
@@ -100,11 +139,12 @@ export function setupPassport(): void {
                     refreshToken,
                     user: user.username,
                 };
-                req.logIn(user, (err) => {
+                // TODO: This shouldn't be using login. Login is done with TwitchStrategy, this should use authentication similar to StreamlabsStrategy.
+                /*req.logIn(user, (err) => {
                     if (!err) {
                         Logger.info(LogType.ServerInfo, `Logged in user ${user.username}`);
                     }
-                });
+                });*/
                 return done(undefined, account);
             }
         )
@@ -113,52 +153,66 @@ export function setupPassport(): void {
 
 // Passport Auth Routes
 authRouter.get("/api/auth/twitch", passport.authenticate("twitch"));
+authRouter.get("/api/auth/twitch/broadcaster", passport.authenticate("twitch-broadcaster"));
 authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { failureRedirect: "/" }), (req, res) => {
+    const user = req.user as IUser;
+    if (user.streamlabsSocketToken) {
+        BotContainer.get(StreamlabsService).startSocketConnect(user.streamlabsSocketToken);
+    }
     res.redirect("/");
 });
 authRouter.get("/api/auth/streamlabs", passport.authorize("streamlabs"));
 authRouter.get(
     "/api/auth/streamlabs/callback",
     passport.authorize("streamlabs", { failureRedirect: "/" }),
-    (req, res) => {
+    async (req, res) => {
+        Logger.info(LogType.Server, JSON.stringify(req.account));
+        const user = req.user;
+        if (user) {
+            user.account = req.account;
+        }
+        // TODO: At the moment we don't connect automatically to the streamlabs socket and wait until manually clicking on
+        // the connect button. Keeping this here just as it's still not decided if that's the best way.
+        // BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
         res.redirect("/");
     }
 );
 authRouter.get("/api/auth/spotify", passport.authorize("spotify"));
 authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
-    let sessionUser = req.user as IUser;
+    const sessionUser = req.user as IUser;
     if (sessionUser) {
         const user = await BotContainer.get(UserService).getUser(sessionUser.username);
-        if (user.spotifyRefresh) {
+        if (user?.spotifyRefresh) {
             res.send(true);
             return;
         }
     }
 
     res.send(false);
-} );
+});
 authRouter.get("/api/auth/spotify/access", async (req, res) => {
-    let sessionUser = req.user as IUser;
+    const sessionUser = req.user as IUser;
     if (sessionUser) {
         const user = await BotContainer.get(UserService).getUser(sessionUser.username);
-        const newToken = await BotContainer.get(SpotifyService).getNewAccessToken(user);
-        if (newToken.newRefreshToken) {
-            user.refreshToken = newToken.newRefreshToken;
-            BotContainer.get(UserService).updateUser(user);
+        if (user === undefined) {
+            res.sendStatus(StatusCodes.UNAUTHORIZED);
+        } else {
+            const newToken = await BotContainer.get(SpotifyService).getNewAccessToken(user);
+            if (newToken.newRefreshToken) {
+                user.refreshToken = newToken.newRefreshToken;
+                BotContainer.get(UserService).updateUser(user);
+            }
+
+            res.status(StatusCodes.OK).send(newToken.accessToken);
         }
-        
-        res.status(StatusCodes.OK).send(newToken.accessToken);
     } else {
         res.sendStatus(StatusCodes.FORBIDDEN);
     }
-} );
+});
 
-authRouter.get(
-    "/api/auth/spotify/callback",
-    passport.authorize("spotify", { failureRedirect: "/" }),
-    (req, res) => {
-        res.redirect("/");
-    }
-);
+authRouter.get("/api/auth/spotify/callback", passport.authorize("spotify", { failureRedirect: "/" }), (req, res) => {
+    res.redirect("/");
+});
 
 export default authRouter;
+

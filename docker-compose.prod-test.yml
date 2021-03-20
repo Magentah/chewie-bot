@@ -1,0 +1,31 @@
+# docker-compose.yml
+version: "3"
+volumes:
+    node_modules:
+    chewiebot-db:
+services:
+    ui:
+        build:
+            context: ./client
+            dockerfile: Dockerfile.prod
+        volumes:
+            - ./client/:/usr/src/chewiebot/client
+            - "/usr/src/chewiebot/client/node_modules/"
+        ports:
+            - 80:80
+            - 443:443
+            - 8020:8020
+        expose:
+            - 80
+        command: ["nginx", "-g", "daemon off;"]
+    backend:
+        build:
+            context: ./server
+            dockerfile: Dockerfile.prod
+        volumes:
+            - ./server:/usr/src/chewiebot/server
+            - chewiebot-db:/usr/src/chewiebot/server/dist/db
+            - "/usr/src/chewiebot/server/node_modules/"
+        environment:
+            NODE_ENV: production
+        command: ["pm2-runtime", "start.js"]

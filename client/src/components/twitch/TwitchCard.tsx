@@ -16,7 +16,7 @@ import {
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { darken } from "@material-ui/core/styles/colorManipulator";
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import React, { useEffect, useState } from "react";
 import { Image } from "react-bootstrap";
 import { Save, Visibility, VisibilityOff } from "@material-ui/icons";
@@ -78,7 +78,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const [saveFailed, setSaveFailed] = useState(false);
     const [showBotOAuth, setShowBotOAuth] = useState(false);
 
-    useEffect(() => { loadUser() }, []);
+    useEffect(loadUser, []);
 
     useEffect(() => {
         axios.get("api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {
@@ -142,6 +142,14 @@ const TwitchCard: React.FC<any> = (props: any) => {
                         {renderWelcome()}
                     </Grid>
                     <Grid item xs={12}>
+                        <Button className={classes.twitchButton} href="/api/auth/twitch/broadcaster">
+                            <Image
+                                src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
+                                style={{ width: "30px" }}
+                            />{" "}
+                            <span style={{ color: "white" }}>Authorize ChewieBot</span>
+                        </Button>
+
                         <Button className={classes.twitchButton} href={`/api/twitch/${user.username}/join`}>
                             <Image
                                 src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)

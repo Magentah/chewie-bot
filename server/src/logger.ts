@@ -9,6 +9,7 @@ enum LogType {
     ServerInfo = "ServerInfo",
     Command = "Command",
     Twitch = "Twitch",
+    TwitchEvents = "TwitchEvents",
     Cache = "Cache",
     Database = "Database",
     OAuth = "OAuth",
@@ -16,7 +17,9 @@ enum LogType {
     Song = "Song",
     WebSocket = "WebSocket",
     Language = "Lang",
-    Spotify = "Spotify"
+    Spotify = "Spotify",
+    Http = "Http",
+    Streamlabs = "Streamlabs",
 }
 
 enum LogLevel {

@@ -5,7 +5,12 @@
         "redirectUri": "",
         "username": "",
         "oauth": "",
-        "broadcasterName": ""
+        "broadcasterName": "",
+        "eventSub": {
+            "secret": "",
+            "callbackBaseUri": ""
+        },
+        "pointRewardMultiplier": 1
     },
     "streamlabs": {
         "clientId": "",
@@ -20,6 +25,10 @@
     "youtube": {
         "apiKey": ""
     },
+    "discord": {
+        "enabled": false,
+        "webhookUrl": ""
+    },
     "secretKey": "",
     "log": {
         "levels": "syslog",
@@ -32,16 +41,18 @@
             "oauth": true,
             "songs": true,
             "twitch": true,
+            "twitchevents": true,
             "server": true,
             "serverinfo": true,
-            "websocket": true
+            "websocket": true,
+            "streamlabs": true
         }
     },
     "database": {
         "client": "sqlite3",
         "version": "",
         "connection": {
-            "name": "chewiebot.db",
+            "name": "db/chewiebot.db",
             "host": "",
             "username": "",
             "password": ""

@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import * as knex from "knex";
+import { Knex, knex } from "knex";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
 import { IBotSettings, IUser } from "../models";
@@ -15,6 +15,8 @@ export enum DatabaseTables {
     CommandAliases = "commandAliases",
     BotSettings = "botSettings",
     Songlist = "songlist",
+    TwitchUserProfile = "twitchUserProfile",
+    DiscordSettings = "discordSettings",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -36,7 +38,7 @@ export class DatabaseService {
         this.db = knex(this.dbConfig);
     }
 
-    private dbConfig: knex.Config = {
+    private dbConfig: Knex.Config = {
         client: Config.database.client,
         connection: {
             filename: Config.database.connection.name,
@@ -62,7 +64,7 @@ export class DatabaseService {
         },
     };
 
-    private db: knex;
+    private db: Knex;
     private isInit: boolean = false;
     private inSetup: boolean = false;
 
@@ -79,9 +81,11 @@ export class DatabaseService {
                 await this.createCommandAliasTable();
                 await this.createBotSettingsTable();
                 await this.createSonglistTable();
+                await this.createDiscordSettingTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
+                await this.createTwitchProfileTable();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -99,7 +103,7 @@ export class DatabaseService {
      * @param tableName Name of the table to create
      * @param callback Callback function called to create the table.
      */
-    private async createTable(tableName: DatabaseTables, callback: (table: knex.TableBuilder) => any): Promise<void> {
+    private async createTable(tableName: DatabaseTables, callback: (table: Knex.TableBuilder) => any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             const hasTable = await this.hasTable(tableName);
             if (!hasTable) {
@@ -110,6 +114,13 @@ export class DatabaseService {
                 Logger.debug(LogType.Database, `${tableName} already exists.`);
                 resolve();
             }
+        });
+    }
+    private async createDiscordSettingTable(): Promise<void> {
+        return this.createTable(DatabaseTables.DiscordSettings, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("name").notNullable().unique();
+            table.string("value").notNullable();
         });
     }
 
@@ -136,15 +147,28 @@ export class DatabaseService {
             table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
             table.integer("userLevelKey").unsigned();
             table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
-            table.string("username").notNullable();
-            table.string("refreshToken").unique();
-            table.string("idToken").unique();
+            table.string("username").notNullable().unique();
+            table.string("refreshToken");
+            table.string("accessToken");
+            table.string("idToken");
             table.decimal("points").notNullable();
             table.dateTime("vipExpiry");
             table.boolean("hasLogin").notNullable();
             table.string("streamlabsToken");
+            table.string("streamlabsSocketToken");
             table.string("streamlabsRefresh");
             table.string("spotifyRefresh");
+            table.integer("twitchProfileKey").unsigned();
+            table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
+        });
+    }
+
+    private async createTwitchProfileTable(): Promise<void> {
+        return this.createTable(DatabaseTables.TwitchUserProfile, (table) => {
+            table.integer("id").primary().notNullable().unique();
+            table.string("username").notNullable();
+            table.string("displayName").notNullable();
+            table.string("profileImageUrl");
         });
     }
 
@@ -237,9 +261,8 @@ export class DatabaseService {
      */
     private async addBroadcaster(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const username: string = "";
-            if (!(await this.db(DatabaseTables.Users).first().where("username", "like", username))) {
-                const broadcasterUsername = Config.twitch.broadcasterName;
+            const broadcasterUsername = Config.twitch.broadcasterName;
+            if (!(await this.db(DatabaseTables.Users).first().where("username", "like", broadcasterUsername))) {
                 const user: IUser = {
                     username: broadcasterUsername,
                     userLevelKey: 5,
@@ -259,12 +282,7 @@ export class DatabaseService {
      */
     private async addDefaultBotSettings(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            if (
-                Config.twitch.username &&
-                Config.twitch.username.length > 0 &&
-                Config.twitch.oauth &&
-                Config.twitch.oauth.length > 0
-            ) {
+            if (Config.twitch.username && Config.twitch.username.length > 0 && Config.twitch.oauth && Config.twitch.oauth.length > 0) {
                 if (!(await this.db(DatabaseTables.BotSettings).first().where("username", Config.twitch.username))) {
                     const botSettings: IBotSettings = {
                         username: Config.twitch.username,
@@ -282,7 +300,7 @@ export class DatabaseService {
         return this.isInit;
     }
 
-    public getQueryBuilder(tableName: string): knex.QueryBuilder {
+    public getQueryBuilder(tableName: string): Knex.QueryBuilder {
         return this.db(tableName);
     }
 }

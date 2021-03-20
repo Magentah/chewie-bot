@@ -6,14 +6,16 @@ import {
     Menu,
     MenuItem,
     Typography,
-    ListItem,
     ListItemIcon,
     ListItemText,
     SvgIconTypeMap,
+    Grid,
+    Box,
 } from "@material-ui/core";
 
 import { Face, Settings, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
+import * as Cookie from "js-cookie";
 
 type NavMenuItem = {
     name: string;
@@ -39,9 +41,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const NavBarMenu: React.FC<any> = (props: any) => {
+    const userProfile = Cookie.getJSON("user");
     const classes = useStyles();
-    const [anchor, setAnchor] = useState<null | HTMLElement>(null);
-    const navMenuItems: Array<NavMenuItem> = [
+    const [anchor, setAnchor] = useState<undefined | HTMLElement>(undefined);
+    const navMenuItems: NavMenuItem[] = [
         { name: "Profile", iconComponent: Face },
         { name: "Settings", iconComponent: Settings },
         { name: "Log Out", iconComponent: ExitToApp },
@@ -52,20 +55,15 @@ const NavBarMenu: React.FC<any> = (props: any) => {
     };
 
     const onClose = () => {
-        setAnchor(null);
+        setAnchor(undefined);
     };
 
     const isMenuOpened = () => {
         return Boolean(anchor);
     };
 
-    const user = {
-        avatar:
-            "https://static-cdn.jtvnw.net/jtv_user_pictures/d86a44c2-eeb9-4416-b365-560fc2f81904-profile_image-70x70.png",
-    };
-
-    const renderNavMenuItems = (navMenuItems: Array<NavMenuItem>) => {
-        return navMenuItems.map((item) => (
+    const renderNavMenuItems = (navItems: NavMenuItem[]) => {
+        return navItems.map((item) => (
             <MenuItem button onClick={onClose} key={item.name}>
                 <ListItemIcon>
                     <item.iconComponent />
@@ -75,24 +73,37 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         ));
     };
 
+    const menu = !userProfile?.username ? undefined : <Menu
+            id="navbar-menu"
+            anchorEl={anchor}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "center" }}
+            getContentAnchorEl={undefined}
+            open={isMenuOpened()}
+            onClose={onClose}>
+        {renderNavMenuItems(navMenuItems)}
+    </Menu>;
+
     return (
         <React.Fragment>
             <IconButton className={classes.root} onClick={clickMenu} aria-owns={anchor ? "navbar-menu" : undefined}>
                 <div className={classes.root}>
-                    <Avatar src={user.avatar} className={classes.small} />
+                    <Grid container alignItems="center">
+                        <Grid item>
+                            <Avatar
+                                className={classes.small}
+                                src={userProfile.twitchUserProfile.profileImageUrl}
+                            ></Avatar>
+                        </Grid>
+                        <Grid item>
+                            <Box ml={1}>
+                                <Typography>{userProfile.twitchUserProfile.displayName}</Typography>
+                            </Box>
+                        </Grid>
+                    </Grid>
                 </div>
             </IconButton>
-            <Menu
-                id="navbar-menu"
-                anchorEl={anchor}
-                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                transformOrigin={{ vertical: "top", horizontal: "center" }}
-                getContentAnchorEl={null}
-                open={isMenuOpened()}
-                onClose={onClose}
-            >
-                {renderNavMenuItems(navMenuItems)}
-            </Menu>
+            {menu}
         </React.Fragment>
     );
 };

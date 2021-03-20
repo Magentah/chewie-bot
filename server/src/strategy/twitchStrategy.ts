@@ -1,12 +1,13 @@
 import * as OAuth2Strategy from "passport-oauth2";
 import Constants from "../constants";
 
-enum Provider {
+export enum TwitchAuthorizationLevel {
     Twitch = "twitch",
+    TwitchBroadcaster = "twitch-broadcaster",
 }
 
 class TwitchStrategy extends OAuth2Strategy {
-    constructor(options: OAuth2Strategy.StrategyOptions, verify: OAuth2Strategy.VerifyFunction) {
+    constructor(options: OAuth2Strategy.StrategyOptions, verify: OAuth2Strategy.VerifyFunction, authLevel: TwitchAuthorizationLevel) {
         super(options, verify);
         options.authorizationURL = options.authorizationURL || Constants.TwitchAuthUrl;
         options.tokenURL = options.tokenURL || Constants.TwitchTokenUrl;
@@ -14,11 +15,10 @@ class TwitchStrategy extends OAuth2Strategy {
             ...options.customHeaders,
             "Client-ID": options.clientID,
         };
-        options.scope = options.scope || Constants.TwitchScopes;
 
         this._oauth2.setAuthMethod("Bearer");
         this._oauth2.useAuthorizationHeaderforGET(true);
-        this.name = Provider.Twitch;
+        this.name = authLevel;
     }
 
     public userProfile(accessToken: string, done: (err?: Error | null | undefined, profile?: any) => void): void {
@@ -30,7 +30,7 @@ class TwitchStrategy extends OAuth2Strategy {
             try {
                 const json = JSON.parse(body as string).data[0];
                 const profile: ITwitchProfile = {
-                    provider: Provider.Twitch,
+                    provider: TwitchAuthorizationLevel.Twitch,
                     id: json.id,
                     username: json.login,
                     displayName: json.display_name,
@@ -54,9 +54,9 @@ class TwitchStrategy extends OAuth2Strategy {
     }
 }
 
-interface ITwitchProfile {
+export interface ITwitchProfile {
     provider: string;
-    id: string;
+    id: number;
     username: string;
     displayName: string;
     profileImageUrl: string;

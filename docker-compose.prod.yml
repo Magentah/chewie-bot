@@ -14,7 +14,7 @@ services:
     backend:
         image: magentafall/chewiebot:server-latest
         volumes:
-            - chewiebot-db:/usr/src/chewiebot/server/dist/chewiebot.db
+            - chewiebot-db:/usr/src/chewiebot/server/dist/db
         environment:
             NODE_ENV: production
         command: ["pm2-runtime", "start.js"]
