@@ -5,6 +5,7 @@ import { ResponseStatus } from "../models";
 import { Logger, LogType } from "../logger";
 import { TwitchServiceProvider, BotSettingsService, TwitchEventService, StreamlabsService } from "../services";
 import { ITwitchProfile } from "../strategy/twitchStrategy";
+import * as Config from "../config.json";
 
 enum TwitchEventMessageType {
     Verification,
@@ -20,29 +21,8 @@ class TwitchController {
         @inject(TwitchEventService) private twitchEventService: TwitchEventService,
         @inject(StreamlabsService) private streamlabsService: StreamlabsService
     ) {
-        //
+        // Empty
     }
-
-    public async joinChannel(req: Request, res: Response): Promise<void> {
-        try {
-            const twitchService = await this.twitchProvider();
-            twitchService.joinChannel(`#${req.params.channel}`);
-            res.sendStatus(StatusCodes.OK);
-        } catch (error) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
-        }
-    }
-
-    public async leaveChannel(req: Request, res: Response): Promise<void> {
-        try {
-            const twitchService = await this.twitchProvider();
-            twitchService.leaveChannel(`#${req.params.channel}`);
-            res.sendStatus(StatusCodes.OK);
-        } catch (error) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
-        }
-    }
-
     public async getStatus(req: Request, res: Response): Promise<void> {
         const twitchService = await this.twitchProvider();
         res.status(StatusCodes.OK).send(twitchService.getStatus());

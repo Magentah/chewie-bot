@@ -21,7 +21,6 @@ export type TwitchServiceProvider = () => Promise<TwitchService>;
 @injectable()
 export class TwitchService {
     private client!: tmi.Client;
-    private options!: tmi.Options;
     private channelUserList: Map<string, ITwitchChatList>;
     public hasInitialized: boolean = false;
     private channel: string;
