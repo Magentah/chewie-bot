@@ -15,7 +15,7 @@ export default class GivePointsCommand extends Command {
     }
 
     public async execute(channel: string, user: IUser, targetUsername: string, points: number) {
-        if (!targetUsername || !points) {
+        if (!targetUsername || !points || !Number.isInteger(points)) {
             this.twitchService.sendMessage(channel, Lang.get("points.give.wrongarguments", user.username));
             return;
         }
@@ -38,17 +38,15 @@ export default class GivePointsCommand extends Command {
             return;
         }
 
-        targetUser.points += points;
-        user.points -= points;
-
-        await this.userService.updateUser(targetUser, user);
+        await this.userService.changeUserPoints(user, -points);
+        await this.userService.changeUserPoints(targetUser, points);
         this.twitchService.sendMessage(channel, Lang.get("points.give.success", user.username, targetUsername, points));
-
     }
 
     public getAliases(): ICommandAlias[] {
         return [
-            { alias: "give", commandName: "givepoints" }
+            { alias: "give", commandName: "givepoints" },
+            { alias: "choos", commandName: "givepoints" },
         ];
     }
 }
