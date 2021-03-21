@@ -107,7 +107,7 @@ export class SongService {
     public async addSong(url: string, requestSource: RequestSource, username: string): Promise<ISong> {
         try {
             let song = this.parseUrl(url);
-            
+
             const existingSong = Object.values(this.songQueue).filter((s) => {
                 return s.sourceId === song.sourceId && s.source === song.source;
             })[0];

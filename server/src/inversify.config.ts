@@ -14,6 +14,7 @@ import EventService from "./services/eventService";
 import TwitchAuthService from "./services/twitchAuthService";
 import TwitchEventService from "./services/twitchEventService";
 import BotSettingsService from "./services/botSettingsService";
+import DonationService from "./services/donationService";
 import StreamlabsService from "./services/streamlabsService";
 import TwitchUserProfileService from "./services/twitchUserProfileService";
 import UserPermissionService from "./services/userPermissionService";
@@ -85,6 +86,7 @@ botContainer.bind<TwitchUserProfileService>(TwitchUserProfileService).toSelf().i
 botContainer.bind<DiscordService>(DiscordService).toSelf().inSingletonScope();
 botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingletonScope();
 botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
+botContainer.bind<DonationService>(DonationService).toSelf().inSingletonScope();
 botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
 
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();

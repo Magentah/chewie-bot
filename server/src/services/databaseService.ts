@@ -2,7 +2,8 @@ import { injectable } from "inversify";
 import { Knex, knex } from "knex";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
-import { IBotSettings, IUser } from "../models";
+import { IUser } from "../models";
+import { BotSettings } from "./botSettingsService";
 
 export enum DatabaseTables {
     Users = "users",
@@ -205,8 +206,8 @@ export class DatabaseService {
     private async createBotSettingsTable(): Promise<void> {
         return this.createTable(DatabaseTables.BotSettings, (table) => {
             table.increments("id").primary().notNullable();
-            table.string("username").unique().notNullable();
-            table.string("oauth").notNullable();
+            table.string("key").unique().notNullable();
+            table.string("value").notNullable();
         });
     }
 
@@ -283,12 +284,16 @@ export class DatabaseService {
     private async addDefaultBotSettings(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             if (Config.twitch.username && Config.twitch.username.length > 0 && Config.twitch.oauth && Config.twitch.oauth.length > 0) {
-                if (!(await this.db(DatabaseTables.BotSettings).first().where("username", Config.twitch.username))) {
-                    const botSettings: IBotSettings = {
-                        username: Config.twitch.username,
-                        oauth: Config.twitch.oauth,
-                    };
-                    await this.db(DatabaseTables.BotSettings).insert(botSettings);
+                if (!(await this.db(DatabaseTables.BotSettings).first().where("key", BotSettings.BotUsername))) {
+                    await this.db(DatabaseTables.BotSettings).insert({
+                        key: BotSettings.BotUsername,
+                        value: Config.twitch.username,
+                    });
+
+                    await this.db(DatabaseTables.BotSettings).insert({
+                        key: BotSettings.BotUserAuth,
+                        value: Config.twitch.oauth,
+                    });
                 }
             }
 

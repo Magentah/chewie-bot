@@ -81,7 +81,7 @@ class SongController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public removeSong(req: Request, res: Response): void {      
+    public removeSong(req: Request, res: Response): void {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
             this.songService.removeSong(song.id);
