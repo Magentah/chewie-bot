@@ -42,7 +42,7 @@ export enum SongSource {
 const PreviewCell: React.FC<any> = (value) => {
     return (
         <div className="Pog2">
-            <a href={value.previewData.linkUrl}>
+            <a href={value.previewData.linkUrl} target="_blank">
                 <Image style={{ maxHeight: "100px" }} src={value.previewData.previewUrl} thumbnail />
             </a>
         </div>
@@ -322,7 +322,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                                    title={tile.song.details.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
-                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
+                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon} target="_blank">
                                            <OpenInNewIcon />
                                        </IconButton>
                                    }
