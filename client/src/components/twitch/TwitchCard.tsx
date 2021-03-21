@@ -150,13 +150,6 @@ const TwitchCard: React.FC<any> = (props: any) => {
                             <span style={{ color: "white" }}>Authorize ChewieBot</span>
                         </Button>
 
-                        <Button className={classes.twitchButton} href={`/api/twitch/${user.username}/join`}>
-                            <Image
-                                src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
-                                style={{ width: "30px" }}
-                            />{" "}
-                            <span style={{ color: "white" }}>Connect ChewieBot to Twitch</span>
-                        </Button>
                         <Button className={classes.streamlabsButton} href="/api/auth/streamlabs">
                             <Image
                                 className={classes.streamlabsImage}
