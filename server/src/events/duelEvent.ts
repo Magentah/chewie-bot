@@ -206,7 +206,13 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             Logger.info(LogType.Command, `Duel ended in a draw, returning ${this.wager - chewsLost} to duel participants`);
             this.eventLogService.addDuel(this.participantUsernames.join(","), {
                 message: "Duel concluded in a draw.",
-                participants: this.participants,
+                participants: this.participants.map((participant) => {
+                    return {
+                        username: participant.user.username,
+                        wager: participant.points,
+                    };
+                }),
+                result: "draw",
                 pointsWon: 0,
                 pointsLost: chewsLost,
             });
@@ -234,7 +240,14 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             Logger.info(LogType.Command, `Duel won by ${winner.user.username}, awarding ${this.wager} chews to winner`);
             this.eventLogService.addDuel(this.participantUsernames.join(","), {
                 message: "Duel concluded in a win.",
-                participants: this.participants,
+                participants: this.participants.map((participant) => {
+                    return {
+                        username: participant.user.username,
+                        wager: participant.points,
+                    };
+                }),
+                result: "win",
+                winner: winner.user.username,
                 pointsWon: this.wager,
             });
             this.userService.changeUserPoints(winner.user, this.wager * 2);

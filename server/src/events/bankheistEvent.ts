@@ -151,7 +151,12 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
         this.eventLogService.addBankheist(this.participantUsernames.join(","), {
             message: "Bankheist finished.",
-            winners,
+            participants: this.participants.map((participant) => {
+                return { username: participant.user.username, wager: participant.points };
+            }),
+            winners: winners.map((participant) => {
+                return { username: participant.participant.user.username, pointsWon: participant.pointsWon };
+            }),
             level: this.getHeistLevel(),
         });
         this.eventService.stopEventStartCooldown(this);
