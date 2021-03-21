@@ -98,6 +98,14 @@ const RequesterStatusCell: React.FC<any> = (value: Song) => {
     );
 };
 
+const RequestTimeCell: React.FC<any> = (value: Song) => {
+    return (
+        <Typography>
+            {moment(value?.requestTime).format("HH:mm")}
+        </Typography>
+    );
+};
+
 interface Song {
     previewData: {
         previewUrl: string,
@@ -118,6 +126,7 @@ interface Song {
         vipStatus: string;
     };
     requestSource: string;
+    requestTime: number;
 }
 
 interface OwnRequest {
@@ -344,7 +353,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 columns = {[
                     {
                         title: "Preview",
-                        field: "previewData.previewUrl", 
+                        field: "previewData.previewUrl",
                         filtering: false,
                         render: rowData => PreviewCell(rowData)
                     },
@@ -357,6 +366,11 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                          title: "Requested By",
                          field: "requestedBy",
                          align: "left"
+                    },
+                    {
+                        title: "Request time",
+                        field: "requestTime",
+                        render: rowData => RequestTimeCell(rowData)
                     },
                     {
                         title: "Requester Status",
