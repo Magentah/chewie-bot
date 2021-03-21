@@ -8,6 +8,8 @@ export default interface IEventLog {
 
 export enum EventLogType {
     SongRequest = "songrequest",
+    SongPlayed = "songplayed",
+    SongRemoved = "songremoved",
     PointRewardRedemption = "pointrewardredemption",
     Duel = "duel",
     Bankheist = "bankheist",

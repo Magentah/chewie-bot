@@ -5,6 +5,7 @@ import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";
 import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
+import { EventLogService } from "./eventLogService";
 
 @injectable()
 export class SongService {
@@ -14,7 +15,8 @@ export class SongService {
     constructor(
         @inject(YoutubeService) private youtubeService: YoutubeService,
         @inject(SpotifyService) private spotifyService: SpotifyService,
-        @inject(WebsocketService) private websocketService: WebsocketService
+        @inject(WebsocketService) private websocketService: WebsocketService,
+        @inject(EventLogService) private eventLogService: EventLogService
     ) {
         //
     }
@@ -69,11 +71,11 @@ export class SongService {
                         title: songDetails.snippet.title,
                         duration: this.youtubeService.getSongDuration(songDetails),
                         sourceId: song.sourceId,
-                        source: song.source
+                        source: song.source,
                     };
                     song.previewData = {
                         linkUrl: song.sourceUrl,
-                        previewUrl: this.youtubeService.getSongPreviewUrl(songDetails)
+                        previewUrl: this.youtubeService.getSongPreviewUrl(songDetails),
                     };
                 }
                 break;
@@ -85,11 +87,11 @@ export class SongService {
                         title: songDetails.name,
                         duration: this.spotifyService.getSongDuration(songDetails),
                         sourceId: song.sourceId,
-                        source: song.source
+                        source: song.source,
                     };
                     song.previewData = {
                         linkUrl: song.sourceUrl,
-                        previewUrl: this.spotifyService.getSongPreviewUrl(songDetails)
+                        previewUrl: this.spotifyService.getSongPreviewUrl(songDetails),
                     };
                 }
                 break;
@@ -107,7 +109,7 @@ export class SongService {
     public async addSong(url: string, requestSource: RequestSource, username: string): Promise<ISong> {
         try {
             let song = this.parseUrl(url);
-            
+
             const existingSong = Object.values(this.songQueue).filter((s) => {
                 return s.sourceId === song.sourceId && s.source === song.source;
             })[0];
@@ -122,6 +124,10 @@ export class SongService {
             song.requestedBy = username;
             song.requestSource = requestSource;
 
+            this.eventLogService.addSongRequest(username, {
+                message: "Song was requested.",
+                song,
+            });
             this.websocketService.send({
                 type: SocketMessageType.SongAdded,
                 message: "Song Added",
@@ -149,6 +155,10 @@ export class SongService {
         if (typeof song === "number") {
             if (Object.keys(this.songQueue).includes(song.toString())) {
                 this.songQueue[song].beenPlayed = true;
+                this.eventLogService.addSongPlayed("", {
+                    message: "Song has been played.",
+                    song: this.songQueue[song],
+                });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
@@ -158,6 +168,10 @@ export class SongService {
         } else if (typeof song === "object" && song.type === "isong") {
             if (Object.keys(this.songQueue).includes(song.id.toString())) {
                 this.songQueue[song.id].beenPlayed = true;
+                this.eventLogService.addSongPlayed("", {
+                    message: "Song has been played.",
+                    song,
+                });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
@@ -175,6 +189,10 @@ export class SongService {
     public removeSong(song: any): void {
         if (typeof song === "number") {
             if (Object.keys(this.songQueue).includes(song.toString())) {
+                this.eventLogService.addSongRemoved("", {
+                    message: "Song has been removed from request queue.",
+                    song: this.songQueue[song],
+                });
                 this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
@@ -184,6 +202,10 @@ export class SongService {
             }
         } else if (this.isSong(song)) {
             if (Object.keys(this.songQueue).includes(song.id.toString())) {
+                this.eventLogService.addSongRemoved("", {
+                    message: "Song has been removed from request queue.",
+                    song,
+                });
                 this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
