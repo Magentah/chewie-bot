@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Switch, Route, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Typography, Divider } from "@material-ui/core";
 import SideBar from "../../components/sidebar/SideBar";
 import NavBar from "../../components/navbar/NavBar";
 import { Route as RouteType, DashboardRoutes, NotFoundRoute } from "../../Routes";
+import useUser, { UserLevels } from "../../hooks/user";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -26,7 +27,7 @@ const createRouteMap = (routes: RouteType[]): ((x: string) => RouteType) => {
     });
 
     const curry0 = (x: string) => {
-        let route = undefined;
+        let route;
         if (m.has(x)) {
             route = m.get(x);
         }
@@ -40,17 +41,28 @@ const Dashboard: React.FC<{}> = (props) => {
     const classes = useStyles();
     const location = useLocation();
     const getRoute = createRouteMap(DashboardRoutes);
+    const [user, loadUser] = useUser();
 
     const path = location.pathname;
 
-    const route: RouteType = getRoute(path);
+    const routeForPath: RouteType = getRoute(path);
+
+    useEffect(loadUser, []);
 
     const renderRoute = () => {
+        // Show loading text until user permissions are confirmed.
+        if (user.userLevelKey === UserLevels.None) {
+            return <Typography>Loading...</Typography>;
+        }
+
         const routeJsx = DashboardRoutes.map((route: RouteType) => (
-            <Route exact path={route.path} key={route.name}>
-                <route.component />
-            </Route>
+             (user.userLevelKey >= route.minUserLevel) ?
+                <Route exact path={route.path} key={route.name}>
+                    <route.component />
+                </Route>
+                : undefined
         ));
+
         return (
             <Switch>
                 {routeJsx}{" "}
@@ -60,6 +72,7 @@ const Dashboard: React.FC<{}> = (props) => {
             </Switch>
         );
     };
+
     return (
         <div className={classes.root}>
             <NavBar />
@@ -68,7 +81,7 @@ const Dashboard: React.FC<{}> = (props) => {
                 <div className={classes.toolbar}>
                     <Grid container spacing={3}>
                         <Grid item xs={12}>
-                            <Typography variant="h5">{route.name}</Typography>
+                            <Typography variant="h5">{routeForPath.name}</Typography>
                             <Divider />
                         </Grid>
                         <Grid item xs={12}>
