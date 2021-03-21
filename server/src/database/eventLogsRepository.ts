@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { DatabaseProvider, DatabaseTables } from "../services";
+import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 import { IEventLog, EventLogType } from "../models";
 import * as moment from "moment";
 

@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { EventLogsRepository } from "../database";
+import { EventLogsRepository } from "../database/eventLogsRepository";
 import { IEventLog, EventLogType } from "../models";
 import * as Config from "../config.json";
 @injectable()
