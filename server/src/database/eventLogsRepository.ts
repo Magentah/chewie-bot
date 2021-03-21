@@ -17,7 +17,7 @@ export class EventLogsRepository {
 
     public async getForUser(username: string): Promise<IEventLog[]> {
         const databaseService = await this.databaseProvider();
-        const eventLogs: IEventLog[] = await databaseService.getQueryBuilder(DatabaseTables.EventLogs).select().where("username", "=", username);
+        const eventLogs: IEventLog[] = await databaseService.getQueryBuilder(DatabaseTables.EventLogs).select().where("username", "like", username);
         return eventLogs;
     }
 
@@ -30,7 +30,7 @@ export class EventLogsRepository {
     public async add(log: IEventLog): Promise<void> {
         const databaseService = await this.databaseProvider();
         log.time = moment().utc().toDate();
-        databaseService.getQueryBuilder(DatabaseTables.EventLogs).insert(log);
+        await databaseService.getQueryBuilder(DatabaseTables.EventLogs).insert(log);
     }
 }
 

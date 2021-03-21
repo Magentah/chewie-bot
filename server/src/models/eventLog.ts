@@ -2,7 +2,7 @@ export default interface IEventLog {
     id?: number;
     type: EventLogType;
     username: string;
-    data: object | Array<object>;
+    data: string;
     time?: Date;
 }
 

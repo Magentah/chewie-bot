@@ -226,7 +226,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.EventLogs, (table) => {
             table.increments("id").primary().notNullable();
             table.string("type").notNullable();
-            table.string("user").notNullable();
+            table.string("username").notNullable();
             table.json("data").notNullable();
             table.dateTime("time").notNullable();
         });

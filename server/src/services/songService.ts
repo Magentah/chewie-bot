@@ -126,7 +126,13 @@ export class SongService {
 
             this.eventLogService.addSongRequest(username, {
                 message: "Song was requested.",
-                song,
+                song: {
+                    title: song.details.title,
+                    requestedBy: song.requestedBy,
+                    requestSource: song.requestSource,
+                    songSource: song.source,
+                    url: url,
+                },
             });
             this.websocketService.send({
                 type: SocketMessageType.SongAdded,
@@ -157,7 +163,9 @@ export class SongService {
                 this.songQueue[song].beenPlayed = true;
                 this.eventLogService.addSongPlayed(this.songQueue[song].requestedBy, {
                     message: "Song has been played.",
-                    song: this.songQueue[song],
+                    song: {
+                        title: this.songQueue[song].details.title,
+                    },
                 });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
@@ -170,7 +178,9 @@ export class SongService {
                 this.songQueue[song.id].beenPlayed = true;
                 this.eventLogService.addSongPlayed(song.requestedBy, {
                     message: "Song has been played.",
-                    song,
+                    song: {
+                        title: song.details.title,
+                    },
                 });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
@@ -191,7 +201,10 @@ export class SongService {
             if (Object.keys(this.songQueue).includes(song.toString())) {
                 this.eventLogService.addSongRemoved(this.songQueue[song].requestedBy, {
                     message: "Song has been removed from request queue.",
-                    song: this.songQueue[song],
+                    song: {
+                        title: this.songQueue[song].details.title,
+                        requestedBy: this.songQueue[song].requestedBy,
+                    },
                 });
                 this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
@@ -204,7 +217,10 @@ export class SongService {
             if (Object.keys(this.songQueue).includes(song.id.toString())) {
                 this.eventLogService.addSongRemoved(song.requestedBy, {
                     message: "Song has been removed from request queue.",
-                    song,
+                    song: {
+                        title: song.details.title,
+                        requestedBy: song.requestedBy,
+                    },
                 });
                 this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
