@@ -103,6 +103,7 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
             this.userService.changeUserPoints(participant.user, -participant.points);
         }
 
+        this.participantUsernames.push(participant.user.username);
         this.participants.push(participant);
         return true;
     }

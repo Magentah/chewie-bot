@@ -38,11 +38,17 @@ export class EventLogService {
     }
 
     public async addDuel(username: string, data: object | Array<object>): Promise<void> {
+        if (!Config.log.enabledEventLogs.event.duel) {
+            return;
+        }
         const log = this.createLog(EventLogType.Duel, username, data);
         this.eventLogs.add(log);
     }
 
     public async addBankheist(username: string, data: object | Array<object>): Promise<void> {
+        if (!Config.log.enabledEventLogs.event.bankheist) {
+            return;
+        }
         const log = this.createLog(EventLogType.Bankheist, username, data);
         this.eventLogs.add(log);
     }
