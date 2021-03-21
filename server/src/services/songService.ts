@@ -155,7 +155,7 @@ export class SongService {
         if (typeof song === "number") {
             if (Object.keys(this.songQueue).includes(song.toString())) {
                 this.songQueue[song].beenPlayed = true;
-                this.eventLogService.addSongPlayed("", {
+                this.eventLogService.addSongPlayed(this.songQueue[song].requestedBy, {
                     message: "Song has been played.",
                     song: this.songQueue[song],
                 });
@@ -168,7 +168,7 @@ export class SongService {
         } else if (typeof song === "object" && song.type === "isong") {
             if (Object.keys(this.songQueue).includes(song.id.toString())) {
                 this.songQueue[song.id].beenPlayed = true;
-                this.eventLogService.addSongPlayed("", {
+                this.eventLogService.addSongPlayed(song.requestedBy, {
                     message: "Song has been played.",
                     song,
                 });
@@ -189,7 +189,7 @@ export class SongService {
     public removeSong(song: any): void {
         if (typeof song === "number") {
             if (Object.keys(this.songQueue).includes(song.toString())) {
-                this.eventLogService.addSongRemoved("", {
+                this.eventLogService.addSongRemoved(this.songQueue[song].requestedBy, {
                     message: "Song has been removed from request queue.",
                     song: this.songQueue[song],
                 });
@@ -202,7 +202,7 @@ export class SongService {
             }
         } else if (this.isSong(song)) {
             if (Object.keys(this.songQueue).includes(song.id.toString())) {
-                this.eventLogService.addSongRemoved("", {
+                this.eventLogService.addSongRemoved(song.requestedBy, {
                     message: "Song has been removed from request queue.",
                     song,
                 });
