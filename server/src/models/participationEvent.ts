@@ -31,6 +31,7 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
      * List of users participating in the event.
      */
     public participants: T[] = [];
+    public participantUsernames: string[] = [];
 
     /**
      * Amount of time in ms for how long participants are being allowed to enter the event.
@@ -60,10 +61,7 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
 
         // Check if initiating user has enough points.
         if (user.points < wager) {
-            this.twitchService.sendMessage(
-                channel,
-                user.username + ", you do not have enough chews to wager that much!"
-            );
+            this.twitchService.sendMessage(channel, user.username + ", you do not have enough chews to wager that much!");
             return false;
         }
 
