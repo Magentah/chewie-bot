@@ -39,12 +39,7 @@ export class TwitchService {
     public async initialize(): Promise<IServiceResponse> {
         if (this.hasInitialized) {
             this.hasInitialized = false;
-            Logger.warn(
-                LogType.Twitch,
-                `Twitch Bot reinitializing. Current client ${
-                    this.client.getOptions().identity?.username
-                } being overwritten.`
-            );
+            Logger.warn(LogType.Twitch, `Twitch Bot reinitializing. Current client ${this.client.getOptions().identity?.username} being overwritten.`);
 
             if (this.client.readyState() !== "CLOSED") {
                 const response = await this.disconnect();
@@ -65,6 +60,21 @@ export class TwitchService {
         }
 
         return Response.Error("No valid bot username or oauth key.");
+    }
+
+    public async triggerAlert(alertType: string, variation: string, imageUrl: string) {
+        switch (alertType) {
+            case "redeem": {
+                this.websocketService.send({
+                    type: SocketMessageType.AlertTriggered,
+                    message: `Redeem ${variation} alert triggered.`,
+                    data: { href: imageUrl },
+                });
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     public setCommandCallback(callback: (channel: string, username: string, message: string) => void) {
@@ -131,10 +141,7 @@ export class TwitchService {
                 "Client-Id": accessDetails.clientId,
             },
         };
-        const { data } = await axios.get(
-            `${Constants.TwitchAPIEndpoint}/search/channels?query=${channelName}`,
-            options
-        );
+        const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/search/channels?query=${channelName}`, options);
         return data;
     }
 
@@ -197,16 +204,10 @@ export class TwitchService {
 
     private setupEventHandlers(client: tmi.Client): void {
         // If we don't use arrow functions here, TS breaks because 'this' is redefined, so none of the service properties are available.
-        client.on("action", (channel, userstate, message, self) =>
-            this.actionEventHandler(channel, userstate, message, self)
-        );
-        client.on("anongiftpaidupgrade", (channel, username, userstate) =>
-            this.anonGiftPaidUpgradeEventHandler(channel, username, userstate)
-        );
+        client.on("action", (channel, userstate, message, self) => this.actionEventHandler(channel, userstate, message, self));
+        client.on("anongiftpaidupgrade", (channel, username, userstate) => this.anonGiftPaidUpgradeEventHandler(channel, username, userstate));
         client.on("ban", (channel, username, reason) => this.banEventHandler(channel, username, reason));
-        client.on("chat", (channel, userstate, message, self) =>
-            this.chatEventHandler(channel, userstate, message, self)
-        );
+        client.on("chat", (channel, userstate, message, self) => this.chatEventHandler(channel, userstate, message, self));
         client.on("cheer", (channel, userstate, message) => this.cheerEventHandler(channel, userstate, message));
         client.on("clearchat", (channel) => this.clearChatEventHandler(channel));
         client.on("connected", (address, port) => this.connectedEventHandler(address, port));
@@ -214,15 +215,9 @@ export class TwitchService {
         client.on("disconnected", (reason) => this.disconnectedEventHandler(reason));
         client.on("emoteonly", (channel, enabled) => this.emoteOnlyEventHandler(channel, enabled));
         client.on("emotesets", (sets, objs) => this.emoteSetsEventHandler(sets, objs));
-        client.on("followersonly", (channel, enabled, length) =>
-            this.followersOnlyEventHandler(channel, enabled, length)
-        );
-        client.on("giftpaidupgrade", (channel, username, sender, userstate) =>
-            this.giftPaidUpgradeEventHandler(channel, username, sender, userstate)
-        );
-        client.on("hosted", (channel, username, viewers, autohost) =>
-            this.hostedEventHandler(channel, username, viewers, autohost)
-        );
+        client.on("followersonly", (channel, enabled, length) => this.followersOnlyEventHandler(channel, enabled, length));
+        client.on("giftpaidupgrade", (channel, username, sender, userstate) => this.giftPaidUpgradeEventHandler(channel, username, sender, userstate));
+        client.on("hosted", (channel, username, viewers, autohost) => this.hostedEventHandler(channel, username, viewers, autohost));
         client.on("hosting", (channel, target, viewers) => this.hostingEventHandler(channel, target, viewers));
         client.on("join", (channel, username, self) => this.joinEventHandler(channel, username, self));
         client.on("logon", () => this.logonEventHandler());
@@ -256,26 +251,18 @@ export class TwitchService {
         client.on("subscription", (channel, username, methods, message, userstate) =>
             this.subscriptionEventHandler(channel, username, methods, message, userstate)
         );
-        client.on("timeout", (channel, username, reason, duration) =>
-            this.timeoutEventHandler(channel, username, reason, duration)
-        );
+        client.on("timeout", (channel, username, reason, duration) => this.timeoutEventHandler(channel, username, reason, duration));
         client.on("unhost", (channel, viewers) => this.unhostEventHandler(channel, viewers));
         client.on("unmod", (channel, username) => this.unmodEventHandler(channel, username));
         client.on("vips", (channel, vips) => this.vipsEventHandler(channel, vips));
-        client.on("whisper", (from, userstate, message, self) =>
-            this.whisperEventHandler(from, userstate, message, self)
-        );
+        client.on("whisper", (from, userstate, message, self) => this.whisperEventHandler(from, userstate, message, self));
     }
 
     private actionEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
         // Empty
     }
 
-    private anonGiftPaidUpgradeEventHandler(
-        channel: string,
-        username: string,
-        userstate: tmi.AnonSubGiftUpgradeUserstate
-    ) {
+    private anonGiftPaidUpgradeEventHandler(channel: string, username: string, userstate: tmi.AnonSubGiftUpgradeUserstate) {
         // Empty
     }
 
@@ -337,12 +324,7 @@ export class TwitchService {
         // Empty
     }
 
-    private giftPaidUpgradeEventHandler(
-        channel: string,
-        username: string,
-        sender: string,
-        userstate: tmi.SubGiftUpgradeUserstate
-    ) {
+    private giftPaidUpgradeEventHandler(channel: string, username: string, sender: string, userstate: tmi.SubGiftUpgradeUserstate) {
         // Empty
     }
 
@@ -366,12 +348,7 @@ export class TwitchService {
         // Empty
     }
 
-    private messageDeletedEventHandler(
-        channel: string,
-        username: string,
-        deletedMessage: string,
-        userstate: tmi.DeleteUserstate
-    ) {
+    private messageDeletedEventHandler(channel: string, username: string, deletedMessage: string, userstate: tmi.DeleteUserstate) {
         // Empty
     }
 
@@ -411,14 +388,7 @@ export class TwitchService {
         // Empty
     }
 
-    private resubEventHandler(
-        channel: string,
-        username: string,
-        months: number,
-        message: string,
-        userstate: tmi.SubUserstate,
-        methods: tmi.SubMethods
-    ) {
+    private resubEventHandler(channel: string, username: string, months: number, message: string, userstate: tmi.SubUserstate, methods: tmi.SubMethods) {
         // Empty
     }
 
@@ -445,13 +415,7 @@ export class TwitchService {
         // Empty
     }
 
-    private subMysteryGiftEventHandler(
-        channel: string,
-        username: string,
-        numbOfSubs: number,
-        methods: tmi.SubMethods,
-        userstate: tmi.SubMysteryGiftUserstate
-    ) {
+    private subMysteryGiftEventHandler(channel: string, username: string, numbOfSubs: number, methods: tmi.SubMethods, userstate: tmi.SubMysteryGiftUserstate) {
         // Empty
     }
 
@@ -459,13 +423,7 @@ export class TwitchService {
         // Empty
     }
 
-    private subscriptionEventHandler(
-        channel: string,
-        username: string,
-        methods: tmi.SubMethods,
-        message: string,
-        userstate: tmi.SubUserstate
-    ) {
+    private subscriptionEventHandler(channel: string, username: string, methods: tmi.SubMethods, message: string, userstate: tmi.SubUserstate) {
         // Empty
     }
 

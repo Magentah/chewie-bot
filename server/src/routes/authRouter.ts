@@ -8,14 +8,8 @@ import Constants from "../constants";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
 import { IUser } from "../models";
-import {
-    SpotifyService,
-    UserService,
-    TwitchUserProfileService,
-    UserPermissionService,
-    StreamlabsService,
-} from "../services";
-import { TwitchStrategy, StreamlabsStrategy, SpotifyStrategy } from "../strategy";
+import { SpotifyService, UserService, TwitchUserProfileService, UserPermissionService, StreamlabsService } from "../services";
+import { TwitchStrategy, StreamlabsStrategy, SpotifyStrategy, DropboxStrategy } from "../strategy";
 
 const authRouter: express.Router = express.Router();
 
@@ -99,9 +93,7 @@ export function setupPassport(): void {
                 passReqToCallback: true,
             },
             async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
-                const socketTokenResult = await axios.get(
-                    `${Constants.StreamlabsSocketTokenUrl}?access_token=${accessToken}`
-                );
+                const socketTokenResult = await axios.get(`${Constants.StreamlabsSocketTokenUrl}?access_token=${accessToken}`);
                 if (socketTokenResult.status === StatusCodes.OK) {
                     profile.socketToken = socketTokenResult.data.socket_token;
                 }
@@ -149,6 +141,29 @@ export function setupPassport(): void {
             }
         )
     );
+
+    passport.use(
+        new DropboxStrategy(
+            {
+                clientID: Config.dropbox.clientId,
+                clientSecret: Config.dropbox.clientSecret,
+                authorizationURL: Constants.DropboxAuthUrl,
+                tokenURL: Constants.DropboxTokenUrl,
+                callbackURL: Config.dropbox.redirectUri,
+                passReqToCallback: true,
+            },
+            async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
+                const sessionUser = req.user as IUser;
+                if (sessionUser) {
+                    const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+                    if (user) {
+                        user.dropboxAccessToken = accessToken;
+                        await BotContainer.get(UserService).updateUser(user);
+                    }
+                }
+            }
+        )
+    );
 }
 
 // Passport Auth Routes
@@ -162,21 +177,17 @@ authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { fa
     res.redirect("/");
 });
 authRouter.get("/api/auth/streamlabs", passport.authorize("streamlabs"));
-authRouter.get(
-    "/api/auth/streamlabs/callback",
-    passport.authorize("streamlabs", { failureRedirect: "/" }),
-    async (req, res) => {
-        Logger.info(LogType.Server, JSON.stringify(req.account));
-        const user = req.user;
-        if (user) {
-            user.account = req.account;
-        }
-        // TODO: At the moment we don't connect automatically to the streamlabs socket and wait until manually clicking on
-        // the connect button. Keeping this here just as it's still not decided if that's the best way.
-        // BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
-        res.redirect("/");
+authRouter.get("/api/auth/streamlabs/callback", passport.authorize("streamlabs", { failureRedirect: "/" }), async (req, res) => {
+    Logger.info(LogType.Server, JSON.stringify(req.account));
+    const user = req.user;
+    if (user) {
+        user.account = req.account;
     }
-);
+    // TODO: At the moment we don't connect automatically to the streamlabs socket and wait until manually clicking on
+    // the connect button. Keeping this here just as it's still not decided if that's the best way.
+    // BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
+    res.redirect("/");
+});
 authRouter.get("/api/auth/spotify", passport.authorize("spotify"));
 authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
     const sessionUser = req.user as IUser;
@@ -214,5 +225,9 @@ authRouter.get("/api/auth/spotify/callback", passport.authorize("spotify", { fai
     res.redirect("/");
 });
 
-export default authRouter;
+authRouter.get("/api/auth/dropbox", passport.authorize("dropbox"));
+authRouter.get("/api/auth/dropbox/redirect", passport.authorize("dropbox", { failureRedirect: "/" }), async (req, res) => {
+    res.redirect("/");
+});
 
+export default authRouter;

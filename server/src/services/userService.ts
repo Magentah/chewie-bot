@@ -3,6 +3,7 @@ import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList } from "../models";
 import EventLogService from "./eventLogService";
+import * as Config from "../config.json";
 
 @injectable()
 export class UserService {
@@ -31,7 +32,7 @@ export class UserService {
 
         await this.users.add(newUser);
 
-        return await this.getUser(newUser.username) as IUser;
+        return (await this.getUser(newUser.username)) as IUser;
     }
 
     /**
@@ -122,6 +123,10 @@ export class UserService {
      */
     public async getUser(username: string): Promise<IUser | undefined> {
         return await this.users.get(username);
+    }
+
+    public async getBroadcaster(): Promise<IUser | undefined> {
+        return await this.users.get(Config.twitch.broadcasterName);
     }
 
     public async getUserPrincipal(username: string, providerType: ProviderType): Promise<IUserPrincipal | undefined> {
