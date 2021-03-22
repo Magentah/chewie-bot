@@ -30,4 +30,8 @@ export default class Constants {
     public static readonly SpotifyTokenUrl = "https://accounts.spotify.com/api/token";
     public static readonly SpotifyTracksUrl = "https://api.spotify.com/v1/tracks";
     public static readonly SpotifyScopes = "streaming user-read-email user-modify-playback-state user-read-private";
+
+    public static readonly DropboxAuthUrl = "https://www.dropbox.com/oauth2/authorize";
+    public static readonly DropboxTokenUrl = "https://api.dropboxapi.com/oauth2/token";
+    public static readonly DropboxUploadEndpoint = "https://content.dropboxapi.com/2/files/upload";
 }

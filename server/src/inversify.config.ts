@@ -22,9 +22,11 @@ import TwitchUserProfileService from "./services/twitchUserProfileService";
 import UserPermissionService from "./services/userPermissionService";
 import TwitchWebService from "./services/twitchWebService";
 import DiscordService from "./services/discordService";
+import DropboxService from "./services/dropboxService";
 import EventLogService from "./services/eventLogService";
 
 // Database Repositories
+
 import BotSettingsRepository from "./database/botSettings";
 import UsersRepository from "./database/usersRepository";
 import UserLevelsRepository from "./database/userLevelsRepository";
@@ -100,7 +102,9 @@ botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingl
 botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
 botContainer.bind<DonationService>(DonationService).toSelf().inSingletonScope();
 botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
+botContainer.bind<DropboxService>(DropboxService).toSelf().inSingletonScope();
 botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
+
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();

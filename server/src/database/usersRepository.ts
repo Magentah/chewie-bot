@@ -144,6 +144,8 @@ export class UsersRepository {
             vipExpiry: userResult.vipExpiry,
             userLevelKey: userResult.userLevelKey,
             vipLevelKey: userResult.vipLevelKey,
+            dropboxAccessToken: userResult.dropboxAccessToken,
+            dropboxRefreshToken: userResult.dropboxRefreshToken,
             twitchUserProfile: {
                 username: userResult.username,
                 displayName: userResult.profileDisplayName,
@@ -162,6 +164,8 @@ export class UsersRepository {
         userData.spotifyRefresh = CryptoHelper.encryptString(userData.spotifyRefresh);
         userData.streamlabsToken = CryptoHelper.encryptString(userData.streamlabsToken);
         userData.streamlabsRefresh = CryptoHelper.encryptString(userData.streamlabsRefresh);
+        userData.dropboxAccessToken = CryptoHelper.encryptString(userData.dropboxAccessToken);
+        userData.dropboxRefreshToken = CryptoHelper.encryptString(userData.dropboxRefreshToken);
         return userData;
     }
 
@@ -171,6 +175,8 @@ export class UsersRepository {
         user.spotifyRefresh = CryptoHelper.decryptString(user.spotifyRefresh);
         user.streamlabsRefresh = CryptoHelper.decryptString(user.streamlabsRefresh);
         user.streamlabsToken = CryptoHelper.decryptString(user.streamlabsToken);
+        user.dropboxAccessToken = CryptoHelper.decryptString(user.dropboxAccessToken);
+        user.dropboxRefreshToken = CryptoHelper.decryptString(user.dropboxRefreshToken);
         return user;
     }
 }

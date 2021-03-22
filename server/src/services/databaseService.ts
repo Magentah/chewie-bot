@@ -163,6 +163,8 @@ export class DatabaseService {
             table.string("spotifyRefresh");
             table.integer("twitchProfileKey").unsigned();
             table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
+            table.string("dropboxAccessToken");
+            table.string("dropboxRefreshToken");
         });
     }
 
