@@ -24,3 +24,5 @@ export { default as BidCommand } from "./auction/bidCommand";
 
 export { default as PointsCommand } from "../commandScripts/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";
+
+export { default as RedeemCommand } from "../commandScripts/redeemCommand";

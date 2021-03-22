@@ -22,4 +22,6 @@ export default interface IUser {
     spotifyRefresh?: string;
     twitchProfileKey?: number;
     twitchUserProfile?: ITwitchUserProfile;
+    dropboxAccessToken?: string;
+    dropboxRefreshToken?: string;
 }

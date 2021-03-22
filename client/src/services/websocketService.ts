@@ -99,6 +99,7 @@ export enum SocketMessageType {
     SongRemoved = "SONG_REMOVED",
     DonationReceived = "DONATION_RECEIVED",
     Subscriber = "SUBSCRIBER",
+    AlertTriggered = "ALERT_TRIGGERED",
 }
 
 export default WebsocketService;

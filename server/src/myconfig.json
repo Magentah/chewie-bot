@@ -29,6 +29,11 @@
         "enabled": false,
         "webhookUrl": ""
     },
+    "dropbox": {
+        "clientId": "",
+        "clientSecret": "",
+        "redirectUri": ""
+    },
     "secretKey": "",
     "log": {
         "levels": "syslog",
@@ -45,6 +50,7 @@
             "server": true,
             "serverinfo": true,
             "websocket": true,
+            "backup": true
             "streamlabs": true
         },
         "enabledEventLogs": {
@@ -68,6 +74,7 @@
             "host": "",
             "username": "",
             "password": ""
-        }
+        },
+        "backupCronFrequency": "00 16 * * *"
     }
 }
