@@ -1,7 +1,5 @@
-import { inject } from "inversify";
-import { IUser, RequestSource } from "../../models/";
-import { SongService, TwitchService, UserService, EventService } from "../../services";
-import { UserLevelsRepository } from "../../database";
+import { IUser, RequestSource, UserLevels } from "../../models/";
+import { SongService, TwitchService } from "../../services";
 import { Command } from "../command";
 import { BotContainer } from "../../inversify.config";
 
@@ -14,6 +12,8 @@ export class AddSongCommand extends Command {
 
         this.songService = BotContainer.get(SongService);
         this.twitchService = BotContainer.get(TwitchService);
+
+        this.minimumUserLevel = UserLevels.Moderator;
     }
 
     public async execute(channel: string, user: IUser, url: string) {

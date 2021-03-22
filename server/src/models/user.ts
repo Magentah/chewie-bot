@@ -10,6 +10,7 @@ export default interface IUser {
     refreshToken?: string;
     points: number;
     vipExpiry?: Date;
+    vipLastRequest?: Date;
     vipLevelKey?: number;
     vipLevel?: IVIPLevel;
     userLevelKey?: number;

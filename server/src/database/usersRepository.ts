@@ -1,6 +1,5 @@
 import { inject, injectable } from "inversify";
 import { CryptoHelper } from "../helpers";
-import { Logger, LogType } from "../logger";
 import { IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
@@ -51,6 +50,21 @@ export class UsersRepository {
         await databaseService
             .getQueryBuilder(DatabaseTables.Users)
             .increment("points", points)
+            .whereExists((q) => {
+                return q.select().from(DatabaseTables.Users).where({ id: user.id });
+            });
+    }
+
+    /**
+     * Updates a user's VIP expiry date.
+     * @param user user with new expiration date
+     */
+    public async  updateVipExpiry(user: IUser) {
+        const databaseService = await this.databaseProvider();
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .update( { vipExpiry: user.vipExpiry })
             .whereExists((q) => {
                 return q.select().from(DatabaseTables.Users).where({ id: user.id });
             });
@@ -141,7 +155,8 @@ export class UsersRepository {
             twitchProfileKey: userResult.twitchProfileKey,
             userLevel: userResult.userLevel,
             vipLevel: userResult.vipLevel,
-            vipExpiry: userResult.vipExpiry,
+            vipExpiry: userResult.vipExpiry ? new Date(userResult.vipExpiry) : undefined,
+            vipLastRequest: userResult.vipLastRequest ? new Date(userResult.vipLastRequest) : undefined,
             userLevelKey: userResult.userLevelKey,
             vipLevelKey: userResult.vipLevelKey,
             twitchUserProfile: {

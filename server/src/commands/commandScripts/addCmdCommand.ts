@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { TextCommandsRepository, UserLevelsRepository } from "./../../database";
+import { TextCommandsRepository } from "./../../database";
 import { TwitchService } from "./../../services";
 import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
@@ -7,16 +7,14 @@ import { BotContainer } from "../../inversify.config";
 export default class AddCmdCommand extends Command {
     private textCommands: TextCommandsRepository;
     private twitchService: TwitchService;
-    private userLevels: UserLevelsRepository;
 
     constructor() {
         super();
 
         this.textCommands = BotContainer.get(TextCommandsRepository);
         this.twitchService = BotContainer.get(TwitchService);
-        this.userLevels = BotContainer.get(UserLevelsRepository);
 
-        this.minimumUserLevel = UserLevels.Broadcaster;
+        this.minimumUserLevel = UserLevels.Moderator;
     }
 
     public async execute(channel: string, user: IUser, commandName: string, message: string): Promise<void> {

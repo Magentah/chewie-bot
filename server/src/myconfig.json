@@ -51,7 +51,8 @@
             "song": {
                 "requested": true,
                 "played": true,
-                "removed": true
+                "removed": true,
+                "gold": true
             },
             "event": {
                 "duel": true,
