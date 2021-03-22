@@ -9,7 +9,7 @@ import Constants from "../constants";
 // Required to do it this way instead of from "../services" due to inversify breaking otherwise
 import UserService from "../services/userService";
 import WebsocketService from "../services/websocketService";
-import BotSettingsService from "../services/botSettingsService";
+import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 import TwitchAuthService from "../services/twitchAuthService";
 
 export interface IBotTwitchStatus {
@@ -153,10 +153,8 @@ export class TwitchService {
 
     private async setupOptions(): Promise<tmi.Options> {
         try {
-            let settings = await this.botSettingsService.getSettings();
-            if (!settings) {
-                settings = { username: "", oauth: "" };
-            }
+            const botUser = await this.botSettingsService.getSettings(BotSettings.BotUsername);
+            const botUserAuth = await this.botSettingsService.getSettings(BotSettings.BotUserAuth);
 
             return {
                 options: {
@@ -167,8 +165,8 @@ export class TwitchService {
                     secure: true,
                 },
                 identity: {
-                    username: settings.username,
-                    password: settings.oauth,
+                    username: botUser.value,
+                    password: botUserAuth.value,
                 },
             };
         } catch (error) {

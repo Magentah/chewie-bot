@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Route } from "react-router-dom";
+import { HashRouter as Router, Route, Switch } from "react-router-dom";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fab } from "@fortawesome/free-brands-svg-icons";
 import CssBaseLine from "@material-ui/core/CssBaseline";
 
 import Dashboard from "./views/dashboard/Dashboard";
+import CurrentSong from "./components/songqueue/CurrentSong";
+
 import axios from "axios";
 import UserContextProvider from "./contexts/userContext";
 
@@ -34,7 +36,14 @@ const App: React.FC<{}> = (props) => {
         <Router>
             <CssBaseLine />
             <UserContextProvider>
-                <Dashboard />
+                <Switch>
+                    <Route path="/currentsong/:size">
+                        <CurrentSong />
+                    </Route>
+                    <Route exact path="*">
+                        <Dashboard />
+                    </Route>
+                </Switch>
             </UserContextProvider>
         </Router>
     );

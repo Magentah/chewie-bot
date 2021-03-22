@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import moment = require("moment");
 import { InvalidSongUrlError, SongAlreadyInQueueError } from "../errors";
 import { Logger, LogType } from "../logger";
 import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";
@@ -123,6 +124,7 @@ export class SongService {
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;
             song.requestSource = requestSource;
+            song.requestTime = moment.now();
 
             this.eventLogService.addSongRequest(username, {
                 message: "Song was requested.",

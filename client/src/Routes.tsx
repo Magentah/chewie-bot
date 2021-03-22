@@ -33,7 +33,7 @@ const DefaultComponent: React.FC<{}> = (props) => {
 };
 
 // Routes to be rendered from the SideBar
-const DashboardRoutes: Array<Route> = [
+const DashboardRoutes: Route[] = [
     {
         path: "/",
         name: "Home",
@@ -67,7 +67,7 @@ const DashboardRoutes: Array<Route> = [
         name: "Bot Settings",
         icon: Build,
         component: TwitchCard,
-        minUserLevel: UserLevels.Moderator
+        minUserLevel: UserLevels.Broadcaster
     },
     {
         path: "/users",

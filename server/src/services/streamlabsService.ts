@@ -4,6 +4,7 @@ import { ITwitchProfile } from "../strategy/twitchStrategy";
 import Constants from "../constants";
 import * as io from "socket.io-client";
 import { Logger, LogType } from "../logger";
+import DonationService from "../services/donationService";
 
 export enum StreamlabsEvent {
     Donation = "donation",
@@ -20,10 +21,10 @@ interface IStreamlabsSocketMessage {
     message: any;
 }
 
-interface IDonationMessage {
+export interface IDonationMessage {
     id: number;
     name: string;
-    amount: string;
+    amount: number;
     formatted_amount: string;
     formattedAmount: string;
     message: string;
@@ -39,7 +40,8 @@ interface IDonationMessage {
 @injectable()
 export class StreamlabsService {
     private websocket!: SocketIOClient.Socket;
-    constructor(@inject(UserService) private users: UserService) {
+    constructor(@inject(UserService) private users: UserService,
+                @inject(DonationService) private donations: DonationService) {
         // Empty
     }
 
@@ -115,6 +117,10 @@ export class StreamlabsService {
 
     private donationReceived(messages: IDonationMessage[]): void {
         Logger.info(LogType.Streamlabs, JSON.stringify(messages));
+
+        for (const donation of messages) {
+            this.donations.processDonation(donation);
+        }
     }
 }
 
