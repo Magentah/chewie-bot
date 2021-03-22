@@ -18,6 +18,7 @@ import { TwitchMessageSignatureError } from "./errors";
 import TwitchHelper from "./helpers/twitchHelper";
 import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
+import { createDatabaseBackupJob } from "./cronjobs";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -31,6 +32,7 @@ class BotServer extends Server {
         super(true);
         setupPassport();
         this.setupApp();
+        createDatabaseBackupJob();
 
         // Force call constructor before they're used by anything else. Probably a better way to do this...
         this.socket = BotContainer.get<WebsocketService>(WebsocketService);
@@ -67,8 +69,7 @@ class BotServer extends Server {
 
         this.app.use(
             bodyParser.json({
-                verify: (req, res, buf, encoding) =>
-                    TwitchHelper.verifyTwitchEventsubSignature(req, res, buf, encoding),
+                verify: (req, res, buf, encoding) => TwitchHelper.verifyTwitchEventsubSignature(req, res, buf, encoding),
             })
         );
 

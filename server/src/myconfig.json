@@ -45,7 +45,8 @@
             "server": true,
             "serverinfo": true,
             "websocket": true,
-            "streamlabs": true
+            "streamlabs": true,
+            "backup": true,
         }
     },
     "database": {
@@ -56,6 +57,7 @@
             "host": "",
             "username": "",
             "password": ""
-        }
+        },
+        "backupCronFrequency": "00 16 * * *"
     }
 }
