@@ -23,7 +23,7 @@ export default class AddAliasCommand extends Command {
         this.minimumUserLevel = UserLevels.Broadcaster;
     }
 
-    public async execute(channel: string, user: IUser, newAlias: string, command: string, args: string): Promise<void> {
+    public async execute(channel: string, user: IUser, newAlias: string, command: string, ...args: string[]): Promise<void> {
         if (!command || !newAlias) {
             return;
         }
