@@ -30,7 +30,7 @@ export default class DonationService {
 
     private async addSongsToQueue(donation: IDonationMessage) {
         const urlRegex: RegExp = /(https?:\/\/[^\s]+)/g;
-        const amountRequired = parseFloat(await this.settings.getValue(BotSettings.DonationPointsPerDollar, "15"));
+        const amountRequired = parseFloat(await this.settings.getValue(BotSettings.SongRequestDonationAmount, "15"));
 
         if (donation.amount >= amountRequired) {
             const matches = urlRegex.exec(donation.message);
