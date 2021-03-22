@@ -1,4 +1,6 @@
+import { BotSettings } from "src/services/botSettingsService";
+
 export default interface IBotSettings {
-    username: string;
-    oauth: string;
+    key: BotSettings;
+    value: string;
 }

@@ -50,8 +50,19 @@
             "server": true,
             "serverinfo": true,
             "websocket": true,
-            "streamlabs": true,
             "backup": true
+            "streamlabs": true
+        },
+        "enabledEventLogs": {
+            "song": {
+                "requested": true,
+                "played": true,
+                "removed": true
+            },
+            "event": {
+                "duel": true,
+                "bankheist": true
+            }
         }
     },
     "database": {

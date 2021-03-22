@@ -42,7 +42,7 @@ export enum SongSource {
 const PreviewCell: React.FC<any> = (value) => {
     return (
         <div className="Pog2">
-            <a href={value.previewData.linkUrl}>
+            <a href={value.previewData.linkUrl} target="_blank">
                 <Image style={{ maxHeight: "100px" }} src={value.previewData.previewUrl} thumbnail />
             </a>
         </div>
@@ -98,6 +98,14 @@ const RequesterStatusCell: React.FC<any> = (value: Song) => {
     );
 };
 
+const RequestTimeCell: React.FC<any> = (value: Song) => {
+    return (
+        <Typography>
+            {moment(value?.requestTime).format("HH:mm")}
+        </Typography>
+    );
+};
+
 interface Song {
     previewData: {
         previewUrl: string,
@@ -118,6 +126,7 @@ interface Song {
         vipStatus: string;
     };
     requestSource: string;
+    requestTime: number;
 }
 
 interface OwnRequest {
@@ -322,7 +331,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                                    title={tile.song.details.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
-                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
+                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon} target="_blank">
                                            <OpenInNewIcon />
                                        </IconButton>
                                    }
@@ -344,7 +353,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 columns = {[
                     {
                         title: "Preview",
-                        field: "previewData.previewUrl", 
+                        field: "previewData.previewUrl",
                         filtering: false,
                         render: rowData => PreviewCell(rowData)
                     },
@@ -357,6 +366,11 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                          title: "Requested By",
                          field: "requestedBy",
                          align: "left"
+                    },
+                    {
+                        title: "Request time",
+                        field: "requestTime",
+                        render: rowData => RequestTimeCell(rowData)
                     },
                     {
                         title: "Requester Status",

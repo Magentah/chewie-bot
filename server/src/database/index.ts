@@ -7,3 +7,4 @@ export { default as CommandAliasesRepository } from "./commandAliases";
 export { default as SonglistRepository } from "./songlistRepository";
 export { default as TwitchUserProfileRepository } from "./twitchUserProfileRepository";
 export { default as DiscordRepository } from "./discordRepository";
+export { default as EventLogsRepository } from "./eventLogsRepository";

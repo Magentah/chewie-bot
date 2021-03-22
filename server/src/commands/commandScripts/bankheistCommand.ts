@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { TwitchService } from "../../services";
+import { TwitchService, EventLogService } from "../../services";
 import { IUser } from "../../models";
 import { BankheistEvent } from "../../events/bankheistEvent";
 import { EventService } from "../../services/eventService";
@@ -19,6 +19,7 @@ export class BankheistCommand extends Command {
     private twitchService: TwitchService;
     private eventService: EventService;
     private userService: UserService;
+    private eventLogService: EventLogService;
 
     constructor() {
         super();
@@ -26,6 +27,7 @@ export class BankheistCommand extends Command {
         this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
+        this.eventLogService = BotContainer.get(EventLogService);
     }
 
     public async execute(channel: string, user: IUser, wager: number): Promise<void> {
@@ -45,7 +47,7 @@ export class BankheistCommand extends Command {
             }
         }
 
-        const bankheist = new BankheistEvent(this.twitchService, this.userService, this.eventService, user, wager);
+        const bankheist = new BankheistEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, user, wager);
         bankheist.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         function isEvent(event: string | BankheistEvent): event is BankheistEvent {

@@ -8,14 +8,14 @@ export default class BotSettingsRepository {
         // Empty
     }
 
-    public async get(): Promise<IBotSettings> {
+    public async get(key: string): Promise<IBotSettings> {
         const databaseService = await this.databaseProvider();
-        const botSettings = await databaseService.getQueryBuilder(DatabaseTables.BotSettings).first();
+        const botSettings = await databaseService.getQueryBuilder(DatabaseTables.BotSettings).where({ key }).first();
         return botSettings as IBotSettings;
     }
 
     public async addOrUpdate(settings: IBotSettings): Promise<void> {
-        const existingSettings = await this.get();
+        const existingSettings = await this.get(settings.key);
         if (!existingSettings) {
             const databaseService = await this.databaseProvider();
             await databaseService.getQueryBuilder(DatabaseTables.BotSettings).insert(settings);
@@ -28,19 +28,19 @@ export default class BotSettingsRepository {
     public async delete(settings: IBotSettings | string): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         if (typeof settings === "string") {
-            const toDelete = await this.get();
+            const toDelete = await this.get(settings);
             if (toDelete) {
                 await databaseService
                     .getQueryBuilder(DatabaseTables.BotSettings)
                     .delete()
-                    .where({ username: toDelete.username });
+                    .where({ key: toDelete.key });
                 return true;
             }
-        } else if (settings.username) {
+        } else if (settings.key) {
             await databaseService
                 .getQueryBuilder(DatabaseTables.BotSettings)
                 .delete()
-                .where({ username: settings.username });
+                .where({ key: settings.key });
             return true;
         }
 
