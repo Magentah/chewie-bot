@@ -30,20 +30,20 @@ export default class DonationService {
 
     private async addSongsToQueue(donation: IDonationMessage) {
         const urlRegex: RegExp = /(https?:\/\/[^\s]+)/g;
-        const amountPerSong = parseFloat(await this.settings.getValue(BotSettings.DonationPointsPerDollar, "15"));
-        let amountLeft = donation.amount;
+        const amountRequired = parseFloat(await this.settings.getValue(BotSettings.DonationPointsPerDollar, "15"));
 
-        const matches = urlRegex.exec(donation.message);
-        if (matches) {
-            for (const match of matches) {
-                // Consider the possibility of multiple requests for a single donation
-                if (amountLeft >= amountPerSong) {
+        if (donation.amount >= amountRequired) {
+            const matches = urlRegex.exec(donation.message);
+            if (matches) {
+                for (const match of matches) {
                     try {
                         await this.songService.addSong(match, RequestSource.Donation, donation.from);
-                        amountLeft -= amountPerSong;
+                        
+                        // Only accept one song per donation.
+                        return;
                     } catch {
                         // Ignore any invalid songs
-                        // TODO: Accept URLs from unknown services.
+                        // Maybe consider URLs from unknown services in the future.
                     }
                 }
             }
