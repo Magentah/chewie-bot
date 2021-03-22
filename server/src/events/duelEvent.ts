@@ -1,4 +1,4 @@
-import { EventService, UserService, TwitchService } from "../services";
+import { EventService, UserService, TwitchService, EventLogService } from "../services";
 import { IUser } from "../models";
 import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
@@ -28,6 +28,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         @inject(TwitchService) twitchService: TwitchService,
         @inject(UserService) userService: UserService,
         @inject(EventService) private eventService: EventService,
+        @inject(EventLogService) private eventLogService: EventLogService,
         initiatingUser: IUser,
         targetUser: IUser | undefined,
         wager: number
@@ -35,9 +36,11 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         super(twitchService, userService, DuelParticipationPeriod, DuelCooldownPeriod);
 
         this.participants.push(new DuelEventParticipant(initiatingUser, wager, true));
+        this.participantUsernames.push(initiatingUser.username);
 
         if (targetUser) {
             this.participants.push(new DuelEventParticipant(targetUser, wager, false));
+            this.participantUsernames.push(targetUser.username);
             this.state = EventState.BoardingCompleted;
         }
 
@@ -49,14 +52,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         Logger.info(LogType.Command, `Duel initialised with ${this.participants.length} participants`);
 
         if (this.participants.length > 1) {
-            this.sendMessage(
-                Lang.get(
-                    "duel.start",
-                    this.participants[0].user.username,
-                    this.participants[1].user.username,
-                    this.wager
-                )
-            );
+            this.sendMessage(Lang.get("duel.start", this.participants[0].user.username, this.participants[1].user.username, this.wager));
         } else {
             // Public announcement so that anyone can join
             this.sendMessage(Lang.get("duel.startopen", this.participants[0].user.username, this.wager));
@@ -72,17 +68,12 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             this.eventService.stopEvent(this);
         } else if (this.state === EventState.BoardingCompleted && !this.participants[1].accepted) {
             // Participant may have been entered by the challenger, but he might have not accepted.
-            this.sendMessage(
-                Lang.get("duel.notaccepted", this.participants[0].user.username, this.participants[1].user.username)
-            );
+            this.sendMessage(Lang.get("duel.notaccepted", this.participants[0].user.username, this.participants[1].user.username));
             this.eventService.stopEvent(this);
         }
     }
 
-    public checkForOngoingEvent(
-        runningEvent: ParticipationEvent<DuelEventParticipant>,
-        user: IUser
-    ): [boolean, string] {
+    public checkForOngoingEvent(runningEvent: ParticipationEvent<DuelEventParticipant>, user: IUser): [boolean, string] {
         if (runningEvent instanceof DuelEvent) {
             if (runningEvent.state === EventState.Ended) {
                 return [false, Lang.get("duel.cooldown", user.username)];
@@ -140,6 +131,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             this.state = EventState.BoardingCompleted;
             const participant = this.getParticipant(user) as DuelEventParticipant;
             if (!participant) {
+                this.participantUsernames.push(user.username);
                 this.participants.push(new DuelEventParticipant(user, this.wager, true));
             } else {
                 participant.accepted = true;
@@ -187,10 +179,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
     }
 
     private startDuel() {
-        Logger.info(
-            LogType.Command,
-            `Starting duel with weapons ${this.participants[0].weapon} and ${this.participants[1].weapon}`
-        );
+        Logger.info(LogType.Command, `Starting duel with weapons ${this.participants[0].weapon} and ${this.participants[1].weapon}`);
 
         this.eventService.stopEventStartCooldown(this);
 
@@ -198,33 +187,15 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         if (this.participants[0].weapon === this.participants[1].weapon) {
             switch (this.participants[0].weapon) {
                 case DuelWeapon.Rock:
-                    this.sendMessage(
-                        Lang.get(
-                            "duel.drawrock",
-                            this.participants[0].user.username,
-                            this.participants[1].user.username
-                        )
-                    );
+                    this.sendMessage(Lang.get("duel.drawrock", this.participants[0].user.username, this.participants[1].user.username));
                     break;
 
                 case DuelWeapon.Paper:
-                    this.sendMessage(
-                        Lang.get(
-                            "duel.drawpaper",
-                            this.participants[0].user.username,
-                            this.participants[1].user.username
-                        )
-                    );
+                    this.sendMessage(Lang.get("duel.drawpaper", this.participants[0].user.username, this.participants[1].user.username));
                     break;
 
                 case DuelWeapon.Scissors:
-                    this.sendMessage(
-                        Lang.get(
-                            "duel.drawscissors",
-                            this.participants[0].user.username,
-                            this.participants[1].user.username
-                        )
-                    );
+                    this.sendMessage(Lang.get("duel.drawscissors", this.participants[0].user.username, this.participants[1].user.username));
                     break;
             }
 
@@ -232,10 +203,19 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             this.sendMessage(Lang.get("duel.chewslost", chewsLost));
 
             // 10 % of chews go into a (currently non existing) pool, the remaining chews are returned.
-            Logger.info(
-                LogType.Command,
-                `Duel ended in a draw, returning ${this.wager - chewsLost} to duel participants`
-            );
+            Logger.info(LogType.Command, `Duel ended in a draw, returning ${this.wager - chewsLost} to duel participants`);
+            this.eventLogService.addDuel(this.participantUsernames.join(","), {
+                message: "Duel concluded in a draw.",
+                participants: this.participants.map((participant) => {
+                    return {
+                        username: participant.user.username,
+                        wager: participant.points,
+                    };
+                }),
+                result: "draw",
+                pointsWon: 0,
+                pointsLost: chewsLost,
+            });
             this.userService.changeUsersPoints(
                 this.participants.map((x) => x.user),
                 this.wager - chewsLost
@@ -246,10 +226,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             let loser;
             if (
                 (this.participants[0].weapon === DuelWeapon.Paper && this.participants[1].weapon === DuelWeapon.Rock) ||
-                (this.participants[0].weapon === DuelWeapon.Rock &&
-                    this.participants[1].weapon === DuelWeapon.Scissors) ||
-                (this.participants[0].weapon === DuelWeapon.Scissors &&
-                    this.participants[1].weapon === DuelWeapon.Paper)
+                (this.participants[0].weapon === DuelWeapon.Rock && this.participants[1].weapon === DuelWeapon.Scissors) ||
+                (this.participants[0].weapon === DuelWeapon.Scissors && this.participants[1].weapon === DuelWeapon.Paper)
             ) {
                 winner = this.participants[0];
                 loser = this.participants[1];
@@ -260,6 +238,18 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
 
             // Winner gets his chews back plus the loser's chews.
             Logger.info(LogType.Command, `Duel won by ${winner.user.username}, awarding ${this.wager} chews to winner`);
+            this.eventLogService.addDuel(this.participantUsernames.join(","), {
+                message: "Duel concluded in a win.",
+                participants: this.participants.map((participant) => {
+                    return {
+                        username: participant.user.username,
+                        wager: participant.points,
+                    };
+                }),
+                result: "win",
+                winner: winner.user.username,
+                pointsWon: this.wager,
+            });
             this.userService.changeUserPoints(winner.user, this.wager * 2);
 
             switch (winner.weapon) {
