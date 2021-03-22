@@ -17,4 +17,4 @@ export { default as StreamlabsService } from "./streamlabsService";
 export { default as DiscordService } from "./discordService";
 export { default as TwitchAuthService } from "./twitchAuthService";
 export { default as DonationService } from "./donationService";
-
+export { default as EventLogService } from "./eventLogService";

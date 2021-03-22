@@ -1,4 +1,4 @@
-import { EventService, UserService, TwitchService } from "../services";
+import { EventService, UserService, TwitchService, EventLogService } from "../services";
 import { IUser } from "../models";
 import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
@@ -43,6 +43,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         @inject(TwitchService) twitchService: TwitchService,
         @inject(UserService) userService: UserService,
         @inject(EventService) private eventService: EventService,
+        @inject(EventLogService) private eventLogService: EventLogService,
         initiatingUser: IUser,
         wager: number
     ) {
@@ -109,10 +110,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     private async startBankheist() {
         const level = this.getHeistLevel();
 
-        Logger.info(
-            LogType.Command,
-            `Bankheist started with ${this.participants.length} participants (level ${level.level})`
-        );
+        Logger.info(LogType.Command, `Bankheist started with ${this.participants.length} participants (level ${level.level})`);
         this.sendMessage(Lang.get("bankheist.commencing", level.bankname));
 
         // Suspense
@@ -135,8 +133,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         // Output a random win or lose message
         if (winners.length > 0) {
             const percentWin = (winners.length / this.participants.length) * 100.0;
-            const winMessages =
-                percentWin >= 100 ? this.win100Messages : percentWin >= 34 ? this.win34Messages : this.win1Messages;
+            const winMessages = percentWin >= 100 ? this.win100Messages : percentWin >= 34 ? this.win34Messages : this.win1Messages;
             const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
             this.sendMessage(winMessages[msgIndex]);
 
@@ -152,6 +149,16 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             this.sendMessage(this.loseMessages[msgIndex]);
         }
 
+        this.eventLogService.addBankheist(this.participantUsernames.join(","), {
+            message: "Bankheist finished.",
+            participants: this.participants.map((participant) => {
+                return { username: participant.user.username, wager: participant.points };
+            }),
+            winners: winners.map((participant) => {
+                return { username: participant.participant.user.username, pointsWon: participant.pointsWon };
+            }),
+            level: this.getHeistLevel(),
+        });
         this.eventService.stopEventStartCooldown(this);
     }
 

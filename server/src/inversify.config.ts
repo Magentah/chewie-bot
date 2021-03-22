@@ -1,5 +1,7 @@
 import { Container } from "inversify";
 import "reflect-metadata";
+
+// Services
 import DatabaseService from "./services/databaseService";
 import DatabaseProvider from "./services/databaseService";
 import WebsocketService from "./services/websocketService";
@@ -20,6 +22,9 @@ import TwitchUserProfileService from "./services/twitchUserProfileService";
 import UserPermissionService from "./services/userPermissionService";
 import TwitchWebService from "./services/twitchWebService";
 import DiscordService from "./services/discordService";
+import EventLogService from "./services/eventLogService";
+
+// Database Repositories
 import BotSettingsRepository from "./database/botSettings";
 import UsersRepository from "./database/usersRepository";
 import UserLevelsRepository from "./database/userLevelsRepository";
@@ -30,16 +35,21 @@ import CommandAliasesRepository from "./database/commandAliases";
 import TwitchUserProfileRepository from "./database/twitchUserProfileRepository";
 import SonglistRepository from "./database/songlistRepository";
 import DiscordRepository from "./database/discordRepository";
+import EventLogsRepository from "./database/eventLogsRepository";
+
+// Controllers
 import SongController from "./controllers/songController";
 import TwitchController from "./controllers/twitchController";
 import EventController from "./controllers/eventController";
 import SonglistController from "./controllers/songlistController";
 
+// Commands
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
 
 const botContainer = new Container();
 
+// Database Provider
 botContainer.bind<DatabaseService>(DatabaseService).toSelf().inSingletonScope();
 botContainer.bind<DatabaseProvider>("DatabaseProvider").toProvider((context) => {
     return () => {
@@ -55,6 +65,7 @@ botContainer.bind<DatabaseProvider>("DatabaseProvider").toProvider((context) => 
     };
 });
 
+// Twitch Provider
 botContainer.bind<WebsocketService>(WebsocketService).toSelf().inSingletonScope();
 botContainer.bind<TwitchService>(TwitchService).toSelf().inSingletonScope();
 botContainer.bind<TwitchServiceProvider>("TwitchServiceProvider").toProvider((context) => {
@@ -73,6 +84,7 @@ botContainer.bind<TwitchServiceProvider>("TwitchServiceProvider").toProvider((co
     };
 });
 
+// Services
 botContainer.bind<TwitchAuthService>(TwitchAuthService).toSelf().inSingletonScope();
 botContainer.bind<TwitchEventService>(TwitchEventService).toSelf().inSingletonScope();
 botContainer.bind<CacheService>(CacheService).toSelf().inSingletonScope();
@@ -88,7 +100,9 @@ botContainer.bind<UserPermissionService>(UserPermissionService).toSelf().inSingl
 botContainer.bind<TwitchWebService>(TwitchWebService).toSelf().inSingletonScope();
 botContainer.bind<DonationService>(DonationService).toSelf().inSingletonScope();
 botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
+botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
 
+// Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
 botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();
 botContainer.bind<VIPLevelsRepository>(VIPLevelsRepository).toSelf();
@@ -99,12 +113,15 @@ botContainer.bind<BotSettingsRepository>(BotSettingsRepository).toSelf();
 botContainer.bind<SonglistRepository>(SonglistRepository).toSelf();
 botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSelf();
 botContainer.bind<DiscordRepository>(DiscordRepository).toSelf();
+botContainer.bind<EventLogsRepository>(EventLogsRepository).toSelf();
 
+// Controllers
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();
 botContainer.bind<EventController>(EventController).toSelf();
 botContainer.bind<SonglistController>(SonglistController).toSelf();
 
+// Commands
 const commandList: Map<string, Command> = new Map<string, Command>();
 Object.keys(Commands).forEach((val, index) => {
     const commandName = val.substr(0, val.toLowerCase().indexOf("command"));
