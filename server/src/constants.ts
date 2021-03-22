@@ -33,4 +33,5 @@ export default class Constants {
 
     public static readonly DropboxAuthUrl = "https://www.dropbox.com/oauth2/authorize";
     public static readonly DropboxTokenUrl = "https://api.dropboxapi.com/oauth2/token";
+    public static readonly DropboxUploadEndpoint = "https://content.dropboxapi.com/2/files/upload";
 }
