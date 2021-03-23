@@ -1,4 +1,3 @@
-//import * as Commands from "../commands/commandScripts";
 import { injectable, inject } from "inversify";
 import { Logger, LogType } from "../logger";
 import { TwitchHelper } from "../helpers";

@@ -74,10 +74,10 @@ export class UserService {
      * @param user user to update
      * @param goldMonths Months to add (can also be 0.5 for T3 subs)
      */
-    public async addVipGoldMonths(user: IUser, goldMonths: number) {        
+    public async addVipGoldMonths(user: IUser, goldMonths: number) {
         let vipStartDate = new Date(new Date().toDateString());
-                
-        // If VIP status still active, renew starting at the VIP end date 
+
+        // If VIP status still active, renew starting at the VIP end date
         if (user.vipExpiry && user.vipExpiry >= vipStartDate) {
             // Start next day after expiry because expiration date is inclusive.
             vipStartDate = user.vipExpiry;

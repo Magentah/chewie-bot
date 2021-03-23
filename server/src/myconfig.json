@@ -54,6 +54,12 @@
             "streamlabs": true
         },
         "enabledEventLogs": {
+            "twitch": {
+                "subs": true
+            },
+            "streamlabs": {
+                "events": true
+            },
             "song": {
                 "requested": true,
                 "played": true,

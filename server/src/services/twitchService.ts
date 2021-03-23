@@ -11,6 +11,7 @@ import UserService from "../services/userService";
 import WebsocketService from "../services/websocketService";
 import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 import TwitchAuthService from "../services/twitchAuthService";
+import EventLogService from "./eventLogService";
 
 export interface IBotTwitchStatus {
     connected: boolean;
@@ -25,12 +26,15 @@ export class TwitchService {
     public hasInitialized: boolean = false;
     private channel: string;
     private commandCallback!: (channel: string, username: string, message: string) => void;
+    private giftSubCallback!: (username: string, recipient: string, giftedMonths: number, plan: string | undefined) => Promise<void>;
+    private subMysteryGiftCallback!: (username: string, giftedSubs: number, plan: string | undefined) => Promise<void>;
 
     constructor(
         @inject(UserService) private users: UserService,
         @inject(WebsocketService) private websocketService: WebsocketService,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
-        @inject(TwitchAuthService) private authService: TwitchAuthService
+        @inject(TwitchAuthService) private authService: TwitchAuthService,
+        @inject(EventLogService) private eventLogService: EventLogService
     ) {
         this.channel = `#${Config.twitch.broadcasterName}`;
         this.channelUserList = new Map<string, ITwitchChatList>();
@@ -79,6 +83,14 @@ export class TwitchService {
 
     public setCommandCallback(callback: (channel: string, username: string, message: string) => void) {
         this.commandCallback = callback;
+    }
+
+    public setAddGiftCallback(callback: (username: string, recipient: string, giftedMonths: number, plan: string | undefined) => Promise<void>) {
+        this.giftSubCallback = callback;
+    }
+
+    public setSubMysteryGiftCallback(callback: (username: string, giftedSubs: number, plan: string | undefined) => Promise<void>) {
+        this.subMysteryGiftCallback = callback;
     }
 
     public async sendMessage(channel: string, message: string): Promise<IServiceResponse> {
@@ -158,7 +170,7 @@ export class TwitchService {
         const data = await this.updateChatList(channel);
         this.users.addUsersFromChatList(data, undefined);
     }
-    
+
     private async updateChatList(channel: string) {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
 
@@ -412,11 +424,19 @@ export class TwitchService {
         methods: tmi.SubMethods,
         userstate: tmi.SubGiftUserstate
     ) {
-        // Empty
+        this.eventLogService.addTwitchGiftSub(username, { channel, streakMonths, recipient, methods, userstate });
+
+        if (this.giftSubCallback) {
+            this.giftSubCallback(username, recipient, userstate["msg-param-gift-months"], methods.plan);
+        }
     }
 
     private subMysteryGiftEventHandler(channel: string, username: string, numbOfSubs: number, methods: tmi.SubMethods, userstate: tmi.SubMysteryGiftUserstate) {
-        // Empty
+        this.eventLogService.addTwitchCommunityGiftSub(username, { channel, numbOfSubs, methods, userstate });
+
+        if (this.subMysteryGiftCallback) {
+            this.subMysteryGiftCallback(username, numbOfSubs, methods.plan);
+        }
     }
 
     private subscribersEventHandler(channel: string, enabled: boolean) {
