@@ -50,7 +50,7 @@
             "server": true,
             "serverinfo": true,
             "websocket": true,
-            "backup": true
+            "backup": true,
             "streamlabs": true
         },
         "enabledEventLogs": {

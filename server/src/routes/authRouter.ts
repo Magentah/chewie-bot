@@ -142,28 +142,30 @@ export function setupPassport(): void {
         )
     );
 
-    passport.use(
-        new DropboxStrategy(
-            {
-                clientID: Config.dropbox.clientId,
-                clientSecret: Config.dropbox.clientSecret,
-                authorizationURL: Constants.DropboxAuthUrl,
-                tokenURL: Constants.DropboxTokenUrl,
-                callbackURL: Config.dropbox.redirectUri,
-                passReqToCallback: true,
-            },
-            async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
-                const sessionUser = req.user as IUser;
-                if (sessionUser) {
-                    const user = await BotContainer.get(UserService).getUser(sessionUser.username);
-                    if (user) {
-                        user.dropboxAccessToken = accessToken;
-                        await BotContainer.get(UserService).updateUser(user);
+    if (Config.dropbox?.clientId) {
+        passport.use(
+            new DropboxStrategy(
+                {
+                    clientID: Config.dropbox.clientId,
+                    clientSecret: Config.dropbox.clientSecret,
+                    authorizationURL: Constants.DropboxAuthUrl,
+                    tokenURL: Constants.DropboxTokenUrl,
+                    callbackURL: Config.dropbox.redirectUri,
+                    passReqToCallback: true,
+                },
+                async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
+                    const sessionUser = req.user as IUser;
+                    if (sessionUser) {
+                        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+                        if (user) {
+                            user.dropboxAccessToken = accessToken;
+                            await BotContainer.get(UserService).updateUser(user);
+                        }
                     }
                 }
-            }
-        )
-    );
+            )
+        );
+    }
 }
 
 // Passport Auth Routes
