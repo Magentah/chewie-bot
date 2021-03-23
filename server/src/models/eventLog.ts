@@ -14,4 +14,5 @@ export enum EventLogType {
     Duel = "duel",
     Bankheist = "bankheist",
     Command = "command",
+    GoldAdded = "gold"
 }

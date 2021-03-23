@@ -16,7 +16,7 @@ export class DelAliasCommand extends Command {
         this.userLevels = BotContainer.get(UserLevelsRepository);
         this.commandAliases = BotContainer.get(CommandAliasesRepository);
 
-        this.minimumUserLevel = UserLevels.Broadcaster;
+        this.minimumUserLevel = UserLevels.Moderator;
     }
 
     public async execute(channel: string, user: IUser, alias: string): Promise<void> {

@@ -15,6 +15,7 @@ export class TextCommand extends Command {
         this.twitchService = BotContainer.get(TwitchService);
         this.isInternalCommand = true;
     }
+
     public execute(channel: string, user: IUser, message: string): void {
         this.twitchService.sendMessage(channel, message);
     }

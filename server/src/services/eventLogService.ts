@@ -58,6 +58,14 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
+    public async addVipGoldAdded(username: string, data: object | Array<object>): Promise<void> {
+        if (!Config.log.enabledEventLogs.song.gold) {
+            return;
+        }
+        const log = this.createLog(EventLogType.GoldAdded, username, data);
+        await this.eventLogs.add(log);
+    }
+
     private createLog(type: EventLogType, username: string, data: object | Array<object>): IEventLog {
         const log: IEventLog = {
             type,

@@ -2,10 +2,13 @@ import { injectable, inject } from "inversify";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList } from "../models";
+import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
+
 @injectable()
 export class UserService {
-    constructor(@inject(UsersRepository) private users: UsersRepository) {
+    constructor(@inject(UsersRepository) private users: UsersRepository,
+                @inject(EventLogService) private eventLog: EventLogService) {
         // Empty
     }
 
@@ -64,6 +67,30 @@ export class UserService {
             user.points += points;
             await this.users.incrementPoints(user, points);
         }
+    }
+
+    /**
+     * Adds a specified number of VIP gold months to a user.
+     * @param user user to update
+     * @param goldMonths Months to add (can also be 0.5 for T3 subs)
+     */
+    public async addVipGoldMonths(user: IUser, goldMonths: number) {        
+        let vipStartDate = new Date(new Date().toDateString());
+                
+        // If VIP status still active, renew starting at the VIP end date 
+        if (user.vipExpiry && user.vipExpiry >= vipStartDate) {
+            // Start next day after expiry because expiration date is inclusive.
+            vipStartDate = user.vipExpiry;
+            vipStartDate.setDate(user.vipExpiry.getDate() + 1);
+        }
+
+        // Add 4 weeks.
+        vipStartDate.setDate(vipStartDate.getDate() + goldMonths * 4 * 7 - 1);
+        user.vipExpiry = vipStartDate;
+
+        await this.users.updateVipExpiry(user);
+
+        this.eventLog.addVipGoldAdded(user.username, { monthsAdded: goldMonths, newExpiry: user.vipExpiry });
     }
 
     /**
