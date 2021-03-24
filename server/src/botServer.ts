@@ -12,13 +12,14 @@ import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SonglistRouter, SongRouter, TwitchRouter } from "./routes";
 import { UserCookie } from "./middleware";
-import { CommandService, WebsocketService } from "./services";
+import { CommandService, StreamlabsService, TwitchService, WebsocketService } from "./services";
 import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
 import TwitchHelper from "./helpers/twitchHelper";
 import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
+import * as Config from "./config.json";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -37,6 +38,15 @@ class BotServer extends Server {
         // Force call constructor before they're used by anything else. Probably a better way to do this...
         this.socket = BotContainer.get<WebsocketService>(WebsocketService);
         this.commands = BotContainer.get<CommandService>(CommandService);
+
+        // Go live on startup (if configured).
+        const twitchService = BotContainer.get<TwitchService>(TwitchService);
+        twitchService.initialize().then(() => { twitchService.connect() });
+
+        if (Config.twitch.broadcasterName) {
+            const streamlabsService = BotContainer.get<StreamlabsService>(StreamlabsService);
+            streamlabsService.connectOnStartup(Config.twitch.broadcasterName);
+        }
     }
 
     public start(port: number): void {

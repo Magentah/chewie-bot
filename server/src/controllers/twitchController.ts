@@ -38,7 +38,7 @@ class TwitchController {
             // startup if there's a token for the configured broadcaster? Not sure.
             if (req.user) {
                 const user: ITwitchProfile = req.user as ITwitchProfile;
-                await this.streamlabsService.connectOnStartup(user);
+                await this.streamlabsService.connectOnStartup(user.username);
             }
 
             res.sendStatus(StatusCodes.OK);
