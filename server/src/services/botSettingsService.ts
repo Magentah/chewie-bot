@@ -7,7 +7,9 @@ export enum BotSettings {
     BotUserAuth = "bot-user-auth",
     DonationPointsPerDollar = "points-multiplier-donations",
     SongRequestDonationAmount = "song-request-donation-amount",
-    GoldStatusDonationAmount = "gold-status-donation-amount"
+    GoldStatusDonationAmount = "gold-status-donation-amount",
+    SubPointsPerMonth = "points-multiplier-sub",
+    PointsPerBit = "points-multiplier-bits",
 }
 
 @injectable()

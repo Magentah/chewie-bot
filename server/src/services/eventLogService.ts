@@ -2,6 +2,7 @@ import { inject, injectable } from "inversify";
 import { EventLogsRepository } from "../database/eventLogsRepository";
 import { IEventLog, EventLogType } from "../models";
 import * as Config from "../config.json";
+import { IDonationMessage } from "./streamlabsService";
 @injectable()
 export class EventLogService {
     constructor(@inject(EventLogsRepository) private eventLogs: EventLogsRepository) {
@@ -63,6 +64,33 @@ export class EventLogService {
             return;
         }
         const log = this.createLog(EventLogType.GoldAdded, username, data);
+        await this.eventLogs.add(log);
+    }
+
+    public async addTwitchGiftSub(username: string, data: object | Array<object>): Promise<void> {
+        if (!Config.log.enabledEventLogs.twitch.subs) {
+            return;
+        }
+
+        const log = this.createLog(EventLogType.GiftSub, username, data);
+        await this.eventLogs.add(log);
+    }
+
+    public async addTwitchCommunityGiftSub(username: string, data: object | Array<object>): Promise<void> {
+        if (!Config.log.enabledEventLogs.twitch.subs) {
+            return;
+        }
+
+        const log = this.createLog(EventLogType.CommunityGiftSub, username, data);
+        await this.eventLogs.add(log);
+    }
+
+    public async addStreamlabsEventReceived(username: string, type: EventLogType, data: object | Array<object>) {
+        if (!Config.log.enabledEventLogs.streamlabs.events) {
+            return;
+        }
+
+        const log = this.createLog(type, username, data);
         await this.eventLogs.add(log);
     }
 

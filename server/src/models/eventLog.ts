@@ -14,5 +14,12 @@ export enum EventLogType {
     Duel = "duel",
     Bankheist = "bankheist",
     Command = "command",
-    GoldAdded = "gold"
+    GoldAdded = "gold",
+    GiftSub = "giftsub",
+    CommunityGiftSub = "communitygiftsub",
+    Donation = "donation",
+    Sub  = "sub",
+    Resub  = "resub",
+    Bits   = "bits",
+    Streamlabs  = "streamlabs",
 }
