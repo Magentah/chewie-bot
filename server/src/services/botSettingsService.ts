@@ -10,15 +10,50 @@ export enum BotSettings {
     GoldStatusDonationAmount = "gold-status-donation-amount",
     SubPointsPerMonth = "points-multiplier-sub",
     PointsPerBit = "points-multiplier-bits",
+    PruneLogsAfterDays = "prune-logs-after-days",
 }
 
 @injectable()
 export default class BotSettingsService {
+    private readonly DefaultPruneDonationsAfterDays: number = 7 * 5;
+    private readonly DefaultGoldAmount: number = 50;
+    private readonly DefaultDonationPointsPerDollar: number = 100;
+    private readonly DefaultPointsPerBit: number = 1;
+    private readonly DefaultSongRequestDonationAmount: number = 15;
+    private readonly DefaultSubPointsPerMonth: number = 1000;
+
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
         // Empty
     }
 
-    public async getValue(key: BotSettings, defaultValue: string): Promise<string> {
+    public async getValue(key: BotSettings): Promise<string> {
+        let defaultValue = "";
+        switch (key) {
+            case BotSettings.PruneLogsAfterDays:
+                defaultValue = this.DefaultPruneDonationsAfterDays.toString();
+                break;
+
+            case BotSettings.GoldStatusDonationAmount:
+                defaultValue = this.DefaultGoldAmount.toString();
+                break;
+
+            case BotSettings.DonationPointsPerDollar:
+                defaultValue = this.DefaultDonationPointsPerDollar.toString();
+                break;
+
+            case BotSettings.PointsPerBit:
+                defaultValue = this.DefaultPointsPerBit.toString();
+                break;
+
+            case BotSettings.SongRequestDonationAmount:
+                defaultValue = this.DefaultSongRequestDonationAmount.toString();
+                break;
+
+            case BotSettings.SubPointsPerMonth:
+                defaultValue = this.DefaultSubPointsPerMonth.toString();
+                break;
+        }
+
         return (await this.botSettings.get(key))?.value ?? defaultValue;
     }
 

@@ -7,6 +7,7 @@ import { Logger, LogType } from "../logger";
 import RewardService from "../services/rewardService";
 import EventLogService from "../services/eventLogService";
 import { EventLogType } from "../models";
+import DonationsRepository from "../database/donations";
 
 export enum StreamlabsEvent {
     Donation = "donation",
@@ -87,7 +88,8 @@ export class StreamlabsService {
     private websocket!: SocketIOClient.Socket;
     constructor(@inject(UserService) private users: UserService,
                 @inject(RewardService) private rewards: RewardService,
-                @inject(EventLogService) private eventLogService: EventLogService) {
+                @inject(EventLogService) private eventLogService: EventLogService,
+                @inject(DonationsRepository) private donations: DonationsRepository,) {
         // Empty
     }
 
@@ -220,6 +222,7 @@ export class StreamlabsService {
 
         for (const donation of messages) {
             this.eventLogService.addStreamlabsEventReceived(donation.from, EventLogType.Donation, donation);
+            this.donations.add({username: donation.name , date: new Date() , message: donation.message, amount: donation.amount, type: "Streamlabs" });
 
             this.rewards.processDonation(donation);
         }
