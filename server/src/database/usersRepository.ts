@@ -25,6 +25,7 @@ export class UsersRepository {
             .first([
                 "vipLevels.name as vipLevel",
                 "userLevels.name as userLevel",
+                "userLevels.rank as rank",
                 "twitchUserProfile.id as profileId",
                 "twitchUserProfile.displayName as profileDisplayName",
                 "twitchUserProfile.profileImageUrl as profileImageUrl",
@@ -153,7 +154,7 @@ export class UsersRepository {
             streamlabsToken: userResult.streamlabsToken,
             streamlabsSocketToken: userResult.streamlabsSocketToken,
             twitchProfileKey: userResult.twitchProfileKey,
-            userLevel: userResult.userLevel,
+            userLevel: { id: userResult.userLevelKey, name: userResult.userLevel, rank: userResult.rank },
             vipLevel: userResult.vipLevel,
             vipExpiry: userResult.vipExpiry ? new Date(userResult.vipExpiry) : undefined,
             vipLastRequest: userResult.vipLastRequest ? new Date(userResult.vipLastRequest) : undefined,

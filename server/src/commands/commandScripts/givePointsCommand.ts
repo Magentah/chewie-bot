@@ -5,16 +5,14 @@ import { BotContainer } from "../../inversify.config";
 import { Lang } from "../../lang";
 
 export default class GivePointsCommand extends Command {
-    private twitchService: TwitchService;
     private userService: UserService;
 
     constructor() {
         super();
-        this.twitchService = BotContainer.get(TwitchService);
         this.userService = BotContainer.get(UserService);
     }
 
-    public async execute(channel: string, user: IUser, targetUsername: string, points: number) {
+    public async executeInternal(channel: string, user: IUser, targetUsername: string, points: number) {
         if (!targetUsername || !points || !Number.isInteger(points)) {
             this.twitchService.sendMessage(channel, Lang.get("points.give.wrongarguments", user.username));
             return;

@@ -5,25 +5,23 @@ import { BotContainer } from "../../inversify.config";
 
 export class GoldSongCommand extends Command {
     private songService: SongService;
-    private twitchService: TwitchService;
     private userService: UserService;
 
     constructor() {
         super();
 
         this.songService = BotContainer.get(SongService);
-        this.twitchService = BotContainer.get(TwitchService);
         this.userService = BotContainer.get(UserService);
     }
 
     private getMonday(d: Date) : Date {
         d = new Date(d);
-        let day = d.getDay(),
-        diff = d.getDate() - day + (day == 0 ? -6:1); // adjust when day is sunday
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6:1); // adjust when day is sunday
         return new Date(d.setDate(diff));
     }
-      
-    public async execute(channel: string, user: IUser, url: string) {
+
+    public async executeInternal(channel: string, user: IUser, url: string) {
         // Check if user has gold status
         if (!user.vipExpiry) {
             this.twitchService.sendMessage(

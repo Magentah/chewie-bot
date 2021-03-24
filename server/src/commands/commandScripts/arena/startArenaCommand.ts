@@ -13,7 +13,6 @@ import { Lang } from "../../../lang";
  */
 export default class StartArenaCommand extends Command {
     private userLevels: UserLevelsRepository;
-    private twitchService: TwitchService;
     private eventService: EventService;
     private userService: UserService;
 
@@ -21,14 +20,13 @@ export default class StartArenaCommand extends Command {
         super();
 
         this.userLevels = BotContainer.get(UserLevelsRepository);
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
 
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async execute(channel: string, user: IUser, wager: number): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, wager: number): Promise<void> {
         if (!wager || wager <= 0) {
             this.twitchService.sendMessage(channel, Lang.get("arena.nofeespecified", user.username));
             return;

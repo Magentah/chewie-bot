@@ -9,16 +9,14 @@ import { BotContainer } from "../../../inversify.config";
 import { Lang } from "../../../lang";
 
 export default class AcceptCommand extends Command {
-    private twitchService: TwitchService;
     private eventService: EventService;
 
     constructor() {
         super();
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
     }
 
-    public async execute(channel: string, user: IUser, target: string, wager: string): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, target: string, wager: string): Promise<void> {
         // Find duel that is aimed at the current user.
         Logger.info(LogType.Command, `Looking for a duel for ${user.username} to accept`);
 

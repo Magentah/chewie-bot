@@ -4,7 +4,6 @@ import { ICommandAlias, IUser } from "../../models";
 import { BotContainer } from "../../inversify.config";
 
 export default class RedeemCommand extends Command {
-    private twitchService: TwitchService;
     private userService: UserService;
     private cost: number = 500;
 
@@ -14,11 +13,10 @@ export default class RedeemCommand extends Command {
 
     constructor() {
         super();
-        this.twitchService = BotContainer.get(TwitchService);
         this.userService = BotContainer.get(UserService);
     }
 
-    public async execute(channel: string, user: IUser, variation: string, emote: string, url: string): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, variation: string, emote: string, url: string): Promise<void> {
         if (user.points >= this.cost) {
             await this.userService.changeUserPoints(user, -this.cost);
             await this.twitchService.triggerAlert("redeem", variation, url);

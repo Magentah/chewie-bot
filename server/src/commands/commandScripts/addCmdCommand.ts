@@ -6,29 +6,27 @@ import { BotContainer } from "../../inversify.config";
 
 export default class AddCmdCommand extends Command {
     private textCommands: TextCommandsRepository;
-    private twitchService: TwitchService;
 
     constructor() {
         super();
 
         this.textCommands = BotContainer.get(TextCommandsRepository);
-        this.twitchService = BotContainer.get(TwitchService);
 
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async execute(channel: string, user: IUser, commandName: string, message: string): Promise<void> {
-        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel) {
-            let command = await this.textCommands.get(commandName);
-            if (!command) {
-                command = {
-                    commandName,
-                    message,
-                };
+    public async executeInternal(channel: string, user: IUser, commandName: string, message: string): Promise<void> {
+        let command = await this.textCommands.get(commandName);
+        if (!command) {
+            command = {
+                commandName,
+                message,
+            };
 
-                await this.textCommands.add(command);
-                await this.twitchService.sendMessage(channel, `!${commandName} has been added!`);
-            }
+            await this.textCommands.add(command);
+            await this.twitchService.sendMessage(channel, `!${commandName} has been added!`);
+        } else {
+            this.twitchService.sendMessage(channel, `The command !${commandName} already exists.` );
         }
     }
 }
