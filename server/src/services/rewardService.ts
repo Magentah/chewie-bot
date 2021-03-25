@@ -9,12 +9,6 @@ import * as Config from "../config.json";
 
 @injectable()
 export default class RewardService {
-    private readonly DefaultGoldAmount: number = 50;
-    private readonly DefaultDonationPointsPerDollar: number = 100;
-    private readonly DefaultPointsPerBit: number = 1;
-    private readonly DefaultSongRequestDonationAmount: number = 15;
-    private readonly DefaultSubPointsPerMonth: number = 1000;
-
     constructor(@inject(SongService) private songService: SongService,
                 @inject(UserService) private userService: UserService,
                 @inject(TwitchService) private twitchService: TwitchService,
@@ -35,7 +29,7 @@ export default class RewardService {
         const user = await this.getUserForEvent(bits.name);
 
         if (user) {
-            const pointsPerBits = parseInt(await this.settings.getValue(BotSettings.PointsPerBit, this.DefaultPointsPerBit.toString()), 10);
+            const pointsPerBits = parseInt(await this.settings.getValue(BotSettings.PointsPerBit), 10);
             await this.userService.changeUserPoints(user, pointsPerBits * bits.amount);
         }
     }
@@ -85,7 +79,7 @@ export default class RewardService {
     }
 
     private async addGoldStatus(user: IUser | undefined, donation: IDonationMessage) {
-        const amountPerMonth = parseFloat(await this.settings.getValue(BotSettings.GoldStatusDonationAmount, this.DefaultGoldAmount.toString()));
+        const amountPerMonth = parseFloat(await this.settings.getValue(BotSettings.GoldStatusDonationAmount));
         const goldMonths = Math.floor(donation.amount / amountPerMonth);
         if (goldMonths > 0) {
             if (user) {
@@ -96,21 +90,21 @@ export default class RewardService {
 
     private async addUserPoints(user: IUser | undefined, donation: IDonationMessage) {
         if (user) {
-            const pointsPerDollar = parseInt(await this.settings.getValue(BotSettings.DonationPointsPerDollar, this.DefaultDonationPointsPerDollar.toString()), 10);
+            const pointsPerDollar = parseInt(await this.settings.getValue(BotSettings.DonationPointsPerDollar), 10);
             await this.userService.changeUserPoints(user, pointsPerDollar * donation.amount);
         }
     }
 
     private async addSubUserPoints(user: IUser | undefined, months: number) {
         if (user) {
-            const pointsPerMonth = parseInt(await this.settings.getValue(BotSettings.SubPointsPerMonth, this.DefaultSubPointsPerMonth.toString()), 10);
+            const pointsPerMonth = parseInt(await this.settings.getValue(BotSettings.SubPointsPerMonth), 10);
             await this.userService.changeUserPoints(user, pointsPerMonth * months);
         }
     }
 
     private async addSongsToQueue(donation: IDonationMessage) {
         const urlRegex: RegExp = /(https?:\/\/[^\s]+)/g;
-        const amountRequired = parseFloat(await this.settings.getValue(BotSettings.SongRequestDonationAmount, this.DefaultSongRequestDonationAmount.toString()));
+        const amountRequired = parseFloat(await this.settings.getValue(BotSettings.SongRequestDonationAmount));
 
         if (donation.amount >= amountRequired) {
             const matches = urlRegex.exec(donation.message);

@@ -2,10 +2,12 @@ import { inject, injectable } from "inversify";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 import { IEventLog, EventLogType } from "../models";
 import * as moment from "moment";
+import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 
 @injectable()
 export class EventLogsRepository {
-    constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
+    constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider,
+                @inject(BotSettingsService) private settingsSerivce: BotSettingsService) {
         // Empty
     }
 
@@ -31,6 +33,12 @@ export class EventLogsRepository {
         const databaseService = await this.databaseProvider();
         log.time = moment().utc().toDate();
         await databaseService.getQueryBuilder(DatabaseTables.EventLogs).insert(log);
+
+        // Prune data older than a configured amount of das
+        const pruneDays = parseInt(await this.settingsSerivce.getValue(BotSettings.PruneLogsAfterDays), 10);
+        const pruneDate = new Date(log.time);
+        pruneDate.setDate(-pruneDays);
+        await databaseService.getQueryBuilder(DatabaseTables.EventLogs).where("time", "<", pruneDate).delete();
     }
 }
 
