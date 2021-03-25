@@ -12,20 +12,18 @@ import { Lang } from "../../../lang";
  * For further details see duelEvent.ts
  */
 export default class DuelCommand extends Command {
-    private twitchService: TwitchService;
     private userService: UserService;
     private eventService: EventService;
     private eventLogService: EventLogService;
 
     constructor() {
         super();
-        this.twitchService = BotContainer.get(TwitchService);
         this.userService = BotContainer.get(UserService);
         this.eventService = BotContainer.get(EventService);
         this.eventLogService = BotContainer.get(EventLogService);
     }
 
-    public async execute(channel: string, user: IUser, usernameOrWager: string, wager: number): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, usernameOrWager: string, wager: number): Promise<void> {
         let target;
         let wagerValue;
 

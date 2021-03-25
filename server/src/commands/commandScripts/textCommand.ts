@@ -7,12 +7,9 @@ import { BotContainer } from "../../inversify.config";
 // command service directly call the twitchservice.sendmessage with the text command.
 // This is only supposed to be used by the bot for internal use.
 export class TextCommand extends Command {
-    private twitchService: TwitchService;
-
     constructor() {
         super();
 
-        this.twitchService = BotContainer.get(TwitchService);
         this.isInternalCommand = true;
     }
 

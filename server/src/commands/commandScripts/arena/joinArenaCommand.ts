@@ -1,5 +1,4 @@
 import { Command } from "../../command";
-import { TwitchService } from "../../../services";
 import { IUser } from "../../../models";
 import { EventService } from "../../../services/eventService";
 import { EventState } from "../../../models/participationEvent";
@@ -14,15 +13,13 @@ import { Lang } from "../../../lang";
  * For further details see arenaEvent.ts
  */
 export default class JoinArenaCommand extends Command {
-    private twitchService: TwitchService;
     private eventService: EventService;
     constructor() {
         super();
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
     }
 
-    public async execute(channel: string, user: IUser): Promise<void> {
+    public async executeInternal(channel: string, user: IUser): Promise<void> {
         // Arena in progress? Join existing event.
         for (const arenaInProgress of this.eventService.getEvents<ArenaEvent>()) {
             if (arenaInProgress.state === EventState.Open) {

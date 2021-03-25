@@ -10,11 +10,11 @@ export class TextCommandsRepository {
 
     public async get(commandName: string): Promise<ITextCommand> {
         const databaseService = await this.databaseProvider();
-        const userLevel = await databaseService
+        const command = await databaseService
             .getQueryBuilder(DatabaseTables.TextCommands)
             .first()
             .where({ commandName });
-        return userLevel as ITextCommand;
+        return command as ITextCommand;
     }
 
     public async add(command: ITextCommand): Promise<void> {

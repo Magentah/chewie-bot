@@ -14,7 +14,6 @@ import { Lang } from "../../../lang";
  * For further details see auctionEvent.ts
  */
 export default class AuctionCommand extends Command {
-    private twitchService: TwitchService;
     private eventService: EventService;
     private userService: UserService;
     private userLevels: UserLevelsRepository;
@@ -22,7 +21,6 @@ export default class AuctionCommand extends Command {
     constructor() {
         super();
 
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
         this.userLevels = BotContainer.get(UserLevelsRepository);
@@ -30,7 +28,7 @@ export default class AuctionCommand extends Command {
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async execute(
+    public async executeInternal(
         channel: string,
         user: IUser,
         minAmountOrAction: string,

@@ -16,7 +16,6 @@ import { Lang } from "../../lang";
  * For further details see bankheistEvent.ts
  */
 export class BankheistCommand extends Command {
-    private twitchService: TwitchService;
     private eventService: EventService;
     private userService: UserService;
     private eventLogService: EventLogService;
@@ -24,13 +23,12 @@ export class BankheistCommand extends Command {
     constructor() {
         super();
 
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
         this.eventLogService = BotContainer.get(EventLogService);
     }
 
-    public async execute(channel: string, user: IUser, wager: number): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, wager: number): Promise<void> {
         const result = EventHelper.validatePoints(user, wager);
         if (!result[0]) {
             this.twitchService.sendMessage(channel, result[1]);
