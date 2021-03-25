@@ -93,12 +93,12 @@ export class StreamlabsService {
         // Empty
     }
 
-    public async connectOnStartup(sessionUser?: ITwitchProfile): Promise<void> {
-        if (!sessionUser) {
+   public async connectOnStartup(username: string): Promise<void> {
+        if (!username) {
             return;
         }
 
-        const user = await this.users.getUser(sessionUser.username);
+        const user = await this.users.getUser(username);
         if (!user || !user.streamlabsSocketToken) {
             return;
         }
