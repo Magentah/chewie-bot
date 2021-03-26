@@ -7,6 +7,7 @@ export enum GameMessageType {
     AllWin = "all-win",
     SomeWin = "34-percent-win",
     SingleWin = "single-win",
+    SingleLose = "single-lose",
     BankNameLevel1 = "bank-level-1",
     BankNameLevel2 = "bank-level-2",
     BankNameLevel3 = "bank-level-3",

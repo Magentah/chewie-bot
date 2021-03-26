@@ -136,7 +136,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             const winMessages = (await this.messages.getByType(GameEventType.Bankheist, messageType)).map(item => item.text);
             if (winMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
-                this.sendMessage(winMessages[msgIndex]);
+                this.sendMessage(winMessages[msgIndex].replace("{user}", winners[0].participant.user.username));
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${messageType}`);
             }
@@ -149,10 +149,11 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
             this.sendMessage(winMessage.substring(0, winMessage.length - 2));
         } else {
-            const loseMessages = (await this.messages.getByType(GameEventType.Bankheist, GameMessageType.NoWin)).map(item => item.text);
+            const loseMessages = (await this.messages.getByType(GameEventType.Bankheist, this.participants.length === 1 ? GameMessageType.SingleLose : GameMessageType.NoWin))
+                .map(item => item.text);
             if (loseMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(loseMessages.length));
-                this.sendMessage(loseMessages[msgIndex]);
+                this.sendMessage(loseMessages[msgIndex].replace("{user}", this.participants[0].user.username));
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${GameMessageType.NoWin}`);
             }

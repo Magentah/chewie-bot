@@ -27,6 +27,7 @@ const MessageList: React.FC<any> = (props: any) => {
                             "all-win": "Everyone wins",
                             "34-percent-win": "Some people win",
                             "single-win": "Single person wins",
+                            "single-lose": "Single person loses",
                             "bank-level-1": "Bank Level 1",
                             "bank-level-2": "Bank Level 2",
                             "bank-level-3": "Bank Level 3",
