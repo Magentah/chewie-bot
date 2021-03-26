@@ -38,12 +38,14 @@ import TwitchUserProfileRepository from "./database/twitchUserProfileRepository"
 import SonglistRepository from "./database/songlistRepository";
 import DiscordRepository from "./database/discordRepository";
 import EventLogsRepository from "./database/eventLogsRepository";
+import MessagesRepository from "./database/messagesRepository";
 
 // Controllers
 import SongController from "./controllers/songController";
 import TwitchController from "./controllers/twitchController";
 import EventController from "./controllers/eventController";
 import SonglistController from "./controllers/songlistController";
+import MessagelistController from "./controllers/messagelistController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
@@ -118,12 +120,14 @@ botContainer.bind<SonglistRepository>(SonglistRepository).toSelf();
 botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSelf();
 botContainer.bind<DiscordRepository>(DiscordRepository).toSelf();
 botContainer.bind<EventLogsRepository>(EventLogsRepository).toSelf();
+botContainer.bind<MessagesRepository>(MessagesRepository).toSelf();
 
 // Controllers
 botContainer.bind<SongController>(SongController).toSelf();
 botContainer.bind<TwitchController>(TwitchController).toSelf();
 botContainer.bind<EventController>(EventController).toSelf();
 botContainer.bind<SonglistController>(SonglistController).toSelf();
+botContainer.bind<MessagelistController>(MessagelistController).toSelf();
 
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();
