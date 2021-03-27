@@ -1,0 +1,33 @@
+import { Command } from "../../command";
+import { QuotesRepository } from "../../../database";
+import { IUser, UserLevels } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
+
+export default class AddQuoteCommand extends Command {
+    private quotesRepository: QuotesRepository;
+
+    constructor() {
+        super();
+
+        this.quotesRepository = BotContainer.get(QuotesRepository);
+
+        this.minimumUserLevel = UserLevels.Moderator;
+    }
+
+    public async executeInternal(channel: string, user: IUser, author: string, text: string): Promise<void> {
+        let quoteExists = await this.quotesRepository.quoteExists(author, text);
+        if (!quoteExists) {
+            let quote = {
+                text,
+                author,
+                dateAdded: new Date(),
+                addedByUserName: user.username
+            };
+
+            const addedQuote = await this.quotesRepository.add(quote);
+            await this.twitchService.sendMessage(channel, `Quote by ${author} has been added with id #${addedQuote.id}`);
+        } else {
+            this.twitchService.sendMessage(channel, `This quote already exists.` );
+        }
+    }
+}
