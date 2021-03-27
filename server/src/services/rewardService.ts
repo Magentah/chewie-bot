@@ -1,11 +1,12 @@
 import { inject, injectable } from "inversify";
-import { IUser, RequestSource } from "../models";
+import { EventLogType, IUser, RequestSource } from "../models";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import SongService from "./songService";
 import { IBitsMessage, IDonationMessage, ISubscriptionMessage, SubscriptionPlan, SubType } from "./streamlabsService";
 import TwitchService from "../services/twitchService";
 import UserService from "../services/userService";
 import * as Config from "../config.json";
+import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export default class RewardService {
@@ -30,7 +31,7 @@ export default class RewardService {
 
         if (user) {
             const pointsPerBits = parseInt(await this.settings.getValue(BotSettings.PointsPerBit), 10);
-            await this.userService.changeUserPoints(user, pointsPerBits * bits.amount);
+            await this.userService.changeUserPoints(user, pointsPerBits * bits.amount, PointLogType.Bits);
         }
     }
 
@@ -92,14 +93,14 @@ export default class RewardService {
     private async addUserPoints(user: IUser | undefined, donation: IDonationMessage) {
         if (user) {
             const pointsPerDollar = parseInt(await this.settings.getValue(BotSettings.DonationPointsPerDollar), 10);
-            await this.userService.changeUserPoints(user, pointsPerDollar * donation.amount);
+            await this.userService.changeUserPoints(user, pointsPerDollar * donation.amount, PointLogType.Donation);
         }
     }
 
     private async addSubUserPoints(user: IUser | undefined, months: number) {
         if (user) {
             const pointsPerMonth = parseInt(await this.settings.getValue(BotSettings.SubPointsPerMonth), 10);
-            await this.userService.changeUserPoints(user, pointsPerMonth * months);
+            await this.userService.changeUserPoints(user, pointsPerMonth * months, PointLogType.Sub);
         }
     }
 

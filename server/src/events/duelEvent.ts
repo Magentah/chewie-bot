@@ -7,6 +7,7 @@ import { DuelEventParticipant } from "./duelEventParticipant";
 import { DuelWeapon } from "./duelWeapon";
 import { inject } from "inversify";
 import { Lang } from "../lang";
+import { PointLogType } from "../models/pointLog";
 
 /**
  * Rough description of a duel:
@@ -33,7 +34,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         targetUser: IUser | undefined,
         wager: number
     ) {
-        super(twitchService, userService, DuelParticipationPeriod, DuelCooldownPeriod);
+        super(twitchService, userService, DuelParticipationPeriod, DuelCooldownPeriod, PointLogType.Duel);
 
         this.participants.push(new DuelEventParticipant(initiatingUser, wager, true));
         this.participantUsernames.push(initiatingUser.username);
@@ -140,7 +141,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             // Deduct chews now so that they cannot be spent while choosing weapons.
             this.userService.changeUsersPoints(
                 this.participants.map((x) => x.user),
-                -this.wager
+                -this.wager,
+                this.pointLogType
             );
 
             this.waitForWeaponChoice();
@@ -174,7 +176,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
 
         this.userService.changeUsersPoints(
             this.participants.map((x) => x.user),
-            this.wager
+            this.wager,
+            this.pointLogType
         );
     }
 
@@ -218,7 +221,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             });
             this.userService.changeUsersPoints(
                 this.participants.map((x) => x.user),
-                this.wager - chewsLost
+                this.wager - chewsLost,
+                this.pointLogType
             );
         } else {
             // Determine the winner and display text based on the winner's weapon.
@@ -250,7 +254,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
                 winner: winner.user.username,
                 pointsWon: this.wager,
             });
-            this.userService.changeUserPoints(winner.user, this.wager * 2);
+            this.userService.changeUserPoints(winner.user, this.wager * 2, this.pointLogType);
 
             switch (winner.weapon) {
                 case DuelWeapon.Rock:

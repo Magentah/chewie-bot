@@ -2,6 +2,7 @@ import { inject } from "inversify";
 import TwitchService from "../services/twitchService";
 import UserService from "../services/userService";
 import { EventParticipant } from "./eventParticipant";
+import { PointLogType } from "./pointLog";
 import IUser from "./user";
 
 export enum EventState {
@@ -22,6 +23,8 @@ export enum EventState {
 }
 
 export default abstract class ParticipationEvent<T extends EventParticipant> {
+    protected readonly pointLogType: PointLogType;
+
     /**
      * Specifies if the event is currently open (gathering participants).
      */
@@ -47,10 +50,12 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
         @inject(TwitchService) protected twitchService: TwitchService,
         @inject(UserService) protected userService: UserService,
         initialParticipationPeriod: number,
-        cooldownPeriod: number
+        cooldownPeriod: number,
+        pointLogType: PointLogType
     ) {
         this.initialParticipationPeriod = initialParticipationPeriod;
         this.cooldownPeriod = cooldownPeriod;
+        this.pointLogType = pointLogType;
     }
 
     public validatePoints(user: IUser, channel: string, wager: number): boolean {
@@ -100,7 +105,7 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
 
         if (deductPoints) {
             // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
-            this.userService.changeUserPoints(participant.user, -participant.points);
+            this.userService.changeUserPoints(participant.user, -participant.points, this.pointLogType);
         }
 
         this.participantUsernames.push(participant.user.username);

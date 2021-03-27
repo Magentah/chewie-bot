@@ -4,6 +4,7 @@ import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
+import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export class UserService {
@@ -51,9 +52,9 @@ export class UserService {
      * @param {IUser} user The user object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUserPoints(user: IUser, points: number): Promise<void> {
+    public async changeUserPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
         user.points += points;
-        await this.users.incrementPoints(user, points);
+        await this.users.incrementPoints(user, points, eventType);
     }
 
     /**
@@ -61,11 +62,11 @@ export class UserService {
      * @param {IUser} users The users object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUsersPoints(users: IUser[], points: number): Promise<void> {
+    public async changeUsersPoints(users: IUser[], points: number, eventType: PointLogType): Promise<void> {
         // TODO: Make actual batch updates through the UsersRepository.
         for (const user of users) {
             user.points += points;
-            await this.users.incrementPoints(user, points);
+            await this.users.incrementPoints(user, points, eventType);
         }
     }
 

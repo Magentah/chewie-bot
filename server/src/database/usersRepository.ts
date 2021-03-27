@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
 import { IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
@@ -45,12 +46,16 @@ export class UsersRepository {
      * @param user Updated user
      * @param points Number of points to add or remove (if negative)
      */
-    public async incrementPoints(user: IUser, points: number): Promise<void> {
+    public async incrementPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
         const databaseService = await this.databaseProvider();
         await databaseService
             .getQueryBuilder(DatabaseTables.Users)
             .increment("points", points)
             .where({ id: user.id });
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.PointLogs)
+            .insert({ eventType, username: user.username, pointsBefore: user.points - points, points, time: new Date() });
     }
 
     /**
