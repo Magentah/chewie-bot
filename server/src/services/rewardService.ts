@@ -71,8 +71,9 @@ export default class RewardService {
 
         // Add user from Twitch chat as best effort (then we know that it is a valid user name at least).
         if (!user) {
-            await this.twitchService.addUserFromChatList(Config.twitch.broadcasterName, username);
-            user = await this.userService.getUser(username);
+            if (await this.twitchService.addUserFromChatList(Config.twitch.broadcasterName, username)) {
+                user = await this.userService.getUser(username);
+            }
         }
 
         return user;

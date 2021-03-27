@@ -157,9 +157,9 @@ export class TwitchService {
         return data;
     }
 
-    public async addUserFromChatList(channel: string, username: string): Promise<void> {
-        const data = await this.updateChatList("#" + channel);
-        this.users.addUsersFromChatList(data, username);
+    public async addUserFromChatList(channel: string, username: string): Promise<boolean> {
+        const data = await this.updateChatList(channel.startsWith("#") ? channel : "#" + channel);
+        return this.users.addUsersFromChatList(data, username);
     }
 
     /**
