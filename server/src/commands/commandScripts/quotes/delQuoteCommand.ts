@@ -15,6 +15,11 @@ export default class DelQuoteCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, id: number): Promise<void> {
+        if (typeof id !== 'number') {
+            this.twitchService.sendMessage(channel, `Invalid parameter for !delQuote. Id must be a number.` );
+            return;
+        }
+
         const deleted = await this.quotesRepository.delete(id);
         if (deleted) {
             await this.twitchService.sendMessage(channel, `Quote #${id} has been deleted`);

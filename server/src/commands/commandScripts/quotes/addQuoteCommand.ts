@@ -15,6 +15,16 @@ export default class AddQuoteCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, author: string, text: string): Promise<void> {
+        if (typeof author !== 'string' || typeof text !== 'string') {
+            this.twitchService.sendMessage(channel, `Missing arguments necessary to add a quote.` );
+            return;
+        }
+
+        if (author.trim() === "" || text.trim() === "") {
+            this.twitchService.sendMessage(channel, `Missing arguments necessary to add a quote.` );
+            return;
+        }
+
         let quoteExists = await this.quotesRepository.quoteExists(author, text);
         if (!quoteExists) {
             let quote = {
@@ -24,8 +34,8 @@ export default class AddQuoteCommand extends Command {
                 addedByUserName: user.username
             };
 
-            const addedQuote = await this.quotesRepository.add(quote);
-            await this.twitchService.sendMessage(channel, `Quote by ${author} has been added with id #${addedQuote.id}`);
+            const id = await this.quotesRepository.add(quote);
+            await this.twitchService.sendMessage(channel, `Quote by ${author} has been added with id #${id}`);
         } else {
             this.twitchService.sendMessage(channel, `This quote already exists.` );
         }

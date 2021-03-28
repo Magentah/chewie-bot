@@ -34,7 +34,7 @@ export class QuotesRepository {
         const quote = await databaseService
             .getQueryBuilder(DatabaseTables.Quotes)
             .first()
-            .whereRaw("id >= (abs(random()) % (SELECT max(id) FROM quotes))");
+            .orderByRaw("RANDOM()");
 
         return quote as IQuote;
     }
@@ -46,30 +46,24 @@ export class QuotesRepository {
                 .first()
                 .where({author, text});
 
-        if(!quote) {
+        if (!quote) {
             return false;
         }
         return true;
     }
 
-    public async add(quote: IQuote): Promise<IQuote> {
+    public async add(quote: IQuote): Promise<number> {
         const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.Quotes).insert(quote);
+        const insert = await databaseService.getQueryBuilder(DatabaseTables.Quotes).insert(quote);
 
-        return await databaseService
-            .getQueryBuilder(DatabaseTables.Quotes)
-            .first()
-            .orderBy("id", "desc") as IQuote;
+        return insert[0];
     }
 
     public async delete(id: number): Promise<boolean> {
         const databaseService = await this.databaseProvider();
-        const toDelete = await this.get(id);
-        if (toDelete) {
-            await databaseService.getQueryBuilder(DatabaseTables.Quotes).delete().where({ id: toDelete.id });
-            return true;
-        }
-        return false;
+        const deleted = await databaseService.getQueryBuilder(DatabaseTables.Quotes).delete().where({ id });
+
+        return deleted==1;
     }
 }
 
