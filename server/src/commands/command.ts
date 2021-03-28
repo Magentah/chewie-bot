@@ -30,4 +30,8 @@ export abstract class Command {
     public isInternal(): boolean {
         return this.isInternalCommand;
     }
+
+    public shouldExecuteOnMessage(message: string): boolean {
+        return false;
+    }
 }

@@ -26,3 +26,5 @@ export { default as PointsCommand } from "../commandScripts/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";
 
 export { default as RedeemCommand } from "../commandScripts/redeemCommand";
+
+export { default as SudokuCommand } from "../commandScripts/sudokuCommand";
