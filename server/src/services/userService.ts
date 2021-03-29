@@ -97,10 +97,10 @@ export class UserService {
      * Add users from the chatlist to the database if they do not already exist.
      * @param {ITwitchChatList} chatList A ITwitchChatList object containing the chatlist for a channel.
      */
-    public addUsersFromChatList(chatList: ITwitchChatList, userFilter: string | undefined) {
+    public addUsersFromChatList(chatList: ITwitchChatList, userFilter: string | undefined): boolean {
         // Create a single array of all usernames combined from the various usertypes on the twitch chat list type
         if (!chatList.chatters) {
-            return;
+            return false;
         }
         const combinedChatList = Object.keys(chatList.chatters).reduce((chatterList, key) => {
             const chatters = (chatList.chatters as any)[key] as string[];
@@ -110,11 +110,15 @@ export class UserService {
             return chatterList;
         }, Array<string>());
 
+        let added = false;
         combinedChatList.forEach((val) => {
             if (!userFilter || val === userFilter) {
                 this.addUser(val);
+                added = true;
             }
         });
+
+        return added;
     }
 
     /**
