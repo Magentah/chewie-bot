@@ -157,9 +157,9 @@ export class TwitchService {
         return data;
     }
 
-    public async addUserFromChatList(channel: string, username: string): Promise<void> {
-        const data = await this.updateChatList("#" + channel);
-        this.users.addUsersFromChatList(data, username);
+    public async addUserFromChatList(channel: string, username: string): Promise<boolean> {
+        const data = await this.updateChatList(channel.startsWith("#") ? channel : "#" + channel);
+        return this.users.addUsersFromChatList(data, username);
     }
 
     /**
@@ -175,7 +175,6 @@ export class TwitchService {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
 
         const { data } = await axios.get(`https://tmi.twitch.tv/group/user/${channel.slice(1)}/chatters`);
-        Logger.info(LogType.Twitch, `GetChatList: ${data}`);
         return data;
     }
 

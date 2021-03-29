@@ -19,6 +19,8 @@ export enum DatabaseTables {
     TwitchUserProfile = "twitchUserProfile",
     DiscordSettings = "discordSettings",
     EventLogs = "eventLogs",
+    PointLogs = "pointLogs",
+    Messages = "messages",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -85,6 +87,8 @@ export class DatabaseService {
                 await this.createSonglistTable();
                 await this.createDiscordSettingTable();
                 await this.createEventLogsTable();
+                await this.createPointLogsTable();
+                await this.createMessagesTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -233,6 +237,27 @@ export class DatabaseService {
             table.string("username").notNullable();
             table.json("data").notNullable();
             table.dateTime("time").notNullable();
+        });
+    }
+
+    private async createPointLogsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.PointLogs, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("eventType").notNullable();
+            table.string("username").notNullable();
+            table.integer("pointsBefore").notNullable();
+            table.integer("points").notNullable();
+            table.dateTime("time").notNullable();
+        });
+    }
+                           
+      
+    private async createMessagesTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Messages, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("type").notNullable();
+            table.string("text").notNullable();
+            table.string("eventType").notNullable();
         });
     }
 

@@ -1,4 +1,5 @@
 import { inject, injectable } from "inversify";
+import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
 import { IUser, IUserLevel, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
@@ -67,37 +68,36 @@ export class UsersRepository {
 
     /**
      * Updates user data in the database if the user already exists.
+     * Increments or decrements the number of points for a user.
      * @param user Updated user
      * @param points Number of points to add or remove (if negative)
      */
-    public async incrementPoints(user: IUser, points: number): Promise<void> {
+    public async incrementPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
         const databaseService = await this.databaseProvider();
-
         await databaseService
             .getQueryBuilder(DatabaseTables.Users)
             .increment("points", points)
-            .whereExists((q) => {
-                return q.select().from(DatabaseTables.Users).where({ id: user.id });
-            });
+            .where({ id: user.id });
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.PointLogs)
+            .insert({ eventType, username: user.username, pointsBefore: user.points - points, points, time: new Date() });
     }
 
     /**
      * Updates a user's VIP expiry date.
      * @param user user with new expiration date
      */
-    public async  updateVipExpiry(user: IUser) {
+    public async updateVipExpiry(user: IUser) {
         const databaseService = await this.databaseProvider();
-
         await databaseService
             .getQueryBuilder(DatabaseTables.Users)
             .update( { vipExpiry: user.vipExpiry })
-            .whereExists((q) => {
-                return q.select().from(DatabaseTables.Users).where({ id: user.id });
-            });
+            .where({ id: user.id });
     }
 
     /**
-     * Increments or decrements the number of points for a user.
+     * Updates user data in the database if the user already exists.
      * @param user Updated user
      */
     public async update(user: IUser): Promise<void> {
@@ -110,16 +110,17 @@ export class UsersRepository {
         delete userData.vipLevel;
         delete userData.twitchUserProfile;
 
-        await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .update(userData)
-            .whereExists((q) => {
-                if (user.id) {
-                    return q.select().from(DatabaseTables.Users).where({ id: user.id });
-                } else {
-                    return q.select().from(DatabaseTables.Users).where({ username: user.username });
-                }
-            });
+        if (user.id) {
+            await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .update(userData)
+                .where({ id: user.id });
+        } else {
+            await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .update(userData)
+                .where({ username: user.username });;
+        }
     }
 
     /**

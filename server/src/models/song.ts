@@ -36,6 +36,7 @@ export enum RequestSource {
     Subscription = "Subscription",
     Raffle = "Raffle",
     Chat = "Chat",
+    GoldSong = "GoldSong",
 }
 
 export default ISong;

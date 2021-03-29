@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { EventLogsRepository } from "../database/eventLogsRepository";
 import { IEventLog, EventLogType } from "../models";
 import * as Config from "../config.json";
-import { IDonationMessage } from "./streamlabsService";
+
 @injectable()
 export class EventLogService {
     constructor(@inject(EventLogsRepository) private eventLogs: EventLogsRepository) {

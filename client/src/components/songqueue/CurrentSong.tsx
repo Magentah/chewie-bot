@@ -44,6 +44,7 @@ const CurrentSong: React.FC = (props) => {
 
         websocket.current.onMessage(SocketMessageType.SongAdded, onSongsChanged);
         websocket.current.onMessage(SocketMessageType.SongRemoved, onSongsChanged);
+        websocket.current.onMessage(SocketMessageType.SongMovedToTop, onSongsChanged);
     }, [onSongsChanged]);
 
     useEffect(() => { loadFirstSong() }, []);

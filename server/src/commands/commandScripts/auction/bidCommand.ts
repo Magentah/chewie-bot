@@ -32,7 +32,7 @@ export default class BidCommand extends Command {
                     return;
                 }
 
-                if (!auctionInProgress.addParticipant(new EventParticipant(user, bid), true)) {
+                if (!await auctionInProgress.addParticipant(new EventParticipant(user, bid), true)) {
                     this.twitchService.sendMessage(
                         channel,
                         Lang.get("auction.bidtoolow", user.username, auctionInProgress.getHighestBidAmount())

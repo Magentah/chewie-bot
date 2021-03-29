@@ -1,4 +1,4 @@
-import { BotSettings } from "src/services/botSettingsService";
+import { BotSettings } from "../services/botSettingsService";
 
 export default interface IBotSettings {
     key: BotSettings;
