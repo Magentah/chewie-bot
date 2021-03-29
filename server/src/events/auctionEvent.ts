@@ -5,6 +5,7 @@ import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
 import { Lang } from "../lang";
+import { PointLogType } from "../models/pointLog";
 
 /**
  * Auction:
@@ -34,7 +35,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
     ) {
         // Since we need snipe protection, don't let EventService close the event
         // based on the initial participation period.
-        super(twitchService, userService, 0, AuctionCooldownPeriod);
+        super(twitchService, userService, 0, AuctionCooldownPeriod, PointLogType.Auction);
 
         // No duration means manual closing of the auction.
         this.durationLeft = durationInMinutes ? durationInMinutes * 60 * 1000 : 0;
@@ -159,7 +160,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
     private declareWinner() {
         const highestBid = this.getHighestBid();
         if (highestBid) {
-            this.userService.changeUserPoints(highestBid.user, -highestBid.points);
+            this.userService.changeUserPoints(highestBid.user, -highestBid.points, this.pointLogType);
             this.sendMessage(Lang.get("auction.closedwin", highestBid.user.username, highestBid.points));
         } else {
             this.sendMessage(Lang.get("auction.closed"));

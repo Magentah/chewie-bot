@@ -1,8 +1,9 @@
 import { Command } from "../command";
-import { TwitchService, UserService } from "../../services";
+import { UserService } from "../../services";
 import { ICommandAlias, IUser } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { Lang } from "../../lang";
+import { PointLogType } from "../../models/pointLog";
 
 export default class GivePointsCommand extends Command {
     private userService: UserService;
@@ -40,8 +41,8 @@ export default class GivePointsCommand extends Command {
             return;
         }
 
-        await this.userService.changeUserPoints(user, -points);
-        await this.userService.changeUserPoints(targetUser, points);
+        await this.userService.changeUserPoints(user, -points, PointLogType.Give);
+        await this.userService.changeUserPoints(targetUser, points, PointLogType.Give);
         this.twitchService.sendMessage(channel, Lang.get("points.give.success", user.username, targetUsername, points));
     }
 

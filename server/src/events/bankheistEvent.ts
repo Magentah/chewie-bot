@@ -5,6 +5,7 @@ import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
 import { Lang } from "../lang";
+import { PointLogType } from "../models/pointLog";
 import MessagesRepository from "../database/messagesRepository";
 
 /**
@@ -37,7 +38,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         initiatingUser: IUser,
         wager: number
     ) {
-        super(twitchService, userService, BankheistParticipationPeriod, BankheistCooldownPeriod);
+        super(twitchService, userService, BankheistParticipationPeriod, BankheistCooldownPeriod, PointLogType.Bankheist);
 
         this.addParticipant(new EventParticipant(initiatingUser, wager));
     }
@@ -122,7 +123,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 const pointsWon = Math.floor(participant.points * level.payoutMultiplier);
                 winners.push({ participant, pointsWon });
 
-                this.userService.changeUserPoints(participant.user, pointsWon);
+                this.userService.changeUserPoints(participant.user, pointsWon, this.pointLogType);
             }
         }
 
