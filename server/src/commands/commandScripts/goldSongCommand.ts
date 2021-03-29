@@ -55,7 +55,7 @@ export class GoldSongCommand extends Command {
         }
 
         try {
-            const song = await this.songService.addSong(url, RequestSource.Chat, user.username);
+            const song = await this.songService.addSong(url, RequestSource.GoldSong, user.username);
             if (song) {
                 user.vipLastRequest = todayDate;
                 this.userService.updateUser(user);
