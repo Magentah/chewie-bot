@@ -6,31 +6,13 @@ import useUser, { UserLevels } from "../../hooks/user";
 import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon } from "@material-ui/core";
 import AddIcon from '@material-ui/icons/Add';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { AddToListState } from "../common/addToListState";
 
 const useStyles = makeStyles((theme) => ({
     addButton: {
         margin: theme.spacing(2, 0, 2),
     },
 }));
-
-type NoSongListState = {
-    state: undefined;
-};
-
-type AddedSongListState = {
-    state: "success";
-};
-
-type AddingSongListState = {
-    state: "progress";
-};
-
-type FailedSongListState = {
-    state: "failed";
-    message: string;
-};
-   
-type SongListState = NoSongListState | AddedSongListState | AddingSongListState | FailedSongListState;
 
 function fallbackCopyTextToClipboard(text: string) {
     var textArea = document.createElement("textarea");
@@ -78,7 +60,7 @@ const SongList: React.FC<any> = (props: any) => {
     const [songlistOrigin, setSonglistOrigin] = useState<string>();
     const [songlistTitle, setSonglistTitle] = useState<string>();
     const [songlistGenre, setSonglistGenre] = useState<string>();
-    const [songListState, setSongListState] = useState<SongListState>();
+    const [songListState, setSongListState] = useState<AddToListState>();
 
     useEffect(loadUser, []);
 

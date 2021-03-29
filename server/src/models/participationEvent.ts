@@ -96,20 +96,21 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
      * @param participant Participant to add
      * @returns true if the user has been added, false if the user is already enlisted.
      */
-    public addParticipant(participant: T, deductPoints: boolean): boolean {
+    public async addParticipant(participant: T, deductPoints: boolean): Promise<boolean> {
         for (const p of this.participants) {
             if (p.user.username.toLowerCase() === participant.user.username.toLowerCase()) {
                 return false;
             }
         }
 
-        if (deductPoints) {
-            // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
-            this.userService.changeUserPoints(participant.user, -participant.points, this.pointLogType);
-        }
-
         this.participantUsernames.push(participant.user.username);
         this.participants.push(participant);
+
+        if (deductPoints) {
+            // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
+            await this.userService.changeUserPoints(participant.user, -participant.points, this.pointLogType);
+        }
+
         return true;
     }
 

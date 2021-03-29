@@ -30,7 +30,7 @@ export default class JoinArenaCommand extends Command {
                     return;
                 }
 
-                if (!arenaInProgress.addParticipant(new EventParticipant(user, arenaInProgress.wager), true)) {
+                if (!await arenaInProgress.addParticipant(new EventParticipant(user, arenaInProgress.wager), true)) {
                     this.twitchService.sendMessage(channel, Lang.get("arena.alreadyjoined", user.username));
                 }
                 return;

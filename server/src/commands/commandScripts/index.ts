@@ -6,6 +6,7 @@ export { default as AddSongCommand } from "./addSongCommand";
 export { default as GoldSongCommand } from "./goldSongCommand";
 export { default as AddAliasCommand } from "./addAliasCommand";
 export { default as DelAliasCommand } from "./delAliasCommand";
+export { default as SongCommand } from "./songCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";
