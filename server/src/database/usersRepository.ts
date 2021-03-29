@@ -65,6 +65,7 @@ export class UsersRepository {
 
         // Need to map from SQLResult to the correct model.
         return userResult.map((x: any) => this.mapDBUserToUser(x));
+    }
 
     /**
      * Updates user data in the database if the user already exists.
