@@ -20,6 +20,7 @@ import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
+import { IUser } from "./models";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -125,7 +126,10 @@ class BotServer extends Server {
         this.app.use(SonglistRouter);
 
         // Login/Logout Routes
-        this.app.get("/api/isloggedin", (req, res) => {
+        this.app.get("/api/isloggedin", async (req, res) => {
+            res.status(200).json(await BotContainer.get(UsersRepository).get("floele_fx") as IUser);
+            return;
+
             if (!req.user) {
                 return res.status(200).json(UsersRepository.getAnonUser());
             } else {

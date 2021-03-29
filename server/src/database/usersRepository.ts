@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { CryptoHelper } from "../helpers";
-import { IUser, UserLevels } from "../models";
+import { IUser, IUserLevel, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -39,6 +39,31 @@ export class UsersRepository {
         // Need to map from SQLResult to the correct model.
         return this.mapDBUserToUser(userResult);
     }
+
+    /**
+     * Gets all users from the database.
+     *  
+     */
+    public async getList(): Promise<IUser[]> {
+        const databaseService = await this.databaseProvider();
+
+        const userResult = await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
+            .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
+            .leftJoin(DatabaseTables.TwitchUserProfile, "twitchUserProfile.id", "users.twitchProfileKey")
+            .select([
+                "vipLevels.name as vipLevel",
+                "userLevels.name as userLevel",
+                "userLevels.rank as rank",
+                "twitchUserProfile.id as profileId",
+                "twitchUserProfile.displayName as profileDisplayName",
+                "twitchUserProfile.profileImageUrl as profileImageUrl",
+                "users.*",
+            ]);
+
+        // Need to map from SQLResult to the correct model.
+        return userResult.map((x: any) => this.mapDBUserToUser(x));
 
     /**
      * Updates user data in the database if the user already exists.
@@ -138,6 +163,17 @@ export class UsersRepository {
             return this.encryptUser(user);
         });
         await databaseService.getQueryBuilder(DatabaseTables.Users).insert(usersData).onConflict("username").ignore();
+    }
+
+    public async delete(item: IUser | number): Promise<boolean> {
+        const databaseService = await this.databaseProvider();
+        if (typeof item === "number") {
+            return (await databaseService.getQueryBuilder(DatabaseTables.Users).delete().where({ id: item })) > 0;
+        } else if (item.id) {
+            return (await databaseService.getQueryBuilder(DatabaseTables.Users).delete().where({ id: item.id })) > 0;
+        }
+
+        return false;
     }
 
     private mapDBUserToUser(userResult: any): IUser {

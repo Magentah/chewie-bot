@@ -13,6 +13,7 @@ import SongList from "./components/songlist/songlist";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
 import Login from "./views/login/Login";
+import UserList from "./components/users/userlist";
 
 export type Route = {
     path: string;
@@ -73,7 +74,7 @@ const DashboardRoutes: Route[] = [
         path: "/users",
         name: "Users",
         icon: SupervisorAccount,
-        component: DefaultComponent,
+        component: UserList,
         minUserLevel: UserLevels.Moderator
     },
 ];

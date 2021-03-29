@@ -9,6 +9,16 @@ export class UserLevelsRepository {
         // Empty
     }
 
+    public async getList(): Promise<IUserLevel[]> {
+        const databaseService = await this.databaseProvider();
+        Logger.info(
+            LogType.Database,
+            databaseService.getQueryBuilder(DatabaseTables.UserLevels).toSQL().sql
+        );
+        const userLevel = await databaseService.getQueryBuilder(DatabaseTables.UserLevels);
+        return userLevel as IUserLevel[];
+    }
+
     public async get(level: UserLevels): Promise<IUserLevel> {
         const databaseService = await this.databaseProvider();
         Logger.info(
