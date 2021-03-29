@@ -175,7 +175,6 @@ export class TwitchService {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
 
         const { data } = await axios.get(`https://tmi.twitch.tv/group/user/${channel.slice(1)}/chatters`);
-        Logger.info(LogType.Twitch, `GetChatList: ${data}`);
         return data;
     }
 

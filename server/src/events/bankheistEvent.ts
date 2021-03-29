@@ -1,10 +1,11 @@
 import { EventService, UserService, TwitchService, EventLogService } from "../services";
-import { IUser } from "../models";
+import { GameEventType, GameMessageType, IUser } from "../models";
 import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
 import { Lang } from "../lang";
+import MessagesRepository from "../database/messagesRepository";
 
 /**
  * Detailed description of a bankheist: http://wiki.deepbot.tv/bankheist
@@ -19,31 +20,20 @@ const BankheistParticipationPeriod = 2 * 60 * 1000;
 const BankheistCooldownPeriod = 2 * 60 * 1000;
 
 export class BankheistEvent extends ParticipationEvent<EventParticipant> {
-    // TODO: Allow configuration of values and messages in UI.
     private readonly heistLevels = [
-        { level: 1, bankname: "Chewie's Piggy Bank", winChance: 54, payoutMultiplier: 1.5, minUsers: 0 },
-        { level: 2, bankname: "Chewie's Piggy Bank", winChance: 48.8, payoutMultiplier: 1.7, minUsers: 10 },
-        { level: 3, bankname: "Chewie's Piggy Bank", winChance: 42.5, payoutMultiplier: 2, minUsers: 20 },
-        { level: 4, bankname: "Chewie's Piggy Bank", winChance: 38.7, payoutMultiplier: 2.25, minUsers: 30 },
-        { level: 5, bankname: "Chewie's Piggy Bank", winChance: 32.4, payoutMultiplier: 2.75, minUsers: 40 },
+        { level: 1, bankname: GameMessageType.BankNameLevel1, winChance: 54, payoutMultiplier: 1.5, minUsers: 0 },
+        { level: 2, bankname: GameMessageType.BankNameLevel2, winChance: 48.8, payoutMultiplier: 1.7, minUsers: 10 },
+        { level: 3, bankname: GameMessageType.BankNameLevel3, winChance: 42.5, payoutMultiplier: 2, minUsers: 20 },
+        { level: 4, bankname: GameMessageType.BankNameLevel4, winChance: 38.7, payoutMultiplier: 2.25, minUsers: 30 },
+        { level: 5, bankname: GameMessageType.BankNameLevel5, winChance: 32.4, payoutMultiplier: 2.75, minUsers: 40 },
     ];
-
-    private readonly win100Messages = [
-        "The heisters find themselves at the presitigous wedding of ArcaneFox and lixy chewieHug and decide to put on a big band to celebrate BongoPenguin BBoomer GuitarTime epicSax kannaPiano DanceBro For their performance, the heisters are given their pay in chews chewieLove chewieLove chewieLove",
-    ];
-    private readonly win34Messages = [
-        "The heisters find themselves at the presitigous wedding of ArcaneFox and lixy chewieHug and decide to put on a big band to celebrate BongoPenguin BBoomer GuitarTime epicSax kannaPiano DanceBro For their performance, the heisters are given their pay in chews chewieLove chewieLove chewieLove",
-    ];
-    private readonly win1Messages = [
-        "The heisters find themselves at the presitigous wedding of ArcaneFox and lixy chewieHug and decide to put on a big band to celebrate BongoPenguin BBoomer GuitarTime epicSax kannaPiano DanceBro For their performance, the heisters are given their pay in chews chewieLove chewieLove chewieLove",
-    ];
-    private readonly loseMessages = ["Something with kaputcheese and lactose intolerance..."];
 
     constructor(
         @inject(TwitchService) twitchService: TwitchService,
         @inject(UserService) userService: UserService,
         @inject(EventService) private eventService: EventService,
         @inject(EventLogService) private eventLogService: EventLogService,
+        @inject(MessagesRepository) private messages: MessagesRepository,
         initiatingUser: IUser,
         wager: number
     ) {
@@ -57,14 +47,18 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         this.sendMessage(Lang.get("bankheist.start", this.participants[0].user.username));
     }
 
-    public addParticipant(participant: EventParticipant): boolean {
+    public async addParticipant(participant: EventParticipant): Promise<boolean> {
         const oldLevel = this.getHeistLevel();
 
-        if (super.addParticipant(participant, true)) {
+        if (await super.addParticipant(participant, true)) {
             // If a new level has been reached after a participant has been added, make an announcement.
             const newLevel = this.getHeistLevel();
             if (newLevel.level > oldLevel.level && newLevel.level < this.heistLevels.length) {
-                this.sendMessage(Lang.get("bankheist.newlevel", newLevel.bankname, this.heistLevels[newLevel.level]));
+                const bankNameCurrent = await this.messages.getByType(GameEventType.Bankheist, newLevel.bankname);
+                const bankNameNext = await this.messages.getByType(GameEventType.Bankheist, this.heistLevels[newLevel.level].bankname);
+                if (bankNameCurrent.length > 0 && bankNameNext.length > 0) {
+                    this.sendMessage(Lang.get("bankheist.newlevel", bankNameCurrent[0].text, bankNameNext[0].text));
+                }
             }
 
             return true;
@@ -111,7 +105,11 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         const level = this.getHeistLevel();
 
         Logger.info(LogType.Command, `Bankheist started with ${this.participants.length} participants (level ${level.level})`);
-        this.sendMessage(Lang.get("bankheist.commencing", level.bankname));
+
+        const banknames = await this.messages.getByType(GameEventType.Bankheist, level.bankname);
+        if (banknames.length > 0) {
+            this.sendMessage(Lang.get("bankheist.commencing", banknames[0].text));
+        }
 
         // Suspense
         await this.delay(10000);
@@ -133,9 +131,15 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         // Output a random win or lose message
         if (winners.length > 0) {
             const percentWin = (winners.length / this.participants.length) * 100.0;
-            const winMessages = percentWin >= 100 ? this.win100Messages : percentWin >= 34 ? this.win34Messages : this.win1Messages;
-            const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
-            this.sendMessage(winMessages[msgIndex]);
+
+            const messageType = percentWin >= 100 ? GameMessageType.AllWin : percentWin >= 34 ? GameMessageType.SomeWin : GameMessageType.SingleWin;
+            const winMessages = (await this.messages.getByType(GameEventType.Bankheist, messageType)).map(item => item.text);
+            if (winMessages.length > 0) {
+                const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
+                this.sendMessage(winMessages[msgIndex].replace("{user}", winners[0].participant.user.username));
+            } else {
+                Logger.warn(LogType.Command, `No messages available for ${messageType}`);
+            }
 
             // List all winners
             let winMessage = Lang.get("bankheist.winners");
@@ -145,8 +149,14 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
             this.sendMessage(winMessage.substring(0, winMessage.length - 2));
         } else {
-            const msgIndex = Math.floor(Math.random() * Math.floor(this.loseMessages.length));
-            this.sendMessage(this.loseMessages[msgIndex]);
+            const loseMessages = (await this.messages.getByType(GameEventType.Bankheist, this.participants.length === 1 ? GameMessageType.SingleLose : GameMessageType.NoWin))
+                .map(item => item.text);
+            if (loseMessages.length > 0) {
+                const msgIndex = Math.floor(Math.random() * Math.floor(loseMessages.length));
+                this.sendMessage(loseMessages[msgIndex].replace("{user}", this.participants[0].user.username));
+            } else {
+                Logger.warn(LogType.Command, `No messages available for ${GameMessageType.NoWin}`);
+            }
         }
 
         this.eventLogService.addBankheist(this.participantUsernames.join(","), {
@@ -157,7 +167,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             winners: winners.map((participant) => {
                 return { username: participant.participant.user.username, pointsWon: participant.pointsWon };
             }),
-            level: this.getHeistLevel(),
+            level,
         });
         this.eventService.stopEventStartCooldown(this);
     }

@@ -102,7 +102,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
      * @param deductPoints (ignored)
      * @returns false if the bid was not high enough.
      */
-    public addParticipant(participant: EventParticipant, deductPoints: boolean): boolean {
+    public async addParticipant(participant: EventParticipant, deductPoints: boolean): Promise<boolean> {
         // Only accept bid if > minimum bid and > current max bid.
         if (participant.points < this.minimumBid) {
             return false;
