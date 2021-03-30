@@ -16,10 +16,9 @@ export default class AddQuoteCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser, author: string, text: string): Promise<void> {
         if (typeof author !== 'string' || typeof text !== 'string') {
-            this.twitchService.sendMessage(channel, `Missing arguments necessary to add a quote.` );
+            this.twitchService.sendMessage(channel, `Arguments must be strings.` );
             return;
         }
-
         if (author.trim() === "" || text.trim() === "") {
             this.twitchService.sendMessage(channel, `Missing arguments necessary to add a quote.` );
             return;

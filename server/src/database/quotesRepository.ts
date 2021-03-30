@@ -8,7 +8,7 @@ export class QuotesRepository {
         // Empty
     }
 
-    public async get(id: number): Promise<IQuote> {
+    public async getById(id: number): Promise<IQuote> {
         const databaseService = await this.databaseProvider();
         const quote = await databaseService
             .getQueryBuilder(DatabaseTables.Quotes)
@@ -18,7 +18,7 @@ export class QuotesRepository {
         return quote as IQuote;
     }
 
-    public async search(searchTerm: string): Promise<IQuote> {
+    public async getByTextSearch(searchTerm: string): Promise<IQuote> {
         const databaseService = await this.databaseProvider();
         let quote = await databaseService
             .getQueryBuilder(DatabaseTables.Quotes)

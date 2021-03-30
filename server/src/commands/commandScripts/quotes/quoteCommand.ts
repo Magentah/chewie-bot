@@ -13,18 +13,19 @@ export default class QuoteCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, searchTerm: any): Promise<void> {
-        let quote = null;
+        let quote;
+
         if (!searchTerm) {
             quote = await this.quotesRepository.random();
+        } else {
+            const id = parseInt(searchTerm);
+            if (id) {
+                quote = await this.quotesRepository.getById(searchTerm);
+            } else {
+                quote = await this.quotesRepository.getByTextSearch(searchTerm);
+            }
         }
 
-        if (!quote) {
-            quote = await this.quotesRepository.get(searchTerm);
-        }
-
-        if (!quote) {
-            quote = await this.quotesRepository.search(searchTerm);
-        }
         if (!quote) {
             quote = await this.quotesRepository.random();
         }
