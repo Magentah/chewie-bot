@@ -3,9 +3,9 @@ import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
 import useUser, { UserLevels } from "../../hooks/user";
-import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon } from "@material-ui/core";
 
 type RowData = {username: string, vipExpiry: number, vipLastRequest: number};
+type UserLevel = { id: number; name: string; }
 
 const VipStatusCell: React.FC<any> = (value: RowData) => {
     const todayDate = new Date(new Date().toDateString());
@@ -31,6 +31,7 @@ const VipStatusCell: React.FC<any> = (value: RowData) => {
 
 const UserList: React.FC<any> = (props: any) => {
     const [userlist, setUserlist] = useState([] as RowData[]);
+    const [userLevels, setUserLevels] = useState([] as UserLevel[]);
 
     useEffect(() => {
         axios.get("/api/userlist").then((response) => {
@@ -38,17 +39,23 @@ const UserList: React.FC<any> = (props: any) => {
         });
     }, []);
 
+    useEffect(() => {
+        axios.get("/api/userLevels").then((response) => {
+            setUserLevels(response.data);
+        });
+    }, []);
+
     return <div>
             <MaterialTable
                 columns = {[
-                    { title: 'User name', field: 'username' },
-                    { title: 'User level', field: 'userLevelKey', lookup: { 5: "Broadcaster", 3: "Moderator" }},
-                    { 
-                        title: 'VIP status',
-                        field: 'vipExpiry',
+                    { title: "User name", field: "username" },
+                    { title: "User level", field: "userLevelKey", lookup: Object.fromEntries(userLevels.map(e => [e.id, e.name])) },
+                    {
+                        title: "VIP status",
+                        field: "vipExpiry",
                         render: rowData => VipStatusCell(rowData)
                     },
-                    { title: 'Points', field: 'points', cellStyle: { textAlign: "right" }, headerStyle: { textAlign: "right" } }
+                    { title: "Points", field: "points", cellStyle: { textAlign: "right" }, headerStyle: { textAlign: "right" } }
                 ]}
                 options = {{
                     paging: true,
@@ -71,7 +78,8 @@ const UserList: React.FC<any> = (props: any) => {
                 data = {userlist}
                 editable = {
                     {
-                        isEditable: rowData => true,
+                        // Allow edit when user levels are loaded.
+                        isEditable: rowData => userLevels.length > 0,
                         isDeletable: rowData => true,
                         onRowUpdate: (newData, oldData) => axios.post("/api/userlist", newData).then((result) => {
                             if (result.status === 200) {
