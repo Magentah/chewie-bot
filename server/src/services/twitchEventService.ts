@@ -10,6 +10,7 @@ import DiscordService from "./discordService";
 import EventLogService from "./eventLogService";
 import * as EventSub from "../models";
 import { TwitchAuthService } from ".";
+import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export default class TwitchEventService {
@@ -92,7 +93,7 @@ export default class TwitchEventService {
                 event: notificationEvent,
                 pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
             });
-            this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier);
+            this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier, PointLogType.PointRewardRedemption);
         }
     }
 

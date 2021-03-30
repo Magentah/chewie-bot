@@ -40,3 +40,4 @@ export { default as ITwitchSubscription } from "./twitchSubscription";
 export { default as IDiscordSetting } from "./discordSetting";
 export { default as IEventLog, EventLogType } from "./eventLog";
 export { default as IQuote } from "./quotes";
+export { default as IGameMessage, GameEventType, GameMessageType } from "./gameMessage";
