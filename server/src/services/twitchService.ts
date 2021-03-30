@@ -361,7 +361,6 @@ export class TwitchService {
         Logger.info(LogType.Twitch, `Channel:: ${channel} - JOIN:: ${username}`);
         if (self) {
             this.getChatList(channel);
-            this.sendMessage(channel, `${username} joined!`);
         }
     }
 
