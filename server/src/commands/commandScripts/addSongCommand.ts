@@ -15,11 +15,18 @@ export class AddSongCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, url: string) {
-        const song = await this.songService.addSong(url, RequestSource.Chat, user.username);
-        if (song) {
+        try {
+            const song = await this.songService.addSong(url, RequestSource.Chat, user.username);
+            if (song) {
+                this.twitchService.sendMessage(
+                    channel,
+                    `${song.details.title} was added to the song queue by ${song.requestedBy}!`
+                );
+            }
+        } catch (err) {
             this.twitchService.sendMessage(
                 channel,
-                `${song.details.title} was added to the song queue by ${song.requestedBy}!`
+                `${user.username}, the song could not be added to the queue (${err}).`
             );
         }
     }
