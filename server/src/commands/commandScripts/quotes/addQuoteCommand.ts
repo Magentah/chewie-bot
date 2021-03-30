@@ -20,7 +20,7 @@ export default class AddQuoteCommand extends Command {
             return;
         }
         if (author.trim() === "" || text.trim() === "") {
-            this.twitchService.sendMessage(channel, `Missing arguments necessary to add a quote.` );
+            this.twitchService.sendMessage(channel, `Missing arguments, use !addquote <author> <text> to add a quote.` );
             return;
         }
 

@@ -63,7 +63,7 @@ export class QuotesRepository {
         const databaseService = await this.databaseProvider();
         const deleted = await databaseService.getQueryBuilder(DatabaseTables.Quotes).delete().where({ id });
 
-        return deleted==1;
+        return deleted===1;
     }
 }
 
