@@ -48,10 +48,7 @@ export class UsersRepository {
      */
     public async incrementPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
         const databaseService = await this.databaseProvider();
-        await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .increment("points", points)
-            .where({ id: user.id });
+        await databaseService.getQueryBuilder(DatabaseTables.Users).increment("points", points).where({ id: user.id });
 
         await databaseService
             .getQueryBuilder(DatabaseTables.PointLogs)
@@ -64,10 +61,7 @@ export class UsersRepository {
      */
     public async updateVipExpiry(user: IUser) {
         const databaseService = await this.databaseProvider();
-        await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .update( { vipExpiry: user.vipExpiry })
-            .where({ id: user.id });
+        await databaseService.getQueryBuilder(DatabaseTables.Users).update({ vipExpiry: user.vipExpiry }).where({ id: user.id });
     }
 
     /**
@@ -85,15 +79,9 @@ export class UsersRepository {
         delete userData.twitchUserProfile;
 
         if (user.id) {
-            await databaseService
-                .getQueryBuilder(DatabaseTables.Users)
-                .update(userData)
-                .where({ id: user.id });
+            await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ id: user.id });
         } else {
-            await databaseService
-                .getQueryBuilder(DatabaseTables.Users)
-                .update(userData)
-                .where({ username: user.username });;
+            await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ username: user.username });
         }
     }
 
@@ -101,11 +89,12 @@ export class UsersRepository {
      * Add a new user to the database if the user doesn't already exist.
      * @param user The user to add to the database
      */
-    public async add(user: IUser): Promise<void> {
+    public async add(user: IUser): Promise<IUser> {
         const databaseService = await this.databaseProvider();
 
         const userData = this.encryptUser(user);
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).onConflict("username").ignore();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).onConflict("username").ignore().returning("*");
+        return result[0];
     }
 
     /**
@@ -132,12 +121,12 @@ export class UsersRepository {
         };
     }
 
-    public async addMultiple(users: IUser[]): Promise<void> {
+    public async addMultiple(users: IUser[]): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
         const usersData = users.map((user) => {
             return this.encryptUser(user);
         });
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(usersData).onConflict("username").ignore();
+        return await databaseService.getQueryBuilder(DatabaseTables.Users).insert(usersData).onConflict("username").ignore().returning("*");
     }
 
     private mapDBUserToUser(userResult: any): IUser {
