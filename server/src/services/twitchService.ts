@@ -105,7 +105,7 @@ export class TwitchService {
 
     public async sendWhisper(username: string, message: string): Promise<IServiceResponse> {
         try {
-            this.client.whisper(username, message);
+            await this.client.whisper(username, message);
             return Response.Success();
         } catch (error) {
             Logger.warn(LogType.Twitch, error);
@@ -116,7 +116,7 @@ export class TwitchService {
     public async joinChannel(channel: string): Promise<IServiceResponse> {
         try {
             Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
-            this.client.join(channel);
+            await this.client.join(channel);
             const test = await this.channelSearch("chewiemelodies");
             Logger.info(LogType.Twitch, "Test channel search", test);
             return Response.Success();
@@ -129,7 +129,17 @@ export class TwitchService {
     public async leaveChannel(channel: string): Promise<IServiceResponse> {
         try {
             Logger.info(LogType.Twitch, `Bot left channel ${channel}`);
-            this.client.part(channel);
+            await this.client.part(channel);
+            return Response.Success();
+        } catch (error) {
+            Logger.warn(LogType.Twitch, error);
+            return Response.Error(undefined, error);
+        }
+    }
+
+    public async timeout(channel: string, username: string, length: number, reason: string): Promise<IServiceResponse> {
+        try {
+            await this.client.timeout(channel, username, length, reason);
             return Response.Success();
         } catch (error) {
             Logger.warn(LogType.Twitch, error);

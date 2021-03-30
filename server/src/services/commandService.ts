@@ -93,7 +93,17 @@ export class CommandService {
      * @param {string} message The message to parse for a command.
      */
     public async handleMessage(channel: string, username: string, message: string): Promise<void> {
-        const commandName = TwitchHelper.getCommandName(message);
+        let commandName = TwitchHelper.getCommandName(message);
+
+        if (!commandName) {
+            for (const [key, value] of this.commandList) {
+                if (value.shouldExecuteOnMessage(message)) {
+                    commandName = key;
+                    break;
+                }
+            }
+        }
+
         if (commandName) {
             try {
                 const user = await this.users.addUser(username);
