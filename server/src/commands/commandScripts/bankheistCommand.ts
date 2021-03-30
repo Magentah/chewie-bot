@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { TwitchService } from "../../services";
+import { EventLogService } from "../../services";
 import { IUser } from "../../models";
 import { BankheistEvent } from "../../events/bankheistEvent";
 import { EventService } from "../../services/eventService";
@@ -8,6 +8,7 @@ import { EventState } from "../../models/participationEvent";
 import { EventParticipant } from "../../models/eventParticipant";
 import EventHelper from "../../helpers/eventHelper";
 import { BotContainer } from "../../inversify.config";
+import MessagesRepository from "../../database/messagesRepository";
 
 import { Lang } from "../../lang";
 
@@ -16,19 +17,21 @@ import { Lang } from "../../lang";
  * For further details see bankheistEvent.ts
  */
 export class BankheistCommand extends Command {
-    private twitchService: TwitchService;
     private eventService: EventService;
     private userService: UserService;
+    private eventLogService: EventLogService;
+    private messages: MessagesRepository;
 
     constructor() {
         super();
 
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
+        this.eventLogService = BotContainer.get(EventLogService);
+        this.messages = BotContainer.get(MessagesRepository);
     }
 
-    public async execute(channel: string, user: IUser, wager: number): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, wager: number): Promise<void> {
         const result = EventHelper.validatePoints(user, wager);
         if (!result[0]) {
             this.twitchService.sendMessage(channel, result[1]);
@@ -38,14 +41,14 @@ export class BankheistCommand extends Command {
         // Bankheist in progress? Join existing event.
         for (const heistInProgress of this.eventService.getEvents<BankheistEvent>()) {
             if (heistInProgress.state === EventState.Open) {
-                if (!heistInProgress.addParticipant(new EventParticipant(user, wager))) {
+                if (!await heistInProgress.addParticipant(new EventParticipant(user, wager))) {
                     this.twitchService.sendMessage(channel, Lang.get("bankheist.alreadyjoined", user.username));
                 }
                 return;
             }
         }
 
-        const bankheist = new BankheistEvent(this.twitchService, this.userService, this.eventService, user, wager);
+        const bankheist = new BankheistEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, this.messages, user, wager);
         bankheist.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         function isEvent(event: string | BankheistEvent): event is BankheistEvent {

@@ -19,3 +19,5 @@ secret.config.json
 *.crt
 *.key
 *.org
+*/package-lock.json
+*/yarn.lock

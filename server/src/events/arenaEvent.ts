@@ -5,6 +5,7 @@ import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
 import { Lang } from "../lang";
+import { PointLogType } from "../models/pointLog";
 
 /**
  * Detailed description of an arena (tournament) event: http://wiki.deepbot.tv/arena
@@ -29,7 +30,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         initiatingUser: IUser,
         wager: number
     ) {
-        super(twitchService, userService, ArenaParticipationPeriod, ArenaCooldownPeriod);
+        super(twitchService, userService, ArenaParticipationPeriod, ArenaCooldownPeriod, PointLogType.Arena);
 
         this.wager = wager;
         this.initiatingUser = initiatingUser;
@@ -89,7 +90,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         winners[2].points = Math.floor(totalPoints * 0.15);
 
         for (const winner of winners) {
-            this.userService.changeUserPoints(winner.user, winner.points);
+            this.userService.changeUserPoints(winner.user, winner.points, this.pointLogType);
         }
 
         // Number of wins needed to be first place should be log2(n). This is only an approximation

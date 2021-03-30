@@ -3,9 +3,10 @@ import { Image } from "react-bootstrap";
 import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress, Paper } from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import IconButton from "@material-ui/core/IconButton";
-import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import AddIcon from '@material-ui/icons/Add';
+import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
+import OpenInNewIcon from "@material-ui/icons/OpenInNew";
+import AddIcon from "@material-ui/icons/Add";
+import VerticalAlignTopIcon from "@material-ui/icons/VerticalAlignTop";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
@@ -42,7 +43,7 @@ export enum SongSource {
 const PreviewCell: React.FC<any> = (value) => {
     return (
         <div className="Pog2">
-            <a href={value.previewData.linkUrl}>
+            <a href={value.previewData.linkUrl} target="_blank">
                 <Image style={{ maxHeight: "100px" }} src={value.previewData.previewUrl} thumbnail />
             </a>
         </div>
@@ -79,22 +80,11 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     );
 };
 
-const RequesterStatusCell: React.FC<any> = (value: Song) => {
+const RequestTimeCell: React.FC<any> = (value: Song) => {
     return (
-        <Grid>
-            <Typography component="div" style={{ marginBottom: 20 }}>
-                Status
-                <Box fontStyle="italic" fontSize={14}>
-                    {value?.requesterStatus?.viewerStatus}
-                </Box>
-            </Typography>
-            <Typography component="div">
-                VIP Status
-                <Box fontStyle="italic" fontSize={14}>
-                    {value?.requesterStatus?.vipStatus}
-                </Box>
-            </Typography>
-        </Grid>
+        <Typography>
+            {moment(value?.requestTime).format("HH:mm")}
+        </Typography>
     );
 };
 
@@ -118,6 +108,7 @@ interface Song {
         vipStatus: string;
     };
     requestSource: string;
+    requestTime: number;
 }
 
 interface OwnRequest {
@@ -164,17 +155,27 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             return state.filter((_, i) => i !== songIndex);
         });
 
+    const moveSongToTop = (song: Song) =>
+        setSongs((state: Song[]) => {
+            const songIndex = state.indexOf(song);
+            const newState = [...state];
+            newState.splice(songIndex, 1);
+            newState.splice(0, 0, song);
+            return newState;
+        });
+
     const onSongAdded = useCallback((message: ISocketMessage) => {
         if (message.data && message.data.details && message.data.sourceId) {
             message.data.details.sourceId = message.data.sourceId;
         }
-        console.log(`song added`);
         addSong(message.data);
     }, []);
 
     useEffect(() => {
         axios.get("/api/songs").then((response) => {
-            setSongs(response.data);
+            // Returned array might have gaps in index, these will be filled with null objects here.
+            // We don't want that, so filter.
+            setSongs(response.data.filter((obj: Song, i: number) => obj !== null));
         });
     }, []);
 
@@ -192,24 +193,26 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         if (!websocket.current) {
             return;
         }
-        console.log(`songqueue websocket connected`);
-
         websocket.current.onMessage(SocketMessageType.SongAdded, onSongAdded);
     }, [onSongAdded]);
 
     const onSongDeleted = (rowsDeleted: Song[]) => {
-        axios.post("api/songs/delete", { songs: rowsDeleted }).then((response) => {
-            //
+        axios.post("/api/songs/delete", { songs: rowsDeleted }).then(() => {
+            rowsDeleted.forEach((song: Song) => deleteSong(song));
         });
+    };
 
-        rowsDeleted.forEach((song: Song) => deleteSong(song));
+    const onSongMovedToTop = (rowsMoved: Song[]) => {
+        axios.post("/api/songs/movetotop", { songs: rowsMoved }).then(() => {
+                rowsMoved.forEach((song: Song) => moveSongToTop(song));
+        });
     };
 
     const submitSongRequest = async () => {
         try {
             setSongRequestState({state: "progress"});
 
-            const result = await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: 'Bot UI' },
+            const result = await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: "Bot UI" },
                     { validateStatus: function(status) {  return true; }});
             if (result.status === 200) {
                 setSongRequestState({state: "success"});
@@ -238,18 +241,19 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     };
 
     // Don't allow selecting songs for deletion without permission.
-    let tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 3 };
+    const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5 };
     let tableActions: Action<Song>[] = [];
     if (user.userLevelKey >= UserLevels.Moderator) {
-        tableOptions = {
-            ...tableOptions,
-            selection: true
-        }
-
-        tableActions = [ {
-              tooltip: "Remove all",
-              icon: "delete",
-              onClick: (evt, data) => (data as Song[]).length ? onSongDeleted(data as Song[]) : onSongDeleted([ data as Song ])
+        tableActions = [
+            {
+                icon: VerticalAlignTopIcon,
+                tooltip: "Move to top",
+                onClick: (event, data) => (data as Song[]).length ? onSongMovedToTop(data as Song[]) : onSongMovedToTop([ data as Song ])
+            },
+            {
+                tooltip: "Remove",
+                icon: "delete",
+                onClick: (evt, data) => (data as Song[]).length ? onSongDeleted(data as Song[]) : onSongDeleted([ data as Song ])
             }
         ];
     }
@@ -308,12 +312,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     // Display only for known users, we can't indentify requests otherwise.
     const ownSongQueue = !user.username ? undefined :
         <Box mb={1}>
-            <Typography variant="h5">
-                Your requests
-            </Typography>
             {(ownSongs.length === 0)
-             ? <Typography>No song requests made.</Typography>
-             : <div className={classes.root}>
+             ? undefined
+             : <Box>
+                <Typography variant="h5">
+                    Your requests
+                </Typography>
+                <div className={classes.root}>
                    <GridList cellHeight={140} cols={3} className={classes.gridList}>
                        {ownSongs.map((tile) => (
                            <GridListTile key={tile.song.previewData.previewUrl}>
@@ -322,7 +327,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                                    title={tile.song.details.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
-                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon}>
+                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon} target="_blank">
                                            <OpenInNewIcon />
                                        </IconButton>
                                    }
@@ -330,7 +335,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                            </GridListTile>
                        ))}
                    </GridList>
-               </div>
+                </div>
+               </Box>
             }
             {addSongrequestsForm}
             <Divider />
@@ -344,34 +350,39 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 columns = {[
                     {
                         title: "Preview",
-                        field: "previewData.previewUrl", 
+                        field: "previewData.previewUrl",
                         filtering: false,
-                        render: rowData => PreviewCell(rowData)
+                        render: rowData => PreviewCell(rowData),
+                        sorting: false
                     },
                     {
                         title: "Song Title",
                         field: "details.title",
-                        render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong})
+                        render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
+                        sorting: false
                     },
                     {
                          title: "Requested By",
                          field: "requestedBy",
-                         align: "left"
+                         align: "left",
+                         sorting: false
                     },
                     {
-                        title: "Requester Status",
-                        field: "requesterStatus.viewerStatus",
-                        render: rowData => RequesterStatusCell(rowData)
+                        title: "Request time",
+                        field: "requestTime",
+                        render: rowData => RequestTimeCell(rowData),
+                        sorting: false
                     },
                     {
                         title: "Requested With",
-                        field: "requestSource"
+                        field: "requestSource",
+                        sorting: false
                     }
                 ]}
                 options = {tableOptions}
                 data = {songs}
                 components={{
-                    Container: props => <Paper {...props} elevation={0}/>
+                    Container: p => <Paper {...p} elevation={0}/>
                 }}
                 actions={tableActions}
             />

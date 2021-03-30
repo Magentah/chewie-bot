@@ -2,6 +2,7 @@ import { inject } from "inversify";
 import TwitchService from "../services/twitchService";
 import UserService from "../services/userService";
 import { EventParticipant } from "./eventParticipant";
+import { PointLogType } from "./pointLog";
 import IUser from "./user";
 
 export enum EventState {
@@ -22,6 +23,8 @@ export enum EventState {
 }
 
 export default abstract class ParticipationEvent<T extends EventParticipant> {
+    protected readonly pointLogType: PointLogType;
+
     /**
      * Specifies if the event is currently open (gathering participants).
      */
@@ -31,6 +34,7 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
      * List of users participating in the event.
      */
     public participants: T[] = [];
+    public participantUsernames: string[] = [];
 
     /**
      * Amount of time in ms for how long participants are being allowed to enter the event.
@@ -46,10 +50,12 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
         @inject(TwitchService) protected twitchService: TwitchService,
         @inject(UserService) protected userService: UserService,
         initialParticipationPeriod: number,
-        cooldownPeriod: number
+        cooldownPeriod: number,
+        pointLogType: PointLogType
     ) {
         this.initialParticipationPeriod = initialParticipationPeriod;
         this.cooldownPeriod = cooldownPeriod;
+        this.pointLogType = pointLogType;
     }
 
     public validatePoints(user: IUser, channel: string, wager: number): boolean {
@@ -60,10 +66,7 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
 
         // Check if initiating user has enough points.
         if (user.points < wager) {
-            this.twitchService.sendMessage(
-                channel,
-                user.username + ", you do not have enough chews to wager that much!"
-            );
+            this.twitchService.sendMessage(channel, user.username + ", you do not have enough chews to wager that much!");
             return false;
         }
 
@@ -93,19 +96,21 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
      * @param participant Participant to add
      * @returns true if the user has been added, false if the user is already enlisted.
      */
-    public addParticipant(participant: T, deductPoints: boolean): boolean {
+    public async addParticipant(participant: T, deductPoints: boolean): Promise<boolean> {
         for (const p of this.participants) {
             if (p.user.username.toLowerCase() === participant.user.username.toLowerCase()) {
                 return false;
             }
         }
 
+        this.participantUsernames.push(participant.user.username);
+        this.participants.push(participant);
+
         if (deductPoints) {
             // Deduct all points used for the bet so that the points cannot be spent otherwise meanwhile.
-            this.userService.changeUserPoints(participant.user, -participant.points);
+            await this.userService.changeUserPoints(participant.user, -participant.points, this.pointLogType);
         }
 
-        this.participants.push(participant);
         return true;
     }
 

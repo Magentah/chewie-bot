@@ -1,5 +1,5 @@
 import { Command } from "../../command";
-import { TwitchService, UserService } from "../../../services";
+import { TwitchService, UserService, EventLogService } from "../../../services";
 import { IUser } from "../../../models";
 import DuelEvent from "../../../events/duelEvent";
 import { EventService } from "../../../services/eventService";
@@ -12,18 +12,18 @@ import { Lang } from "../../../lang";
  * For further details see duelEvent.ts
  */
 export default class DuelCommand extends Command {
-    private twitchService: TwitchService;
     private userService: UserService;
     private eventService: EventService;
+    private eventLogService: EventLogService;
 
     constructor() {
         super();
-        this.twitchService = BotContainer.get(TwitchService);
         this.userService = BotContainer.get(UserService);
         this.eventService = BotContainer.get(EventService);
+        this.eventLogService = BotContainer.get(EventLogService);
     }
 
-    public async execute(channel: string, user: IUser, usernameOrWager: string, wager: number): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, usernameOrWager: string, wager: number): Promise<void> {
         let target;
         let wagerValue;
 
@@ -55,14 +55,7 @@ export default class DuelCommand extends Command {
             }
         }
 
-        const duel = new DuelEvent(
-            this.twitchService,
-            this.userService,
-            this.eventService,
-            user,
-            targetUser,
-            wagerValue
-        );
+        const duel = new DuelEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, user, targetUser, wagerValue);
         duel.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         // If target user known, check if he can accept at all (check number of chews)

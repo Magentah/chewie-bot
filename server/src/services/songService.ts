@@ -1,20 +1,23 @@
 import { inject, injectable } from "inversify";
+import moment = require("moment");
 import { InvalidSongUrlError, SongAlreadyInQueueError } from "../errors";
 import { Logger, LogType } from "../logger";
 import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";
 import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
+import { EventLogService } from "./eventLogService";
 
 @injectable()
 export class SongService {
-    private songQueue: { [key: number]: ISong } = {};
+    private songQueue: ISong[] = [];
     private nextSongId: number = 1;
 
     constructor(
         @inject(YoutubeService) private youtubeService: YoutubeService,
         @inject(SpotifyService) private spotifyService: SpotifyService,
-        @inject(WebsocketService) private websocketService: WebsocketService
+        @inject(WebsocketService) private websocketService: WebsocketService,
+        @inject(EventLogService) private eventLogService: EventLogService
     ) {
         //
     }
@@ -69,12 +72,14 @@ export class SongService {
                         title: songDetails.snippet.title,
                         duration: this.youtubeService.getSongDuration(songDetails),
                         sourceId: song.sourceId,
-                        source: song.source
+                        source: song.source,
                     };
                     song.previewData = {
                         linkUrl: song.sourceUrl,
-                        previewUrl: this.youtubeService.getSongPreviewUrl(songDetails)
+                        previewUrl: this.youtubeService.getSongPreviewUrl(songDetails),
                     };
+                } else {
+                    throw new InvalidSongUrlError("Song details could not be loaded.");
                 }
                 break;
             }
@@ -85,12 +90,14 @@ export class SongService {
                         title: songDetails.name,
                         duration: this.spotifyService.getSongDuration(songDetails),
                         sourceId: song.sourceId,
-                        source: song.source
+                        source: song.source,
                     };
                     song.previewData = {
                         linkUrl: song.sourceUrl,
-                        previewUrl: this.spotifyService.getSongPreviewUrl(songDetails)
+                        previewUrl: this.spotifyService.getSongPreviewUrl(songDetails),
                     };
+                } else {
+                    throw new InvalidSongUrlError("Song details could not be loaded.");
                 }
                 break;
             }
@@ -107,7 +114,7 @@ export class SongService {
     public async addSong(url: string, requestSource: RequestSource, username: string): Promise<ISong> {
         try {
             let song = this.parseUrl(url);
-            
+
             const existingSong = Object.values(this.songQueue).filter((s) => {
                 return s.sourceId === song.sourceId && s.source === song.source;
             })[0];
@@ -117,11 +124,22 @@ export class SongService {
             }
 
             song = await this.getSongDetails(song);
-            this.songQueue[song.id] = song;
+            this.songQueue.push(song);
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;
             song.requestSource = requestSource;
+            song.requestTime = moment.now();
 
+            this.eventLogService.addSongRequest(username, {
+                message: "Song was requested.",
+                song: {
+                    title: song.details.title,
+                    requestedBy: song.requestedBy,
+                    requestSource: song.requestSource,
+                    songSource: song.source,
+                    url,
+                },
+            });
             this.websocketService.send({
                 type: SocketMessageType.SongAdded,
                 message: "Song Added",
@@ -147,17 +165,33 @@ export class SongService {
     public songPlayed(song: ISong | number): void;
     public songPlayed(song: any): void {
         if (typeof song === "number") {
-            if (Object.keys(this.songQueue).includes(song.toString())) {
-                this.songQueue[song].beenPlayed = true;
+            const songToChange = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
+            if (songToChange) {
+                const songIndex = this.songQueue.indexOf(songToChange);
+                this.songQueue[songIndex].beenPlayed = true;
+                this.eventLogService.addSongPlayed(this.songQueue[songIndex].requestedBy, {
+                    message: "Song has been played.",
+                    song: {
+                        title: this.songQueue[songIndex].details.title,
+                    },
+                });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
-                    data: this.songQueue[song],
+                    data: this.songQueue[songIndex],
                 });
             }
         } else if (typeof song === "object" && song.type === "isong") {
-            if (Object.keys(this.songQueue).includes(song.id.toString())) {
-                this.songQueue[song.id].beenPlayed = true;
+            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
+            if (songData) {
+                const songIndex = this.songQueue.indexOf(songData);
+                this.songQueue[songIndex].beenPlayed = true;
+                this.eventLogService.addSongPlayed(song.requestedBy, {
+                    message: "Song has been played.",
+                    song: {
+                        title: song.details.title,
+                    },
+                });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
@@ -166,6 +200,41 @@ export class SongService {
             }
         }
     }
+
+    /**
+     * Moves a song to the top of the song queue.
+     * @param song The song or song id to remove.
+     */
+     public moveSongToTop(song: ISong | number): void;
+     public moveSongToTop(song: any): void {
+         if (typeof song === "number") {
+            const songToMove = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
+            if (songToMove) {
+                const songIndex = this.songQueue.indexOf(songToMove);
+                this.songQueue.splice(songIndex, 1);
+                this.songQueue.splice(0, 0, songToMove);
+
+                this.websocketService.send({
+                    type: SocketMessageType.SongMovedToTop,
+                    message: "Song moved to top",
+                    data: songToMove,
+                });
+            }
+         } else if (this.isSong(song)) {
+            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
+            if (songData) {
+                 const index = this.songQueue.indexOf(songData);
+                 this.songQueue.splice(index, 1);
+                 this.songQueue.splice(0, 0, song);
+
+                 this.websocketService.send({
+                    type: SocketMessageType.SongMovedToTop,
+                    message: "Song moved to top",
+                    data: song,
+                });
+             }
+         }
+     }
 
     /**
      * Remove a song from the song queue.
@@ -174,36 +243,45 @@ export class SongService {
     public removeSong(song: ISong | number): void;
     public removeSong(song: any): void {
         if (typeof song === "number") {
-            if (Object.keys(this.songQueue).includes(song.toString())) {
+            const songToDelete = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
+            if (songToDelete) {
+                const songIndex = this.songQueue.indexOf(songToDelete);
+                const songData = this.songQueue[songIndex];
+                this.songQueue.splice(songIndex, 1);
+
+                this.eventLogService.addSongRemoved(songData.requestedBy, {
+                    message: "Song has been removed from request queue.",
+                    song: {
+                        title: songData.details.title,
+                        requestedBy: songData.requestedBy,
+                    },
+                });
+
                 this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
-                    data: this.songQueue[song],
+                    data: songData,
                 });
-                delete this.songQueue[song];
             }
         } else if (this.isSong(song)) {
-            if (Object.keys(this.songQueue).includes(song.id.toString())) {
+            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
+            if (songData) {
+                const index = this.songQueue.indexOf(songData);
+                this.songQueue.splice(index, 1);
+
+                this.eventLogService.addSongRemoved(song.requestedBy, {
+                    message: "Song has been removed from request queue.",
+                    song: {
+                        title: song.details.title,
+                        requestedBy: song.requestedBy,
+                    },
+                });
                 this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
                     data: song,
                 });
-                delete this.songQueue[song.id];
             }
-        }
-    }
-
-    /**
-     * Remove all songs for a specific user.
-     * @param username The user to remove songs for.
-     */
-    public removeSongForUser(username: string): void {
-        const userSongs = this.getSongsByUsername(username);
-        if (userSongs.length > 0) {
-            userSongs.forEach((song) => {
-                this.removeSong(song);
-            });
         }
     }
 
@@ -211,7 +289,7 @@ export class SongService {
      * Get the list of songs in the song queue.
      */
     public getSongQueue(): ISong[] {
-        return Object.values(this.songQueue);
+        return this.songQueue;
     }
 
     /**

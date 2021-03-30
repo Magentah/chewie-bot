@@ -10,6 +10,7 @@ export default interface IUser {
     refreshToken?: string;
     points: number;
     vipExpiry?: Date;
+    vipLastRequest?: Date;
     vipLevelKey?: number;
     vipLevel?: IVIPLevel;
     userLevelKey?: number;
@@ -21,4 +22,6 @@ export default interface IUser {
     spotifyRefresh?: string;
     twitchProfileKey?: number;
     twitchUserProfile?: ITwitchUserProfile;
+    dropboxAccessToken?: string;
+    dropboxRefreshToken?: string;
 }

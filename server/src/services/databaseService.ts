@@ -2,7 +2,8 @@ import { injectable } from "inversify";
 import { Knex, knex } from "knex";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
-import { IBotSettings, IUser } from "../models";
+import { IUser } from "../models";
+import { BotSettings } from "./botSettingsService";
 
 export enum DatabaseTables {
     Users = "users",
@@ -17,6 +18,9 @@ export enum DatabaseTables {
     Songlist = "songlist",
     TwitchUserProfile = "twitchUserProfile",
     DiscordSettings = "discordSettings",
+    EventLogs = "eventLogs",
+    PointLogs = "pointLogs",
+    Messages = "messages",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -82,6 +86,9 @@ export class DatabaseService {
                 await this.createBotSettingsTable();
                 await this.createSonglistTable();
                 await this.createDiscordSettingTable();
+                await this.createEventLogsTable();
+                await this.createPointLogsTable();
+                await this.createMessagesTable();
                 await this.populateDatabase();
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -153,6 +160,7 @@ export class DatabaseService {
             table.string("idToken");
             table.decimal("points").notNullable();
             table.dateTime("vipExpiry");
+            table.dateTime("vipLastRequest");
             table.boolean("hasLogin").notNullable();
             table.string("streamlabsToken");
             table.string("streamlabsSocketToken");
@@ -160,6 +168,8 @@ export class DatabaseService {
             table.string("spotifyRefresh");
             table.integer("twitchProfileKey").unsigned();
             table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
+            table.string("dropboxAccessToken");
+            table.string("dropboxRefreshToken");
         });
     }
 
@@ -205,8 +215,8 @@ export class DatabaseService {
     private async createBotSettingsTable(): Promise<void> {
         return this.createTable(DatabaseTables.BotSettings, (table) => {
             table.increments("id").primary().notNullable();
-            table.string("username").unique().notNullable();
-            table.string("oauth").notNullable();
+            table.string("key").unique().notNullable();
+            table.string("value").notNullable();
         });
     }
 
@@ -217,6 +227,37 @@ export class DatabaseService {
             table.string("title").notNullable();
             table.string("genre").notNullable();
             table.dateTime("created").notNullable();
+        });
+    }
+
+    private async createEventLogsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.EventLogs, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("type").notNullable();
+            table.string("username").notNullable();
+            table.json("data").notNullable();
+            table.dateTime("time").notNullable();
+        });
+    }
+
+    private async createPointLogsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.PointLogs, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("eventType").notNullable();
+            table.string("username").notNullable();
+            table.integer("pointsBefore").notNullable();
+            table.integer("points").notNullable();
+            table.dateTime("time").notNullable();
+        });
+    }
+                           
+      
+    private async createMessagesTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Messages, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("type").notNullable();
+            table.string("text").notNullable();
+            table.string("eventType").notNullable();
         });
     }
 
@@ -283,12 +324,16 @@ export class DatabaseService {
     private async addDefaultBotSettings(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             if (Config.twitch.username && Config.twitch.username.length > 0 && Config.twitch.oauth && Config.twitch.oauth.length > 0) {
-                if (!(await this.db(DatabaseTables.BotSettings).first().where("username", Config.twitch.username))) {
-                    const botSettings: IBotSettings = {
-                        username: Config.twitch.username,
-                        oauth: Config.twitch.oauth,
-                    };
-                    await this.db(DatabaseTables.BotSettings).insert(botSettings);
+                if (!(await this.db(DatabaseTables.BotSettings).first().where("key", BotSettings.BotUsername))) {
+                    await this.db(DatabaseTables.BotSettings).insert({
+                        key: BotSettings.BotUsername,
+                        value: Config.twitch.username,
+                    });
+
+                    await this.db(DatabaseTables.BotSettings).insert({
+                        key: BotSettings.BotUserAuth,
+                        value: Config.twitch.oauth,
+                    });
                 }
             }
 

@@ -20,6 +20,7 @@ enum LogType {
     Spotify = "Spotify",
     Http = "Http",
     Streamlabs = "Streamlabs",
+    Backup = "Backup",
 }
 
 enum LogLevel {
@@ -100,14 +101,14 @@ export class Logger {
             if (this.logger.has(type) && this.logTypeEnabled(type)) {
                 const logger = this.logger.get(type) as Winston.Logger;
                 if (typeof message === "string" || message instanceof String) {
-                    logger.log(level, message as string, { type, ...obj });
+                    logger.log(level, message as string, { type, meta: { ...obj } });
                 } else {
                     const err = message as Error;
                     logger.log(level, err.message, {
                         type,
                         name: err.name,
                         stack: err.stack,
-                        ...obj,
+                        meta: { ...obj },
                     });
                 }
             }
@@ -203,9 +204,7 @@ export class Logger {
                     label({ label: type }),
                     timestamp(),
                     printf((info) => {
-                        return `${info.timestamp} :: ${info.label}/${info.level} :: ${info.message} ${
-                            info.meta ? " :::: " + JSON.stringify(info.meta) : ""
-                        }`;
+                        return `${info.timestamp} :: ${info.label}/${info.level} :: ${info.message} ${info.meta ? " :::: " + JSON.stringify(info.meta) : ""}`;
                     })
                 ),
             }),

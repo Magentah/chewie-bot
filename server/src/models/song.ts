@@ -21,7 +21,8 @@ export interface ISong {
     previewData: {
         previewUrl: string,
         linkUrl: string
-    }
+    },
+    requestTime: number
 }
 
 export enum SongSource {
@@ -35,6 +36,7 @@ export enum RequestSource {
     Subscription = "Subscription",
     Raffle = "Raffle",
     Chat = "Chat",
+    GoldSong = "GoldSong",
 }
 
 export default ISong;

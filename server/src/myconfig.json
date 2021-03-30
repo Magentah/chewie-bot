@@ -29,6 +29,11 @@
         "enabled": false,
         "webhookUrl": ""
     },
+    "dropbox": {
+        "clientId": "",
+        "clientSecret": "",
+        "redirectUri": ""
+    },
     "secretKey": "",
     "log": {
         "levels": "syslog",
@@ -45,7 +50,26 @@
             "server": true,
             "serverinfo": true,
             "websocket": true,
+            "backup": true,
             "streamlabs": true
+        },
+        "enabledEventLogs": {
+            "twitch": {
+                "subs": true
+            },
+            "streamlabs": {
+                "events": true
+            },
+            "song": {
+                "requested": true,
+                "played": true,
+                "removed": true,
+                "gold": true
+            },
+            "event": {
+                "duel": true,
+                "bankheist": true
+            }
         }
     },
     "database": {
@@ -56,6 +80,7 @@
             "host": "",
             "username": "",
             "password": ""
-        }
+        },
+        "backupCronFrequency": "00 16 * * *"
     }
 }

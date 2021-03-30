@@ -5,6 +5,7 @@ import { ResponseStatus } from "../models";
 import { Logger, LogType } from "../logger";
 import { TwitchServiceProvider, BotSettingsService, TwitchEventService, StreamlabsService } from "../services";
 import { ITwitchProfile } from "../strategy/twitchStrategy";
+import { BotSettings } from "../services/botSettingsService";
 
 enum TwitchEventMessageType {
     Verification,
@@ -20,29 +21,8 @@ class TwitchController {
         @inject(TwitchEventService) private twitchEventService: TwitchEventService,
         @inject(StreamlabsService) private streamlabsService: StreamlabsService
     ) {
-        //
+        // Empty
     }
-
-    public async joinChannel(req: Request, res: Response): Promise<void> {
-        try {
-            const twitchService = await this.twitchProvider();
-            twitchService.joinChannel(`#${req.params.channel}`);
-            res.sendStatus(StatusCodes.OK);
-        } catch (error) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
-        }
-    }
-
-    public async leaveChannel(req: Request, res: Response): Promise<void> {
-        try {
-            const twitchService = await this.twitchProvider();
-            twitchService.leaveChannel(`#${req.params.channel}`);
-            res.sendStatus(StatusCodes.OK);
-        } catch (error) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(error);
-        }
-    }
-
     public async getStatus(req: Request, res: Response): Promise<void> {
         const twitchService = await this.twitchProvider();
         res.status(StatusCodes.OK).send(twitchService.getStatus());
@@ -58,7 +38,7 @@ class TwitchController {
             // startup if there's a token for the configured broadcaster? Not sure.
             if (req.user) {
                 const user: ITwitchProfile = req.user as ITwitchProfile;
-                await this.streamlabsService.connectOnStartup(user);
+                await this.streamlabsService.connectOnStartup(user.username);
             }
 
             res.sendStatus(StatusCodes.OK);
@@ -79,15 +59,20 @@ class TwitchController {
     }
 
     public async getBotSettings(req: Request, res: Response): Promise<void> {
-        const settings = await this.botSettingsService.getSettings();
-        res.status(StatusCodes.OK).send(settings);
+        const user = await this.botSettingsService.getSettings(BotSettings.BotUsername);
+        const auth = await this.botSettingsService.getSettings(BotSettings.BotUserAuth);
+        res.status(StatusCodes.OK).send({username: user.value, oauth: auth.value});
     }
 
     public async saveBotSettings(req: Request, res: Response): Promise<void> {
         try {
             await this.botSettingsService.addOrUpdateSettings({
-                username: req.body.username,
-                oauth: req.body.oauth,
+                key: BotSettings.BotUsername,
+                value: req.body.username,
+            });
+            await this.botSettingsService.addOrUpdateSettings({
+                key: BotSettings.BotUserAuth,
+                value: req.body.oauth,
             });
             const twitchService = await this.twitchProvider();
             const result = await twitchService.initialize();

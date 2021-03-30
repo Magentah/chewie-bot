@@ -2,10 +2,14 @@ import { injectable, inject } from "inversify";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList } from "../models";
+import EventLogService from "./eventLogService";
+import * as Config from "../config.json";
+import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export class UserService {
-    constructor(@inject(UsersRepository) private users: UsersRepository) {
+    constructor(@inject(UsersRepository) private users: UsersRepository,
+                @inject(EventLogService) private eventLog: EventLogService) {
         // Empty
     }
 
@@ -29,7 +33,7 @@ export class UserService {
 
         await this.users.add(newUser);
 
-        return await this.getUser(newUser.username) as IUser;
+        return (await this.getUser(newUser.username)) as IUser;
     }
 
     /**
@@ -48,9 +52,9 @@ export class UserService {
      * @param {IUser} user The user object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUserPoints(user: IUser, points: number): Promise<void> {
+    public async changeUserPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
         user.points += points;
-        await this.users.incrementPoints(user, points);
+        await this.users.incrementPoints(user, points, eventType);
     }
 
     /**
@@ -58,22 +62,46 @@ export class UserService {
      * @param {IUser} users The users object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUsersPoints(users: IUser[], points: number): Promise<void> {
+    public async changeUsersPoints(users: IUser[], points: number, eventType: PointLogType): Promise<void> {
         // TODO: Make actual batch updates through the UsersRepository.
         for (const user of users) {
             user.points += points;
-            await this.users.incrementPoints(user, points);
+            await this.users.incrementPoints(user, points, eventType);
         }
+    }
+
+    /**
+     * Adds a specified number of VIP gold months to a user.
+     * @param user user to update
+     * @param goldMonths Months to add (can also be 0.5 for T3 subs)
+     */
+    public async addVipGoldMonths(user: IUser, goldMonths: number) {
+        let vipStartDate = new Date(new Date().toDateString());
+
+        // If VIP status still active, renew starting at the VIP end date
+        if (user.vipExpiry && user.vipExpiry >= vipStartDate) {
+            // Start next day after expiry because expiration date is inclusive.
+            vipStartDate = user.vipExpiry;
+            vipStartDate.setDate(user.vipExpiry.getDate() + 1);
+        }
+
+        // Add 4 weeks.
+        vipStartDate.setDate(vipStartDate.getDate() + goldMonths * 4 * 7 - 1);
+        user.vipExpiry = vipStartDate;
+
+        await this.users.updateVipExpiry(user);
+
+        this.eventLog.addVipGoldAdded(user.username, { monthsAdded: goldMonths, newExpiry: user.vipExpiry });
     }
 
     /**
      * Add users from the chatlist to the database if they do not already exist.
      * @param {ITwitchChatList} chatList A ITwitchChatList object containing the chatlist for a channel.
      */
-    public async addUsersFromChatList(chatList: ITwitchChatList): Promise<void> {
+    public addUsersFromChatList(chatList: ITwitchChatList, userFilter: string | undefined): boolean {
         // Create a single array of all usernames combined from the various usertypes on the twitch chat list type
         if (!chatList.chatters) {
-            return;
+            return false;
         }
         const combinedChatList = Object.keys(chatList.chatters).reduce((chatterList, key) => {
             const chatters = (chatList.chatters as any)[key] as string[];
@@ -83,9 +111,15 @@ export class UserService {
             return chatterList;
         }, Array<string>());
 
+        let added = false;
         combinedChatList.forEach((val) => {
-            this.addUser(val);
+            if (!userFilter || val === userFilter) {
+                this.addUser(val);
+                added = true;
+            }
         });
+
+        return added;
     }
 
     /**
@@ -94,6 +128,10 @@ export class UserService {
      */
     public async getUser(username: string): Promise<IUser | undefined> {
         return await this.users.get(username);
+    }
+
+    public async getBroadcaster(): Promise<IUser | undefined> {
+        return await this.users.get(Config.twitch.broadcasterName);
     }
 
     public async getUserPrincipal(username: string, providerType: ProviderType): Promise<IUserPrincipal | undefined> {

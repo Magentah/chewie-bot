@@ -4,12 +4,13 @@ import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Card, CardContent, Typography } from "@material-ui/core";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Lens as DefaultIcon } from "@material-ui/icons";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
 import MusicRequestView from "./views/music-requests/MusicRequestView";
 import SongList from "./components/songlist/songlist";
+import MessageList from "./components/messages/messagelist";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
 import Login from "./views/login/Login";
@@ -33,7 +34,7 @@ const DefaultComponent: React.FC<{}> = (props) => {
 };
 
 // Routes to be rendered from the SideBar
-const DashboardRoutes: Array<Route> = [
+const DashboardRoutes: Route[] = [
     {
         path: "/",
         name: "Home",
@@ -67,7 +68,14 @@ const DashboardRoutes: Array<Route> = [
         name: "Bot Settings",
         icon: Build,
         component: TwitchCard,
-        minUserLevel: UserLevels.Moderator
+        minUserLevel: UserLevels.Broadcaster
+    },
+    {
+        path: "/messages",
+        name: "Messages",
+        icon: Message,
+        component: MessageList,
+        minUserLevel: UserLevels.Broadcaster
     },
     {
         path: "/users",

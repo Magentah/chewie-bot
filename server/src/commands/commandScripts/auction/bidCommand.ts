@@ -13,17 +13,15 @@ import { Lang } from "../../../lang";
  * For further details see auctionEvent.ts
  */
 export default class BidCommand extends Command {
-    private twitchService: TwitchService;
     private eventService: EventService;
 
     constructor() {
         super();
 
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
     }
 
-    public async execute(channel: string, user: IUser, bid: number): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, bid: number): Promise<void> {
         // Auction in progress? Join existing event.
         for (const auctionInProgress of this.eventService.getEvents<AuctionEvent>()) {
             if (auctionInProgress.state === EventState.Open) {
@@ -34,7 +32,7 @@ export default class BidCommand extends Command {
                     return;
                 }
 
-                if (!auctionInProgress.addParticipant(new EventParticipant(user, bid), true)) {
+                if (!await auctionInProgress.addParticipant(new EventParticipant(user, bid), true)) {
                     this.twitchService.sendMessage(
                         channel,
                         Lang.get("auction.bidtoolow", user.username, auctionInProgress.getHighestBidAmount())

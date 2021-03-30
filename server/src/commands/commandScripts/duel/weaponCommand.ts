@@ -9,16 +9,14 @@ import { BotContainer } from "../../../inversify.config";
 import { Lang } from "../../../lang";
 
 export default class WeaponCommand extends Command {
-    private twitchService: TwitchService;
     private eventService: EventService;
 
     constructor() {
         super();
-        this.twitchService = BotContainer.get(TwitchService);
         this.eventService = BotContainer.get(EventService);
     }
 
-    public async execute(channel: string, user: IUser, weapon: string): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, weapon: string): Promise<void> {
         if (!weapon) {
             return;
         }
@@ -61,9 +59,9 @@ export default class WeaponCommand extends Command {
 
     public getAliases(): ICommandAlias[] {
         return [
-            { alias: "rock", commandArguments: DuelWeapon.Rock, commandName: "weapon" },
-            { alias: "paper", commandArguments: DuelWeapon.Paper, commandName: "weapon" },
-            { alias: "scissors", commandArguments: DuelWeapon.Scissors, commandName: "weapon" },
+            { alias: "rock", commandArguments: [DuelWeapon.Rock], commandName: "weapon" },
+            { alias: "paper", commandArguments: [DuelWeapon.Paper], commandName: "weapon" },
+            { alias: "scissors", commandArguments: [DuelWeapon.Scissors], commandName: "weapon" },
         ];
     }
 }

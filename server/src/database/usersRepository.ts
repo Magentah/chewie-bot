@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
+import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
-import { Logger, LogType } from "../logger";
 import { IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
@@ -26,6 +26,7 @@ export class UsersRepository {
             .first([
                 "vipLevels.name as vipLevel",
                 "userLevels.name as userLevel",
+                "userLevels.rank as rank",
                 "twitchUserProfile.id as profileId",
                 "twitchUserProfile.displayName as profileDisplayName",
                 "twitchUserProfile.profileImageUrl as profileImageUrl",
@@ -41,23 +42,36 @@ export class UsersRepository {
     }
 
     /**
-     * Updates user data in the database if the user already exists.
+     * Increments or decrements the number of points for a user.
      * @param user Updated user
      * @param points Number of points to add or remove (if negative)
      */
-    public async incrementPoints(user: IUser, points: number): Promise<void> {
+    public async incrementPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
         const databaseService = await this.databaseProvider();
-
         await databaseService
             .getQueryBuilder(DatabaseTables.Users)
             .increment("points", points)
-            .whereExists((q) => {
-                return q.select().from(DatabaseTables.Users).where({ id: user.id });
-            });
+            .where({ id: user.id });
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.PointLogs)
+            .insert({ eventType, username: user.username, pointsBefore: user.points - points, points, time: new Date() });
     }
 
     /**
-     * Increments or decrements the number of points for a user.
+     * Updates a user's VIP expiry date.
+     * @param user user with new expiration date
+     */
+    public async updateVipExpiry(user: IUser) {
+        const databaseService = await this.databaseProvider();
+        await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .update( { vipExpiry: user.vipExpiry })
+            .where({ id: user.id });
+    }
+
+    /**
+     * Updates user data in the database if the user already exists.
      * @param user Updated user
      */
     public async update(user: IUser): Promise<void> {
@@ -70,16 +84,17 @@ export class UsersRepository {
         delete userData.vipLevel;
         delete userData.twitchUserProfile;
 
-        await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .update(userData)
-            .whereExists((q) => {
-                if (user.id) {
-                    return q.select().from(DatabaseTables.Users).where({ id: user.id });
-                } else {
-                    return q.select().from(DatabaseTables.Users).where({ username: user.username });
-                }
-            });
+        if (user.id) {
+            await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .update(userData)
+                .where({ id: user.id });
+        } else {
+            await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .update(userData)
+                .where({ username: user.username });;
+        }
     }
 
     /**
@@ -139,11 +154,14 @@ export class UsersRepository {
             streamlabsToken: userResult.streamlabsToken,
             streamlabsSocketToken: userResult.streamlabsSocketToken,
             twitchProfileKey: userResult.twitchProfileKey,
-            userLevel: userResult.userLevel,
+            userLevel: { id: userResult.userLevelKey, name: userResult.userLevel, rank: userResult.rank },
             vipLevel: userResult.vipLevel,
-            vipExpiry: userResult.vipExpiry,
+            vipExpiry: userResult.vipExpiry ? new Date(userResult.vipExpiry) : undefined,
+            vipLastRequest: userResult.vipLastRequest ? new Date(userResult.vipLastRequest) : undefined,
             userLevelKey: userResult.userLevelKey,
             vipLevelKey: userResult.vipLevelKey,
+            dropboxAccessToken: userResult.dropboxAccessToken,
+            dropboxRefreshToken: userResult.dropboxRefreshToken,
             twitchUserProfile: {
                 username: userResult.username,
                 displayName: userResult.profileDisplayName,
@@ -162,6 +180,8 @@ export class UsersRepository {
         userData.spotifyRefresh = CryptoHelper.encryptString(userData.spotifyRefresh);
         userData.streamlabsToken = CryptoHelper.encryptString(userData.streamlabsToken);
         userData.streamlabsRefresh = CryptoHelper.encryptString(userData.streamlabsRefresh);
+        userData.dropboxAccessToken = CryptoHelper.encryptString(userData.dropboxAccessToken);
+        userData.dropboxRefreshToken = CryptoHelper.encryptString(userData.dropboxRefreshToken);
         return userData;
     }
 
@@ -171,6 +191,8 @@ export class UsersRepository {
         user.spotifyRefresh = CryptoHelper.decryptString(user.spotifyRefresh);
         user.streamlabsRefresh = CryptoHelper.decryptString(user.streamlabsRefresh);
         user.streamlabsToken = CryptoHelper.decryptString(user.streamlabsToken);
+        user.dropboxAccessToken = CryptoHelper.decryptString(user.dropboxAccessToken);
+        user.dropboxRefreshToken = CryptoHelper.decryptString(user.dropboxRefreshToken);
         return user;
     }
 }

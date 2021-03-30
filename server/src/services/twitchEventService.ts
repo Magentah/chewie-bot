@@ -7,8 +7,10 @@ import * as moment from "moment";
 import { StatusCodes } from "http-status-codes";
 import { UserService } from "./userService";
 import DiscordService from "./discordService";
+import EventLogService from "./eventLogService";
 import * as EventSub from "../models";
 import { TwitchAuthService } from ".";
+import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export default class TwitchEventService {
@@ -20,7 +22,8 @@ export default class TwitchEventService {
     constructor(
         @inject(UserService) private users: UserService,
         @inject(DiscordService) private discord: DiscordService,
-        @inject(TwitchAuthService) private authService: TwitchAuthService
+        @inject(TwitchAuthService) private authService: TwitchAuthService,
+        @inject(EventLogService) private eventLogService: EventLogService
     ) {
         this.accessToken = {
             token: "",
@@ -76,21 +79,21 @@ export default class TwitchEventService {
      * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELLED.
      * @param notificationEvent
      */
-    private async channelPointsRedeemedUpdateEvent(
-        notificationEvent: EventSub.IRewardRedemeptionUpdateEvent
-    ): Promise<void> {
+    private async channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionUpdateEvent): Promise<void> {
         Logger.info(LogType.TwitchEvents, "Channel Points Redeemed Update", notificationEvent);
         // We only update points if the redemption was fulfilled. If it's cancelled, we don't.
-        if (
-            notificationEvent.status === EventSub.ChannelPointRedemptionStatus.Fulfilled &&
-            this.rewardAddsUserPoints(notificationEvent)
-        ) {
+        if (notificationEvent.status === EventSub.ChannelPointRedemptionStatus.Fulfilled && this.rewardAddsUserPoints(notificationEvent)) {
             let user = await this.users.getUser(notificationEvent.user_login);
             if (!user) {
                 // User hasn't logged in to the bot, or it's their first time interacting with the bot. Need to add as a new user.
                 user = await this.users.addUser(notificationEvent.user_login);
             }
-            this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier);
+            this.eventLogService.addChannelPointRedemption(user.username, {
+                message: `${user.username} has redeemed ${notificationEvent.reward.title} with cost ${notificationEvent.reward.cost}`,
+                event: notificationEvent,
+                pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+            });
+            this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier, PointLogType.PointRewardRedemption);
         }
     }
 
@@ -193,9 +196,7 @@ export default class TwitchEventService {
         const result = await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
     }
 
-    private async createSubscription(
-        data: EventSub.ISubscriptionData
-    ): Promise<EventSub.ISubscriptionResponse | undefined> {
+    private async createSubscription(data: EventSub.ISubscriptionData): Promise<EventSub.ISubscriptionResponse | undefined> {
         const options = await this.getOptions("application/json");
 
         data.transport.secret = this.verificationSecret;
@@ -222,7 +223,7 @@ export default class TwitchEventService {
         const options: AxiosRequestConfig = {
             headers: {
                 "Client-Id": Config.twitch.clientId,
-                "Authorization": `Bearer ${this.accessToken.token}`,
+                Authorization: `Bearer ${this.accessToken.token}`,
             },
         };
 

@@ -81,10 +81,24 @@ class SongController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public removeSong(req: Request, res: Response): void {      
+    public removeSong(req: Request, res: Response): void {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
             this.songService.removeSong(song.id);
+        });
+
+        res.sendStatus(StatusCodes.OK);
+    }
+
+    /**
+     * Push a song from the queue to the top.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public moveSongToTop(req: Request, res: Response): void {
+        const songIds = Array.from<ISong>(req.body.songs);
+        songIds.forEach((song) => {
+            this.songService.moveSongToTop(song.id);
         });
 
         res.sendStatus(StatusCodes.OK);

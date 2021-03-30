@@ -38,7 +38,7 @@ class SonglistController {
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
             return;
         }
-        
+
         try {
             await this.songlistService.update(newSong);
             res.status(StatusCodes.OK);
@@ -66,7 +66,7 @@ class SonglistController {
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
             return;
         }
-        
+
         try {
             await this.songlistService.add(newSong);
             res.status(StatusCodes.OK);

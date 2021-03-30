@@ -26,7 +26,7 @@ const useUser = () => {
 
     const loadUser = () => {
         axios
-        .get("api/isloggedin", {
+        .get("/api/isloggedin", {
             withCredentials: true,
         })
         .then((response: AxiosResponse<any>) => {

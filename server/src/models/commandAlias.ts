@@ -14,5 +14,5 @@ export default interface ICommandAlias {
     /**
      * Arguments to pass to the aliased command.
      */
-    commandArguments?: string;
+    commandArguments?: string[];
 }

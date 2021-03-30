@@ -1,4 +1,3 @@
-//import * as Commands from "../commands/commandScripts";
 import { injectable, inject } from "inversify";
 import { Logger, LogType } from "../logger";
 import { TwitchHelper } from "../helpers";
@@ -20,9 +19,7 @@ export class CommandService {
         @inject("Commands") private commandList: Map<string, Command>,
         @inject(TwitchService) private twitchService: TwitchService
     ) {
-        this.twitchService.setCommandCallback((channel: string, username: string, message: string) =>
-            this.handleMessage(channel, username, message)
-        );
+        this.twitchService.setCommandCallback((channel: string, username: string, message: string) => this.handleMessage(channel, username, message));
     }
 
     /**
@@ -42,13 +39,7 @@ export class CommandService {
             if (commandAlias) {
                 const command = this.commandList.get(commandAlias.commandName);
                 if (commandAlias.commandArguments) {
-                    this.executeCommandInternal(
-                        command,
-                        commandName,
-                        channel,
-                        user,
-                        commandAlias.commandArguments.split(" ")
-                    );
+                    this.executeCommandInternal(command, commandName, channel, user, commandAlias.commandArguments);
                 } else {
                     this.executeCommandInternal(command, commandName, channel, user, args);
                 }
@@ -65,13 +56,7 @@ export class CommandService {
         }
     }
 
-    private executeCommandInternal(
-        command: Command | undefined,
-        commandName: string,
-        channel: string,
-        user: IUser,
-        args: string[]
-    ) {
+    private executeCommandInternal(command: Command | undefined, commandName: string, channel: string, user: IUser, args: string[]) {
         if (command && !command.isInternal()) {
             const aliasArgs = this.getAliasArgs(command, commandName);
             if (aliasArgs) {
@@ -80,9 +65,7 @@ export class CommandService {
                 command.execute(channel, user, ...args);
             }
         } else if (command && command.isInternal()) {
-            throw new CommandInternalError(
-                `The command ${command} is an internal command that has been called through a chat command.`
-            );
+            throw new CommandInternalError(`The command ${command} is an internal command that has been called through a chat command.`);
         } else {
             throw new CommandNotExistError(`The command ${command} doesn't exist.`);
         }
@@ -96,7 +79,7 @@ export class CommandService {
     private getAliasArgs(command: Command, aliasName: string): string[] | undefined {
         for (const alias of command.getAliases()) {
             if (alias.alias === aliasName && alias.commandArguments) {
-                return [alias.commandArguments];
+                return alias.commandArguments;
             }
         }
 
@@ -110,7 +93,17 @@ export class CommandService {
      * @param {string} message The message to parse for a command.
      */
     public async handleMessage(channel: string, username: string, message: string): Promise<void> {
-        const commandName = TwitchHelper.getCommandName(message);
+        let commandName = TwitchHelper.getCommandName(message);
+
+        if (!commandName) {
+            for (const [key, value] of this.commandList) {
+                if (value.shouldExecuteOnMessage(message)) {
+                    commandName = key;
+                    break;
+                }
+            }
+        }
+
         if (commandName) {
             try {
                 const user = await this.users.addUser(username);
