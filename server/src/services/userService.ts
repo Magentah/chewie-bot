@@ -121,7 +121,7 @@ export class UserService {
      * Add users from the chatlist to the database if they do not already exist.
      * @param {ITwitchChatList} chatList A ITwitchChatList object containing the chatlist for a channel.
      */
-    public async addUsersFromChatList(chatList: ITwitchChatList, userFilter: string | undefined): Promise<boolean> {
+    public async addUsersFromChatList(chatList: ITwitchChatList): Promise<boolean> {
         // Create a single array of all usernames combined from the various usertypes on the twitch chat list type
         if (!chatList.chatters) {
             return false;
