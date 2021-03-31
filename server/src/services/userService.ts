@@ -76,6 +76,10 @@ export class UserService {
      * @param goldMonths Months to add (can also be 0.5 for T3 subs)
      */
     public async addVipGoldMonths(user: IUser, goldMonths: number) {
+        if (isNaN(goldMonths)) {
+            throw new RangeError("Invalid number of VIP gold months provided.");
+        }
+
         let vipStartDate = new Date(new Date().toDateString());
 
         // If VIP status still active, renew starting at the VIP end date
