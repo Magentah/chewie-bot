@@ -51,7 +51,7 @@ export class UserService {
                     };
                 }
             );
-            return await (await this.users.addMultiple(newUsers)).length;
+            return (await this.users.addMultiple(newUsers)).length;
         } else if (Array.isArray(users) && typeof users[0] === typeof "IUser") {
             return (await this.users.addMultiple(users as IUser[])).length;
         } else {
