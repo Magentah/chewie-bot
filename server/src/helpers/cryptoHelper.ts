@@ -12,7 +12,7 @@ export class CryptoHelper {
     private static nonceSize: number = 16;
     private static keySize: number = 32;
     private static pbkdf2SaltSize: number = 16;
-    private static pbkdf2Iterations: number = 32767;
+    private static pbkdf2Iterations: number = 4096;
     private static pbkdf2Name: string = "sha256";
 
     public static getSecret(): string {
@@ -33,13 +33,7 @@ export class CryptoHelper {
         }
 
         const salt = Crypto.randomBytes(this.pbkdf2SaltSize);
-        const key = Crypto.pbkdf2Sync(
-            Buffer.from(this.secret, "utf8"),
-            salt,
-            this.pbkdf2Iterations,
-            this.keySize,
-            this.pbkdf2Name
-        );
+        const key = Crypto.pbkdf2Sync(Buffer.from(this.secret, "utf8"), salt, this.pbkdf2Iterations, this.keySize, this.pbkdf2Name);
         const cipherText = Buffer.concat([salt, this.encrypt(Buffer.from(text, "utf8"), key)]);
         return cipherText.toString("base64");
     }
@@ -56,13 +50,7 @@ export class CryptoHelper {
         const cipherTextAndNonceAndSalt = Buffer.from(text, "base64");
         const salt = cipherTextAndNonceAndSalt.slice(0, this.pbkdf2SaltSize);
         const cipherAndNonce = cipherTextAndNonceAndSalt.slice(this.pbkdf2SaltSize);
-        const key = Crypto.pbkdf2Sync(
-            Buffer.from(this.secret, "utf8"),
-            salt,
-            this.pbkdf2Iterations,
-            this.keySize,
-            this.pbkdf2Name
-        );
+        const key = Crypto.pbkdf2Sync(Buffer.from(this.secret, "utf8"), salt, this.pbkdf2Iterations, this.keySize, this.pbkdf2Name);
         return this.decrypt(cipherAndNonce, key).toString("utf8");
     }
 

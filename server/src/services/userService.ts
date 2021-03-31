@@ -5,11 +5,11 @@ import { IUser, ITwitchChatList } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
+import { Logger, LogType } from "../logger";
 
 @injectable()
 export class UserService {
-    constructor(@inject(UsersRepository) private users: UsersRepository,
-                @inject(EventLogService) private eventLog: EventLogService) {
+    constructor(@inject(UsersRepository) private users: UsersRepository, @inject(EventLogService) private eventLog: EventLogService) {
         // Empty
     }
 
@@ -31,9 +31,32 @@ export class UserService {
             newUser = user;
         }
 
-        await this.users.add(newUser);
+        return await this.users.add(newUser);
+    }
 
-        return (await this.getUser(newUser.username)) as IUser;
+    public async addUsers(users: string[] | IUser[]): Promise<Number> {
+        if (users.length === 0) {
+            return 0;
+        }
+
+        if (Array.isArray(users) && typeof users[0] === "string") {
+            var newUsers = users.map(
+                (name: any): IUser => {
+                    return {
+                        username: name,
+                        points: 0,
+                        hasLogin: false,
+                        vipLevelKey: 1,
+                        userLevelKey: 1,
+                    };
+                }
+            );
+            return (await this.users.addMultiple(newUsers)).length;
+        } else if (Array.isArray(users) && typeof users[0] === typeof "IUser") {
+            return (await this.users.addMultiple(users as IUser[])).length;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -98,7 +121,7 @@ export class UserService {
      * Add users from the chatlist to the database if they do not already exist.
      * @param {ITwitchChatList} chatList A ITwitchChatList object containing the chatlist for a channel.
      */
-    public addUsersFromChatList(chatList: ITwitchChatList, userFilter: string | undefined): boolean {
+    public async addUsersFromChatList(chatList: ITwitchChatList): Promise<boolean> {
         // Create a single array of all usernames combined from the various usertypes on the twitch chat list type
         if (!chatList.chatters) {
             return false;
@@ -111,15 +134,7 @@ export class UserService {
             return chatterList;
         }, Array<string>());
 
-        let added = false;
-        combinedChatList.forEach((val) => {
-            if (!userFilter || val === userFilter) {
-                this.addUser(val);
-                added = true;
-            }
-        });
-
-        return added;
+        return (await this.addUsers(combinedChatList)) > 0;
     }
 
     /**
@@ -150,7 +165,8 @@ export class UserService {
         switch (providerType) {
             case ProviderType.Twitch:
                 if (!user.accessToken || !user.refreshToken) {
-                    throw new Error("Twitch tokens are not set up");
+                    Logger.err(LogType.Twitch, "Twitch tokens are not setup.");
+                    return undefined;
                 }
                 userPrincipal.accessToken = user.accessToken;
                 userPrincipal.refreshToken = user.refreshToken;
@@ -159,13 +175,17 @@ export class UserService {
 
             case ProviderType.Streamlabs:
                 if (!user.streamlabsToken || !user.streamlabsRefresh) {
-                    throw new Error("Streamlabs tokens are not setup");
+                    //throw new Error("Streamlabs tokens are not setup");
+                    Logger.err(LogType.Streamlabs, "Streamlabs tokens are not setup.");
+                    return undefined;
                 }
                 userPrincipal.accessToken = user.streamlabsToken;
                 userPrincipal.refreshToken = user.streamlabsRefresh;
                 break;
-            default:
-                throw new Error(`UserPrincipal not implemented for Provider: ${providerType}`);
+            default: {
+                Logger.err(LogType.Server, `UserPrincipal is not implemented for provider: ${providerType}`);
+                return undefined;
+            }
         }
 
         return userPrincipal;

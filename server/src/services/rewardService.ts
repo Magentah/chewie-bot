@@ -10,12 +10,18 @@ import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export default class RewardService {
-    constructor(@inject(SongService) private songService: SongService,
-                @inject(UserService) private userService: UserService,
-                @inject(TwitchService) private twitchService: TwitchService,
-                @inject(BotSettingsService) private settings: BotSettingsService) {
-        this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) => this.processGiftSub(username, giftedMonths, plan));
-        this.twitchService.setSubMysteryGiftCallback((username: string, giftedSubs: number, plan: string | undefined) => this.processGiftSub(username, giftedSubs, plan));
+    constructor(
+        @inject(SongService) private songService: SongService,
+        @inject(UserService) private userService: UserService,
+        @inject(TwitchService) private twitchService: TwitchService,
+        @inject(BotSettingsService) private settings: BotSettingsService
+    ) {
+        this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>
+            this.processGiftSub(username, giftedMonths, plan)
+        );
+        this.twitchService.setSubMysteryGiftCallback((username: string, giftedSubs: number, plan: string | undefined) =>
+            this.processGiftSub(username, giftedSubs, plan)
+        );
     }
 
     public async processDonation(donation: IDonationMessage) {
@@ -72,8 +78,8 @@ export default class RewardService {
 
         // Add user from Twitch chat as best effort (then we know that it is a valid user name at least).
         if (!user) {
-            if (await this.twitchService.addUserFromChatList(Config.twitch.broadcasterName, username)) {
-                user = await this.userService.getUser(username);
+            if (await this.twitchService.userExistsInChat(Config.twitch.broadcasterName, username)) {
+                user = await this.userService.addUser(username);
             }
         }
 

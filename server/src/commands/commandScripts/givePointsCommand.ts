@@ -31,8 +31,8 @@ export default class GivePointsCommand extends Command {
 
         let targetUser = await this.userService.getUser(targetUsername);
         if (!targetUser) {
-            if (await this.twitchService.addUserFromChatList(channel, targetUsername)) {
-                targetUser = await this.userService.getUser(targetUsername);
+            if (await this.twitchService.userExistsInChat(channel, targetUsername)) {
+                targetUser = await this.userService.addUser(targetUsername);
             }
         }
 

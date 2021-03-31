@@ -2,7 +2,7 @@ import axios from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
-import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType } from "../models";
+import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType, ITwitchChatters } from "../models";
 import { Response } from "../helpers";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -167,9 +167,31 @@ export class TwitchService {
         return data;
     }
 
-    public async addUserFromChatList(channel: string, username: string): Promise<boolean> {
-        const data = await this.updateChatList(channel.startsWith("#") ? channel : "#" + channel);
-        return this.users.addUsersFromChatList(data, username);
+    public async addUserFromChatList(channel: string): Promise<boolean> {
+        const data = await this.getChatListFromTwitch(channel.startsWith("#") ? channel : "#" + channel);
+        return await this.users.addUsersFromChatList(data);
+    }
+
+    public async userExistsInChat(channel: string, username: string): Promise<boolean> {
+        const chatters = (await this.getChatListFromTwitch(channel)).chatters;
+        let exists: boolean = false;
+        Object.keys(chatters).forEach((_, index) => {
+            // If we've already found the user, just exit.
+            if (exists) {
+                return;
+            }
+
+            const users = (chatters as any)[index] as string[];
+            const chatUser = users.find((user: string) => {
+                return user.toLowerCase() === username.toLowerCase();
+            });
+            if (chatUser) {
+                exists = true;
+                return;
+            }
+        });
+
+        return exists;
     }
 
     /**
@@ -177,15 +199,15 @@ export class TwitchService {
      * @param channel The channel name to get the chat list for.
      */
     private async getChatList(channel: string): Promise<void> {
-        const data = await this.updateChatList(channel);
-        this.users.addUsersFromChatList(data, undefined);
+        const data = await this.getChatListFromTwitch(channel);
+        await this.users.addUsersFromChatList(data);
     }
 
-    private async updateChatList(channel: string) {
+    private async getChatListFromTwitch(channel: string): Promise<ITwitchChatList> {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
 
         const { data } = await axios.get(`https://tmi.twitch.tv/group/user/${channel.slice(1)}/chatters`);
-        return data;
+        return data as ITwitchChatList;
     }
 
     private async setupOptions(): Promise<tmi.Options> {
