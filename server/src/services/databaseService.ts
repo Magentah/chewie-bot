@@ -82,6 +82,7 @@ export class DatabaseService {
                 await this.createUserTable();
                 await this.createDonationsTable();
                 await this.createTextCommandsTable();
+                await this.createQuotesTable();
                 await this.createCommandAliasTable();
                 await this.createBotSettingsTable();
                 await this.createSonglistTable();
@@ -189,6 +190,16 @@ export class DatabaseService {
             table.string("message").notNullable();
             table.integer("minimumUserLevelKey").unsigned();
             table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
+        });
+    }
+
+    private async createQuotesTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Quotes, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("text").notNullable();
+            table.string("author").notNullable();
+            table.dateTime("dateAdded");
+            table.string("addedByUserName").notNullable();
         });
     }
 
