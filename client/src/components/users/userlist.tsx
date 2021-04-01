@@ -7,7 +7,7 @@ import { Star } from "@material-ui/icons";
 import { AddToListState } from "../common/addToListState";
 import AddIcon from "@material-ui/icons/Add";
 
-type RowData = { username: string, vipExpiry: number, vipLastRequest: number };
+type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
 type UserLevel = { id: number; name: string; }
 
 const useStyles = makeStyles((theme) => ({
@@ -28,6 +28,10 @@ const VipStatusCell: React.FC<any> = (value: RowData) => {
         }
 
         lastRequest = "Last request: " + (value?.vipLastRequest ? new Date(value?.vipLastRequest).toDateString() : "-");
+    }
+
+    if (value.vipPermanentRequests) {
+        vipInfo += `, ${value.vipPermanentRequests} non-expiring request`;
     }
 
     return (

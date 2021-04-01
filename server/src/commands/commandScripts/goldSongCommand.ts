@@ -23,7 +23,7 @@ export class GoldSongCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser, url: string) {
         // Check if user has gold status
-        if (!user.vipExpiry) {
+        if (!user.vipExpiry && !user.vipPermanentRequests) {
             this.twitchService.sendMessage(
                 channel,
                 `${user.username}, you need VIP gold status to request a song. Check !vipgold for details.`
@@ -34,12 +34,14 @@ export class GoldSongCommand extends Command {
         const todayDate = new Date(new Date().toDateString());
 
         // Check if gold status has expired (expiration date is inclusive).
-        if (user.vipExpiry < todayDate) {
-            this.twitchService.sendMessage(
-                channel,
-                `${user.username}, your VIP gold status expired on ${user.vipExpiry.toDateString()}.`
-            );
-            return;
+        if (!user.vipPermanentRequests && user.vipExpiry) {
+            if (user.vipExpiry < todayDate) {
+                this.twitchService.sendMessage(
+                    channel,
+                    `${user.username}, your VIP gold status expired on ${user.vipExpiry.toDateString()}.`
+                );
+                return;
+            }
         }
 
         // Check if gold song has been used this week.
@@ -58,6 +60,13 @@ export class GoldSongCommand extends Command {
             const song = await this.songService.addSong(url, RequestSource.GoldSong, user.username);
             if (song) {
                 user.vipLastRequest = todayDate;
+
+                // Any gold song used will always reduce the amount of permanent requests left.
+                // Adding a permanent request will also extend the VIP period, so no request will be lost.
+                if (user.vipPermanentRequests) {
+                    user.vipPermanentRequests--;
+                }
+
                 this.userService.updateUser(user);
 
                 this.twitchService.sendMessage(

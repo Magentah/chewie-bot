@@ -93,7 +93,7 @@ export class UsersRepository {
         const databaseService = await this.databaseProvider();
         await databaseService
             .getQueryBuilder(DatabaseTables.Users)
-            .update( { vipExpiry: user.vipExpiry })
+            .update( { vipExpiry: user.vipExpiry, vipPermanentRequests: user.vipPermanentRequests })
             .where({ id: user.id });
     }
 
@@ -167,7 +167,8 @@ export class UsersRepository {
             userLevel: userData.userLevel,
             userLevelKey: userData.userLevelKey,
             points: userData.points,
-            hasLogin: userData.hasLogin
+            hasLogin: userData.hasLogin,
+            vipPermanentRequests: userData.vipPermanentRequests
         }
         return user;
     }
@@ -244,6 +245,7 @@ export class UsersRepository {
             vipLevel: userResult.vipLevel,
             vipExpiry: userResult.vipExpiry ? new Date(userResult.vipExpiry) : undefined,
             vipLastRequest: userResult.vipLastRequest ? new Date(userResult.vipLastRequest) : undefined,
+            vipPermanentRequests: userResult.vipPermanentRequests ?? 0,
             userLevelKey: userResult.userLevelKey,
             vipLevelKey: userResult.vipLevelKey,
             dropboxAccessToken: userResult.dropboxAccessToken,

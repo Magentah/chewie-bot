@@ -11,6 +11,7 @@ export default interface IUser {
     points: number;
     vipExpiry?: Date;
     vipLastRequest?: Date;
+    vipPermanentRequests?: number;
     vipLevelKey?: number;
     vipLevel?: IVIPLevel;
     userLevelKey?: number;

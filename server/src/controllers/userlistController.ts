@@ -121,7 +121,7 @@ class UserlistController {
             // Get data from database. Makes sure all properties are correctly typed and data is current.
             const userData = await this.userService.getUser(username);
             if (userData) {
-                await this.userService.addVipGoldMonths(userData, vipGoldWeeks / 4);
+                await this.userService.addVipGoldWeeks(userData, vipGoldWeeks);
             }
 
             res.status(StatusCodes.OK);

@@ -7,6 +7,9 @@ export { default as GoldSongCommand } from "./goldSongCommand";
 export { default as AddAliasCommand } from "./addAliasCommand";
 export { default as DelAliasCommand } from "./delAliasCommand";
 export { default as SongCommand } from "./songCommand";
+export { default as AddVipCommand } from "./addVipCommand";
+export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
+export { default as VipCommand } from "./vipCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";
