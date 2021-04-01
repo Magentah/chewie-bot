@@ -147,6 +147,7 @@ const UserList: React.FC<any> = (props: any) => {
                     {
                         title: "VIP status",
                         field: "vipExpiry",
+                        editable: "never",
                         render: rowData => VipStatusCell(rowData)
                     },
                     { title: "Points", field: "points", cellStyle: { textAlign: "right" }, headerStyle: { textAlign: "right" } }

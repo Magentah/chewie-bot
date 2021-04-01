@@ -120,8 +120,56 @@ export class UsersRepository {
             await databaseService
                 .getQueryBuilder(DatabaseTables.Users)
                 .update(userData)
-                .where({ username: user.username });;
+                .where({ username: user.username });
         }
+    }
+
+    /**
+     * Updates only the public information of a user, excluding authenticationd data.
+     * @param user Updated user
+     */
+    public async updateDetails(user: IUser): Promise<void> {
+        const databaseService = await this.databaseProvider();
+
+        const userData = this.mapUserToDetailsUserData(user);
+
+        // mapUserToDetailsUserData() will return a copy of the object so we can safely delete here
+        delete userData.userLevel;
+        delete userData.vipLevel;
+        delete userData.twitchUserProfile;
+
+        if (user.id) {
+            await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .update(userData)
+                .where({ id: user.id });
+        } else {
+            await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .update(userData)
+                .where({ username: user.username });
+        }
+    }
+
+    /**
+     * Removes all authentication data from the user for security reasons.
+     * @param userData User object
+     * @returns User object without access/refresh tokens
+     */
+    public mapUserToDetailsUserData(userData: any): IUser {
+        const user: IUser = {
+            id: userData.id,
+            username: userData.username,
+            vipExpiry: userData.vipExpiry,
+            vipLastRequest: userData.vipLastRequest,
+            vipLevel: userData.vipLevel,
+            vipLevelKey: userData.vipLevelKey,
+            userLevel: userData.userLevel,
+            userLevelKey: userData.userLevelKey,
+            points: userData.points,
+            hasLogin: userData.hasLogin
+        }
+        return user;
     }
 
     /**

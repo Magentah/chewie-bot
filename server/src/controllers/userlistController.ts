@@ -25,8 +25,9 @@ class UserlistController {
      */
     public async getUserlist(req: Request, res: Response): Promise<void> {
         const users = await this.userRepository.getList();
+        const userDataMinimal = users.map((x) => this.userRepository.mapUserToDetailsUserData(x));
         res.status(StatusCodes.OK);
-        res.send(users);
+        res.send(userDataMinimal);
     }
 
     /**
@@ -54,7 +55,7 @@ class UserlistController {
         }
 
         try {
-            await this.userRepository.update(newUser);
+            await this.userRepository.updateDetails(newUser);
             res.status(StatusCodes.OK);
             res.send(newUser);
         } catch (err) {
@@ -124,7 +125,7 @@ class UserlistController {
             }
 
             res.status(StatusCodes.OK);
-            res.send(userData);
+            res.send(this.userRepository.mapUserToDetailsUserData(userData));
         } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
