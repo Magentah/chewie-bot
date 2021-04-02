@@ -27,7 +27,7 @@ export class VipCommand extends Command {
         if (user.vipLastRequest) {
             vipInfo += ` Your last request: ${dateFormatWithWeek.format(new Date(user.vipLastRequest))}`;
         }
-    
+
         if (vipInfo) {
             this.twitchService.sendMessage(channel, vipInfo);
         } else {

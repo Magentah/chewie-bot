@@ -14,11 +14,37 @@ export class GoldSongCommand extends Command {
         this.userService = BotContainer.get(UserService);
     }
 
-    private getMonday(d: Date) : Date {
-        d = new Date(d);
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day === 0 ? -6:1); // adjust when day is sunday
-        return new Date(d.setDate(diff));
+    private getDayStartingAtMonday(date: Date): number {
+        const day = date.getDay();
+        return day === 0 ? 6 : day -1;
+    }
+
+    /**
+     * Determines the start of the week based on the individual VIP expiry date.
+     * If VIP expires on Friday (inclusive), the next VIP week starts on Saturday.
+     * @param dateToCheck Day when the request is being made (should be today)
+     * @param vipExpiry Day when VIP expires
+     * @returns Start of the current VIP week. Within result and dateToCheck, only one VIP request is allowed.
+     */
+    private getIndividualStartOfWeek(dateToCheck: Date, vipExpiry: Date) {
+        // Make copy
+        vipExpiry = new Date(vipExpiry);
+
+        // Determine week start day based on VIP expiry (VIP weekday + 1)
+        vipExpiry.setDate(vipExpiry.getDate() + 1);
+        const vipWeekday = this.getDayStartingAtMonday(vipExpiry);
+
+        const todayWeekday = this.getDayStartingAtMonday(dateToCheck);
+        const dayDifference = todayWeekday - vipWeekday;
+        const weekStartDay = new Date(new Date(dateToCheck).setDate(dateToCheck.getDate() - dayDifference));
+
+        if (weekStartDay > dateToCheck)  {
+            // Date for this weekday is in the future, use last week instead.
+            weekStartDay.setDate(weekStartDay.getDate() - 7);
+            return weekStartDay;
+        } else {
+            return weekStartDay;
+        }
     }
 
     public async executeInternal(channel: string, user: IUser, url: string) {
@@ -45,8 +71,8 @@ export class GoldSongCommand extends Command {
         }
 
         // Check if gold song has been used this week.
-        if (user.vipLastRequest) {
-            const startOfWeek = this.getMonday(todayDate);
+        if (user.vipLastRequest && user.vipExpiry) {
+            const startOfWeek = this.getIndividualStartOfWeek(todayDate, user.vipExpiry);
             if (user.vipLastRequest >= startOfWeek) {
                 this.twitchService.sendMessage(
                     channel,
