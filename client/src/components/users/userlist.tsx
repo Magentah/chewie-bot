@@ -61,10 +61,10 @@ const UserList: React.FC<any> = (props: any) => {
     }, []);
 
     const [addVipState, setAddVipState] = useState<AddToListState>();
-    const [addVipWeeksAmount, setAddVipWeeksAmount] = useState<number>(0);
+    const [addVipAmount, setAddVipAmount] = useState<number>(0);
     const [addVipUser, setAddVipUser] = useState<RowData>();
 
-    const submitVipGold = async () => {
+    const submitVipGold = async (useWeeks: boolean) => {
         try {
             if (!addVipUser) {
                 return;
@@ -72,7 +72,8 @@ const UserList: React.FC<any> = (props: any) => {
 
             setAddVipState({state: "progress"});
 
-            const result = await axios.post(`/api/userlist/addVip/${addVipUser.username}`, { amount: addVipWeeksAmount }, { validateStatus: (status) => true });
+            const data = useWeeks ? { weeks: addVipAmount } : { amount: addVipAmount };
+            const result = await axios.post(`/api/userlist/addVip/${addVipUser.username}`, data, { validateStatus: (status) => true });
             if (result.status === 200) {
                 setAddVipState({state: "success"});
                 const newUserlist = [...userlist];
@@ -80,7 +81,7 @@ const UserList: React.FC<any> = (props: any) => {
                 newUserlist.splice(index, 1, result.data as RowData);
                 setUserlist(newUserlist);
 
-                setAddVipWeeksAmount(0);
+                setAddVipAmount(0);
             } else {
                 setAddVipState({
                     state: "failed",
@@ -116,28 +117,39 @@ const UserList: React.FC<any> = (props: any) => {
                         horizontal: "center",
                     }}>
                     <Box py={1} px={2}>
-                        <form onSubmit={submitVipGold}>
+                        <form>
                             <Grid container spacing={2} justify="flex-start" wrap={"nowrap"} alignItems="center">
-                                <Grid item xs={8}>
+                                <Grid item>
                                     <TextField
-                                        label="Add gold VIP weeks"
+                                        label="Add gold VIP"
                                         id="add-vip-weeks"
                                         type="number"
                                         inputProps={{style: { textAlign: "right" }}}
                                         fullWidth
-                                        value={addVipWeeksAmount}
-                                        onChange={(e) => setAddVipWeeksAmount(parseInt(e.target.value, 10))}
+                                        value={addVipAmount}
+                                        onChange={(e) => setAddVipAmount(parseInt(e.target.value, 10))}
                                     />
                                 </Grid>
-                                <Grid item xs={3}>
+                                <Grid item>
                                     <Button
                                         variant="contained"
                                         color="primary"
                                         startIcon={addVipState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
-                                        onClick={submitVipGold}
+                                        onClick={() => submitVipGold(true)}
                                         className={classes.addButton}
                                         disabled={addVipState?.state === "progress"}>
-                                        Add
+                                        Add weeks
+                                    </Button>
+                                </Grid>
+                                <Grid item>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        startIcon={addVipState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
+                                        onClick={() => submitVipGold(false)}
+                                        className={classes.addButton}
+                                        disabled={addVipState?.state === "progress"}>
+                                        Add requests
                                     </Button>
                                 </Grid>
                             </Grid>

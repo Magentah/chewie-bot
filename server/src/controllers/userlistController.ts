@@ -110,22 +110,40 @@ class UserlistController {
             return;
         }
 
-        const vipGoldWeeks = parseInt(req.body.amount, 10);
-        if (vipGoldWeeks === 0) {
-            // Nothing to do.
-            res.sendStatus(StatusCodes.OK);
-            return;
-        }
-
         try {
             // Get data from database. Makes sure all properties are correctly typed and data is current.
             const userData = await this.userService.getUser(username);
-            if (userData) {
-                await this.userService.addVipGoldWeeks(userData, vipGoldWeeks);
+            if (!userData) {
+                res.status(StatusCodes.BAD_REQUEST);
+                res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "User not found in database."));
+                return;
             }
 
-            res.status(StatusCodes.OK);
-            res.send(this.userRepository.mapUserToDetailsUserData(userData));
+            if (req.body.weeks) {
+                const vipGoldWeeks = parseInt(req.body.weeks, 10);
+                if (vipGoldWeeks === 0) {
+                    // Nothing to do.
+                    res.sendStatus(StatusCodes.OK);
+                    return;
+                }
+
+                await this.userService.addVipGoldWeeks(userData, vipGoldWeeks);
+
+                res.status(StatusCodes.OK);
+                res.send(this.userRepository.mapUserToDetailsUserData(userData));
+            } else {
+                const vipGoldRequests = parseInt(req.body.amount, 10);
+                if (vipGoldRequests === 0) {
+                    // Nothing to do.
+                    res.sendStatus(StatusCodes.OK);
+                    return;
+                }
+
+                await this.userService.addPermanentVip(userData, vipGoldRequests);
+
+                res.status(StatusCodes.OK);
+                res.send(this.userRepository.mapUserToDetailsUserData(userData));
+            }
         } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
