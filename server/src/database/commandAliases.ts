@@ -8,6 +8,14 @@ export class CommandAliasesRepository {
         // Empty
     }
 
+    public async getList(): Promise<ICommandAlias[]> {
+        const databaseService = await this.databaseProvider();
+        const commandAlias = await databaseService
+            .getQueryBuilder(DatabaseTables.CommandAliases)
+            .select();
+        return commandAlias as ICommandAlias[];
+    }
+
     public async get(alias: string): Promise<ICommandAlias> {
         const databaseService = await this.databaseProvider();
         const commandAlias = await databaseService

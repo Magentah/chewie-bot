@@ -8,6 +8,14 @@ export class TextCommandsRepository {
         // Empty
     }
 
+    public async getList(): Promise<ITextCommand[]> {
+        const databaseService = await this.databaseProvider();
+        const commands = await databaseService
+            .getQueryBuilder(DatabaseTables.TextCommands)
+            .select();
+        return commands as ITextCommand[];
+    }
+
     public async get(commandName: string): Promise<ITextCommand> {
         const databaseService = await this.databaseProvider();
         const command = await databaseService

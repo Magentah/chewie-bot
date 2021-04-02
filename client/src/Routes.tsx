@@ -4,13 +4,14 @@ import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Card, CardContent, Typography } from "@material-ui/core";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, Lens as DefaultIcon } from "@material-ui/icons";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
 import MusicRequestView from "./views/music-requests/MusicRequestView";
 import SongList from "./components/songlist/songlist";
 import MessageList from "./components/messages/messagelist";
+import CommandList from "./components/commands/commandlist";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
 import Login from "./views/login/Login";
@@ -54,6 +55,13 @@ const DashboardRoutes: Route[] = [
         name: "Songlist",
         icon: LibraryMusic,
         component: SongList,
+        minUserLevel: UserLevels.Viewer
+    },
+    {
+        path: "/commands",
+        name: "Commands",
+        icon: Extension,
+        component: CommandList,
         minUserLevel: UserLevels.Viewer
     },
     {
