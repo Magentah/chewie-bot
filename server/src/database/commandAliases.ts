@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
-import { ICommandAlias, ITextCommand } from "../models";
+import { ICommandAlias } from "../models";
 
 @injectable()
 export class CommandAliasesRepository {
@@ -14,6 +14,15 @@ export class CommandAliasesRepository {
             .getQueryBuilder(DatabaseTables.CommandAliases)
             .select();
         return commandAlias as ICommandAlias[];
+    }
+
+    public async getById(id: number): Promise<ICommandAlias> {
+        const databaseService = await this.databaseProvider();
+        const commandAlias = await databaseService
+            .getQueryBuilder(DatabaseTables.CommandAliases)
+            .first()
+            .where({ id });
+        return commandAlias as ICommandAlias;
     }
 
     public async get(alias: string): Promise<ICommandAlias> {
@@ -30,6 +39,16 @@ export class CommandAliasesRepository {
         await databaseService.getQueryBuilder(DatabaseTables.CommandAliases).insert(command);
     }
 
+    public async update(alias: ICommandAlias): Promise<void> {
+        const databaseService = await this.databaseProvider();
+        const commandArguments = alias.commandArguments === undefined ? "" : alias.commandArguments.join(" ");
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.CommandAliases)
+            .update({ alias: alias.alias, commandName: alias.commandName, commandArguments })
+            .where({ id: alias.id });
+    }
+    
     public async delete(alias: ICommandAlias | string): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         if (typeof alias === "string") {

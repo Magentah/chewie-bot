@@ -1,21 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
 import useUser, { UserLevels } from "../../hooks/user";
-import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon } from "@material-ui/core";
-import { AddToListState } from "../common/addToListState";
 
-const useStyles = makeStyles((theme) => ({
-    addButton: {
-        margin: theme.spacing(2, 0, 2),
-    },
-}));
+enum CommandType {
+    Text,
+    Alias,
+    System
+}
 
 const CommandList: React.FC<any> = (props: any) => {
-    type RowData = { id: number, commandName: string, message: string, minimumModLevel: number;};
+    type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevelName: number };
 
-    const classes = useStyles();
     const [commandlist, setCommandlist] = useState([] as RowData[]);
     const [user, loadUser] = useUser();
 
@@ -30,20 +26,22 @@ const CommandList: React.FC<any> = (props: any) => {
     return <div>
             <MaterialTable
                 columns = {[
-                    { title: "Command", field: "commandName", defaultSort: "asc" },
-                    { title: "Content", field: "message" },
-                    { title: "Required permissions", field: "minimumModLevel" }
+                    { title: "Command", field: "commandName", defaultSort: "asc", filtering: false },
+                    { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
+                    { title: "Content", field: "content", filtering: false },
+                    { title: "Required permissions", field: "minUserLevelName", editable: "never" }
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 3,
-                    showTitle: false
+                    actionsColumnIndex: 4,
+                    showTitle: false,
+                    filtering: true
                 }}
                 data = {commandlist}
                 editable = {(user.userLevelKey < UserLevels.Moderator) ? undefined :
                     {
-                        isEditable: rowData => true,
-                        isDeletable: rowData => true,
+                        isEditable: rowData => rowData.type !== CommandType.System,
+                        isDeletable: rowData => rowData.type !== CommandType.System,
                         onRowUpdate: (newData, oldData) => axios.post("/api/commandlist", newData).then((result) => {
                             if (result.status === 200) {
                                 const newList = [...commandlist];

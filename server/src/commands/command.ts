@@ -27,6 +27,10 @@ export abstract class Command {
         return [];
     }
 
+    public getMinimumUserLevel(): UserLevels {
+        return this.minimumUserLevel;
+    }
+
     public isInternal(): boolean {
         return this.isInternalCommand;
     }
