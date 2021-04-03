@@ -161,6 +161,7 @@ export class DatabaseService {
             table.string("idToken");
             table.decimal("points").notNullable();
             table.dateTime("vipExpiry");
+            table.integer("vipPermanentRequests");
             table.dateTime("vipLastRequest");
             table.boolean("hasLogin").notNullable();
             table.string("streamlabsToken");
