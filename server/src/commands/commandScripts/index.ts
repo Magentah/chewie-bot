@@ -6,6 +6,9 @@ export { default as AddSongCommand } from "./addSongCommand";
 export { default as GoldSongCommand } from "./goldSongCommand";
 export { default as AddAliasCommand } from "./addAliasCommand";
 export { default as DelAliasCommand } from "./delAliasCommand";
+export { default as AddQuoteCommand } from "./quotes/addQuoteCommand";
+export { default as DelQuoteCommand } from "./quotes/delQuoteCommand";
+export { default as QuoteCommand } from "./quotes/quoteCommand";
 export { default as SongCommand } from "./songCommand";
 export { default as AddVipCommand } from "./addVipCommand";
 export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
@@ -30,3 +33,5 @@ export { default as PointsCommand } from "../commandScripts/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";
 
 export { default as RedeemCommand } from "../commandScripts/redeemCommand";
+
+export { default as SudokuCommand } from "../commandScripts/sudokuCommand";

@@ -57,13 +57,24 @@ export class YoutubeService {
     public parseYoutubeUrl(url: string): string | undefined {
         if (url.indexOf("youtu.be") > -1) {
             // Short Youtube URL
-            const id = url.slice(url.lastIndexOf("/"), url.indexOf("?"));
-            return id;
+            const paramIndex = url.indexOf("?");
+            if (paramIndex > 0) {
+                return url.slice(url.lastIndexOf("/") + 1, paramIndex);
+            } else {
+                return url.slice(url.lastIndexOf("/") + 1);
+            }
         } else if (url.indexOf("youtube") > -1) {
             if (url.indexOf("&") > -1) {
                 return url.slice(url.indexOf("?v=") + 3, url.indexOf("&"));
             } else {
-                return url.slice(url.indexOf("?v=") + 3);
+                const index = url.indexOf("?v=");
+                if (index > 0) {
+                    return url.slice(index + 3);
+                } else {
+                    // Consider https://youtube.com/12345
+                    const index = url.lastIndexOf("/");
+                    return url.slice(index + 1);
+                }
             }
         } else {
             return undefined;

@@ -3,8 +3,6 @@ name: Docker Image CI
 on:
     push:
         branches: [master]
-    pull_request:
-        branches: [master]
 
 jobs:
     docker-build-and-push:
@@ -37,6 +35,8 @@ jobs:
                   twitch.username: ${{ secrets.twitchUsername }}
                   twitch.oauth: ${{ secrets.twitchClientOauth }}
                   twitch.broadcasterName: ${{ secrets.twitchBroadcasterName }}
+                  twitch.eventSub.secret: ${{ secrets.twitchEventSubSecret }}
+                  twitch.eventSub.callbackBaseUri: ${{ secrets.twitchEventSubCallbackBaseUri }}
                   youtube.apiKey: ${{ secrets.youtubeApi }}
                   secretKey: ${{ secrets.botSecretKey }}
                   streamlabs.clientId: ${{ secrets.streamlabsClientId }}
@@ -45,6 +45,10 @@ jobs:
                   spotify.clientId: ${{ secrets.spotifyClientId }}
                   spotify.clientSecret: ${{ secrets.spotifyClientSecret }}
                   spotify.redirectUri: ${{ secrets.spotifyRedirectUri }}
+                  dropbox.clientId: ${{ secrets.dropboxClientId }}
+                  dropbox.clientSecret: ${{ secrets.dropboxClientSecret }}
+                  dropbox.redirectUri: ${{ secrets.dropboxRedirectUri }}
+                  discord.webhookUrl: ${{ secrets.discordWebhookUrl }}
                 
             - name: Copy SSL Config
               run: 'echo "$SSL_KEY" > ./client/nginx/server.key'

@@ -78,6 +78,8 @@ export class SongService {
                         linkUrl: song.sourceUrl,
                         previewUrl: this.youtubeService.getSongPreviewUrl(songDetails),
                     };
+                } else {
+                    throw new InvalidSongUrlError("Song details could not be loaded.");
                 }
                 break;
             }
@@ -94,6 +96,8 @@ export class SongService {
                         linkUrl: song.sourceUrl,
                         previewUrl: this.spotifyService.getSongPreviewUrl(songDetails),
                     };
+                } else {
+                    throw new InvalidSongUrlError("Song details could not be loaded.");
                 }
                 break;
             }
