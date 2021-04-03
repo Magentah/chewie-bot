@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { ICommandInfo } from "../models";
+import { ICommandInfo, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { CommandAliasesRepository, TextCommandsRepository } from "../database";
@@ -27,7 +27,7 @@ class CommandlistController {
     public async getCommandlist(req: Request, res: Response): Promise<void> {
         const resultList: ICommandInfo[] = [];
         for (const command of await this.textCommandsRepository.getList()) {
-            resultList.push({ id: command.id, commandName: command.commandName, content: command.message, type: CommandType.Text, minUserLevelName: "" });
+            resultList.push({ id: command.id, commandName: command.commandName, content: command.message, type: CommandType.Text, minUserLevel: UserLevels.Viewer });
         }
 
         for (const alias of await this.commandAliasRepository.getList()) {
@@ -35,7 +35,8 @@ class CommandlistController {
                 id: alias.id,
                 commandName: alias.alias,
                 content: "!" + alias.commandName + (alias.commandArguments ? " " + alias.commandArguments : ""),
-                type: CommandType.Alias, minUserLevelName: ""
+                type: CommandType.Alias,
+                minUserLevel: UserLevels.Viewer
             });
         }
 
@@ -44,8 +45,7 @@ class CommandlistController {
                 commandName: name,
                 content: "",
                 type: CommandType.System,
-                minUserLevel: this.commandList.get(name)?.getMinimumUserLevel(),
-                minUserLevelName: this.commandList.get(name)?.getMinimumUserLevel().toString() ?? ""
+                minUserLevel: this.commandList.get(name)?.getMinimumUserLevel()
             });
         }
 

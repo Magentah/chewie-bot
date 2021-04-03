@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable from "material-table"
 import useUser, { UserLevels } from "../../hooks/user";
+import { UserLevel } from "../common/userLevel";
 
 enum CommandType {
     Text,
@@ -10,9 +11,10 @@ enum CommandType {
 }
 
 const CommandList: React.FC<any> = (props: any) => {
-    type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevelName: number };
+    type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number };
 
     const [commandlist, setCommandlist] = useState([] as RowData[]);
+    const [userLevels, setUserLevels] = useState([] as UserLevel[]);
     const [user, loadUser] = useUser();
 
     useEffect(loadUser, []);
@@ -20,6 +22,12 @@ const CommandList: React.FC<any> = (props: any) => {
     useEffect(() => {
         axios.get("/api/commandlist").then((response) => {
             setCommandlist(response.data);
+        });
+    }, []);
+
+    useEffect(() => {
+        axios.get("/api/userLevels").then((response) => {
+            setUserLevels(response.data);
         });
     }, []);
 
@@ -32,7 +40,7 @@ const CommandList: React.FC<any> = (props: any) => {
                     },
                     { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
                     { title: "Content", field: "content", filtering: false },
-                    { title: "Required permissions", field: "minUserLevelName", editable: "never" }
+                    { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
                 ]}
                 options = {{
                     paging: false,

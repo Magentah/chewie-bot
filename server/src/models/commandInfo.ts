@@ -12,5 +12,4 @@ export default interface ICommandInfo {
     content: string;
     type: CommandType;
     minUserLevel?: UserLevels;
-    minUserLevelName: string;
 }
