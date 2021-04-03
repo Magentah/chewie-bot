@@ -3,6 +3,8 @@ import axios from "axios";
 import MaterialTable from "material-table"
 import useUser, { UserLevels } from "../../hooks/user";
 import { UserLevel } from "../common/userLevel";
+import { Grid } from "@material-ui/core";
+import { Launch, Chat, Settings } from "@material-ui/icons";
 
 enum CommandType {
     Text,
@@ -10,9 +12,27 @@ enum CommandType {
     System
 }
 
-const CommandList: React.FC<any> = (props: any) => {
-    type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number };
+type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number };
 
+const CommandNameCell: React.FC<any> = (value: RowData) => {
+    let icon = <Settings />;
+    if (value.type === CommandType.Text) {
+        icon = <Chat />;
+    } else if (value.type === CommandType.Alias) {
+        icon = <Launch />;
+    }
+
+    return <Grid container alignItems="center" spacing={1}>
+        <Grid item>
+            {icon}
+        </Grid>
+        <Grid item>
+            {value.commandName}
+        </Grid>
+    </Grid>
+}
+
+const CommandList: React.FC<any> = (props: any) => {
     const [commandlist, setCommandlist] = useState([] as RowData[]);
     const [userLevels, setUserLevels] = useState([] as UserLevel[]);
     const [user, loadUser] = useUser();
@@ -36,10 +56,11 @@ const CommandList: React.FC<any> = (props: any) => {
                 columns = {[
                     {
                         title: "Command", field: "commandName", defaultSort: "asc", filtering: false,
+                        render: rowData => CommandNameCell(rowData),
                         validate: rowData => rowData.commandName !== "" && commandlist.filter(x => x.commandName === rowData.commandName && x.type === rowData.type && x.id !== rowData.id).length === 0
                     },
-                    { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
                     { title: "Content", field: "content", filtering: false },
+                    { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
                     { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
                 ]}
                 options = {{
