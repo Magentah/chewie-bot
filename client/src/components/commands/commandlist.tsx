@@ -26,7 +26,10 @@ const CommandList: React.FC<any> = (props: any) => {
     return <div>
             <MaterialTable
                 columns = {[
-                    { title: "Command", field: "commandName", defaultSort: "asc", filtering: false },
+                    {
+                        title: "Command", field: "commandName", defaultSort: "asc", filtering: false,
+                        validate: rowData => rowData.commandName !== "" && commandlist.filter(x => x.commandName === rowData.commandName && x.type === rowData.type && x.id !== rowData.id).length === 0
+                    },
                     { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
                     { title: "Content", field: "content", filtering: false },
                     { title: "Required permissions", field: "minUserLevelName", editable: "never" }
