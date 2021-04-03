@@ -47,6 +47,7 @@ import TwitchController from "./controllers/twitchController";
 import EventController from "./controllers/eventController";
 import SonglistController from "./controllers/songlistController";
 import MessagelistController from "./controllers/messagelistController";
+import UserlistController from "./controllers/userlistController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
@@ -130,6 +131,7 @@ botContainer.bind<TwitchController>(TwitchController).toSelf();
 botContainer.bind<EventController>(EventController).toSelf();
 botContainer.bind<SonglistController>(SonglistController).toSelf();
 botContainer.bind<MessagelistController>(MessagelistController).toSelf();
+botContainer.bind<UserlistController>(UserlistController).toSelf();
 
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();

@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
-import { IUser, UserLevels } from "../models";
+import { IUser, IUserLevel, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -67,6 +67,33 @@ export class UsersRepository {
     }
 
     /**
+     * Gets all users from the database.
+     *  
+     */
+    public async getList(): Promise<IUser[]> {
+        const databaseService = await this.databaseProvider();
+
+        const userResult = await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
+            .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
+            .leftJoin(DatabaseTables.TwitchUserProfile, "twitchUserProfile.id", "users.twitchProfileKey")
+            .select([
+                "vipLevels.name as vipLevel",
+                "userLevels.name as userLevel",
+                "userLevels.rank as rank",
+                "twitchUserProfile.id as profileId",
+                "twitchUserProfile.displayName as profileDisplayName",
+                "twitchUserProfile.profileImageUrl as profileImageUrl",
+                "users.*",
+            ]);
+
+        // Need to map from SQLResult to the correct model.
+        return userResult.map((x: any) => this.mapDBUserToUser(x));
+    }
+
+    /**
+     * Updates user data in the database if the user already exists.
      * Increments or decrements the number of points for a user.
      * @param user Updated user
      * @param points Number of points to add or remove (if negative)
@@ -86,6 +113,10 @@ export class UsersRepository {
      */
     public async updateVipExpiry(user: IUser) {
         const databaseService = await this.databaseProvider();
+        await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .update({ vipExpiry: user.vipExpiry, vipPermanentRequests: user.vipPermanentRequests })
+            .where({ id: user.id });
         await databaseService.getQueryBuilder(DatabaseTables.Users).update({ vipExpiry: user.vipExpiry }).where({ id: user.id });
     }
 
@@ -108,6 +139,50 @@ export class UsersRepository {
         } else {
             await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ username: user.username });
         }
+    }
+
+    /**
+     * Updates only the public information of a user, excluding authenticationd data.
+     * @param user Updated user
+     */
+    public async updateDetails(user: IUser): Promise<void> {
+        const databaseService = await this.databaseProvider();
+
+        const userData = this.mapUserToDetailsUserData(user);
+
+        // mapUserToDetailsUserData() will return a copy of the object so we can safely delete here
+        delete userData.userLevel;
+        delete userData.vipLevel;
+        delete userData.twitchUserProfile;
+
+        if (user.id) {
+            await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ id: user.id });
+        } else {
+            await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ username: user.username });
+        }
+    }
+
+    /**
+     * Removes all authentication data from the user for security reasons.
+     * @param userData User object
+     * @returns User object without access/refresh tokens
+     */
+    public mapUserToDetailsUserData(userData: any): IUser {
+        const user: IUser = {
+            id: userData.id,
+            username: userData.username,
+            vipExpiry: userData.vipExpiry,
+            vipLastRequest: userData.vipLastRequest,
+            vipLevel: userData.vipLevel,
+            vipLevelKey: userData.vipLevelKey,
+            userLevel: userData.userLevel,
+            userLevelKey: userData.userLevelKey,
+            points: userData.points,
+            hasLogin: userData.hasLogin,
+            vipPermanentRequests: userData.vipPermanentRequests
+        }
+
+        return user;
     }
 
     /**
@@ -156,6 +231,17 @@ export class UsersRepository {
         return await this.getByIds(ids);
     }
 
+    public async delete(item: IUser | number): Promise<boolean> {
+        const databaseService = await this.databaseProvider();
+        if (typeof item === "number") {
+            return (await databaseService.getQueryBuilder(DatabaseTables.Users).delete().where({ id: item })) > 0;
+        } else if (item.id) {
+            return (await databaseService.getQueryBuilder(DatabaseTables.Users).delete().where({ id: item.id })) > 0;
+        }
+
+        return false;
+    }
+
     private mapDBUserToUser(userResult: any): IUser {
         const user: IUser = {
             hasLogin: userResult.hasLogin,
@@ -174,6 +260,7 @@ export class UsersRepository {
             vipLevel: userResult.vipLevel,
             vipExpiry: userResult.vipExpiry ? new Date(userResult.vipExpiry) : undefined,
             vipLastRequest: userResult.vipLastRequest ? new Date(userResult.vipLastRequest) : undefined,
+            vipPermanentRequests: userResult.vipPermanentRequests ?? 0,
             userLevelKey: userResult.userLevelKey,
             vipLevelKey: userResult.vipLevelKey,
             dropboxAccessToken: userResult.dropboxAccessToken,
