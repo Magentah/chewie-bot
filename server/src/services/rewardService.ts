@@ -19,9 +19,6 @@ export default class RewardService {
         this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>
             this.processGiftSub(username, giftedMonths, plan)
         );
-        this.twitchService.setSubMysteryGiftCallback((username: string, giftedSubs: number, plan: string | undefined) =>
-            this.processGiftSub(username, giftedSubs, plan)
-        );
     }
 
     public async processDonation(donation: IDonationMessage) {
