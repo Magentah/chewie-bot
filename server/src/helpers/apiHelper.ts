@@ -30,4 +30,14 @@ export default class APIHelper {
             }
         }
     }
+
+    public static async checkUserLevelOrSameUser(req : Request, res: Response, next: NextFunction, minLevel: UserLevels, username: string) {
+        const sessionUser = req.user as IUser;
+        if (sessionUser?.username === username) {
+            next();
+        }
+        else {
+            this.checkUserLevel(req, res, next, minLevel);
+        }
+    }
 }

@@ -12,16 +12,16 @@ const useStyles = makeStyles((theme) => {
         root: {
             backgroundColor: theme.palette.background.paper,
             flexShrink: 0,
-            width: width,
+            width,
         },
         nested: {
             paddingLeft: theme.spacing(4),
         },
         drawer: {
-            width: width,
+            width,
         },
         drawerPaper: {
-            width: width,
+            width,
         },
         toolbar: {
             marginTop: theme.mixins.toolbar.minHeight,
@@ -35,18 +35,15 @@ const SideBar: React.FC<any> = (props: any) => {
     const history = useHistory();
     const classes = useStyles();
     const [user, loadUser] = useUser();
-    
-    console.log("SideBar", location.pathname);
 
     useEffect(loadUser, []);
-    
+
     const reroute = (path: string) => {
-        console.log("reroute", path);
         history.push(path);
     };
-    const renderRoutes = (routes: Array<Route>) => {
+    const renderRoutes = (routes: Route[]) => {
         const listItems = routes.map((r: Route, i: number) => {
-            if (user.userLevelKey < r.minUserLevel) {
+            if (user.userLevelKey < r.minUserLevel || r.hideInSidebar === true) {
                 return null;
             }
 

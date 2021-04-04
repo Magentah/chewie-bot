@@ -49,10 +49,8 @@ const stubLinks: AffiliateLink[] = [
 ];
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-        textAlign: "center",
-    },
     card: {
+        textAlign: "center",
     },
     sectionRow: {
         marginTop: theme.spacing(2),
@@ -108,7 +106,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
     }
 
     return (
-        <Box className={classes.root}>
+        <Box>
             <Card className={classes.card}>
                 <CardContent>
                     <Grid>
