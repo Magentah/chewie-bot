@@ -32,7 +32,7 @@ export class AddPermanentVipCommand extends Command {
             return;
         }
 
-        await this.userService.addPermanentVip(targetUser, amount);
+        await this.userService.addPermanentVip(targetUser, amount, `Added by ${user.username}`);
         this.twitchService.sendMessage(channel, `Added ${amount} non-expiring VIP gold request(s) to ${targetUsername}.`);
     }
 

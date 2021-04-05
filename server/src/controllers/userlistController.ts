@@ -111,6 +111,8 @@ class UserlistController {
             return;
         }
 
+        const sessionUser = req.user as IUser;
+
         try {
             // Get data from database. Makes sure all properties are correctly typed and data is current.
             const userData = await this.userService.getUser(username);
@@ -128,7 +130,7 @@ class UserlistController {
                     return;
                 }
 
-                await this.userService.addVipGoldWeeks(userData, vipGoldWeeks);
+                await this.userService.addVipGoldWeeks(userData, vipGoldWeeks, `Added by ${sessionUser.username}`);
 
                 res.status(StatusCodes.OK);
                 res.send(this.userRepository.mapUserToDetailsUserData(userData));
@@ -140,7 +142,7 @@ class UserlistController {
                     return;
                 }
 
-                await this.userService.addPermanentVip(userData, vipGoldRequests);
+                await this.userService.addPermanentVip(userData, vipGoldRequests, `Added by ${sessionUser.username}`);
 
                 res.status(StatusCodes.OK);
                 res.send(this.userRepository.mapUserToDetailsUserData(userData));
@@ -224,7 +226,7 @@ class UserlistController {
                     event += `, ${data.permanentRequests} permanent requests left`;
                 }
 
-                info = `New expiry: ${dateFormatShort.format(new Date(data.newExpiry))}`;
+                info = `Reason: ${data.reason}. New expiry: ${dateFormatShort.format(new Date(data.newExpiry))}`;
                 break;
 
             case EventLogType.SongRequest:
