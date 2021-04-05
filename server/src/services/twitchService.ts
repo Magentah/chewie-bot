@@ -167,11 +167,6 @@ export class TwitchService {
         return data;
     }
 
-    public async addUserFromChatList(channel: string): Promise<boolean> {
-        const data = await this.getChatListFromTwitch(channel.startsWith("#") ? channel : "#" + channel);
-        return await this.users.addUsersFromChatList(data);
-    }
-
     public async userExistsInChat(channel: string, username: string): Promise<boolean> {
         const chatters = (await this.getChatListFromTwitch(channel)).chatters;
         let exists: boolean = false;

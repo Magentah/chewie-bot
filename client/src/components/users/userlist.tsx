@@ -5,10 +5,10 @@ import MaterialTable from "material-table"
 import { Button,  Grid, TextField, Popover, Box, CircularProgress } from "@material-ui/core";
 import { Star } from "@material-ui/icons";
 import { AddToListState } from "../common/addToListState";
+import { UserLevel } from "../common/userLevel";
 import AddIcon from "@material-ui/icons/Add";
 
 type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
-type UserLevel = { id: number; name: string; }
 
 const useStyles = makeStyles((theme) => ({
     addButton: {

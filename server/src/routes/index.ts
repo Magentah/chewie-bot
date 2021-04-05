@@ -4,3 +4,4 @@ export { default as SonglistRouter } from "./songlistRouter";
 export { default as TwitchRouter } from "./twitchRouter";
 export { default as MessageListRouter } from "./messagelistRouter";
 export { default as UserlistRouter } from "./userlistRouter";
+export { default as CommandListRouter } from "./commandlistRouter";

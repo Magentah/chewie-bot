@@ -187,7 +187,7 @@ export class DatabaseService {
     private async createTextCommandsTable(): Promise<void> {
         return this.createTable(DatabaseTables.TextCommands, (table) => {
             table.increments("id").primary().notNullable();
-            table.string("commandName").notNullable();
+            table.string("commandName").unique().notNullable();
             table.string("message").notNullable();
             table.integer("minimumUserLevelKey").unsigned();
             table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);

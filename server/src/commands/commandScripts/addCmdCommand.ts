@@ -16,6 +16,11 @@ export default class AddCmdCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, commandName: string, message: string): Promise<void> {
+        // Remove all preceding exclamation marks if present.
+        if (commandName.startsWith("!")) {
+            commandName = commandName.substr(1);
+        }
+
         let command = await this.textCommands.get(commandName);
         if (!command) {
             command = {
