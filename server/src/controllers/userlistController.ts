@@ -219,7 +219,11 @@ class UserlistController {
         switch (x.type) {
             case EventLogType.GoldAdded:
                 const dateFormatShort = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
-                event = `${data.monthsAdded} months added`;
+                event = data.weeksAdded === 1 ? `${data.weeksAdded} week added` : `${data.weeksAdded} weeks added`;
+                if (data.permanentRequests) {
+                    event += `, ${data.permanentRequests} permanent requests left`;
+                }
+
                 info = `New expiry: ${dateFormatShort.format(new Date(data.newExpiry))}`;
                 break;
 
