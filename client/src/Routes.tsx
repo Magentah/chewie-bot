@@ -16,7 +16,7 @@ import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
 import Login from "./views/login/Login";
 import UserList from "./components/users/userlist";
-import UserProfile from "./components/users/userprofile";
+import UserProfileView from "./components/users/userprofile";
 
 export type Route = {
     path: string;
@@ -50,7 +50,7 @@ const DashboardRoutes: Route[] = [
         path: "/profile",
         name: "Profile",
         icon: Home,
-        component: UserProfile,
+        component: UserProfileView,
         minUserLevel: UserLevels.Viewer,
         hideInSidebar: true
     },

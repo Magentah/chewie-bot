@@ -3,8 +3,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import * as Cookie from "js-cookie";
 import Paper from "@material-ui/core/Paper";
-
-type UserProfile = { user: any, goldLogs: any[], pointsRank: number };
+import UserStatusLog from "./userStatusLog";
+import { UserProfile } from "../common/userProfile";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -22,13 +22,12 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const UserProfile: React.FC<any> = (props: any) => {
+const UserProfileView: React.FC<any> = (props: any) => {
     const userProfile = Cookie.getJSON("user");
     const [fullUserProfile, setFullUserProfile] = useState<UserProfile>();
 
     const classes = useStyles();
     const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
-    const dateFormatShort = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
 
     useEffect(() => {
         axios.get(`/api/userlist/profile/${userProfile.username}`).then((response) => {
@@ -65,28 +64,7 @@ const UserProfile: React.FC<any> = (props: any) => {
         }
 
         if (fullUserProfile.goldLogs.length) {
-            vipLogTable = <TableContainer component={Paper}>
-                <Table >
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Event</TableCell>
-                            <TableCell>Details</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                    {fullUserProfile.goldLogs.map((row) => (
-                        <TableRow key={row.name}>
-                            <TableCell component="th" scope="row">
-                                {dateFormatShort.format(new Date(row.time))}
-                            </TableCell>
-                            <TableCell>{row.event}</TableCell>
-                            <TableCell>{row.info}</TableCell>
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>;
+            vipLogTable = <UserStatusLog profile={fullUserProfile} />
         }
 
         userProfileContent = <Grid alignItems="flex-start">
@@ -133,4 +111,4 @@ const UserProfile: React.FC<any> = (props: any) => {
     </Card>;
 }
 
-export default UserProfile;
+export default UserProfileView;
