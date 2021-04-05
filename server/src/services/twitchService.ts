@@ -461,6 +461,10 @@ export class TwitchService {
         }
     }
 
+    /**
+     * This event will occur additionally to the individual "subgift" events. So 10 subs gifted to the community will result in one
+     * "submysterygift" and 10 "subgift" events.
+     */
     private subMysteryGiftEventHandler(channel: string, username: string, numbOfSubs: number, methods: tmi.SubMethods, userstate: tmi.SubMysteryGiftUserstate) {
         this.eventLogService.addTwitchCommunityGiftSub(username, { channel, numbOfSubs, methods, userstate });
 
