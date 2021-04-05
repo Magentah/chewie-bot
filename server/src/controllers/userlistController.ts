@@ -1,17 +1,18 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { IUser } from "../models";
+import { EventLogType, IEventLog, IUser } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
-import { UserLevelsRepository, UsersRepository } from "../database";
+import { EventLogsRepository, UserLevelsRepository, UsersRepository } from "../database";
 import { UserService } from "../services/userService";
 
 @injectable()
 class UserlistController {
     constructor(@inject(UsersRepository) private userRepository: UsersRepository,
                 @inject(UserService) private userService: UserService,
-                @inject(UserLevelsRepository) private userLevels: UserLevelsRepository) {
+                @inject(UserLevelsRepository) private userLevels: UserLevelsRepository,
+                @inject(EventLogsRepository) private eventLogs: EventLogsRepository) {
         Logger.info(
             LogType.ServerInfo,
             `UserlistController constructor. UserlistRepository exists: ${this.userRepository !== undefined}`
@@ -110,6 +111,8 @@ class UserlistController {
             return;
         }
 
+        const sessionUser = req.user as IUser;
+
         try {
             // Get data from database. Makes sure all properties are correctly typed and data is current.
             const userData = await this.userService.getUser(username);
@@ -127,7 +130,7 @@ class UserlistController {
                     return;
                 }
 
-                await this.userService.addVipGoldWeeks(userData, vipGoldWeeks);
+                await this.userService.addVipGoldWeeks(userData, vipGoldWeeks, `Added by ${sessionUser.username}`);
 
                 res.status(StatusCodes.OK);
                 res.send(this.userRepository.mapUserToDetailsUserData(userData));
@@ -139,7 +142,7 @@ class UserlistController {
                     return;
                 }
 
-                await this.userService.addPermanentVip(userData, vipGoldRequests);
+                await this.userService.addPermanentVip(userData, vipGoldRequests, `Added by ${sessionUser.username}`);
 
                 res.status(StatusCodes.OK);
                 res.send(this.userRepository.mapUserToDetailsUserData(userData));
@@ -174,6 +177,67 @@ class UserlistController {
 
         res.sendStatus(StatusCodes.OK);
     }
+
+    /**
+     * Gets a full user profile for a specific user.
+     * Includes basic user data and gold logs.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async getUserProfile(req: Request, res: Response): Promise<void> {
+        const username = req.params.username;
+        if (!username) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a user object."));
+            return;
+        }
+
+        const user = await this.userService.getUser(username);
+        if (!user) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "User not found in database."));
+            return;
+        }
+
+        const userData = this.userRepository.mapUserToDetailsUserData(user);
+        const goldLogs = (await this.eventLogs.getForUser(username, [EventLogType.GoldAdded, EventLogType.SongRequest])).map(x => this.mapToEvent(x));
+        const rank = await this.userRepository.getPointsRank(user);
+
+        const userProfile = {
+            user: userData,
+            pointsRank: rank,
+            goldLogs
+        };
+
+        res.status(StatusCodes.OK);
+        res.send(userProfile);
+    }
+
+    private mapToEvent(x: IEventLog): any {
+        const data = JSON.parse(x.data);
+        let event = "";
+        let info = "";
+
+        switch (x.type) {
+            case EventLogType.GoldAdded:
+                const dateFormatShort = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
+                event = data.weeksAdded === 1 ? `${data.weeksAdded} week added` : `${data.weeksAdded} weeks added`;
+                if (data.permanentRequests) {
+                    event += `, ${data.permanentRequests} permanent requests left`;
+                }
+
+                info = `Reason: ${data.reason}. New expiry: ${dateFormatShort.format(new Date(data.newExpiry))}`;
+                break;
+
+            case EventLogType.SongRequest:
+                event = `Song requested`;
+                info = `${data.song.title} (${data.song.url})`;
+                break;
+        }
+
+        return { time: x.time, event, info };
+    }
 }
 
 export default UserlistController;
+

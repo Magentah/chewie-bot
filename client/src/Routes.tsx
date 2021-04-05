@@ -16,13 +16,15 @@ import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
 import Login from "./views/login/Login";
 import UserList from "./components/users/userlist";
+import UserProfileView from "./components/users/userprofile";
 
 export type Route = {
     path: string;
     name: string;
     component: any;
     icon: OverridableComponent<SvgIconTypeMap<{}, "svg">>;
-    minUserLevel: UserLevels
+    minUserLevel: UserLevels,
+    hideInSidebar?: boolean
 };
 
 const DefaultComponent: React.FC<{}> = (props) => {
@@ -43,6 +45,14 @@ const DashboardRoutes: Route[] = [
         icon: Home,
         component: Login,
         minUserLevel: UserLevels.Viewer
+    },
+    {
+        path: "/profile",
+        name: "Profile",
+        icon: Home,
+        component: UserProfileView,
+        minUserLevel: UserLevels.Viewer,
+        hideInSidebar: true
     },
     {
         path: "/songqueue",

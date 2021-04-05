@@ -32,7 +32,7 @@ export class AddVipCommand extends Command {
             return;
         }
 
-        await this.userService.addVipGoldWeeks(targetUser, weeks);
+        await this.userService.addVipGoldWeeks(targetUser, weeks, `Added by ${user.username}`);
         this.twitchService.sendMessage(channel, `Added ${weeks} weeks of VIP gold to ${targetUsername}.`);
     }
 }

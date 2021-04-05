@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Button,  Grid, TextField, Popover, Box, CircularProgress } from "@material-ui/core";
+import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography } from "@material-ui/core";
 import { Star } from "@material-ui/icons";
 import { AddToListState } from "../common/addToListState";
 import { UserLevel } from "../common/userLevel";
 import AddIcon from "@material-ui/icons/Add";
+import UserStatusLog from "./userStatusLog";
+import { UserProfile } from "../common/userProfile";
 
 type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
 
@@ -41,6 +43,20 @@ const VipStatusCell: React.FC<any> = (value: RowData) => {
         </div>
     );
 };
+
+const UserDetailsPanel: React.FC<any> = (props: any) => {
+    const [fullUserProfile, setFullUserProfile] = useState<UserProfile>();
+
+    useEffect(() => {
+        axios.get(`/api/userlist/profile/${props.username}`).then((response) => {
+            if (response) {
+                setFullUserProfile(response.data);
+            }
+        });
+    }, []);
+
+    return fullUserProfile ? <UserStatusLog profile={fullUserProfile} /> : <Box m={2}><Typography>Loading...</Typography></Box>;
+}
 
 const UserList: React.FC<any> = (props: any) => {
     const [userlist, setUserlist] = useState([] as RowData[]);
@@ -212,6 +228,7 @@ const UserList: React.FC<any> = (props: any) => {
                         })
                     }
                 }
+                detailPanel = {rowData => <UserDetailsPanel username={rowData.username} />}
             />
         </div>
     );

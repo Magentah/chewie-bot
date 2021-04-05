@@ -98,7 +98,7 @@ export class UserService {
      * @param user user to update
      * @param goldWeeks Weeks to add
      */
-    public async addVipGoldWeeks(user: IUser, goldWeeks: number) {
+    public async addVipGoldWeeks(user: IUser, goldWeeks: number, reason: string) {
         if (isNaN(goldWeeks)) {
             throw new RangeError("Invalid number of VIP gold months provided.");
         }
@@ -118,7 +118,7 @@ export class UserService {
 
         await this.users.updateVipExpiry(user);
 
-        this.eventLog.addVipGoldAdded(user.username, { weeksAdded: goldWeeks, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests });
+        this.eventLog.addVipGoldAdded(user.username, { weeksAdded: goldWeeks, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests, reason });
     }
 
     /**
@@ -129,11 +129,11 @@ export class UserService {
      * you will also not lose the permanent request when using a normal VIP gold request in terms of total
      * number of requests that you can make..
      * @param user user to update
-     * @param amount Number of requests to grant 
+     * @param amount Number of requests to grant
      */
-    public async addPermanentVip(user: IUser, amount: number) {
+    public async addPermanentVip(user: IUser, amount: number, reason: string) {
         user.vipPermanentRequests = user.vipPermanentRequests ? user.vipPermanentRequests++ : 1;
-        this.addVipGoldWeeks(user, amount);
+        this.addVipGoldWeeks(user, amount, reason);
     }
 
     /**

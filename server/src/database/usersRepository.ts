@@ -93,6 +93,23 @@ export class UsersRepository {
     }
 
     /**
+     * Determines the user's ranking in terms of points.
+     * @param user User object
+     * @returns Rank
+     */
+     public async getPointsRank(user: IUser): Promise<number> {
+        const databaseService = await this.databaseProvider();
+
+        const userResult = await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .count("id AS cnt")
+            .where("points", ">", user.points)
+            .first();
+
+        return userResult.cnt + 1;
+     }
+
+    /**
      * Updates user data in the database if the user already exists.
      * Increments or decrements the number of points for a user.
      * @param user Updated user
