@@ -96,9 +96,13 @@ export class UserService {
     /**
      * Adds a specified number of VIP gold months to a user.
      * @param user user to update
-     * @param goldMonths Months to add (can also be 0.5 for T3 subs)
+     * @param goldWeeks Weeks to add
      */
-    public async addVipGoldMonths(user: IUser, goldMonths: number) {
+    public async addVipGoldWeeks(user: IUser, goldWeeks: number, reason: string) {
+        if (isNaN(goldWeeks)) {
+            throw new RangeError("Invalid number of VIP gold months provided.");
+        }
+
         let vipStartDate = new Date(new Date().toDateString());
 
         // If VIP status still active, renew starting at the VIP end date
@@ -109,12 +113,27 @@ export class UserService {
         }
 
         // Add 4 weeks.
-        vipStartDate.setDate(vipStartDate.getDate() + goldMonths * 4 * 7 - 1);
+        vipStartDate.setDate(vipStartDate.getDate() + goldWeeks * 7 - 1);
         user.vipExpiry = vipStartDate;
 
         await this.users.updateVipExpiry(user);
 
-        this.eventLog.addVipGoldAdded(user.username, { monthsAdded: goldMonths, newExpiry: user.vipExpiry });
+        this.eventLog.addVipGoldAdded(user.username, { weeksAdded: goldWeeks, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests, reason });
+    }
+
+    /**
+     * Adds a number of permanent (non-expiring) VIP requests.
+     * For each request, the requests counter will be incremented *and* VIP gold duration will be extended for one week. 
+     * When redeeming gold, it will always be deducted from the amount of permanent requests. 
+     * This way you can not keep your permanent request indefinitely when adding more gold, but
+     * you will also not lose the permanent request when using a normal VIP gold request in terms of total
+     * number of requests that you can make..
+     * @param user user to update
+     * @param amount Number of requests to grant
+     */
+    public async addPermanentVip(user: IUser, amount: number, reason: string) {
+        user.vipPermanentRequests = user.vipPermanentRequests ? user.vipPermanentRequests++ : 1;
+        this.addVipGoldWeeks(user, amount, reason);
     }
 
     /**

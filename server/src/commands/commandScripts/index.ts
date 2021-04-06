@@ -10,6 +10,9 @@ export { default as AddQuoteCommand } from "./quotes/addQuoteCommand";
 export { default as DelQuoteCommand } from "./quotes/delQuoteCommand";
 export { default as QuoteCommand } from "./quotes/quoteCommand";
 export { default as SongCommand } from "./songCommand";
+export { default as AddVipCommand } from "./addVipCommand";
+export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
+export { default as VipCommand } from "./vipCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";

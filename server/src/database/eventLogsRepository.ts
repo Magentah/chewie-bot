@@ -17,9 +17,13 @@ export class EventLogsRepository {
         return eventLogs;
     }
 
-    public async getForUser(username: string): Promise<IEventLog[]> {
+    public async getForUser(username: string, type: EventLogType[]): Promise<IEventLog[]> {
         const databaseService = await this.databaseProvider();
-        const eventLogs: IEventLog[] = await databaseService.getQueryBuilder(DatabaseTables.EventLogs).select().where("username", "like", username);
+        const eventLogs: IEventLog[] = await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
+            .select()
+            .whereIn("type", type)
+            .andWhere("username", "like", username)
+            .orderBy("time", "desc");
         return eventLogs;
     }
 

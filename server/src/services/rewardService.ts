@@ -19,9 +19,6 @@ export default class RewardService {
         this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>
             this.processGiftSub(username, giftedMonths, plan)
         );
-        this.twitchService.setSubMysteryGiftCallback((username: string, giftedSubs: number, plan: string | undefined) =>
-            this.processGiftSub(username, giftedSubs, plan)
-        );
     }
 
     public async processDonation(donation: IDonationMessage) {
@@ -55,9 +52,9 @@ export default class RewardService {
 
         if (sub.sub_plan === SubscriptionPlan.Tier3) {
             if (sub.sub_type === SubType.Resub) {
-                this.userService.addVipGoldMonths(user, 0.5);
+                this.userService.addVipGoldWeeks(user, 2, "T3 Resub");
             } else {
-                this.userService.addVipGoldMonths(user, 0.5 * sub.months);
+                this.userService.addVipGoldWeeks(user, 2 * sub.months, "T3 sub");
             }
         }
     }
@@ -68,7 +65,7 @@ export default class RewardService {
             // We assume that the user on the receiving end will be covered by a streamlabs event.
             const giftingUser = await this.getUserForEvent(username);
             if (giftingUser) {
-                this.userService.addVipGoldMonths(giftingUser, 0.25 * giftedMonths);
+                this.userService.addVipGoldWeeks(giftingUser, giftedMonths, "Gifted T3 sub");
             }
         }
     }
@@ -91,7 +88,7 @@ export default class RewardService {
         const goldMonths = Math.floor(donation.amount / amountPerMonth);
         if (goldMonths > 0) {
             if (user) {
-                this.userService.addVipGoldMonths(user, goldMonths);
+                this.userService.addVipGoldWeeks(user, goldMonths * 4, "Donation");
             }
         }
     }

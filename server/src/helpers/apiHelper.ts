@@ -15,7 +15,7 @@ export default class APIHelper {
     }
 
     public static async checkUserLevel(req : Request, res: Response, next: NextFunction, minLevel: UserLevels) {
-        let sessionUser = req.user as IUser;
+        const sessionUser = req.user as IUser;
         if (sessionUser?.username === undefined) {
             res.status(StatusCodes.FORBIDDEN);
             res.send(APIHelper.error(StatusCodes.FORBIDDEN, "User not logged in"));
@@ -28,6 +28,16 @@ export default class APIHelper {
             } else {
                 next();
             }
+        }
+    }
+
+    public static async checkUserLevelOrSameUser(req : Request, res: Response, next: NextFunction, minLevel: UserLevels, username: string) {
+        const sessionUser = req.user as IUser;
+        if (sessionUser?.username === username) {
+            next();
+        }
+        else {
+            this.checkUserLevel(req, res, next, minLevel);
         }
     }
 }

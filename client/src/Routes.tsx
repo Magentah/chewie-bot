@@ -4,23 +4,27 @@ import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Card, CardContent, Typography } from "@material-ui/core";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, Lens as DefaultIcon } from "@material-ui/icons";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
 import MusicRequestView from "./views/music-requests/MusicRequestView";
 import SongList from "./components/songlist/songlist";
 import MessageList from "./components/messages/messagelist";
+import CommandList from "./components/commands/commandlist";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./hooks/user";
 import Login from "./views/login/Login";
+import UserList from "./components/users/userlist";
+import UserProfileView from "./components/users/userprofile";
 
 export type Route = {
     path: string;
     name: string;
     component: any;
     icon: OverridableComponent<SvgIconTypeMap<{}, "svg">>;
-    minUserLevel: UserLevels
+    minUserLevel: UserLevels,
+    hideInSidebar?: boolean
 };
 
 const DefaultComponent: React.FC<{}> = (props) => {
@@ -43,6 +47,14 @@ const DashboardRoutes: Route[] = [
         minUserLevel: UserLevels.Viewer
     },
     {
+        path: "/profile",
+        name: "Profile",
+        icon: Home,
+        component: UserProfileView,
+        minUserLevel: UserLevels.Viewer,
+        hideInSidebar: true
+    },
+    {
         path: "/songqueue",
         name: "Music Requests",
         icon: QueueMusic,
@@ -54,6 +66,13 @@ const DashboardRoutes: Route[] = [
         name: "Songlist",
         icon: LibraryMusic,
         component: SongList,
+        minUserLevel: UserLevels.Viewer
+    },
+    {
+        path: "/commands",
+        name: "Commands",
+        icon: Extension,
+        component: CommandList,
         minUserLevel: UserLevels.Viewer
     },
     {
@@ -81,7 +100,7 @@ const DashboardRoutes: Route[] = [
         path: "/users",
         name: "Users",
         icon: SupervisorAccount,
-        component: DefaultComponent,
+        component: UserList,
         minUserLevel: UserLevels.Moderator
     },
 ];

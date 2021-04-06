@@ -7,6 +7,7 @@ import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
 import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser } from "../models";
 import TwitchAuthService from "./twitchAuthService";
+import Logger, { LogType } from "../logger";
 
 /**
  * Provides acces to Twitch API endpoint for checking a user's
@@ -83,6 +84,8 @@ export class TwitchWebService {
         return await execute(HttpMethods.GET, getModeratorsUrl)
             .then((resp: AxiosResponse) => {
                 if (resp === undefined) {
+                    // Broadcaster has not given full authorization, user list cannot be fetched.
+                    Logger.warn(LogType.Twitch, "Moderator list cannot be fetched");
                     return [] as ITwitchUser[];
                 }
 
@@ -131,6 +134,12 @@ export class TwitchWebService {
 
         return await execute(HttpMethods.GET, getSubsUrl)
             .then((resp: AxiosResponse) => {
+                if (resp === undefined) {
+                    // Broadcaster has not given full authorization, user list cannot be fetched.
+                    Logger.warn(LogType.Twitch, "Subscriber list cannot be fetched");
+                    return [] as ITwitchSubscription[];
+                }
+
                 if (resp.data === undefined) {
                     throw new Error("malformed data");
                 }

@@ -167,11 +167,6 @@ export class TwitchService {
         return data;
     }
 
-    public async addUserFromChatList(channel: string): Promise<boolean> {
-        const data = await this.getChatListFromTwitch(channel.startsWith("#") ? channel : "#" + channel);
-        return await this.users.addUsersFromChatList(data);
-    }
-
     public async userExistsInChat(channel: string, username: string): Promise<boolean> {
         const chatters = (await this.getChatListFromTwitch(channel)).chatters;
         let exists: boolean = false;
@@ -461,6 +456,10 @@ export class TwitchService {
         }
     }
 
+    /**
+     * This event will occur additionally to the individual "subgift" events. So 10 subs gifted to the community will result in one
+     * "submysterygift" and 10 "subgift" events.
+     */
     private subMysteryGiftEventHandler(channel: string, username: string, numbOfSubs: number, methods: tmi.SubMethods, userstate: tmi.SubMysteryGiftUserstate) {
         this.eventLogService.addTwitchCommunityGiftSub(username, { channel, numbOfSubs, methods, userstate });
 

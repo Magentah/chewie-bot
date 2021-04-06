@@ -16,9 +16,11 @@ import {
 import { Face, Settings, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import * as Cookie from "js-cookie";
+import { useHistory } from "react-router-dom";
 
 type NavMenuItem = {
     name: string;
+    route?: string;
     iconComponent: OverridableComponent<SvgIconTypeMap<{}, "svg">>;
 };
 
@@ -43,9 +45,10 @@ const useStyles = makeStyles((theme) => ({
 const NavBarMenu: React.FC<any> = (props: any) => {
     const userProfile = Cookie.getJSON("user");
     const classes = useStyles();
+    const history = useHistory();
     const [anchor, setAnchor] = useState<undefined | HTMLElement>(undefined);
     const navMenuItems: NavMenuItem[] = [
-        { name: "Profile", iconComponent: Face },
+        { name: "Profile", iconComponent: Face, route: "profile" },
         { name: "Settings", iconComponent: Settings },
         { name: "Log Out", iconComponent: ExitToApp },
     ];
@@ -68,7 +71,7 @@ const NavBarMenu: React.FC<any> = (props: any) => {
                 <ListItemIcon>
                     <item.iconComponent />
                 </ListItemIcon>
-                <ListItemText primary={item.name} />
+                <ListItemText primary={item.name} onClick={() => history.push(item.route ?? "")} />
             </MenuItem>
         ));
     };
