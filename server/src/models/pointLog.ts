@@ -18,5 +18,6 @@ export enum PointLogType {
     Auction = "auction",
     Arena = "arena",
     Redeem = "redeem",
-    Give = "give"
+    Give = "give",
+    Add = "add"
 }
