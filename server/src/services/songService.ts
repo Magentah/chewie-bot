@@ -165,7 +165,10 @@ export class SongService {
     public songPlayed(song: ISong | number): void;
     public songPlayed(song: any): void {
         if (typeof song === "number") {
-            const songToChange = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
+            const songToChange =
+                this.songQueue.filter((item) => {
+                    return item.id === song;
+                })[0] || undefined;
             if (songToChange) {
                 const songIndex = this.songQueue.indexOf(songToChange);
                 this.songQueue[songIndex].beenPlayed = true;
@@ -182,7 +185,10 @@ export class SongService {
                 });
             }
         } else if (typeof song === "object" && song.type === "isong") {
-            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
+            const songData =
+                this.songQueue.filter((item) => {
+                    return item.id === song.id;
+                })[0] || undefined;
             if (songData) {
                 const songIndex = this.songQueue.indexOf(songData);
                 this.songQueue[songIndex].beenPlayed = true;
@@ -205,10 +211,13 @@ export class SongService {
      * Moves a song to the top of the song queue.
      * @param song The song or song id to remove.
      */
-     public moveSongToTop(song: ISong | number): void;
-     public moveSongToTop(song: any): void {
-         if (typeof song === "number") {
-            const songToMove = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
+    public moveSongToTop(song: ISong | number): void;
+    public moveSongToTop(song: any): void {
+        if (typeof song === "number") {
+            const songToMove =
+                this.songQueue.filter((item) => {
+                    return item.id === song;
+                })[0] || undefined;
             if (songToMove) {
                 const songIndex = this.songQueue.indexOf(songToMove);
                 this.songQueue.splice(songIndex, 1);
@@ -220,21 +229,24 @@ export class SongService {
                     data: songToMove,
                 });
             }
-         } else if (this.isSong(song)) {
-            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
+        } else if (this.isSong(song)) {
+            const songData =
+                this.songQueue.filter((item) => {
+                    return item.id === song.id;
+                })[0] || undefined;
             if (songData) {
-                 const index = this.songQueue.indexOf(songData);
-                 this.songQueue.splice(index, 1);
-                 this.songQueue.splice(0, 0, song);
+                const index = this.songQueue.indexOf(songData);
+                this.songQueue.splice(index, 1);
+                this.songQueue.splice(0, 0, song);
 
-                 this.websocketService.send({
+                this.websocketService.send({
                     type: SocketMessageType.SongMovedToTop,
                     message: "Song moved to top",
                     data: song,
                 });
-             }
-         }
-     }
+            }
+        }
+    }
 
     /**
      * Remove a song from the song queue.
@@ -243,7 +255,10 @@ export class SongService {
     public removeSong(song: ISong | number): void;
     public removeSong(song: any): void {
         if (typeof song === "number") {
-            const songToDelete = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
+            const songToDelete =
+                this.songQueue.filter((item) => {
+                    return item.id === song;
+                })[0] || undefined;
             if (songToDelete) {
                 const songIndex = this.songQueue.indexOf(songToDelete);
                 const songData = this.songQueue[songIndex];
@@ -264,7 +279,10 @@ export class SongService {
                 });
             }
         } else if (this.isSong(song)) {
-            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
+            const songData =
+                this.songQueue.filter((item) => {
+                    return item.id === song.id;
+                })[0] || undefined;
             if (songData) {
                 const index = this.songQueue.indexOf(songData);
                 this.songQueue.splice(index, 1);
