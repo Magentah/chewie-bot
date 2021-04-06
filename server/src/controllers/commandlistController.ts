@@ -10,13 +10,12 @@ import { Command } from "../commands/command";
 
 @injectable()
 class CommandlistController {
-    constructor(@inject(TextCommandsRepository) private textCommandsRepository: TextCommandsRepository,
-                @inject(CommandAliasesRepository) private commandAliasRepository: CommandAliasesRepository,
-                @inject("Commands") private commandList: Map<string, Command>) {
-        Logger.info(
-            LogType.ServerInfo,
-            `CommandlistController constructor. TextCommandsRepository exists: ${this.textCommandsRepository !== undefined}`
-        );
+    constructor(
+        @inject(TextCommandsRepository) private textCommandsRepository: TextCommandsRepository,
+        @inject(CommandAliasesRepository) private commandAliasRepository: CommandAliasesRepository,
+        @inject("Commands") private commandList: Map<string, Command>
+    ) {
+        Logger.info(LogType.ServerInfo, `CommandlistController constructor. TextCommandsRepository exists: ${this.textCommandsRepository !== undefined}`);
     }
 
     /**
@@ -27,7 +26,13 @@ class CommandlistController {
     public async getCommandlist(req: Request, res: Response): Promise<void> {
         const resultList: ICommandInfo[] = [];
         for (const command of await this.textCommandsRepository.getList()) {
-            resultList.push({ id: command.id, commandName: command.commandName, content: command.message, type: CommandType.Text, minUserLevel: UserLevels.Viewer });
+            resultList.push({
+                id: command.id,
+                commandName: command.commandName,
+                content: command.message,
+                type: CommandType.Text,
+                minUserLevel: UserLevels.Viewer,
+            });
         }
 
         for (const alias of await this.commandAliasRepository.getList()) {
@@ -36,7 +41,7 @@ class CommandlistController {
                 commandName: alias.alias,
                 content: "!" + alias.commandName + (alias.commandArguments ? " " + alias.commandArguments : ""),
                 type: CommandType.Alias,
-                minUserLevel: UserLevels.Viewer
+                minUserLevel: UserLevels.Viewer,
             });
         }
 
@@ -45,7 +50,7 @@ class CommandlistController {
                 commandName: name,
                 content: "",
                 type: CommandType.System,
-                minUserLevel: this.commandList.get(name)?.getMinimumUserLevel()
+                minUserLevel: this.commandList.get(name)?.getMinimumUserLevel(),
             });
         }
 
@@ -108,16 +113,12 @@ class CommandlistController {
                     break;
 
                 case CommandType.System:
-                    throw new RangeError("System commands cannot be edited.");
+                    Logger.err(LogType.Command, "System commands cannot be edited.");
+                    return;
             }
         } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
-            res.send(
-                APIHelper.error(
-                    StatusCodes.INTERNAL_SERVER_ERROR,
-                    "There was an error when attempting to update the command."
-                )
-            );
+            res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to update the command."));
         }
     }
 
@@ -149,15 +150,9 @@ class CommandlistController {
             }
 
             res.sendStatus(StatusCodes.OK);
-        }
-        catch (err) {
+        } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
-            res.send(
-                APIHelper.error(
-                    StatusCodes.INTERNAL_SERVER_ERROR,
-                    "There was an error when attempting to delete the command."
-                )
-            );
+            res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to delete the command."));
         }
     }
 }
