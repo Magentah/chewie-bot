@@ -137,7 +137,11 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             const winMessages = (await this.messages.getByType(GameEventType.Bankheist, messageType)).map(item => item.text);
             if (winMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
-                this.sendMessage(winMessages[msgIndex].replace("{user}", winners[0].participant.user.username));
+
+                // Replace variables for "single user" scenario.
+                const winMessageResult = winMessages[msgIndex].replace("{user}", winners[0].participant.user.username)
+                    .replace("{amount}", winners[0].pointsWon.toString());
+                this.sendMessage(winMessageResult);
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${messageType}`);
             }
@@ -154,7 +158,11 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 .map(item => item.text);
             if (loseMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(loseMessages.length));
-                this.sendMessage(loseMessages[msgIndex].replace("{user}", this.participants[0].user.username));
+
+                // Replace variables for "single user" scenario.
+                const loseMessageResult = loseMessages[msgIndex].replace("{user}", this.participants[0].user.username)
+                    .replace("{amount}", this.participants[0].points.toString());
+                this.sendMessage(loseMessageResult);
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${GameMessageType.NoWin}`);
             }
