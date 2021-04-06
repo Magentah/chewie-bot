@@ -154,7 +154,7 @@ export class TwitchWebService {
     private async buildHeaderFromUserPrincipal(ctx: IUserPrincipal): Promise<any> {
         if (ctx.accessToken === undefined || ctx.accessToken === "") {
             Logger.err(LogType.Twitch, "No access token for user in buildHeaderFromUserPrincipal", ctx);
-            return;
+            return undefined;
         }
 
         const auth = await this.authService.getUserAccessToken(ctx);
