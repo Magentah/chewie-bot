@@ -26,10 +26,16 @@ export class TwitchWebService {
 
     public async fetchUserProfile(user: string): Promise<ITwitchUserProfile | undefined> {
         const header: any = await this.buildHeaderFromClientId();
+        if (!header) {
+            Logger.err(LogType.Twitch, "Unable to create authentication headers for fetchUserProfile");
+            return undefined;
+        }
+
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, this.getUserProfileUrl + `?login=${user}`).then((resp: AxiosResponse) => {
             if (resp === undefined) {
+                Logger.err(LogType.Twitch, `Unable to get the user profile for ${user}`);
                 return undefined;
             }
 
@@ -61,6 +67,7 @@ export class TwitchWebService {
     public async fetchModerators(users?: string[]): Promise<ITwitchUser[]> {
         const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
         if (broadcasterCtx === undefined) {
+            Logger.err(LogType.Twitch, "Unable to get moderators. Broadcaster context is undefined.");
             return [] as ITwitchUser[];
         }
 
@@ -80,6 +87,11 @@ export class TwitchWebService {
         }
 
         const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
+        if (!header) {
+            Logger.err(LogType.Twitch, "Unable to create authentication headers for fetchModerators");
+            return [];
+        }
+
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, getModeratorsUrl).then((resp: AxiosResponse) => {
@@ -133,6 +145,11 @@ export class TwitchWebService {
         }
 
         const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
+        if (!header) {
+            Logger.err(LogType.Twitch, "Unable to create authentication headers for fetchSubscribers");
+            return [];
+        }
+
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, getSubsUrl).then((resp: AxiosResponse) => {
@@ -175,7 +192,7 @@ export class TwitchWebService {
     private async buildHeaderFromClientId(): Promise<any> {
         if (Config.twitch.clientId === undefined || Config.twitch.clientId === "") {
             Logger.err(LogType.Twitch, "No twitch client id is configured.");
-            return;
+            return undefined;
         }
 
         const auth = await this.authService.getClientAccessToken();
