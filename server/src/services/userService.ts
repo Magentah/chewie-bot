@@ -132,7 +132,7 @@ export class UserService {
      * @param amount Number of requests to grant
      */
     public async addPermanentVip(user: IUser, amount: number, reason: string) {
-        user.vipPermanentRequests = user.vipPermanentRequests ? user.vipPermanentRequests++ : 1;
+        user.vipPermanentRequests = user.vipPermanentRequests ? (user.vipPermanentRequests + amount) : 1;
         this.addVipGoldWeeks(user, amount, reason);
     }
 
