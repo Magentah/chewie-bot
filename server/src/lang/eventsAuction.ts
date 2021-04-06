@@ -8,6 +8,7 @@ Lang.register("auction.closed", "Auction closed. No one made a bid though.");
 Lang.register("auction.closedwin", "Auction closed. The winner is: $1 with a bid of $2 Chews.");
 Lang.register("auction.cooldown", "Auction on cooldown.");
 Lang.register("auction.inprogress", "An auction is currently in progress, use !bid <wager> to join!");
+Lang.register("auction.ending", "The current auction is ending in $1 seconds!");
 
 Lang.register("auction.bidnan", "$1, minimum bid is not a number!");
 Lang.register("auction.noitem", "$1, item to be auctioned needs to be specified!");
