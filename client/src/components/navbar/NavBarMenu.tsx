@@ -13,7 +13,7 @@ import {
     Box,
 } from "@material-ui/core";
 
-import { Face, Settings, ExitToApp } from "@material-ui/icons";
+import { Face, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import * as Cookie from "js-cookie";
 import { useHistory } from "react-router-dom";
