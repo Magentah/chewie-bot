@@ -61,7 +61,7 @@ class TwitchController {
     public async getBotSettings(req: Request, res: Response): Promise<void> {
         const user = await this.botSettingsService.getSettings(BotSettings.BotUsername);
         const auth = await this.botSettingsService.getSettings(BotSettings.BotUserAuth);
-        res.status(StatusCodes.OK).send({username: user.value, oauth: auth.value});
+        res.status(StatusCodes.OK).send({ username: user.value, oauth: auth.value });
     }
 
     public async saveBotSettings(req: Request, res: Response): Promise<void> {
