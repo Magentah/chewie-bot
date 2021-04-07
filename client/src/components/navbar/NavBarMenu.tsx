@@ -20,7 +20,7 @@ import { useHistory } from "react-router-dom";
 
 type NavMenuItem = {
     name: string;
-    route?: string;
+    action?: () => void;
     iconComponent: OverridableComponent<SvgIconTypeMap<{}, "svg">>;
 };
 
@@ -48,9 +48,8 @@ const NavBarMenu: React.FC<any> = (props: any) => {
     const history = useHistory();
     const [anchor, setAnchor] = useState<undefined | HTMLElement>(undefined);
     const navMenuItems: NavMenuItem[] = [
-        { name: "Profile", iconComponent: Face, route: "profile" },
-        { name: "Settings", iconComponent: Settings },
-        { name: "Log Out", iconComponent: ExitToApp },
+        { name: "Profile", iconComponent: Face, action: () => history.push("profile") },
+        { name: "Log Out", iconComponent: ExitToApp, action: () => window.location.href = "/api/logout" },
     ];
 
     const clickMenu = (e: React.MouseEvent<HTMLElement>) => {
@@ -71,7 +70,7 @@ const NavBarMenu: React.FC<any> = (props: any) => {
                 <ListItemIcon>
                     <item.iconComponent />
                 </ListItemIcon>
-                <ListItemText primary={item.name} onClick={() => history.push(item.route ?? "")} />
+                <ListItemText primary={item.name} onClick={item.action} />
             </MenuItem>
         ));
     };
