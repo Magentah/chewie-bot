@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
-import { IUser, IUserLevel, UserLevels } from "../models";
+import { IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -135,6 +135,18 @@ export class UsersRepository {
             .update({ vipExpiry: user.vipExpiry, vipPermanentRequests: user.vipPermanentRequests })
             .where({ id: user.id });
         await databaseService.getQueryBuilder(DatabaseTables.Users).update({ vipExpiry: user.vipExpiry }).where({ id: user.id });
+    }
+
+    /**
+     * Renames the points log for a given user.
+     */
+     public async renameUserInLog(oldUserName: string, newUserName: string): Promise<void> {
+        const databaseService = await this.databaseProvider();
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.PointLogs)
+            .where({ username: oldUserName })
+            .update({ username: newUserName });
     }
 
     /**

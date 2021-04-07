@@ -54,6 +54,9 @@
             "streamlabs": true
         },
         "enabledEventLogs": {
+            "admin": {
+              "renameuser": true
+            },
             "twitch": {
                 "subs": true
             },
