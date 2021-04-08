@@ -8,7 +8,8 @@ export class VipCommand extends Command {
 
     public executeInternal(channel: string, user: IUser): void {
         const todayDate = new Date(new Date().toDateString());
-        let vipInfo = `${user.username}, your VIP status: `;
+        let vipInfo = "";
+        let lastReqInfo = "";
         const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
         const dateFormatWithWeek = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
 
@@ -25,13 +26,13 @@ export class VipCommand extends Command {
         }
 
         if (user.vipLastRequest) {
-            vipInfo += ` Your last request: ${dateFormatWithWeek.format(new Date(user.vipLastRequest))}`;
+            lastReqInfo = ` Your last request was: ${dateFormatWithWeek.format(new Date(user.vipLastRequest))}`;
         }
 
         if (vipInfo) {
-            this.twitchService.sendMessage(channel, vipInfo);
+            this.twitchService.sendMessage(channel, `${user.username}, your VIP status: ${vipInfo} ${lastReqInfo}`);
         } else {
-            this.twitchService.sendMessage(channel, `${user.username}, you do not have VIP gold currently.`);
+            this.twitchService.sendMessage(channel, `${user.username}, you do not have VIP gold currently. ${lastReqInfo}`);
         }
     }
 }
