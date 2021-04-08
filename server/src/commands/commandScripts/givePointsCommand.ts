@@ -37,7 +37,7 @@ export default class GivePointsCommand extends Command {
         }
 
         if (!targetUser) {
-            this.twitchService.sendMessage(channel, Lang.get("points.give.userunknown", targetUsername));
+            this.twitchService.sendMessage(channel, Lang.get("points.userunknown", targetUsername));
             return;
         }
 
