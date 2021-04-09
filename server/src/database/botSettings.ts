@@ -21,7 +21,7 @@ export default class BotSettingsRepository {
             await databaseService.getQueryBuilder(DatabaseTables.BotSettings).insert(settings);
         } else {
             const databaseService = await this.databaseProvider();
-            await databaseService.getQueryBuilder(DatabaseTables.BotSettings).update(settings);
+            await databaseService.getQueryBuilder(DatabaseTables.BotSettings).where({ key: settings.key }).update(settings);
         }
     }
 

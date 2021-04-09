@@ -177,7 +177,7 @@ export class TwitchService {
             }
 
             const users = (chatters as any)[index] as string[];
-            const chatUser = users.find((user: string) => {
+            const chatUser = users?.find((user: string) => {
                 return user.toLowerCase() === username.toLowerCase();
             });
             if (chatUser) {

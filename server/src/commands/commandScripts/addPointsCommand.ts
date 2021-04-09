@@ -1,31 +1,22 @@
 import { Command } from "../command";
 import { UserService } from "../../services";
-import { ICommandAlias, IUser } from "../../models";
+import { ICommandAlias, IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { Lang } from "../../lang";
 import { PointLogType } from "../../models/pointLog";
 
-export default class GivePointsCommand extends Command {
+export default class AddPointsCommand extends Command {
     private userService: UserService;
 
     constructor() {
         super();
         this.userService = BotContainer.get(UserService);
+        this.minimumUserLevel = UserLevels.Moderator;
     }
 
     public async executeInternal(channel: string, user: IUser, targetUsername: string, points: number) {
         if (!targetUsername || !points || !Number.isInteger(points)) {
-            this.twitchService.sendMessage(channel, Lang.get("points.give.wrongarguments", user.username));
-            return;
-        }
-
-        if (targetUsername === user.username) {
-            this.twitchService.sendMessage(channel, Lang.get("points.give.noself", user.username));
-            return;
-        }
-
-        if (points > user.points) {
-            this.twitchService.sendMessage(channel, Lang.get("points.give.insufficientpoints", user.username));
+            this.twitchService.sendMessage(channel, Lang.get("points.add.wrongarguments", user.username));
             return;
         }
 
@@ -41,15 +32,14 @@ export default class GivePointsCommand extends Command {
             return;
         }
 
-        await this.userService.changeUserPoints(user, -points, PointLogType.Give);
-        await this.userService.changeUserPoints(targetUser, points, PointLogType.Give);
-        this.twitchService.sendMessage(channel, Lang.get("points.give.success", user.username, targetUsername, points));
+        await this.userService.changeUserPoints(targetUser, points, PointLogType.Add);
+        this.twitchService.sendMessage(channel, Lang.get("points.add.success", user.username, targetUsername, points));
     }
 
     public getAliases(): ICommandAlias[] {
         return [
-            { alias: "give", commandName: "givepoints" },
-            { alias: "choos", commandName: "givepoints" },
+            { alias: "add", commandName: "addpoints" },
+            { alias: "addchews", commandName: "addpoints" },
         ];
     }
 }

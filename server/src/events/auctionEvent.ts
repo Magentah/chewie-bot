@@ -18,7 +18,9 @@ import { PointLogType } from "../models/pointLog";
 
 const AuctionCooldownPeriod = 0;
 const SnipeProtectionPeriod = 10 * 1000;
+// Should always be >= AnnounceEndingTime to ensure that ending is announced again.
 const SnipeProtectionExtensionPeriod = 20 * 1000;
+const AnnounceEndingTime = 20 * 1000;
 
 export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
     private item: string;
@@ -59,6 +61,8 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
                 this.durationLeft -= intervalLength;
                 if (this.durationLeft <= 0) {
                     this.endAction();
+                } else if (this.durationLeft === AnnounceEndingTime) {
+                    this.announceEnding();
                 }
 
                 if (this.state !== EventState.Open) {
@@ -155,6 +159,10 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
 
             return highestBidder;
         }
+    }
+
+    private announceEnding() {
+        this.sendMessage(Lang.get("auction.ending", this.durationLeft / 1000));
     }
 
     private declareWinner() {

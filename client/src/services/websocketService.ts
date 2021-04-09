@@ -4,8 +4,8 @@ class WebsocketService {
     private websocket: WebSocket | undefined;
     private callbacks: Map<SocketMessageType, WebsocketCallback[]> = new Map();
 
-    constructor() {
-        this.connect();
+    constructor(hostname: string) {
+        this.connect(hostname);
     }
 
     public onMessage(type: SocketMessageType, callback: WebsocketCallback): void {
@@ -21,8 +21,8 @@ class WebsocketService {
         this.websocket?.close();
     }
 
-    private connect() {
-        this.websocket = new WebSocket("ws://localhost:8001");
+    private connect(hostname: string) {
+        this.websocket = new WebSocket(`ws://${hostname}:8001`);
         this.websocket.onopen = () => {
             console.log("connected to websocket");
         };
@@ -37,7 +37,7 @@ class WebsocketService {
         };
         this.websocket.onclose = () => {
             console.log("disconnected from websocket");
-            setTimeout(() => this.connect(), 10000);
+            setTimeout(() => this.connect(hostname), 10000);
         };
         this.websocket.onerror = (event: Event) => {
             console.log("websocket error");

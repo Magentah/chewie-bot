@@ -22,11 +22,11 @@ const BankheistCooldownPeriod = 2 * 60 * 1000;
 
 export class BankheistEvent extends ParticipationEvent<EventParticipant> {
     private readonly heistLevels = [
-        { level: 1, bankname: GameMessageType.BankNameLevel1, winChance: 54, payoutMultiplier: 1.5, minUsers: 0 },
-        { level: 2, bankname: GameMessageType.BankNameLevel2, winChance: 48.8, payoutMultiplier: 1.7, minUsers: 10 },
-        { level: 3, bankname: GameMessageType.BankNameLevel3, winChance: 42.5, payoutMultiplier: 2, minUsers: 20 },
-        { level: 4, bankname: GameMessageType.BankNameLevel4, winChance: 38.7, payoutMultiplier: 2.25, minUsers: 30 },
-        { level: 5, bankname: GameMessageType.BankNameLevel5, winChance: 32.4, payoutMultiplier: 2.75, minUsers: 40 },
+        { level: 1, bankname: GameMessageType.BankNameLevel1, winChance: 59.5, payoutMultiplier: 1.5, minUsers: 0 },
+        { level: 2, bankname: GameMessageType.BankNameLevel2, winChance: 50.6, payoutMultiplier: 1.75, minUsers: 5 },
+        { level: 3, bankname: GameMessageType.BankNameLevel3, winChance: 46, payoutMultiplier: 2, minUsers: 10 },
+        { level: 4, bankname: GameMessageType.BankNameLevel4, winChance: 38, payoutMultiplier: 2.5, minUsers: 15 },
+        { level: 5, bankname: GameMessageType.BankNameLevel5, winChance: 25, payoutMultiplier: 4, minUsers: 20 },
     ];
 
     constructor(
@@ -137,7 +137,11 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             const winMessages = (await this.messages.getByType(GameEventType.Bankheist, messageType)).map(item => item.text);
             if (winMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
-                this.sendMessage(winMessages[msgIndex].replace("{user}", winners[0].participant.user.username));
+
+                // Replace variables for "single user" scenario.
+                const winMessageResult = winMessages[msgIndex].replace("{user}", winners[0].participant.user.username)
+                    .replace("{amount}", winners[0].pointsWon.toString());
+                this.sendMessage(winMessageResult);
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${messageType}`);
             }
@@ -154,7 +158,11 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 .map(item => item.text);
             if (loseMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(loseMessages.length));
-                this.sendMessage(loseMessages[msgIndex].replace("{user}", this.participants[0].user.username));
+
+                // Replace variables for "single user" scenario.
+                const loseMessageResult = loseMessages[msgIndex].replace("{user}", this.participants[0].user.username)
+                    .replace("{amount}", this.participants[0].points.toString());
+                this.sendMessage(loseMessageResult);
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${GameMessageType.NoWin}`);
             }

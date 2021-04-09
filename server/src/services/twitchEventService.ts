@@ -18,6 +18,13 @@ export default class TwitchEventService {
     private verificationSecret: string = Config.twitch.eventSub.secret;
     private baseCallbackUrl: string = Config.twitch.eventSub.callbackBaseUri;
     private channelRewards: any[];
+    private activeEventTypes: EventSub.EventTypes[] = [
+        EventSub.EventTypes.ChannelPointsRedeemed,
+        EventSub.EventTypes.ChannelPointsRedeemedUpdate,
+        EventSub.EventTypes.StreamOnline,
+        EventSub.EventTypes.StreamOffline,
+    ];
+    private broadcasterUserId: number = 0;
 
     constructor(
         @inject(UserService) private users: UserService,
@@ -30,6 +37,41 @@ export default class TwitchEventService {
             expiry: 0,
         };
         this.channelRewards = [];
+    }
+
+    /**
+     * Goes through startup process for TwitchEventSub service. Will subscribe to default events if they're not already subscribed to
+     * and delete inactive subscriptions.
+     *
+     * Only works if the broadcaster has a valid twitch profile.
+     * @returns
+     */
+    public async startup(): Promise<void> {
+        if (this.broadcasterUserId == 0) {
+            const broadcaster = await this.users.getBroadcaster();
+            if (broadcaster?.twitchUserProfile) {
+                this.broadcasterUserId = broadcaster.twitchUserProfile.id;
+            } else {
+                Logger.warn(LogType.TwitchEvents, "Broadcaster Twitch Profile does not exist. Cannot create subscriptions to EventSub.");
+                return;
+            }
+        }
+        // Delete all inactive subscriptions.
+        await this.deleteInactiveSubscriptions();
+
+        // Gets all existing subscriptions and subscription types.
+        const existingSubscriptions = await this.getSubscriptions();
+        const existingSubscriptionTypes = existingSubscriptions.map((subscription) => {
+            return subscription.type;
+        });
+
+        // If there's any subscriptions that don't exist that we want, create them again.
+        this.activeEventTypes.forEach(async (type) => {
+            if (!existingSubscriptionTypes.find((existingType) => type == existingType)) {
+                const data = this.getSubscriptionData(type, this.broadcasterUserId.toString());
+                const result = await this.createSubscription(data);
+            }
+        });
     }
 
     public async handleNotification(notification: EventSub.IEventSubNotification): Promise<void> {
@@ -142,6 +184,11 @@ export default class TwitchEventService {
         const result = await this.createSubscription(data);
     }
 
+    public async subscribePointsRedeemedUpdate(userId: string): Promise<void> {
+        const data = this.getSubscriptionData(EventSub.EventTypes.ChannelPointsRedeemedUpdate, userId);
+        const result = await this.createSubscription(data);
+    }
+
     private getSubscriptionData(type: EventSub.EventTypes, userId: any): EventSub.ISubscriptionData {
         return {
             type,
@@ -157,7 +204,7 @@ export default class TwitchEventService {
         };
     }
 
-    public async getSubscriptions(status?: EventSub.SubscriptionStatus): Promise<any[]> {
+    public async getSubscriptions(status?: EventSub.SubscriptionStatus): Promise<EventSub.ISubscriptionData[]> {
         const options = await this.getOptions();
 
         let url: string = Constants.TwitchEventSubEndpoint;
@@ -167,7 +214,7 @@ export default class TwitchEventService {
 
         const result = (await axios.get(url, options)).data;
         Logger.info(LogType.Twitch, result.data);
-        return result.data;
+        return result.data as EventSub.ISubscriptionData[];
     }
 
     public async setBaseCallbackUrl(url: string): Promise<void> {
@@ -178,14 +225,16 @@ export default class TwitchEventService {
     public async deleteAllSubscriptions(): Promise<void> {
         const subscriptions = await this.getSubscriptions();
         subscriptions.forEach(async (value) => {
-            await this.deleteSubscription(value.id);
+            if (value.id) {
+                await this.deleteSubscription(value.id);
+            }
         });
     }
 
     public async deleteInactiveSubscriptions(): Promise<void> {
         const subscriptions = await this.getSubscriptions();
         subscriptions.forEach(async (value) => {
-            if (value.status !== "enabled") {
+            if (value.status !== "enabled" && value.id) {
                 await this.deleteSubscription(value.id);
             }
         });
@@ -200,11 +249,15 @@ export default class TwitchEventService {
         const options = await this.getOptions("application/json");
 
         data.transport.secret = this.verificationSecret;
-        const result = await axios.post(Constants.TwitchEventSubEndpoint, data, options);
-        if (result.status === StatusCodes.ACCEPTED) {
-            return result.data;
-        } else {
-            return undefined;
+        try {
+            const result = await axios.post(Constants.TwitchEventSubEndpoint, data, options);
+            if (result.status === StatusCodes.ACCEPTED) {
+                return result.data;
+            } else {
+                return undefined;
+            }
+        } catch (ex) {
+            Logger.err(LogType.TwitchEvents, "Error when creating a subscription.", ex);
         }
     }
 

@@ -12,7 +12,7 @@ import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import { AuthRouter, setupPassport, SonglistRouter, SongRouter, TwitchRouter, MessageListRouter, UserlistRouter, CommandListRouter } from "./routes";
 import { UserCookie } from "./middleware";
-import { CommandService, StreamlabsService, TwitchService, WebsocketService } from "./services";
+import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService } from "./services";
 import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
 import TwitchHelper from "./helpers/twitchHelper";
@@ -41,11 +41,16 @@ class BotServer extends Server {
 
         // Go live on startup (if configured).
         const twitchService = BotContainer.get<TwitchService>(TwitchService);
-        twitchService.initialize().then(() => { twitchService.connect() });
+        twitchService.initialize().then(() => {
+            twitchService.connect();
+        });
 
         if (Config.twitch.broadcasterName) {
             const streamlabsService = BotContainer.get<StreamlabsService>(StreamlabsService);
             streamlabsService.connectOnStartup(Config.twitch.broadcasterName);
+
+            const twitchEventService = BotContainer.get<TwitchEventService>(TwitchEventService);
+            twitchEventService.startup();
         }
     }
 
