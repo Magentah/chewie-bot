@@ -133,7 +133,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         if (winners.length > 0) {
             const percentWin = (winners.length / this.participants.length) * 100.0;
 
-            const messageType = percentWin >= 100 ? GameMessageType.AllWin : percentWin >= 34 ? GameMessageType.SomeWin : GameMessageType.SingleWin;
+            const messageType = this.participants.length === 1 ? GameMessageType.SingleWin : percentWin >= 100 ? GameMessageType.AllWin : GameMessageType.SomeWin;
             const winMessages = (await this.messages.getByType(GameEventType.Bankheist, messageType)).map(item => item.text);
             if (winMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));

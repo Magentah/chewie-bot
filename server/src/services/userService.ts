@@ -71,6 +71,17 @@ export class UserService {
     }
 
     /**
+     * Renames an existing user.
+     * @param {IUser} user User to be renamed.
+     */
+    public async renameUser(user: IUser, newUserName: string): Promise<void> {
+        const oldUserName = user.username;
+        user.username = newUserName;
+        await this.users.update(user);
+        await this.users.renameUserInLog(oldUserName, newUserName);
+    }
+
+    /**
      * Adds or removes the given amount of points to a user.
      * @param {IUser} user The user object to update.
      * @param {points} points Number of points to add or remove (if negative)
@@ -162,6 +173,14 @@ export class UserService {
      */
     public async getUser(username: string): Promise<IUser | undefined> {
         return await this.users.get(username);
+    }
+
+    /**
+     * Deletes a user
+     * @param {IUser} username The username of the user to delete.
+     */
+    public async deleteUser(user: IUser): Promise<boolean> {
+        return await this.users.delete(user);
     }
 
     public async getBroadcaster(): Promise<IUser | undefined> {

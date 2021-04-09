@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { EventLogsRepository } from "../database/eventLogsRepository";
-import { IEventLog, EventLogType } from "../models";
+import { IEventLog, EventLogType, IUser } from "../models";
 import * as Config from "../config.json";
 
 @injectable()
@@ -91,6 +91,15 @@ export class EventLogService {
         }
 
         const log = this.createLog(type, username, data);
+        await this.eventLogs.add(log);
+    }
+
+    public async addUserRename(user: IUser, oldUserName: string, newUserName: string) {
+        if (!Config.log.enabledEventLogs.admin.renameuser) {
+            return;
+        }
+
+        const log = this.createLog(EventLogType.RenameUser, user.username, { oldUserName, newUserName });
         await this.eventLogs.add(log);
     }
 

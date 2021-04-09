@@ -22,4 +22,5 @@ export enum EventLogType {
     Resub  = "resub",
     Bits   = "bits",
     Streamlabs  = "streamlabs",
+    RenameUser = "renameuser"
 }
