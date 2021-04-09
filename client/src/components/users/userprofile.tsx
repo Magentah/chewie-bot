@@ -29,6 +29,14 @@ const UserProfileView: React.FC<any> = (props: any) => {
     const classes = useStyles();
     const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
 
+    const tryFormat = (date: any) => {
+        try {
+            return dateFormat.format(new Date(date));
+        } catch {
+            return "-";
+        }
+    }
+
     useEffect(() => {
         axios.get(`/api/userlist/profile/${userProfile.username}`).then((response) => {
             if (response) {
@@ -48,7 +56,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
                     <TableBody>
                         <TableRow>
                             <TableCell component="th" scope="row">VIP expiry:</TableCell>
-                            <TableCell align="right">{dateFormat.format(new Date(fullUserProfile.user.vipExpiry))}</TableCell>
+                            <TableCell align="right">{tryFormat(fullUserProfile.user.vipExpiry)}</TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell component="th" scope="row">VIP permanent requests:</TableCell>
@@ -56,7 +64,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
                         </TableRow>
                         <TableRow>
                             <TableCell component="th" scope="row">Last song request:</TableCell>
-                            <TableCell align="right">{dateFormat.format(new Date(fullUserProfile.user.vipLastRequest))}</TableCell>
+                            <TableCell align="right">{tryFormat(fullUserProfile.user.vipLastRequest)}</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
