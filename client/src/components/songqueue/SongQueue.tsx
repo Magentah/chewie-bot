@@ -182,7 +182,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     useEffect(loadUser, []);
 
     useEffect(() => {
-        websocket.current = new WebsocketService(window.location.hostname);
+        websocket.current = new WebsocketService(window.location.hostname, window.location.protocol);
 
         return () => {
             websocket.current?.close();

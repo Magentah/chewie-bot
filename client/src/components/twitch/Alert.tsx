@@ -25,7 +25,7 @@ const Alert: React.FC = (props) => {
     }, []);
 
     useEffect(() => {
-        websocket.current = new WebsocketService(window.location.hostname);
+        websocket.current = new WebsocketService(window.location.hostname, window.location.protocol);
 
         return () => {
             websocket.current?.close();
