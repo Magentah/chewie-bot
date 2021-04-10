@@ -49,6 +49,8 @@ jobs:
                   dropbox.clientSecret: ${{ secrets.dropboxClientSecret }}
                   dropbox.redirectUri: ${{ secrets.dropboxRedirectUri }}
                   discord.webhookUrl: ${{ secrets.discordWebhookUrl }}
+                  websockets.certificatePath: ${{ secrets.SSLCertPath }}
+                  websockets.keyPath: ${{ secrets.SSLCertKey }}
                 
             - name: Copy SSL Config
               run: 'echo "$SSL_KEY" > ./client/nginx/server.key'
