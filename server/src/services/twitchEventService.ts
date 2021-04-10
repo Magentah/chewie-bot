@@ -11,6 +11,7 @@ import EventLogService from "./eventLogService";
 import * as EventSub from "../models";
 import { TwitchAuthService } from ".";
 import { PointLogType } from "../models/pointLog";
+import { TwitchWebService } from "./twitchWebService";
 
 @injectable()
 export default class TwitchEventService {
@@ -30,6 +31,7 @@ export default class TwitchEventService {
         @inject(UserService) private users: UserService,
         @inject(DiscordService) private discord: DiscordService,
         @inject(TwitchAuthService) private authService: TwitchAuthService,
+        @inject(TwitchWebService) private twitchWebService: TwitchWebService,
         @inject(EventLogService) private eventLogService: EventLogService
     ) {
         this.accessToken = {
@@ -52,7 +54,10 @@ export default class TwitchEventService {
             if (broadcaster?.twitchUserProfile) {
                 this.broadcasterUserId = broadcaster.twitchUserProfile.id;
             } else {
-                Logger.warn(LogType.TwitchEvents, "Broadcaster Twitch Profile does not exist. Cannot create subscriptions to EventSub.");
+                Logger.warn(
+                    LogType.TwitchEvents,
+                    "Broadcaster Twitch Profile does not exist. Cannot create subscriptions to EventSub."
+                );
                 return;
             }
         }
@@ -113,18 +118,10 @@ export default class TwitchEventService {
      * Notification for when a user redeems a channel point reward. This does not mean that it has succeeded.
      * @param notificationEvent
      */
-    private channelPointsRedeemedEvent(notificationEvent: any): void {
-        Logger.info(LogType.Twitch, "Channel Points Redeemed Add", notificationEvent);
-    }
-
-    /**
-     * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELLED.
-     * @param notificationEvent
-     */
-    private async channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionUpdateEvent): Promise<void> {
-        Logger.info(LogType.TwitchEvents, "Channel Points Redeemed Update", notificationEvent);
+    private async channelPointsRedeemedEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): Promise<void> {
         // We only update points if the redemption was fulfilled. If it's cancelled, we don't.
-        if (notificationEvent.status === EventSub.ChannelPointRedemptionStatus.Fulfilled && this.rewardAddsUserPoints(notificationEvent)) {
+        Logger.info(LogType.Twitch, "Channel Points Redeemed Add", notificationEvent);
+        if (this.rewardAddsUserPoints(notificationEvent)) {
             let user = await this.users.getUser(notificationEvent.user_login);
             if (!user) {
                 // User hasn't logged in to the bot, or it's their first time interacting with the bot. Need to add as a new user.
@@ -135,8 +132,26 @@ export default class TwitchEventService {
                 event: notificationEvent,
                 pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
             });
-            this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier, PointLogType.PointRewardRedemption);
+            await this.users.changeUserPoints(
+                user,
+                notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+                PointLogType.PointRewardRedemption
+            );
+            // Set reward status to fulfilled.
+            await this.twitchWebService.updateChannelRewardStatus(
+                notificationEvent.reward.id,
+                notificationEvent.id,
+                "FULFILLED"
+            );
         }
+    }
+
+    /**
+     * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELLED.
+     * @param notificationEvent
+     */
+    private async channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): Promise<void> {
+        Logger.info(LogType.TwitchEvents, "Channel Points Redeemed Update", notificationEvent);
     }
 
     /**
@@ -144,7 +159,7 @@ export default class TwitchEventService {
      * @param notificationEvent The EventSub event
      * @returns True if the reward should add points to the user, false if not.
      */
-    private rewardAddsUserPoints(notificationEvent: EventSub.IRewardRedemeptionUpdateEvent): boolean {
+    private rewardAddsUserPoints(notificationEvent: EventSub.IRewardRedemeptionEvent): boolean {
         // TODO: For now just check if the reward title includes "chews". This should probably be changed later
         // so that you can configure each custom point reward but this will work for now.
         if (notificationEvent.reward.title.toLowerCase().indexOf("chews") > -1) {
@@ -245,7 +260,9 @@ export default class TwitchEventService {
         const result = await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
     }
 
-    private async createSubscription(data: EventSub.ISubscriptionData): Promise<EventSub.ISubscriptionResponse | undefined> {
+    private async createSubscription(
+        data: EventSub.ISubscriptionData
+    ): Promise<EventSub.ISubscriptionResponse | undefined> {
         const options = await this.getOptions("application/json");
 
         data.transport.secret = this.verificationSecret;

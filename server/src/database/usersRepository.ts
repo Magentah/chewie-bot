@@ -151,7 +151,6 @@ export class UsersRepository {
             .getQueryBuilder(DatabaseTables.Users)
             .update({ vipExpiry: user.vipExpiry, vipPermanentRequests: user.vipPermanentRequests })
             .where({ id: user.id });
-        await databaseService.getQueryBuilder(DatabaseTables.Users).update({ vipExpiry: user.vipExpiry }).where({ id: user.id });
     }
 
     /**

@@ -1,7 +1,15 @@
 export { default as IDonation } from "./donation";
 export { default as ISong, RequestSource, SongSource } from "./song";
 export { default as ITextCommand } from "./textCommand";
-export { ITwitchAuthResponse, ITwitchCacheValue, ITwitchChatList, ITwitchChatters, ITwitchIDToken, ITwitchRedirectResponse, ITwitchUser } from "./twitchApi";
+export {
+    ITwitchAuthResponse,
+    ITwitchCacheValue,
+    ITwitchChatList,
+    ITwitchChatters,
+    ITwitchIDToken,
+    ITwitchRedirectResponse,
+    ITwitchUser,
+} from "./twitchApi";
 export { default as IUser } from "./user";
 export { default as IUserLevel, UserLevels } from "./userLevel";
 export { default as IVIPLevel } from "./vipLevel";
@@ -28,7 +36,7 @@ export {
     ISubscriptionTransport,
     IAccessToken,
     IEventSubNotification,
-    IRewardRedemeptionUpdateEvent,
+    IRewardRedemeptionEvent,
     IChannelReward,
     EventTypes,
     SubscriptionStatus,
