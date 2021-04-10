@@ -25,6 +25,7 @@ class WebsocketService {
         switch (protocol.toLowerCase()) {
             case "https:": {
                 this.websocket = new WebSocket(`wss://${hostname}/ws/`);
+                break;
             }
             default: {
                 this.websocket = new WebSocket(`ws://${hostname}:8001`);
