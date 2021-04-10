@@ -2,17 +2,38 @@
 version: "3"
 volumes:
     chewiebot-db:
+    certbot-var:
+    certbot-etc:
+    web-root:
 services:
     ui:
         image: magentafall/chewiebot:client-latest
+        container_name: client
         ports:
             - 80:80
             - 443:443
         expose:
             - 80
+        volumes:
+            - web-root:/var/www/html
+            - certbot-etc:/etc/letsencrypt
+            - certbot-var:/var/lib/letsencrypt
         command: ["nginx", "-g", "daemon off;"]
+    certbot:
+        image: certbot/certbot
+        container_name: certbot
+        volumes: 
+            - certbot-etc:/etc/letsencrypt
+            - certbot-var:/var/lib/letsencrypt
+            - web-root:/var/www/html
+        depends_on:
+            - ui
+        networks:
+            - front
+        command: certonly --webroot --webroot-path=/var/www/html --email magenta.fall@protonmail.com --agree-tos --no-eff-email --staging -d chewiemelodies.com -d www.chewiemelodies.com
     backend:
         image: magentafall/chewiebot:server-latest
+        container_name: server
         volumes:
             - chewiebot-db:/usr/src/chewiebot/server/dist/db
         environment:
