@@ -1,6 +1,5 @@
 import { Command } from "../command";
-import { CommandAliasesRepository, UserLevelsRepository } from "./../../database";
-import { TwitchService } from "./../../services";
+import { CommandAliasesRepository } from "./../../database";
 import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
 
