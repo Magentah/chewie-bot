@@ -23,9 +23,19 @@ export class UserLevelsRepository {
         const databaseService = await this.databaseProvider();
         Logger.info(
             LogType.Database,
-            databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ id: level }).toSQL().sql
+            databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ rank: level }).toSQL().sql
         );
-        const userLevel = await databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ id: level });
+        const userLevel = await databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ rank: level });
+        return userLevel as IUserLevel;
+    }
+
+    public async getById(id: number): Promise<IUserLevel> {
+        const databaseService = await this.databaseProvider();
+        Logger.info(
+            LogType.Database,
+            databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ id }).toSQL().sql
+        );
+        const userLevel = await databaseService.getQueryBuilder(DatabaseTables.UserLevels).first().where({ id });
         return userLevel as IUserLevel;
     }
 

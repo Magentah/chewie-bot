@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { EventLogType, IEventLog, IUser } from "../models";
+import { EventLogType, IEventLog, IUser, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { EventLogsRepository, UserLevelsRepository, UsersRepository } from "../database";
@@ -56,6 +56,24 @@ class UserlistController {
         }
 
         try {
+            const existingUser = await this.userService.getUser(newUser.username);
+            if (!existingUser) {
+                return;
+            }
+
+            // Demoting or promoting a broadcaster user can only be done by the broadcaster.
+            if (existingUser.userLevelKey !== newUser.userLevelKey) {
+                const sessionUser = req.user as IUser;
+                if (sessionUser.userLevel?.rank !== UserLevels.Broadcaster) {
+                    const newUserLevel = await this.userLevels.getById(newUser.userLevelKey ?? 0);
+                    if (existingUser.userLevel?.rank === UserLevels.Broadcaster || newUserLevel.rank === UserLevels.Broadcaster) {
+                        res.status(StatusCodes.BAD_REQUEST);
+                        res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Broadcaster permissions required to change \"broadcaster\" user level."));
+                        return;
+                    }
+                }
+            }
+
             await this.userRepository.updateDetails(newUser);
             res.status(StatusCodes.OK);
             res.send(newUser);

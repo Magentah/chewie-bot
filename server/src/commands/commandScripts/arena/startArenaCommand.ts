@@ -1,9 +1,8 @@
 import { Command } from "../../command";
-import { TwitchService, UserService } from "../../../services";
+import { UserService } from "../../../services";
 import { IUser, UserLevels } from "../../../models";
 import { EventService } from "../../../services/eventService";
 import ArenaEvent from "../../../events/arenaEvent";
-import { UserLevelsRepository } from "./../../../database";
 import { BotContainer } from "../../../inversify.config";
 import { Lang } from "../../../lang";
 
@@ -12,14 +11,12 @@ import { Lang } from "../../../lang";
  * For further details see arenaEvent.ts
  */
 export default class StartArenaCommand extends Command {
-    private userLevels: UserLevelsRepository;
     private eventService: EventService;
     private userService: UserService;
 
     constructor() {
         super();
 
-        this.userLevels = BotContainer.get(UserLevelsRepository);
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
 

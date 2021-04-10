@@ -1,12 +1,10 @@
 import { Command } from "../../command";
-import { TwitchService } from "../../../services";
 import { IUser, UserLevels } from "../../../models";
 import { EventService } from "../../../services/eventService";
 import { UserService } from "../../../services/userService";
 import AuctionEvent from "../../../events/auctionEvent";
 import { EventState } from "../../../models/participationEvent";
 import { BotContainer } from "../../../inversify.config";
-import { UserLevelsRepository } from "../../../database";
 import { Lang } from "../../../lang";
 
 /**
@@ -16,14 +14,12 @@ import { Lang } from "../../../lang";
 export default class AuctionCommand extends Command {
     private eventService: EventService;
     private userService: UserService;
-    private userLevels: UserLevelsRepository;
 
     constructor() {
         super();
 
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
-        this.userLevels = BotContainer.get(UserLevelsRepository);
 
         this.minimumUserLevel = UserLevels.Moderator;
     }

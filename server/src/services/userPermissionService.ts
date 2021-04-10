@@ -1,7 +1,6 @@
 import { injectable, inject } from "inversify";
 import { UserService, TwitchWebService } from "./";
-import { IUser, IUserLevel, ITwitchUser, UserLevels} from "../models";
-import { UserLevelsRepository } from "../database";
+import { IUser, ITwitchUser, UserLevels} from "../models";
 import * as Config from "../config.json";
 
 /**
