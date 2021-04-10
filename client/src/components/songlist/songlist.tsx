@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from 'material-table'
+import MaterialTable from "material-table"
 import useUser, { UserLevels } from "../../hooks/user";
 import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon } from "@material-ui/core";
-import AddIcon from '@material-ui/icons/Add';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import AddIcon from "@material-ui/icons/Add";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { AddToListState } from "../common/addToListState";
 
 const useStyles = makeStyles((theme) => ({
@@ -15,26 +16,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function fallbackCopyTextToClipboard(text: string) {
-    var textArea = document.createElement("textarea");
+    const textArea = document.createElement("textarea");
     textArea.value = text;
-    
+
     // Avoid scrolling to bottom
     textArea.style.top = "0";
     textArea.style.left = "0";
     textArea.style.position = "fixed";
-  
+
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-  
+
     try {
-      var successful = document.execCommand('copy');
-      var msg = successful ? 'successful' : 'unsuccessful';
-      console.log('Fallback: Copying text command was ' + msg);
+      const successful = document.execCommand("copy");
+      const msg = successful ? "successful" : "unsuccessful";
     } catch (err) {
-      console.error('Fallback: Oops, unable to copy', err);
+        // Ignore
     }
-  
+
     document.body.removeChild(textArea);
 }
 
@@ -43,13 +43,9 @@ function copyTextToClipboard(text: string) {
         fallbackCopyTextToClipboard(text);
         return;
     }
-    navigator.clipboard.writeText(text).then(function() {
-        console.log('Async: Copying to clipboard was successful!');
-    }, function(err) {
-        console.error('Async: Could not copy text: ', err);
-    });
+    navigator.clipboard.writeText(text);
 }
-  
+
 const SongList: React.FC<any> = (props: any) => {
     type RowData = {title: string, album: string, genre: string};
 
@@ -57,14 +53,14 @@ const SongList: React.FC<any> = (props: any) => {
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [user, loadUser] = useUser();
 
-    const [songlistOrigin, setSonglistOrigin] = useState<string>();
-    const [songlistTitle, setSonglistTitle] = useState<string>();
-    const [songlistGenre, setSonglistGenre] = useState<string>();
+    const [songlistOrigin, setSonglistOrigin] = useState<string>("");
+    const [songlistTitle, setSonglistTitle] = useState<string>("");
+    const [songlistGenre, setSonglistGenre] = useState<string>("");
     const [songListState, setSongListState] = useState<AddToListState>();
 
     useEffect(loadUser, []);
 
-    useEffect(() => {       
+    useEffect(() => {
         axios.get("/api/songlist").then((response) => {
             setSonglist(response.data);
         });
@@ -76,7 +72,7 @@ const SongList: React.FC<any> = (props: any) => {
 
             const newData = { album: songlistOrigin, title: songlistTitle, genre: songlistGenre } as RowData;
             const result = await axios.post("/api/songlist/add", newData,
-                    { validateStatus: function(status) {  return true; }});
+                    { validateStatus(status) { return true; }});
             if (result.status === 200) {
                 setSongListState({state: "success"});
                 setSonglist([...songlist, newData]);
@@ -103,14 +99,14 @@ const SongList: React.FC<any> = (props: any) => {
                 <Typography>Rules when requesting songs</Typography>
             </AccordionSummary>
             <AccordionDetails>
-            <Typography>
+            <div>
                 <ul>
                     <li>Songs can be requested during medleys or song suggestion sections (usually after live-learns are done). </li>
                     <li>To suggest, just post the title in chat (no links please). You can copy to clipboard using the <Icon fontSize={"small"}>content_copy</Icon> icon in each row.</li>
                     <li>Feel free to ask multiple times if your song is not played, but don't spam.</li>
                     <li>If Chewie continues to ignore your suggestion during medley, he might have forgotten how to play it temporarily. Try again another time!</li>
                 </ul>
-            </Typography>
+            </div>
             </AccordionDetails>
         </Accordion>
     </Box>);
@@ -139,12 +135,17 @@ const SongList: React.FC<any> = (props: any) => {
                             />
                         </Grid>
                         <Grid item xs={3}>
-                            <TextField
+                            <Autocomplete
                                 id="song-genre"
-                                label="Genre"
+                                freeSolo
                                 fullWidth
-                                value={songlistGenre}
-                                onChange={(e) => setSonglistGenre(e.target.value)}
+                                inputValue={songlistGenre}
+                                /* Use unique values for autocomplete */
+                                options={songlist.map((x) => x.genre).filter((v,i,a) => a.indexOf(v) === i)}
+                                onInputChange={(event: any, newValue: string | null) => setSonglistGenre(newValue ?? "")}
+                                renderInput={(params: any) => (
+                                    <TextField {...params} label="Genre" fullWidth />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={1} style={{minWidth: "7em"}} >
@@ -168,9 +169,9 @@ const SongList: React.FC<any> = (props: any) => {
             {addForm}
             <MaterialTable
                 columns = {[
-                    { title: 'Artist / Origin', field: 'album' },
-                    { title: 'Title', field: 'title' },
-                    { title: 'Genre', field: 'genre', defaultGroupOrder: 0, defaultGroupSort: "asc" }
+                    { title: "Artist / Origin", field: "album" },
+                    { title: "Title", field: "title" },
+                    { title: "Genre", field: "genre", defaultGroupOrder: 0, defaultGroupSort: "asc" }
                 ]}
                 options = {{
                     paging: false,
@@ -181,8 +182,8 @@ const SongList: React.FC<any> = (props: any) => {
                 }}
                 actions={[
                     {
-                      icon: 'content_copy',
-                      tooltip: 'Copy to clipboard',
+                      icon: "content_copy",
+                      tooltip: "Copy to clipboard",
                       onClick: (event, rowData) => {
                         if ((rowData as RowData).title !== undefined) {
                             copyTextToClipboard((rowData as RowData).album + " - " + (rowData as RowData).title);
@@ -198,7 +199,7 @@ const SongList: React.FC<any> = (props: any) => {
                         onRowUpdate: (newData, oldData) => axios.post("/api/songlist", newData).then((result) => {
                             if (result.status === 200) {
                                 const newSonglist = [...songlist];
-                                //@ts-ignore
+                                // @ts-ignore
                                 const index = oldData?.tableData.id;
                                 newSonglist[index] = newData;
                                 setSonglist(newSonglist);
@@ -207,7 +208,7 @@ const SongList: React.FC<any> = (props: any) => {
                         onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
                             if (result.status === 200) {
                                 const newSonglist = [...songlist];
-                                //@ts-ignore
+                                // @ts-ignore
                                 const index = oldData?.tableData.id;
                                 newSonglist.splice(index, 1);
                                 setSonglist(newSonglist);
