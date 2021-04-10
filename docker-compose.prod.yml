@@ -18,6 +18,7 @@ services:
             - web-root:/var/www/html
             - certbot-etc:/etc/letsencrypt
             - certbot-var:/var/lib/letsencrypt
+            - ./dhparam:/etc/ssl/certs
         command: ["nginx", "-g", "daemon off;"]
     certbot:
         image: certbot/certbot
@@ -30,7 +31,7 @@ services:
             - ui
         networks:
             - front
-        command: certonly --webroot --webroot-path=/var/www/html --email magenta.fall@protonmail.com --agree-tos --no-eff-email --staging -d chewiemelodies.com -d www.chewiemelodies.com
+        command: certonly --webroot --webroot-path=/var/www/html --email magenta.fall@protonmail.com --agree-tos --no-eff-email --force-renewal -d chewiemelodies.com -d www.chewiemelodies.com
     backend:
         image: magentafall/chewiebot:server-latest
         container_name: server
