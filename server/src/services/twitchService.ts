@@ -117,7 +117,7 @@ export class TwitchService {
         try {
             Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
             await this.client.join(channel);
-            const test = await this.channelSearch("chewiemelodies");
+            const test = await this.channelSearch(Config.twitch.broadcasterName);
             Logger.info(LogType.Twitch, "Test channel search", test);
             return Response.Success();
         } catch (error) {
@@ -505,8 +505,14 @@ export class TwitchService {
     public async connect(): Promise<IServiceResponse> {
         if (this.hasInitialized) {
             Logger.info(LogType.Twitch, "Connecting to Twitch.tv with tmi.js");
+
+            // Do not connect more than once.
+            if (this.client.readyState() === "OPEN") {
+                return Response.Success();
+            }
+
             try {
-                const result = await this.client.connect();
+                await this.client.connect();
                 if (this.channel) {
                     return await this.joinChannel(this.channel);
                 }
