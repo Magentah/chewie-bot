@@ -109,11 +109,11 @@ export class UsersRepository {
         return userResult.cnt + 1;
      }
 
-     /**
-      * Returns a list of user names with top amount of points
-      * @param userCount Limit of number of users to return
-      * @returns [username, points]
-      */
+    /**
+     * Returns a list of user names with top amount of points
+     * @param userCount Limit of number of users to return
+     * @returns [username, points]
+     */
     public async getTopUsers(userCount: number): Promise<{ username: string, points: number }[]> {
         const databaseService = await this.databaseProvider();
 
