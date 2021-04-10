@@ -28,7 +28,7 @@ export default class RedeemCommand extends Command {
     public getAliases(): ICommandAlias[] {
         return [
             { alias: "redeemclap", commandName: "redeem", commandArguments: ["clap", "Clap", this.clapUrl] },
-            { alias: "redeemcatjam", commandName: "redeem", commandArguments: ["catjam", "CatJAM", this.catjamUrl] },
+            { alias: "redeemcatjam", commandName: "redeem", commandArguments: ["catjam", "catJAM", this.catjamUrl] },
             { alias: "redeemcomfy", commandName: "redeem", commandArguments: ["comfy", "chewieMmm", this.comfyUrl] },
         ];
     }
