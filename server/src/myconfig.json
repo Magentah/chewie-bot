@@ -35,6 +35,10 @@
         "redirectUri": ""
     },
     "secretKey": "",
+    "websockets": {
+        "certificatePath": "",
+        "keyPath": ""
+    },
     "log": {
         "levels": "syslog",
         "level": "info",
