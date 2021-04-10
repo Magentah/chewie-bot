@@ -117,12 +117,17 @@ const SongList: React.FC<any> = (props: any) => {
                 <form onSubmit={submitSongList}>
                     <Grid container spacing={2} justify="flex-start" wrap={"nowrap"}>
                         <Grid item xs={4}>
-                            <TextField
+                            <Autocomplete
                                 id="song-origin"
-                                label="Origin / Artist"
+                                freeSolo
                                 fullWidth
-                                value={songlistOrigin}
-                                onChange={(e) => setSonglistOrigin(e.target.value)}
+                                inputValue={songlistOrigin}
+                                /* Use unique values for autocomplete */
+                                options={songlist.map((x) => x.album).filter((v,i,a) => a.indexOf(v) === i)}
+                                onInputChange={(event: any, newValue: string | null) => setSonglistOrigin(newValue ?? "")}
+                                renderInput={(params: any) => (
+                                    <TextField {...params} label="Origin / Artist" fullWidth />
+                                )}
                             />
                         </Grid>
                         <Grid item xs={4}>
