@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Toolbar, IconButton, Typography } from "@material-ui/core";
-import { LiveTv, Link, LinkOff, Chat } from "@material-ui/icons";
+import { Image } from "react-bootstrap";
+import { Link, LinkOff } from "@material-ui/icons";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
 import useUser, { UserLevels } from "../../hooks/user";
@@ -64,7 +65,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     useEffect(loadUser, []);
     useEffect(() => {
         axios.get("/api/twitch/status").then((response) => {
-            if (response?.data === "OPEN") {
+            if (response?.data.data.state === "OPEN") {
                 setBotConnected(true);
             } else {
                 setBotConnected(false);
@@ -95,14 +96,14 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
                         className={classes.iconButton}
                         onClick={watchChewie}
                         title="Watch ChewieMelodies on Twitch!">
-                        <LiveTv />
+                        <Image src={"/assets/TwitchGlitchWhite.png"} alt="logo" width="22em" />
                     </IconButton>
                     <IconButton
                         color="inherit"
                         className={classes.iconButton}
                         onClick={openDiscord}
                         title="Join ChewieMelodies on Discord!">
-                        <Chat />
+                        <Image src={"/assets/Discord-Logo-White.png"} alt="logo" width="30em" />
                     </IconButton>
                     <NavBarMenu />
                 </div>
