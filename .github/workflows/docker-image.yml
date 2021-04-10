@@ -51,19 +51,17 @@ jobs:
                   discord.webhookUrl: ${{ secrets.discordWebhookUrl }}
                   websockets.certificatePath: ${{ secrets.SSLCertPath }}
                   websockets.keyPath: ${{ secrets.SSLCertKey }}
-                
+
             - name: Copy SSL Config
               run: 'echo "$SSL_KEY" > ./client/nginx/server.key'
               shell: bash
-              env: 
-                SSL_KEY: ${{secrets.SSL_KEY}}
-                
+              env:
+                  SSL_KEY: ${{secrets.SSL_KEY}}
             - name: Copy SSL Config
               run: 'echo "$SSL_CERT" > ./client/nginx/server.crt'
               shell: bash
               env:
-                SSL_CERT: ${{secrets.SSL_CERT}}
-            
+                  SSL_CERT: ${{secrets.SSL_CERT}}
             - name: Build Server Docker Image
               uses: docker/build-push-action@v2
               with:
@@ -100,10 +98,14 @@ jobs:
                   host: ${{ secrets.sshHost }}
                   username: ${{ secrets.sshUsername }}
                   key: ${{ secrets.sshKey }}
+                  # docker volume rm chewiebot_web-root is because we don't want to persist the web-root volume
+                  # but we need it in a volume so it can be accessed by certbot.
+                  # There has to be a better way to handle this, but I have no idea.
                   script: |
                       docker login --username ${{ secrets.dockerUsername }} --password ${{ secrets.dockerKey }}
                       mkdir -p chewiebot
                       cd chewiebot
                       docker-compose -f docker-compose.yml -f docker-compose.prod.yml stop
                       docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+                      docker volume rm chewiebot_web-root
                       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
