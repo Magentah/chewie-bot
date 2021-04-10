@@ -5,7 +5,7 @@ volumes:
     certbot-var:
     certbot-etc:
     web-root:
-    
+
 services:
     ui:
         image: magentafall/chewiebot:client-latest
@@ -32,8 +32,8 @@ services:
             - ui
         networks:
             - front
-            - back
         command: certonly --webroot --webroot-path=/var/www/html --email magenta.fall@protonmail.com --agree-tos --no-eff-email --force-renewal -d chewiemelodies.com -d www.chewiemelodies.com
+
     backend:
         image: magentafall/chewiebot:server-latest
         container_name: server
