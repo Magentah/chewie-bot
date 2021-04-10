@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import { AppBar, Toolbar, IconButton, Typography } from "@material-ui/core";
+import { AppBar, Toolbar, IconButton, Typography, Button } from "@material-ui/core";
 import { Image } from "react-bootstrap";
-import { Link, LinkOff } from "@material-ui/icons";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
 import useUser, { UserLevels } from "../../hooks/user";
+import { green, red } from "@material-ui/core/colors";
 
 type NavBarProps = {};
 const sidebarWidth = 230;
@@ -25,14 +25,22 @@ const useStyles = makeStyles((theme) => ({
             backgroundColor: "rgba(255, 255, 255, 0.08)",
         },
     },
-    connectedIcon: {
-        color: "green",
+    connectedButton: {
+        // Use same color as red (we want both white)
+        color: theme.palette.getContrastText(red[500]),
+        backgroundColor: green[500],
+        "&:hover": {
+          backgroundColor: green[700],
+        },
+        marginRight: "12px"
     },
-    notConnectedIcon: {
-        color: "red",
-    },
-    botConnectedStatusMessage: {
-        marginLeft: "12px",
+    disconnectedButton: {
+        color: theme.palette.getContrastText(red[500]),
+        backgroundColor: red[500],
+        "&:hover": {
+          backgroundColor: red[700],
+        },
+        marginRight: "12px"
     },
 }));
 
@@ -74,16 +82,11 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     }, []);
 
     const connectBotButton = (user.userLevelKey < UserLevels.Broadcaster) ? undefined :
-        <IconButton color="inherit" onClick={connectBot}>
-            {botConnected ? (
-                <Link className={classes.connectedIcon} />
-            ) : (
-                <LinkOff className={classes.notConnectedIcon} />
-            )}
-            <Typography variant="caption" className={classes.botConnectedStatusMessage}>
+        <Button className={botConnected ? classes.connectedButton: classes.disconnectedButton} onClick={connectBot} variant="contained">
+            <Typography variant="caption">
                 {botConnected ? "Bot is connected" : "Bot is not connected"}
             </Typography>
-        </IconButton>;
+        </Button>;
 
     return (
         <AppBar position="fixed" className={classes.appBar}>
