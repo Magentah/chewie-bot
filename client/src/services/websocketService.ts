@@ -22,8 +22,15 @@ class WebsocketService {
     }
 
     private connect(hostname: string, protocol: string) {
-        const wsProtocol = protocol.toLowerCase() === "https:" ? "wss" : "ws";
-        this.websocket = new WebSocket(`${wsProtocol}://${hostname}:8001`);
+        switch (protocol.toLowerCase()) {
+            case "https:": {
+                this.websocket = new WebSocket(`wss://${hostname}/ws/`);
+            }
+            default: {
+                this.websocket = new WebSocket(`ws://${hostname}:8001`);
+                break;
+            }
+        }
         this.websocket.onopen = () => {
             console.log("connected to websocket");
         };
