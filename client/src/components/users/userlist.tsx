@@ -9,6 +9,7 @@ import { UserLevel } from "../common/userLevel";
 import AddIcon from "@material-ui/icons/Add";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
+import useUser, { UserLevels } from "../../hooks/user";
 
 type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
 
@@ -61,6 +62,7 @@ const UserDetailsPanel: React.FC<any> = (props: any) => {
 const UserList: React.FC<any> = (props: any) => {
     const [userlist, setUserlist] = useState([] as RowData[]);
     const [userLevels, setUserLevels] = useState([] as UserLevel[]);
+    const [user, loadUser] = useUser();
 
     const classes = useStyles();
 
@@ -75,6 +77,8 @@ const UserList: React.FC<any> = (props: any) => {
             setUserLevels(response.data);
         });
     }, []);
+
+    useEffect(loadUser, []);
 
     const [addVipState, setAddVipState] = useState<AddToListState>();
     const [addVipAmount, setAddVipAmount] = useState<number>(0);
@@ -115,9 +119,9 @@ const UserList: React.FC<any> = (props: any) => {
     };
 
     const [popupAnchor, setPopupAnchor] = React.useState<HTMLButtonElement | undefined>(undefined);
-    const openVipPopup = (button: HTMLButtonElement, user: RowData) => {
+    const openVipPopup = (button: HTMLButtonElement, userData: RowData) => {
       setPopupAnchor(button);
-      setAddVipUser(user);
+      setAddVipUser(userData);
     };
 
     const open = Boolean(popupAnchor);
@@ -191,7 +195,7 @@ const UserList: React.FC<any> = (props: any) => {
                     pageSize: userlist?.length > 10 ? 50 : 10,
                     pageSizeOptions: [10, 50, 100, 200]
                 }}
-                actions={[
+                actions={user.userLevelKey < UserLevels.Broadcaster ? undefined : [
                     {
                       icon: Star,
                       tooltip: "Add VIP gold",
