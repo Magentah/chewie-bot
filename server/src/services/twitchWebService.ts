@@ -8,6 +8,7 @@ import { AxiosResponse } from "axios";
 import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser } from "../models";
 import TwitchAuthService from "./twitchAuthService";
 import { Logger, LogType } from "../logger";
+import HttpStatusCodes from "http-status-codes";
 
 /**
  * Provides acces to Twitch API endpoint for checking a user's
@@ -19,8 +20,12 @@ export class TwitchWebService {
     private readonly getUserProfileUrl: string = "users";
     private readonly getModeratorsUrl: string = "moderation/moderators";
     private readonly getSubscribersUrl: string = "subscriptions";
+    private readonly getChannelRedemptionUrl: string = "channel_points/custom_rewards/redemptions";
 
-    constructor(@inject(UserService) private userService: UserService, @inject(TwitchAuthService) private authService: TwitchAuthService) {
+    constructor(
+        @inject(UserService) private userService: UserService,
+        @inject(TwitchAuthService) private authService: TwitchAuthService
+    ) {
         this.twitchExecutor.setLogging(true);
     }
 
@@ -54,6 +59,47 @@ export class TwitchWebService {
             };
 
             return profile;
+        });
+    }
+
+    public async updateChannelRewardStatus(
+        channelRewardId: string,
+        redemptionRewardId: string,
+        status: "FULFILLED" | "CANCELLED"
+    ): Promise<void> {
+        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
+        if (broadcasterCtx === undefined) {
+            Logger.err(
+                LogType.TwitchEvents,
+                `Unable to update channel reward status for redemption id ${redemptionRewardId}.`
+            );
+            return;
+        }
+
+        const updateStatusUrl = `${this.getChannelRedemptionUrl}?broadcaster_id=${broadcasterCtx.userId}&reward_id=${redemptionRewardId}&id=${channelRewardId}`;
+
+        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
+        if (!header) {
+            Logger.err(LogType.TwitchEvents, "Unable to create authentication headers for updateChannelRewardStatus");
+            return;
+        }
+
+        const body = {
+            "status": status,
+        };
+
+        const execute = this.twitchExecutor.build(header);
+
+        return await execute(HttpMethods.PATCH, updateStatusUrl, body).then((resp: AxiosResponse) => {
+            if (resp.status === HttpStatusCodes.OK) {
+                Logger.info(LogType.TwitchEvents, `Updated ${redemptionRewardId} status to 'FULFILLED'`);
+                return;
+            } else {
+                Logger.err(LogType.TwitchEvents, `Error when updating reward id ${redemptionRewardId}.`, {
+                    data: resp.data,
+                });
+                return;
+            }
         });
     }
 
