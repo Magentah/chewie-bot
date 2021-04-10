@@ -5,6 +5,7 @@ volumes:
     certbot-var:
     certbot-etc:
     web-root:
+
 services:
     ui:
         image: magentafall/chewiebot:client-latest
@@ -18,6 +19,7 @@ services:
             - web-root:/var/www/html
             - certbot-etc:/etc/letsencrypt
             - certbot-var:/var/lib/letsencrypt
+            - ./dhparam:/etc/ssl/certs
         command: ["nginx", "-g", "daemon off;"]
     certbot:
         image: certbot/certbot
@@ -30,12 +32,14 @@ services:
             - ui
         networks:
             - front
-        command: certonly --webroot --webroot-path=/var/www/html --email magenta.fall@protonmail.com --agree-tos --no-eff-email --staging -d chewiemelodies.com -d www.chewiemelodies.com
+        command: certonly --webroot --webroot-path=/var/www/html --email magenta.fall@protonmail.com --agree-tos --no-eff-email --force-renewal -d chewiemelodies.com -d www.chewiemelodies.com
+
     backend:
         image: magentafall/chewiebot:server-latest
         container_name: server
         volumes:
             - chewiebot-db:/usr/src/chewiebot/server/dist/db
+            - certbot-etc:/etc/letsencrypt
         environment:
             NODE_ENV: production
         command: ["pm2-runtime", "start.js"]

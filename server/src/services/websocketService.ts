@@ -4,6 +4,9 @@ import { Logger, LogType } from "../logger";
 import { inject, injectable } from "inversify";
 import { ISocketMessage, SocketMessageType, IUser } from "../models";
 import UserService from "../services/userService";
+import * as Config from "../config.json";
+import https = require("https");
+import fs = require("fs");
 
 interface IExWebSocket extends WebSocket {
     isAlive: boolean;
@@ -15,9 +18,18 @@ export class WebsocketService {
     private heartbeat: NodeJS.Timeout;
 
     constructor(@inject(UserService) private userService: UserService) {
+        let server;
+        if (Config.websockets?.certificatePath && Config.websockets?.keyPath) {
+            server = https.createServer({
+                cert: fs.readFileSync(Config.websockets.certificatePath),
+                key: fs.readFileSync(Config.websockets.keyPath)
+            });
+        }
+
         this.server = new WebSocket.Server({
             port: 8001,
             perMessageDeflate: false,
+            server
         });
 
         this.server.on("connection", this.onServerConnection);
