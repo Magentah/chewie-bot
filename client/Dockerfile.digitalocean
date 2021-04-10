@@ -1,0 +1,23 @@
+FROM node:12-alpine AS base
+WORKDIR /usr/src/chewiebot/client
+COPY package*.json ./
+RUN yarn install
+RUN yarn global add react-scripts
+
+
+FROM base AS build
+WORKDIR /usr/src/chewiebot/client
+COPY . ./
+RUN yarn build
+
+FROM nginx:stable-alpine AS dep
+RUN apk add vim --no-cache
+RUN apk add openssl --no-cache
+
+FROM dep
+COPY --from=build /usr/src/chewiebot/client/build /var/www/html
+COPY ./nginx/nginx.conf /etc/nginx/conf.d/
+COPY ./nginx/server.crt /etc/nginx/
+COPY ./nginx/server.key /etc/nginx
+
+EXPOSE 80
