@@ -105,7 +105,7 @@ jobs:
                       docker login --username ${{ secrets.dockerUsername }} --password ${{ secrets.dockerKey }}
                       mkdir -p chewiebot
                       cd chewiebot
-                      docker-compose -f docker-compose.yml -f docker-compose.prod.yml stop
+                      docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
                       docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
                       docker volume rm chewiebot_web-root
                       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
