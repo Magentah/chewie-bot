@@ -11,6 +11,7 @@ export enum BotSettings {
     SubPointsPerMonth = "points-multiplier-sub",
     PointsPerBit = "points-multiplier-bits",
     PruneLogsAfterDays = "prune-logs-after-days",
+    FontCdnUrl = "font-cdn-url",
 }
 
 @injectable()

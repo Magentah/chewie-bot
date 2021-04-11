@@ -50,6 +50,7 @@ import SonglistController from "./controllers/songlistController";
 import MessagelistController from "./controllers/messagelistController";
 import UserlistController from "./controllers/userlistController";
 import CommandlistController from "./controllers/commandlistController";
+import SettingsController from "./controllers/settingsController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
@@ -136,6 +137,7 @@ botContainer.bind<SonglistController>(SonglistController).toSelf();
 botContainer.bind<MessagelistController>(MessagelistController).toSelf();
 botContainer.bind<UserlistController>(UserlistController).toSelf();
 botContainer.bind<CommandlistController>(CommandlistController).toSelf();
+botContainer.bind<SettingsController>(SettingsController).toSelf();
 
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();

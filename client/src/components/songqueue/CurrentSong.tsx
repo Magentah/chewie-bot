@@ -7,6 +7,8 @@ import { useParams } from "react-router";
 const CurrentSong: React.FC = (props) => {
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [currentSongTitle, setCurrentSongTitle] = useState<string>();
+    const [fontCdnUrl, setFontCdnUrl] = useState("");
+    const [fontCdnPreconnectHost, setFontCdnPreconnectHost] = useState("");
 
     // Allow customisation of font size (maybe more options later)
     const { options } = useParams<{ options: string | undefined }>();
@@ -47,6 +49,17 @@ const CurrentSong: React.FC = (props) => {
     }, []);
 
     useEffect(() => {
+        axios
+            .get("/api/settings/font-cdn-url").then((response) => {
+                if (response) {
+                    setFontCdnUrl(response.data);
+                    const url = new URL(response.data);
+                    setFontCdnPreconnectHost("https://" + url.hostname);
+                }
+            });
+    }, []);
+
+    useEffect(() => {
         if (!websocket.current) {
             return;
         }
@@ -58,7 +71,11 @@ const CurrentSong: React.FC = (props) => {
 
     useEffect(() => { loadFirstSong() }, []);
 
-    return <ColoredTypography>{currentSongTitle}</ColoredTypography>;
+    return <div>
+            {fontCdnPreconnectHost ? <link rel="preconnect" href={fontCdnPreconnectHost} /> : undefined}
+            {fontCdnUrl ? <link href={fontCdnUrl.replace("{font}", font)} rel="stylesheet" /> : undefined}
+            <ColoredTypography>{currentSongTitle}</ColoredTypography>
+        </div>;
 }
 
 export default CurrentSong;
