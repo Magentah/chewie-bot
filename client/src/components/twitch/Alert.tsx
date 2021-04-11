@@ -11,6 +11,8 @@ const Alert: React.FC = (props) => {
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [alert, setAlert] = useState<IAlertData | undefined>(undefined);
 
+    document.body.style.background = "transparent";
+
 
     const alertTriggered = (data: IAlertData) => {
         setAlert(data);
@@ -40,7 +42,7 @@ const Alert: React.FC = (props) => {
         websocket.current.onMessage(SocketMessageType.AlertTriggered, onAlertTriggered);
     }, [onAlertTriggered]);
 
-    return <Fade in={showAlert} style={{ background: "transparent", overflow: "hidden" }}>
+    return <Fade in={showAlert}>
         <img src={alert ? alert.href : ""} width="1280" height="720"/>
     </Fade>;
 }
