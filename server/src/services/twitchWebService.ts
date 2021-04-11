@@ -22,10 +22,7 @@ export class TwitchWebService {
     private readonly getSubscribersUrl: string = "subscriptions";
     private readonly getChannelRedemptionUrl: string = "channel_points/custom_rewards/redemptions";
 
-    constructor(
-        @inject(UserService) private userService: UserService,
-        @inject(TwitchAuthService) private authService: TwitchAuthService
-    ) {
+    constructor(@inject(UserService) private userService: UserService, @inject(TwitchAuthService) private authService: TwitchAuthService) {
         this.twitchExecutor.setLogging(true);
     }
 
@@ -62,17 +59,10 @@ export class TwitchWebService {
         });
     }
 
-    public async updateChannelRewardStatus(
-        channelRewardId: string,
-        redemptionRewardId: string,
-        status: "FULFILLED" | "CANCELLED"
-    ): Promise<void> {
+    public async updateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELLED"): Promise<void> {
         const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
         if (broadcasterCtx === undefined) {
-            Logger.err(
-                LogType.TwitchEvents,
-                `Unable to update channel reward status for redemption id ${redemptionRewardId}.`
-            );
+            Logger.err(LogType.TwitchEvents, `Unable to update channel reward status for redemption id ${redemptionRewardId}.`);
             return;
         }
 
@@ -90,17 +80,20 @@ export class TwitchWebService {
 
         const execute = this.twitchExecutor.build(header);
 
-        return await execute(HttpMethods.PATCH, updateStatusUrl, body).then((resp: AxiosResponse) => {
-            if (resp.status === HttpStatusCodes.OK) {
-                Logger.info(LogType.TwitchEvents, `Updated ${redemptionRewardId} status to 'FULFILLED'`);
-                return;
-            } else {
-                Logger.err(LogType.TwitchEvents, `Error when updating reward id ${redemptionRewardId}.`, {
-                    data: resp.data,
-                });
-                return;
-            }
-        });
+        const response: AxiosResponse = await execute(HttpMethods.PATCH, updateStatusUrl, body);
+
+        if (!response) {
+            Logger.err(LogType.TwitchEvents, "Failed to get valid response from Twitch API.", { url: updateStatusUrl, body: body });
+            return;
+        } else if (response.status === HttpStatusCodes.OK) {
+            Logger.info(LogType.TwitchEvents, `Updated ${redemptionRewardId} status to 'FULFILLED'`);
+            return;
+        } else {
+            Logger.err(LogType.TwitchEvents, `Error when updating reward id ${redemptionRewardId}.`, {
+                data: response.data,
+            });
+            return;
+        }
     }
 
     /**
