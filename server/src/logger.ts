@@ -1,5 +1,6 @@
 import * as Winston from "winston";
 import winston = require("winston/lib/winston/config");
+import "winston-daily-rotate-file";
 import * as Config from "./config.json";
 
 const { combine, timestamp, label, prettyPrint, printf, colorize } = Winston.format;
@@ -208,8 +209,12 @@ export class Logger {
                     })
                 ),
             }),
-            new Winston.transports.File({
+            new Winston.transports.DailyRotateFile({
                 filename: Config.log.logfile,
+                datePattern: "YYYY-MM-DD-HH",
+                zippedArchive: true,
+                maxFiles: "14d",
+                maxSize: "10m",
                 level: Config.log.level,
                 format: fileFormat,
             }),
