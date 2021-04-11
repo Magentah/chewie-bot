@@ -36,6 +36,8 @@ const App: React.FC<{}> = (props) => {
     return (
         <Router>
             <CssBaseLine />
+            <link rel="preconnect" href="https://fonts.gstatic.com" />
+            <link href="https://fonts.googleapis.com/css2?family=Cantora+One&display=swap" rel="stylesheet" /> 
             <UserContextProvider>
                 <Switch>
                     <Route path="/currentsong/:size">

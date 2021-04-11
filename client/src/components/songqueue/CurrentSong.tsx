@@ -11,9 +11,12 @@ const CurrentSong: React.FC = (props) => {
     // Allow customisation of font size (maybe more options later)
     const { size } = useParams<{ size: string | undefined }>();
 
+    document.body.style.background = "transparent";
+
     const THEME = createMuiTheme({
         typography: {
          "fontSize": size ? parseInt(size, 10) : 10,
+         "fontFamily": '"Cantora One", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;',
         }
      });
 
@@ -49,7 +52,7 @@ const CurrentSong: React.FC = (props) => {
 
     useEffect(() => { loadFirstSong() }, []);
 
-    return <MuiThemeProvider theme={THEME}><Typography>{currentSongTitle}</Typography></MuiThemeProvider>;
+    return <MuiThemeProvider theme={THEME}><Typography style={{ color: "#ea693fff" }}>{currentSongTitle}</Typography></MuiThemeProvider>;
 }
 
 export default CurrentSong;

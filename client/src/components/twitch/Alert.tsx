@@ -11,6 +11,8 @@ const Alert: React.FC = (props) => {
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [alert, setAlert] = useState<IAlertData | undefined>(undefined);
 
+    document.body.style.background = "transparent";
+
 
     const alertTriggered = (data: IAlertData) => {
         setAlert(data);
