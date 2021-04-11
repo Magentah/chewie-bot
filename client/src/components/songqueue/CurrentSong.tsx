@@ -49,7 +49,7 @@ const CurrentSong: React.FC = (props) => {
 
     useEffect(() => { loadFirstSong() }, []);
 
-    return <MuiThemeProvider theme={THEME}><Typography>{currentSongTitle}</Typography></MuiThemeProvider>;
+    return <div style={{ background: "transparent", overflow: "hidden" }}><MuiThemeProvider theme={THEME}><Typography>{currentSongTitle}</Typography></MuiThemeProvider></div>;
 }
 
 export default CurrentSong;
