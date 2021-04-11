@@ -68,6 +68,7 @@
         "tmi.js": "^1.7.5",
         "tslib": "^2.1.0",
         "winston": "^3.2.1",
+        "winston-daily-rotate-file": "^4.5.2",
         "ws": "^7.4.4"
     }
 }
