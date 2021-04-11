@@ -40,7 +40,7 @@ const Alert: React.FC = (props) => {
         websocket.current.onMessage(SocketMessageType.AlertTriggered, onAlertTriggered);
     }, [onAlertTriggered]);
 
-    return <Fade in={showAlert}>
+    return <Fade in={showAlert} style={{ background: "transparent", overflow: "hidden" }}>
         <img src={alert ? alert.href : ""} width="1280" height="720"/>
     </Fade>;
 }
