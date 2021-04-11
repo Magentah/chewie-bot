@@ -11,9 +11,7 @@ const Alert: React.FC = (props) => {
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [alert, setAlert] = useState<IAlertData | undefined>(undefined);
-
     const { timeout } = useParams<{ timeout: string | undefined }>();
-
     document.body.style.background = "transparent";
 
 
