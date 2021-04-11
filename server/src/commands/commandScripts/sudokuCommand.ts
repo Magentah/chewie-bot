@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { IUser, UserLevels } from "../../models";
+import { ICommandAlias, IUser, UserLevels } from "../../models";
 
 export class SudokuCommand extends Command {
     private readonly SudokuTimeoutLength = 120;
@@ -23,7 +23,21 @@ export class SudokuCommand extends Command {
      * word "sudoku" in chat.
      */
     public shouldExecuteOnMessage(message: string): boolean {
-        return message.toLowerCase().indexOf("sudoku") !== -1;
+        const msgToLower = message.toLowerCase();
+        return msgToLower.indexOf("sudoku") !== -1 ||
+            msgToLower.indexOf("subaru") !== -1 ||
+            msgToLower.indexOf("sepukku") !== -1 ||
+            msgToLower.indexOf("seppuku") !== -1 ||
+            msgToLower.indexOf("harakiri") !== -1;
+    }
+
+    public getAliases(): ICommandAlias[] {
+        return [
+            { alias: "subaru", commandName: "sudoku" },
+            { alias: "sepukku", commandName: "sudoku" },
+            { alias: "seppuku", commandName: "sudoku" },
+            { alias: "harakiri", commandName: "sudoku" },
+        ];
     }
 }
 
