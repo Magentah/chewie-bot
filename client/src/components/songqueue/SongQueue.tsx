@@ -51,7 +51,7 @@ const PreviewCell: React.FC<any> = (value) => {
 };
 
 const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (props) => {
-    const duration = moment.utc(moment.duration(props.value.duration).asMilliseconds()).format("HH:mm:ss");
+    const duration = moment.utc(moment.duration(props.value.details.duration).asMilliseconds()).format("HH:mm:ss");
 
     const playButton = props.value.details.source === SongSource.Spotify ? (<Grid item>
         <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
