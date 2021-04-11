@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography } from "@material-ui/core";
-import { Star } from "@material-ui/icons";
+import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@material-ui/core";
+import { Star, SettingsBackupRestore } from "@material-ui/icons";
 import { AddToListState } from "../common/addToListState";
 import { UserLevel } from "../common/userLevel";
 import AddIcon from "@material-ui/icons/Add";
@@ -63,6 +63,29 @@ const UserList: React.FC<any> = (props: any) => {
     const [userlist, setUserlist] = useState([] as RowData[]);
     const [userLevels, setUserLevels] = useState([] as UserLevel[]);
     const [user, loadUser] = useUser();
+    const [currentUserForAction, setCurrentUserForAction] = useState<RowData>();
+
+    const [resetDialogOpen, setResetDialogOpen] = useState(false);
+
+    const handleClickOpenReset = (userData: RowData) => {
+        setCurrentUserForAction(userData);
+        setResetDialogOpen(true);
+    };
+
+    const handleCloseReset = (resetUser: boolean) => {
+        setResetDialogOpen(false);
+
+        if (resetUser && currentUserForAction) {
+            axios.post("/api/userlist/delete", currentUserForAction).then((result) => {
+                if (result.status === 200) {
+                    const newUserlist = [...userlist];
+                    const index = userlist.indexOf(currentUserForAction);
+                    newUserlist.splice(index, 1, result.data as RowData);
+                    setUserlist(newUserlist);
+                }
+            })
+        }
+    };
 
     const classes = useStyles();
 
@@ -82,22 +105,23 @@ const UserList: React.FC<any> = (props: any) => {
 
     const [addVipState, setAddVipState] = useState<AddToListState>();
     const [addVipAmount, setAddVipAmount] = useState<number>(0);
-    const [addVipUser, setAddVipUser] = useState<RowData>();
+    const [addVipType, setAddVipType] = useState<"weeks"|"permanent">("weeks");
 
     const submitVipGold = async (useWeeks: boolean) => {
         try {
-            if (!addVipUser) {
+            if (!currentUserForAction) {
                 return;
             }
 
             setAddVipState({state: "progress"});
+            setAddVipType(useWeeks ? "weeks" : "permanent");
 
             const data = useWeeks ? { weeks: addVipAmount } : { amount: addVipAmount };
-            const result = await axios.post(`/api/userlist/addVip/${addVipUser.username}`, data, { validateStatus: (status) => true });
+            const result = await axios.post(`/api/userlist/addVip/${currentUserForAction.username}`, data, { validateStatus: (status) => true });
             if (result.status === 200) {
                 setAddVipState({state: "success"});
                 const newUserlist = [...userlist];
-                const index = userlist.indexOf(addVipUser);
+                const index = userlist.indexOf(currentUserForAction);
                 newUserlist.splice(index, 1, result.data as RowData);
                 setUserlist(newUserlist);
 
@@ -121,7 +145,7 @@ const UserList: React.FC<any> = (props: any) => {
     const [popupAnchor, setPopupAnchor] = React.useState<HTMLButtonElement | undefined>(undefined);
     const openVipPopup = (button: HTMLButtonElement, userData: RowData) => {
       setPopupAnchor(button);
-      setAddVipUser(userData);
+      setCurrentUserForAction(userData);
     };
 
     const open = Boolean(popupAnchor);
@@ -154,7 +178,7 @@ const UserList: React.FC<any> = (props: any) => {
                                     <Button
                                         variant="contained"
                                         color="primary"
-                                        startIcon={addVipState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
+                                        startIcon={addVipState?.state === "progress" && addVipType === "weeks" ? <CircularProgress size={15} /> : <AddIcon />}
                                         onClick={() => submitVipGold(true)}
                                         className={classes.addButton}
                                         disabled={addVipState?.state === "progress"}>
@@ -165,7 +189,7 @@ const UserList: React.FC<any> = (props: any) => {
                                     <Button
                                         variant="contained"
                                         color="primary"
-                                        startIcon={addVipState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
+                                        startIcon={addVipState?.state === "progress" && addVipType === "permanent" ? <CircularProgress size={15} /> : <AddIcon />}
                                         onClick={() => submitVipGold(false)}
                                         className={classes.addButton}
                                         disabled={addVipState?.state === "progress"}>
@@ -176,6 +200,16 @@ const UserList: React.FC<any> = (props: any) => {
                         </form>
                     </Box>
             </Popover>
+            <Dialog open={resetDialogOpen} onClose={handleCloseReset}>
+                <DialogTitle>Do you want to reset the user's data?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>This will reset the user's points, delete the history of point changes, and remove the VIP gold status.</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Reset</Button>
+                    <Button onClick={() => handleCloseReset(false)} color="primary">Cancel</Button>
+                </DialogActions>
+            </Dialog>
             <MaterialTable
                 columns = {[
                     { title: "User name", field: "username" },
@@ -197,14 +231,23 @@ const UserList: React.FC<any> = (props: any) => {
                 }}
                 actions={user.userLevelKey < UserLevels.Broadcaster ? undefined : [
                     {
-                      icon: Star,
-                      tooltip: "Add VIP gold",
-                      onClick: (event, rowData) => {
+                        icon: Star,
+                        tooltip: "Add VIP gold",
+                        onClick: (event, rowData) => {
                         if ((rowData as RowData).username !== undefined) {
                             openVipPopup(event.currentTarget, rowData as RowData);
                         }
-                      }
-                    }
+                        }
+                    },
+                    {
+                        icon: SettingsBackupRestore,
+                        tooltip: "Reset user",
+                        onClick: (event, rowData) => {
+                            if ((rowData as RowData).username !== undefined) {
+                                handleClickOpenReset(rowData as RowData);
+                            }
+                        }
+                    },
                 ]}
                 data = {userlist}
                 editable = {
@@ -218,15 +261,6 @@ const UserList: React.FC<any> = (props: any) => {
                                 // @ts-ignore
                                 const index = oldData?.tableData.id;
                                 newUserlist[index] = newData;
-                                setUserlist(newUserlist);
-                            }
-                        }),
-                        onRowDelete: oldData => axios.post("/api/userlist/delete", oldData).then((result) => {
-                            if (result.status === 200) {
-                                const newUserlist = [...userlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
-                                newUserlist.splice(index, 1);
                                 setUserlist(newUserlist);
                             }
                         })

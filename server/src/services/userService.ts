@@ -6,10 +6,13 @@ import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
 import { Logger, LogType } from "../logger";
+import PointLogsRepository from "../database/pointLogsRepository";
 
 @injectable()
 export class UserService {
-    constructor(@inject(UsersRepository) private users: UsersRepository, @inject(EventLogService) private eventLog: EventLogService) {
+    constructor(@inject(UsersRepository) private users: UsersRepository,
+                @inject(EventLogService) private eventLog: EventLogService,
+                @inject(PointLogsRepository) private pointsLog: PointLogsRepository) {
         // Empty
     }
 
@@ -68,6 +71,18 @@ export class UserService {
         for (const user of users) {
             await this.users.update(user);
         }
+    }
+
+    /**
+     * Resets a user's points, VIP gold and point log.
+     * @param userData User to reset
+     */
+    public async resetUser(userData: IUser) {
+        userData.vipExpiry = undefined;
+        userData.vipPermanentRequests = 0;
+        await this.updateUser(userData);
+        await this.pointsLog.reset(userData.username);
+        await this.changeUserPoints(userData, -userData.points, PointLogType.Reset);
     }
 
     /**

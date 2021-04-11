@@ -177,23 +177,26 @@ class UserlistController {
     }
 
     /**
-     * Remove a user from the userlist by ID.
+     * Resets a user in the database.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public removeUser(req: Request, res: Response): void {
-        const user = req.body as IUser;
-        if (user) {
-            this.userRepository.delete(user);
-        } else if (Number(req.body)) {
-            this.userRepository.delete(req.body);
+    public async resetUser(req: Request, res: Response): Promise<void> {
+        const reqUser = req.body as IUser;
+        if (reqUser) {
+            const userData = await this.userService.getUser(reqUser.username);
+            if (userData) {
+                await this.userService.resetUser(userData);
+                res.status(StatusCodes.OK);
+                res.send(this.userRepository.mapUserToDetailsUserData(userData));
+            } else {
+                res.sendStatus(StatusCodes.NOT_FOUND);
+            }
         } else {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a user object."));
             return;
         }
-
-        res.sendStatus(StatusCodes.OK);
     }
 
     /**
