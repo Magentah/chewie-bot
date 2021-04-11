@@ -20,5 +20,6 @@ export enum PointLogType {
     Redeem = "redeem",
     Give = "give",
     Add = "add",
-    Rename = "rename"
+    Rename = "rename",
+    Reset = "reset"
 }
