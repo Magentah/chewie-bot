@@ -40,6 +40,7 @@ import SonglistRepository from "./database/songlistRepository";
 import DiscordRepository from "./database/discordRepository";
 import EventLogsRepository from "./database/eventLogsRepository";
 import MessagesRepository from "./database/messagesRepository";
+import PointLogsRepository from "./database/pointLogsRepository";
 
 // Controllers
 import SongController from "./controllers/songController";
@@ -114,6 +115,7 @@ botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
 botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();
+botContainer.bind<PointLogsRepository>(PointLogsRepository).toSelf();
 botContainer.bind<VIPLevelsRepository>(VIPLevelsRepository).toSelf();
 botContainer.bind<DonationsRepository>(DonationsRepository).toSelf();
 botContainer.bind<TextCommandsRepository>(TextCommandsRepository).toSelf();

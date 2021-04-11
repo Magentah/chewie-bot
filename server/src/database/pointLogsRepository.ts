@@ -19,6 +19,11 @@ export class PointLogsRepository {
         log.time = moment().utc().toDate();
         await databaseService.getQueryBuilder(DatabaseTables.PointLogs).insert(log);
     }
+
+    public async reset(username: string) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.PointLogs).where({ username }).delete();
+    }
 }
 
 export default PointLogsRepository;
