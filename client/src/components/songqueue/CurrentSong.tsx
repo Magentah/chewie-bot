@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
-import { createMuiTheme, MuiThemeProvider, Typography } from "@material-ui/core";
+import { Typography, withStyles } from "@material-ui/core";
 import axios from "axios";
 import { useParams } from "react-router";
 
@@ -9,16 +9,22 @@ const CurrentSong: React.FC = (props) => {
     const [currentSongTitle, setCurrentSongTitle] = useState<string>();
 
     // Allow customisation of font size (maybe more options later)
-    const { size } = useParams<{ size: string | undefined }>();
+    const { options } = useParams<{ options: string | undefined }>();
+
+    const urlParams = new URLSearchParams(options);
+    const size = urlParams.get("size");
+    const font = urlParams.get("font") ?? "";
+    const color = urlParams.get("color") ?? "000000";
 
     document.body.style.background = "transparent";
 
-    const THEME = createMuiTheme({
-        typography: {
-         "fontSize": size ? parseInt(size, 10) : 10,
-         "fontFamily": '"Cantora One", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;',
+    const ColoredTypography = withStyles({
+        root: {
+            "color": "#" + color,
+            "fontSize": size ? parseInt(size, 10) : 10,
+            "fontFamily": font,
         }
-     });
+    })(Typography);
 
     const loadFirstSong = () => axios.get("/api/songs").then((response) => {
         if (response.data && response.data.length > 0) {
@@ -52,7 +58,7 @@ const CurrentSong: React.FC = (props) => {
 
     useEffect(() => { loadFirstSong() }, []);
 
-    return <MuiThemeProvider theme={THEME}><Typography style={{ color: "#ea693fff" }}>{currentSongTitle}</Typography></MuiThemeProvider>;
+    return <ColoredTypography>{currentSongTitle}</ColoredTypography>;
 }
 
 export default CurrentSong;

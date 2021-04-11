@@ -75,7 +75,11 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         ));
     };
 
-    const menu = !userProfile?.username ? undefined : <Menu
+    if (!userProfile) {
+        return null;
+    }
+
+    const menu = !userProfile.username ? undefined : <Menu
             id="navbar-menu"
             anchorEl={anchor}
             anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
