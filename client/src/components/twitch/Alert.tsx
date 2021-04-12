@@ -43,7 +43,7 @@ const Alert: React.FC = (props) => {
         websocket.current.onMessage(SocketMessageType.AlertTriggered, onAlertTriggered);
     }, [onAlertTriggered]);
 
-    return <Fade in={showAlert} timeout={ timeout ? parseInt(timeout, 500) : 500 }>
+    return <Fade in={showAlert} timeout={ timeout ? parseInt(timeout, 10) : 500 }>
         <img src={alert ? alert.href : ""} width="1280" height="720"/>
     </Fade>;
 }
