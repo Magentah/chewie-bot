@@ -38,7 +38,7 @@ const App: React.FC<{}> = (props) => {
             <CssBaseLine />
             <UserContextProvider>
                 <Switch>
-                    <Route path="/currentsong/:options">
+                    <Route path="/currentsong">
                         <CurrentSong />
                     </Route>
                     <Route path="/alerts/:timeout">

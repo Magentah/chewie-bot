@@ -3,7 +3,6 @@ import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { Logger, LogType } from "../logger";
 import BotSettingsRepository from "../database/botSettings";
-import { BotSettings } from "../services/botSettingsService";
 
 @injectable()
 class SettingsController {
@@ -14,24 +13,12 @@ class SettingsController {
     }
 
     /**
-     * Get the value of a specific setting.
+     * Gets a list of all settings in the database.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public async getSetting(req: Request, res: Response): Promise<void> {
-        if (!req.params.setting) {
-            res.status(StatusCodes.OK);
-            res.send("");
-        } else {
-            // Only allow certain settings to be accessible by the client code.
-            switch (req.params.setting) {
-                case BotSettings.FontCdnUrl:
-                    const value = (await this.settingsRepository.get(req.params.setting))?.value;
-                    res.status(StatusCodes.OK);
-                    res.send(value);
-                    break;
-            }
-        }
+    public async getSettings(req: Request, res: Response): Promise<void> {
+        res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
     }
 }
 
