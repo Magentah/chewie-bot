@@ -41,7 +41,7 @@ const App: React.FC<{}> = (props) => {
                     <Route path="/currentsong/:options">
                         <CurrentSong />
                     </Route>
-                    <Route path="/alerts">
+                    <Route path="/alerts/:timeout">
                         <Alert />
                     </Route>
                     <Route exact path="*">
