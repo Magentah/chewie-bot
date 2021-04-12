@@ -132,7 +132,7 @@ export class UsersRepository {
      * @param user Updated user
      * @param points Number of points to add or remove (if negative)
      */
-    public async incrementPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
+    public async incrementPoints(user: IUser, points: number, eventType: PointLogType | string): Promise<void> {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.Users).increment("points", points).where({ id: user.id });
 
