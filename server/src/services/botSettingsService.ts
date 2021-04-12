@@ -12,6 +12,7 @@ export enum BotSettings {
     SubPointsPerYear = "points-per-anniversarysub",
     PointsPerBit = "points-multiplier-bits",
     PruneLogsAfterDays = "prune-logs-after-days",
+    RedeemCost = "redeem-cost",
 }
 
 @injectable()
@@ -23,6 +24,7 @@ export default class BotSettingsService {
     private readonly DefaultSongRequestDonationAmount: number = 15;
     private readonly DefaultSubPoints: number = 500;
     private readonly DefaultSubPointsPerYearMultiplier: number = 1000;
+    private readonly DefaultRedeemCost: number = 50;
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
         // Empty
@@ -57,6 +59,10 @@ export default class BotSettingsService {
 
             case BotSettings.SubPointsPerYear:
                 defaultValue = this.DefaultSubPointsPerYearMultiplier.toString();
+                break;
+
+            case BotSettings.RedeemCost:
+                defaultValue = this.DefaultRedeemCost.toString();
                 break;
         }
 
