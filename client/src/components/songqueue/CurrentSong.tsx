@@ -1,24 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
-import { createMuiTheme, MuiThemeProvider, Typography } from "@material-ui/core";
+import { Typography } from "@material-ui/core";
 import axios from "axios";
-import { useParams } from "react-router";
 
 const CurrentSong: React.FC = (props) => {
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [currentSongTitle, setCurrentSongTitle] = useState<string>();
 
-    // Allow customisation of font size (maybe more options later)
-    const { size } = useParams<{ size: string | undefined }>();
-
     document.body.style.background = "transparent";
-
-    const THEME = createMuiTheme({
-        typography: {
-         "fontSize": size ? parseInt(size, 10) : 10,
-         "fontFamily": '"Cantora One", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;',
-        }
-     });
 
     const loadFirstSong = () => axios.get("/api/songs").then((response) => {
         if (response.data && response.data.length > 0) {
@@ -52,7 +41,7 @@ const CurrentSong: React.FC = (props) => {
 
     useEffect(() => { loadFirstSong() }, []);
 
-    return <MuiThemeProvider theme={THEME}><Typography style={{ color: "#ea693fff" }}>{currentSongTitle}</Typography></MuiThemeProvider>;
+    return <Typography>{currentSongTitle}</Typography>;
 }
 
 export default CurrentSong;

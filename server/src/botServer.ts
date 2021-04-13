@@ -10,7 +10,7 @@ import * as path from "path";
 import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
-import { AuthRouter, setupPassport, SonglistRouter, SongRouter, TwitchRouter, MessageListRouter, UserlistRouter, CommandListRouter } from "./routes";
+import { AuthRouter, setupPassport, SonglistRouter, SongRouter, TwitchRouter, MessageListRouter, UserlistRouter, CommandListRouter, SettingsRouter } from "./routes";
 import { UserCookie } from "./middleware";
 import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService } from "./services";
 import { BotContainer } from "./inversify.config";
@@ -131,6 +131,7 @@ class BotServer extends Server {
         this.app.use(MessageListRouter);
         this.app.use(UserlistRouter);
         this.app.use(CommandListRouter);
+        this.app.use(SettingsRouter);
 
         // Login/Logout Routes
         this.app.get("/api/isloggedin", async (req, res) => {
