@@ -1,6 +1,5 @@
 import { Command } from "../command";
 import { TextCommandsRepository } from "./../../database";
-import { TwitchService } from "./../../services";
 import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
 
@@ -15,7 +14,7 @@ export default class AddCmdCommand extends Command {
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async executeInternal(channel: string, user: IUser, commandName: string, message: string): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, commandName: string, ...args: string[]): Promise<void> {
         // Remove all preceding exclamation marks if present.
         if (commandName.startsWith("!")) {
             commandName = commandName.substr(1);
@@ -25,7 +24,7 @@ export default class AddCmdCommand extends Command {
         if (!command) {
             command = {
                 commandName,
-                message,
+                message: args.join(' '),
             };
 
             await this.textCommands.add(command);
