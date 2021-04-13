@@ -8,8 +8,8 @@ export class SudokuCommand extends Command {
         super();
     }
 
-    public async executeInternal(channel: string, user: IUser): Promise<void> {
-        if (user && user.userLevel && user.userLevel.rank >= UserLevels.Moderator) {
+    public async executeInternal(channel: string, user: IUser, force: number): Promise<void> {
+        if (!force && user && user.userLevel && user.userLevel.rank >= UserLevels.Moderator) {
             // Moderators are exempt from being timed out.
             return;
         }
