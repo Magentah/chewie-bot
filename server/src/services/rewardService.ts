@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { EventLogType, IUser, RequestSource } from "../models";
+import { IUser, RequestSource } from "../models";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import SongService from "./songService";
 import { IBitsMessage, IDonationMessage, ISubscriptionMessage, SubscriptionPlan, SubType } from "./streamlabsService";
@@ -48,7 +48,7 @@ export default class RewardService {
         // Unless when gifted, because multi-month gifts are possible.
         // For re-subs, months should be the total number of months so far.
         // For points, we can this always use "months".
-        this.addSubUserPoints(user, sub.months);
+        this.addSubUserPoints(user, sub.months, PointLogType.Sub, sub.sub_type === SubType.Resub);
 
         if (sub.sub_plan === SubscriptionPlan.Tier3) {
             if (sub.sub_type === SubType.Resub) {
@@ -60,12 +60,16 @@ export default class RewardService {
     }
 
     public async processGiftSub(username: string, giftedMonths: number, plan: string | undefined) {
-        if (plan === SubscriptionPlan.Tier3) {
-            // Both gifter and receiver gets halb the amount of VIP gold.
-            // We assume that the user on the receiving end will be covered by a streamlabs event.
-            const giftingUser = await this.getUserForEvent(username);
-            if (giftingUser) {
-                this.userService.addVipGoldWeeks(giftingUser, giftedMonths, "Gifted T3 sub");
+        const giftingUser = await this.getUserForEvent(username);
+        if (giftingUser) {
+            this.addSubUserPoints(giftingUser, giftedMonths, PointLogType.GiftSubGiver, false);
+
+            if (plan === SubscriptionPlan.Tier3) {
+                // Both gifter and receiver gets halb the amount of VIP gold.
+                // We assume that the user on the receiving end will be covered by a streamlabs event.
+                if (giftingUser) {
+                    this.userService.addVipGoldWeeks(giftingUser, giftedMonths, "Gifted T3 sub");
+                }
             }
         }
     }
@@ -100,10 +104,18 @@ export default class RewardService {
         }
     }
 
-    private async addSubUserPoints(user: IUser | undefined, months: number) {
-        if (user) {
-            const pointsPerMonth = parseInt(await this.settings.getValue(BotSettings.SubPointsPerMonth), 10);
-            await this.userService.changeUserPoints(user, pointsPerMonth * months, PointLogType.Sub);
+    private async addSubUserPoints(user: IUser, months: number, logType: PointLogType, isResub: boolean) {
+        const pointsPerSub = parseInt(await this.settings.getValue(BotSettings.SubPoints), 10);
+        if (isResub) {
+            let totalPoints = pointsPerSub;
+            // Consider anniversary
+            if (months % 12 === 0) {
+                const pointsPerYear = parseInt(await this.settings.getValue(BotSettings.SubPointsPerYear), 10);
+                totalPoints += months / 12 * pointsPerYear;
+            }
+            await this.userService.changeUserPoints(user, totalPoints, logType);
+        } else {
+            await this.userService.changeUserPoints(user, pointsPerSub * months, logType);
         }
     }
 
