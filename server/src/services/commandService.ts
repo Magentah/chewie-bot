@@ -49,7 +49,7 @@ export class CommandService {
                 if (textCommand) {
                     if (this.commandList.has("text")) {
                         const command = this.commandList.get("text") as Command;
-                        command.execute(channel, user, ...[textCommand.message, ...args]);
+                        command.execute(channel, user, commandName, ...[textCommand.message, ...args]);
                     }
                 }
             }

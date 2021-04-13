@@ -191,6 +191,7 @@ export class DatabaseService {
             table.string("message").notNullable();
             table.integer("minimumUserLevelKey").unsigned();
             table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
+            table.integer("useCount").unsigned().notNullable().defaultTo(0);
         });
     }
 

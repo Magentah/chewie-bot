@@ -39,6 +39,12 @@ export class TextCommandsRepository {
         await databaseService.getQueryBuilder(DatabaseTables.TextCommands).insert(command);
     }
 
+    public async incrementUseCount(commandName: string): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.TextCommands).increment("useCount", 1).where({ commandName });
+        return (await this.get(commandName)).useCount;
+    }
+
     // TS function overloading is weird. Need to declare all functions, then have a single implementation to handle all definitions.
     public async update(command: ITextCommand): Promise<void>;
     public async update(commandName: string, message: string): Promise<void>;
