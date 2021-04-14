@@ -47,7 +47,7 @@ function copyTextToClipboard(text: string) {
 }
 
 const SongList: React.FC<any> = (props: any) => {
-    type RowData = {title: string, album: string, genre: string};
+    type RowData = {title: string, album: string, genre: string, created: number};
 
     const classes = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
@@ -62,7 +62,22 @@ const SongList: React.FC<any> = (props: any) => {
 
     useEffect(() => {
         axios.get("/api/songlist").then((response) => {
-            setSonglist(response.data);
+            const results  = response.data as RowData[];
+            const newSongs: RowData[] = [];
+
+            // Show new songs (14 days) in a separate category.
+            const today = new Date();
+            today.setDate(-14);
+            for (const row of results) {
+                if (row.created > today.getTime()) {
+                    newSongs.push({
+                        ...row,
+                        genre: " 📢 New in the list 🎉"
+                     });
+                }
+            }
+
+            setSonglist(results.concat(newSongs));
         });
     }, []);
 
