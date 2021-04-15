@@ -5,6 +5,7 @@ import Logger, { LogType } from "./logger";
  */
 export class Lang {
     private static texts: Map<string, string> = new Map<string, string>();
+    private static numberFormat: Intl.NumberFormat = new Intl.NumberFormat();
 
     public static register(key: string, value: string) {
         this.texts.set(key, value);
@@ -21,7 +22,12 @@ export class Lang {
         for (let i = 1; i <= values.length; i++) {
             let argumentFound = false;
             while (text.indexOf("$" + i) >= 0) {
-                text = text.replace("$" + i, values[i - 1]);
+                let stringValue = values[i - 1];
+                if (typeof values[i - 1] === "number") {
+                    stringValue = this.numberFormat.format(values[i - 1]);
+                }
+
+                text = text.replace("$" + i, stringValue);
                 argumentFound = true;
             }
 

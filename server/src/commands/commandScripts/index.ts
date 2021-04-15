@@ -34,6 +34,7 @@ export { default as GivePointsCommand } from "../commandScripts/givePointsComman
 export { default as AddPointsCommand } from "../commandScripts/addPointsCommand";
 export { default as RenameUserCommand } from "../commandScripts/renameUserCommand";
 export { default as TopCommand } from "../commandScripts/topCommand";
+export { default as CheckLossesCommand } from "../commandScripts/checklossesCommand";
 
 export { default as RedeemCommand } from "../commandScripts/redeemCommand";
 
