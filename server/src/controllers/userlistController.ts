@@ -32,6 +32,17 @@ class UserlistController {
     }
 
     /**
+     * Get the user leaderboard.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+        public async getLeaderboard(req: Request, res: Response): Promise<void> {
+        const users = await this.userRepository.getLeaderboard();
+        res.status(StatusCodes.OK);
+        res.send(users);
+    }
+
+    /**
      * Get the list of user levels.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
