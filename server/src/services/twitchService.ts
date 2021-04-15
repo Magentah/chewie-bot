@@ -315,6 +315,16 @@ export class TwitchService {
             return;
         }
 
+        this.handleCommand(channel, userstate, message);
+    }
+
+    public invokeCommand(username: string, message: string) {
+        if (this.commandCallback) {
+            this.commandCallback(this.channel, username ?? "", message);
+        }
+    }
+
+    private handleCommand(channel: string, userstate: tmi.ChatUserstate, message: string) {
         if (this.commandCallback) {
             this.commandCallback(channel, userstate.username ?? "", message);
         }

@@ -159,10 +159,17 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             if (loseMessages.length > 0) {
                 const msgIndex = Math.floor(Math.random() * Math.floor(loseMessages.length));
 
+                // Allow special case for defeat: Sudoku every one if sudoku used in text.
+                const useSudoku = loseMessages[msgIndex].toLowerCase().indexOf("sudoku") !== -1;
+
                 // Replace variables for "single user" scenario.
                 const loseMessageResult = loseMessages[msgIndex].replace("{user}", this.participants[0].user.username)
                     .replace("{amount}", this.participants[0].points.toString());
                 this.sendMessage(loseMessageResult);
+                
+                if (useSudoku) {
+                    this.sudokuParticipants();
+                }
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${GameMessageType.NoWin}`);
             }
@@ -179,6 +186,15 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             level,
         });
         this.eventService.stopEventStartCooldown(this);
+    }
+    
+    private async sudokuParticipants() {
+        // Give users time to process the message and realize their fate.
+        await this.delay(5000);
+
+        for (const participant of this.participants) {
+            this.twitchService.invokeCommand(participant.user.username, "!sudoku 1");
+        }
     }
 
     public onCooldownComplete(): void {
