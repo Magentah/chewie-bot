@@ -17,6 +17,7 @@ import { UserLevels } from "./hooks/user";
 import Login from "./views/login/Login";
 import UserList from "./components/users/userlist";
 import UserProfileView from "./components/users/userprofile";
+import Leaderboard from "./components/users/leaderboard";
 
 export type Route = {
     path: string;
