@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { Logger, LogType } from "../logger";
 import BotSettingsRepository from "../database/botSettings";
+import { APIHelper } from "../helpers";
 
 @injectable()
 class SettingsController {
@@ -18,7 +19,13 @@ class SettingsController {
      * @param res Express HTTP Response
      */
     public async getSettings(req: Request, res: Response): Promise<void> {
-        res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
+        try {
+            res.status(StatusCodes.OK)
+            res.send(await this.settingsRepository.getAll());
+        }  catch (err) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
+        }
     }
 }
 

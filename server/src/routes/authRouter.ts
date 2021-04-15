@@ -178,6 +178,21 @@ authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { fa
     }
     res.redirect("/");
 });
+authRouter.get("/api/auth/twitch/disconnect", async (req, res) => {
+    const sessionUser = req.user as IUser;
+    if (sessionUser) {
+        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+        if (user?.accessToken || user?.refreshToken) {
+            user.accessToken = "";
+            user.refreshToken = "";
+            await BotContainer.get(UserService).updateUser(user);
+            res.status(StatusCodes.OK).send(true);
+        }
+    }
+
+    res.status(StatusCodes.OK).send(false);
+});
+
 authRouter.get("/api/auth/streamlabs", passport.authorize("streamlabs"));
 authRouter.get("/api/auth/streamlabs/callback", passport.authorize("streamlabs", { failureRedirect: "/" }), async (req, res) => {
     Logger.info(LogType.Server, JSON.stringify(req.account));
@@ -190,6 +205,22 @@ authRouter.get("/api/auth/streamlabs/callback", passport.authorize("streamlabs",
     // BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
     res.redirect("/");
 });
+authRouter.get("/api/auth/streamlabs/disconnect", async (req, res) => {
+    const sessionUser = req.user as IUser;
+    if (sessionUser) {
+        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+        if (user?.streamlabsSocketToken || user?.streamlabsToken) {
+            user.streamlabsRefresh = "";
+            user.streamlabsToken = "";
+            user.streamlabsSocketToken = "";
+            await BotContainer.get(UserService).updateUser(user);
+            res.status(StatusCodes.OK).send(true);
+        }
+    }
+
+    res.status(StatusCodes.OK).send(false);
+});
+
 authRouter.get("/api/auth/spotify", passport.authorize("spotify"));
 authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
     const sessionUser = req.user as IUser;
@@ -202,6 +233,19 @@ authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
     }
 
     res.send(false);
+});
+authRouter.get("/api/auth/spotify/disconnect", async (req, res) => {
+    const sessionUser = req.user as IUser;
+    if (sessionUser) {
+        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+        if (user?.spotifyRefresh) {
+            user.spotifyRefresh = "";
+            await BotContainer.get(UserService).updateUser(user);
+            res.status(StatusCodes.OK).send(true);
+        }
+    }
+
+    res.status(StatusCodes.OK).send(false);
 });
 authRouter.get("/api/auth/spotify/access", async (req, res) => {
     const sessionUser = req.user as IUser;
