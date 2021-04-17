@@ -73,6 +73,8 @@ function Alert(props: AlertProps) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
+type SettingData = { key: string, value: string, description: string, readonly: boolean };
+
 const TwitchCard: React.FC<any> = (props: any) => {
     const classes = useStyles();
     const [user, loadUser] = useUser();
@@ -81,7 +83,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const [saved, setSaved] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
     const [showBotOAuth, setShowBotOAuth] = useState(false);
-    const [settings, setSettings] = useState([]);
+    const [settings, setSettings] = useState([] as SettingData[]);
 
     useEffect(loadUser, []);
 
@@ -97,7 +99,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
 
     useEffect(() => {
         axios.get("/api/settings").then((response) => {
-            setSettings(response.data);
+            setSettings(response.data.filter((x: SettingData) => !x.readonly));
         });
     }, []);
 
@@ -298,17 +300,33 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     <Grid item>
                         <MaterialTable
                             columns = {[
-                                { title: "Name", field: "key" },
+                                { title: "Name", field: "description", defaultSort: "asc" },
                                 { title: "Value", field: "value" }
                             ]}
                             options = {{
                                 paging: false,
                                 showTitle: false,
+                                actionsColumnIndex: 2
                             }}
                             data = {settings}
                             components={{
                                 Container: p => <Paper {...p} elevation={0}/>
                             }}
+                            editable = {
+                                {
+                                    isEditable: rowData => true,
+                                    isDeletable: rowData => false,
+                                    onRowUpdate: (newData, oldData) => axios.post("/api/settings", newData).then((result) => {
+                                        if (result.status === 200) {
+                                            const newSettings = [...settings];
+                                            // @ts-ignore
+                                            const index = oldData?.tableData.id;
+                                            newSettings[index] = newData;
+                                            setSettings(newSettings);
+                                        }
+                                    })
+                                }
+                            }
                         />
                     </Grid>
                 </Grid>
