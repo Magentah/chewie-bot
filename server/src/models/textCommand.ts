@@ -3,4 +3,5 @@ export default interface ITextCommand {
     commandName: string;
     message: string;
     minimumModLevel?: number;
+    useCount: number;
 }
