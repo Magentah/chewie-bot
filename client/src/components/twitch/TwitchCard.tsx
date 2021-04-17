@@ -14,6 +14,7 @@ import {
     InputAdornment,
     IconButton,
     Paper,
+    ButtonGroup,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { darken } from "@material-ui/core/styles/colorManipulator";
@@ -30,27 +31,31 @@ const useStyles = makeStyles((theme) => ({
     title: {
         fontSize: 24,
     },
-    form: {
-        //margin: theme.spacing(1),
+    buttonGroup: {
+        margin: theme.spacing(1, 0, 0, 0),
     },
     saveButton: {
         margin: theme.spacing(3, 0, 2),
     },
     twitchButton: {
         backgroundColor: "#9147ff",
-        margin: theme.spacing(0, 1, 0, 0),
         textTransform: "none",
         "&:hover, &:focus": {
             backgroundColor: darken("#9147ff", 0.25),
         },
+        "&:disabled": {
+            backgroundColor: "#9147ff",
+        }
     },
     streamlabsButton: {
         backgroundColor: "#80f5d2",
-        margin: theme.spacing(0, 1, 0, 0),
         textTransform: "none",
         "&:hover, &:focus": {
             backgroundColor: darken("#80f5d2", 0.25),
         },
+        "&:disabled": {
+            backgroundColor: "#80f5d2",
+        }
     },
     streamlabsImage: {
         width: "130px",
@@ -58,15 +63,14 @@ const useStyles = makeStyles((theme) => ({
     },
     spotifyButton: {
         backgroundColor: "#1ED760",
-        margin: theme.spacing(0, 1, 0, 0),
         textTransform: "none",
         "&:hover, &:focus": {
             backgroundColor: darken("#1ED760", 0.25),
+        },
+        "&:disabled": {
+            backgroundColor: "#1ED760",
         }
-    },
-    buttonDisabled: {
-        backgroundColor: theme.palette.action.disabledBackground
-    },
+    }
 }));
 
 function Alert(props: AlertProps) {
@@ -144,63 +148,48 @@ const TwitchCard: React.FC<any> = (props: any) => {
                         </Typography>
                     </Grid>
                     <Grid item xs={12}>
-                        <Typography>Twitch:</Typography>
+                        <Grid item>
+                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group">
+                                <Button className={classes.twitchButton} disabled style={{ width: "17em" }}>
+                                    <Image
+                                        src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
+                                        style={{ width: "24px", margin: "1px 8px 2px 0px" }}
+                                    />
+                                    <span style={{ color: "white" }}>Broadcaster permissions</span>
+                                </Button>
+                                <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">Connect</Button>
+                                <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
+                            </ButtonGroup>
+                        </Grid>
 
-                        <Button className={classes.twitchButton} href="/api/auth/twitch/broadcaster">
-                            <Image
-                                src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
-                                style={{ width: "24px", margin: "1px 3px 2px 0px" }}
-                            />{" "}
-                            <span style={{ color: "white" }}>Authorize with Broadcaster permissions</span>
-                        </Button>
+                        <Grid item>
+                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                <Button className={classes.streamlabsButton} disabled style={{ width: "17em" }}>
+                                    <Image
+                                        className={classes.streamlabsImage}
+                                        src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
+                                    />
+                                </Button>
 
-                        <Button className={classes.twitchButton} onClick={() => disconnectService("/api/auth/twitch/disconnect")}>
-                            <Image
-                                src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
-                                style={{ width: "24px", margin: "1px 3px 2px 0px" }}
-                            />{" "}
-                            <span style={{ color: "white" }}>Disconnect</span>
-                        </Button>
+                                <Button style={{ color: "white" }} href="/api/auth/streamlabs">Connect</Button>
+                                <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>Disconnect</Button>
+                            </ButtonGroup>
+                        </Grid>
 
-                        <Typography>Streamlabs:</Typography>
+                        <Grid item>
+                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                <Button className={classes.spotifyButton} disabled style={{ width: "17em" }}>
+                                    <Image
+                                        src={"/assets/Spotify_Icon_RGB_Black.png"}
+                                        style={{ width: "30px", margin: "1px 6px 2px 0px" }}
+                                    />
+                                    <Typography style={{ color: "black" }} component="span">Spotify</Typography>
+                                </Button>
 
-                        <Button className={classes.streamlabsButton} href="/api/auth/streamlabs">
-                            <Image
-                                className={classes.streamlabsImage}
-                                src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
-                            />
-                            <Typography component="span">Connect to Streamlabs</Typography>
-                        </Button>
-
-                        <Button classes={{root: classes.streamlabsButton, disabled: classes.buttonDisabled}}
-                                onClick={() => disconnectService("/api/auth/streamlabs/disconnect")}
-                                disabled={!user.streamlabsSocketToken}>
-                            <Image
-                                className={classes.streamlabsImage}
-                                src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
-                            />
-                            <Typography component="span">Disconnect</Typography>
-                        </Button>
-
-                        <Typography>Spotify:</Typography>
-
-                        <Button className={classes.spotifyButton} href="/api/auth/spotify">
-                            <Image
-                                src={"/assets/Spotify_Icon_RGB_Black.png"}
-                                style={{ width: "30px", margin: "1px 3px 2px 0px" }}
-                            />
-                            <Typography component="span">Connect to Spotify</Typography>
-                        </Button>
-
-                        <Button classes={{root: classes.spotifyButton, disabled: classes.buttonDisabled}}
-                                onClick={() => disconnectService("/api/auth/spotify/disconnect")}
-                                disabled={!user.spotifyRefresh}>
-                            <Image
-                                src={"/assets/Spotify_Icon_RGB_Black.png"}
-                                style={{ width: "30px", margin: "1px 3px 2px 0px" }}
-                            />
-                            <Typography component="span">Disconnect</Typography>
-                        </Button>
+                                <Button style={{ color: "white" }} href="/api/auth/spotify">Connect</Button>
+                                <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>Disconnect</Button>
+                            </ButtonGroup>
+                        </Grid>
                     </Grid>
                 </Grid>
             </CardContent>
@@ -228,9 +217,9 @@ const TwitchCard: React.FC<any> = (props: any) => {
                         </Grid>
                     </Grid>
                     <Grid item xs={12}>
-                        <form className={classes.form} onSubmit={submitBotDetails}>
-                            <Grid container spacing={2} justify="flex-end">
-                                <Grid item xs={12} sm={4}>
+                        <form onSubmit={submitBotDetails}>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} sm={5}>
                                     <TextField
                                         id="bot-username"
                                         label="Bot Username"
@@ -239,7 +228,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                         onChange={(e) => setBotUsername(e.target.value)}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sm={8}>
+                                <Grid item xs={12} sm={5}>
                                     <FormControl fullWidth>
                                         <InputLabel htmlFor="bot-oauth">OAuth Token</InputLabel>
                                         <Input
