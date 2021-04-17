@@ -9,9 +9,20 @@ export class PointLogsRepository {
         // Empty
     }
 
-    public async getSum(username: string, type: PointLogType): Promise<number> {
+    public async getStats(username: string, type: PointLogType | undefined): Promise<{won: number, lost: number}> {
         const databaseService = await this.databaseProvider();
-        return await databaseService.getQueryBuilder(DatabaseTables.PointLogs).where({eventType: type, username}).sum("points");
+        const filter = type ? {eventType: type, username} : {username};
+        const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
+            .where(filter).andWhere("eventType", "<>", PointLogType.Reset)
+            .andWhere("points", ">", 0).sum("points AS sum")
+            .first()).sum ?? 0;
+
+        const lost = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
+            .where(filter).andWhere("eventType", "<>", PointLogType.Reset)
+            .andWhere("points", "<", 0).sum("points AS sum")
+            .first()).sum ?? 0;
+
+        return { won, lost };
     }
 
     public async add(log: IPointLog): Promise<void> {
