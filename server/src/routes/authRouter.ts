@@ -214,11 +214,14 @@ authRouter.get("/api/auth/streamlabs/disconnect", async (req, res) => {
             user.streamlabsToken = "";
             user.streamlabsSocketToken = "";
             await BotContainer.get(UserService).updateUser(user);
-            res.status(StatusCodes.OK).send(true);
+            req.login(user as Express.User, (err: any) => {
+                Logger.info(LogType.Twitch, "Updated session user");
+            });
+            res.sendStatus(StatusCodes.OK);
         }
+    } else {
+        res.status(StatusCodes.OK).send(false);
     }
-
-    res.status(StatusCodes.OK).send(false);
 });
 
 authRouter.get("/api/auth/spotify", passport.authorize("spotify"));

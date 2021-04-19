@@ -109,7 +109,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
 
     const disconnectService = (url: string) => {
         axios.get(url).then((response: AxiosResponse<any>) => {
-            // TODO
+            loadUser();
         });
     };
 
