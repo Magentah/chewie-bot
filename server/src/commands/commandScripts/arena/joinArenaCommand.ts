@@ -41,6 +41,6 @@ export default class JoinArenaCommand extends Command {
             }
         }
 
-        this.twitchService.sendMessage(channel, Lang.get("arena.notinprogress"));
+        this.twitchService.sendMessage(channel, Lang.get("arena.notinprogress", user.username));
     }
 }

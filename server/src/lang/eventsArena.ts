@@ -12,5 +12,5 @@ Lang.register("arena.result1st", "And.....the glorious Champion of the Arena, wi
 Lang.register("arena.cooldownEnd", "The colosseum has been cleansed and preparations for the next arena are complete. Say the word my Lords, and the battle shall begin!");
 Lang.register("arena.alreadyjoined", "$1, you already joined the arena!");
 Lang.register("arena.alreadstarted", "$1, the tournament has already started. Join next time!");
-Lang.register("arena.notinprogress", "No tournament is currently in progress. Use !startarena to start one.");
+Lang.register("arena.notinprogress", "I see a glorious battle in your future young warlock, $1. However, it's not yet time to strike. Reflect on your training and come back later when the next arena is announced.");
 Lang.register("arena.nofeespecified", "The entrance fee needs to be specified, $1");
