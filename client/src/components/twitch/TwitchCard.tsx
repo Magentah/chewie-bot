@@ -21,7 +21,7 @@ import { darken } from "@material-ui/core/styles/colorManipulator";
 import axios, { AxiosResponse } from "axios";
 import React, { useEffect, useState } from "react";
 import { Image } from "react-bootstrap";
-import { Save, Visibility, VisibilityOff } from "@material-ui/icons";
+import { Save, Visibility, VisibilityOff, Check, Clear } from "@material-ui/icons";
 import AuthService from "../../services/authService";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import useUser from "../../hooks/user";
@@ -157,6 +157,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     />
                                     <span style={{ color: "white" }}>Broadcaster permissions</span>
                                 </Button>
+                                <Button style={{ color: "white" }} className={classes.twitchButton} disabled><Check /></Button>
                                 <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">Connect</Button>
                                 <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
                             </ButtonGroup>
@@ -171,6 +172,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     />
                                 </Button>
 
+                                <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>{user.streamlabsSocketToken ? <Check /> : <Clear />}</Button>
                                 <Button style={{ color: "white" }} href="/api/auth/streamlabs">Connect</Button>
                                 <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>Disconnect</Button>
                             </ButtonGroup>
@@ -186,6 +188,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     <Typography style={{ color: "black" }} component="span">Spotify</Typography>
                                 </Button>
 
+                                <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>{user.spotifyRefresh ? <Check /> : <Clear />}</Button>
                                 <Button style={{ color: "white" }} href="/api/auth/spotify">Connect</Button>
                                 <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>Disconnect</Button>
                             </ButtonGroup>
@@ -193,7 +196,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     </Grid>
                 </Grid>
             </CardContent>
-            <Divider />
+
             <CardContent>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
@@ -278,7 +281,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     </Grid>
                 </Grid>
             </CardContent>
-            <Divider />
+
             <CardContent>
                 <Grid spacing={2}>
                     <Grid item xs={1}>
