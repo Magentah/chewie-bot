@@ -220,7 +220,7 @@ authRouter.get("/api/auth/streamlabs/disconnect", (req, res, next) => APIHelper.
             await BotContainer.get(UserService).updateUser(user);
             BotContainer.get(StreamlabsService).disconnect();
             req.login(user as Express.User, (err: any) => {
-                Logger.info(LogType.Twitch, "Updated session user");
+                Logger.info(LogType.Streamlabs, "Updated session user");
             });
         }
 
@@ -251,7 +251,7 @@ authRouter.get("/api/auth/spotify/disconnect", async (req, res) => {
             user.spotifyRefresh = "";
             await BotContainer.get(UserService).updateUser(user);
             req.login(user as Express.User, (err: any) => {
-                Logger.info(LogType.Twitch, "Updated session user");
+                Logger.info(LogType.Spotify, "Updated session user");
             });
         }
 
