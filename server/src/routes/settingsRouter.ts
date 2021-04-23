@@ -9,5 +9,7 @@ const settingsController: SettingsController = BotContainer.get(SettingsControll
 
 settingsRouter.get("/api/settings", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
     (req, res) => settingsController.getSettings(req, res));
+settingsRouter.post("/api/settings", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
+    (req, res) => settingsController.updateSetting(req, res));
 
 export default settingsRouter;

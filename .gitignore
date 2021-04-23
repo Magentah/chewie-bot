@@ -21,3 +21,4 @@ secret.config.json
 *.org
 */package-lock.json
 */yarn.lock
+*/.*-audit.json
