@@ -9,6 +9,8 @@ export enum CardRarity {
 export default interface IUserCard {
     id?: number;
     name: string;
+    imageId: string;
+    mimetype?: string;
     setName?: string;
     rarity: CardRarity;
     creationDate: Date

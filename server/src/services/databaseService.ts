@@ -279,6 +279,8 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.Cards, (table) => {
             table.integer("id").primary().notNullable().unique();
             table.string("name").notNullable();
+            table.string("imageId").notNullable();
+            table.string("mimetype");
             table.string("setName");
             table.integer("rarity").notNullable();
             table.dateTime("creationDate").notNullable();

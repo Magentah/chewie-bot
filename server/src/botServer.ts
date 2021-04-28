@@ -99,7 +99,8 @@ class BotServer extends Server {
             }
         });
 
-        this.app.use(bodyParser.urlencoded({ extended: true }));
+        const busboyBodyParser = require("busboy-body-parser");
+        this.app.use(busboyBodyParser({ extended: true }));
         this.app.use(cookieParser(CryptoHelper.getSecret()));
         this.app.use(cors());
         this.app.set("views", dir);

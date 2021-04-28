@@ -6,6 +6,7 @@ declare namespace Express {
     interface Request {
         rawBody: Buffer;
         account?: any;
+        files?: any;
     }
     interface User {
         account?: number;

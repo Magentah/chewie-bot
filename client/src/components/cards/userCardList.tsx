@@ -2,11 +2,29 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable from "material-table"
 import { Typography } from "@material-ui/core";
+import { DropzoneArea } from "material-ui-dropzone";
+
+type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string };
+
+const ImageCell: React.FC<any> = (value: RowData) => {
+    const handleChange = async (files: File[]) => {
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append("card", JSON.stringify(value));
+            formData.append("image", file);
+            axios.post("/api/cards/upload", formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data"
+                }
+            }).then((result) => { });
+        }
+    }
+
+    return <DropzoneArea acceptedFiles={["image/jpeg", "image/png"]} filesLimit={1} onChange={(files) => handleChange(files)} />;
+}
 
 const UserCardList: React.FC<any> = (props: any) => {
-    type RowData = { id?: number, name: string, setName: string, rarity: number, image: any };
-
-    const [cardlsit, setCardlist] = useState([] as RowData[]);
+    const [cardlist, setCardlist] = useState([] as RowData[]);
 
     useEffect(() => {
         axios.get("/api/cards").then((response) => {
@@ -34,7 +52,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                             4: "Legendary"
                         },
                     },
-                    { title: "Image", field: "image" }
+                    { title: "Image", field: "image", render: rowData => ImageCell(rowData) }
                 ]}
                 options = {{
                     paging: false,
@@ -43,20 +61,20 @@ const UserCardList: React.FC<any> = (props: any) => {
                     addRowPosition: "first",
                     tableLayout: "auto",
                 }}
-                data = {cardlsit}
+                data = {cardlist}
                 editable = {
                     {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,
                         onRowAdd: (newData) => axios.post("/api/cards/add", newData).then((result) => {
                             if (result.status === 200) {
-                                const newList = [...cardlsit, newData];
+                                const newList = [...cardlist, newData];
                                 setCardlist(newList);
                             }
                         }),
                         onRowUpdate: (newData, oldData) => axios.post("/api/cards", newData).then((result) => {
                             if (result.status === 200) {
-                                const newList = [...cardlsit];
+                                const newList = [...cardlist];
                                 // @ts-ignore
                                 const index = oldData?.tableData.id;
                                 newList[index] = newData;
@@ -65,7 +83,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                         }),
                         onRowDelete: oldData => axios.post("/api/cards/delete", oldData).then((result) => {
                             if (result.status === 200) {
-                                const newList = [...cardlsit];
+                                const newList = [...cardlist];
                                 // @ts-ignore
                                 const index = oldData?.tableData.id;
                                 newList.splice(index, 1);

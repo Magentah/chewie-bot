@@ -50,4 +50,13 @@ export default class CardsRepository {
 
         return false;
     }
+
+    public getFileExt(mimetype: string): string | undefined {
+        switch (mimetype.toLowerCase()) {
+            case "image/jpeg": return "jpg";
+            case "image/png": return "png";
+        }
+
+        return undefined;
+    }
 }
