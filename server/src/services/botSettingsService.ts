@@ -31,42 +31,37 @@ export default class BotSettingsService {
     }
 
     public async getValue(key: BotSettings): Promise<string> {
-        let defaultValue = "";
+        return (await this.botSettings.get(key))?.value ?? this.getDefaultValue(key);
+    }
+
+    public getDefaultValue(key: BotSettings): string {
         switch (key) {
             case BotSettings.PruneLogsAfterDays:
-                defaultValue = this.DefaultPruneDonationsAfterDays.toString();
-                break;
+                return this.DefaultPruneDonationsAfterDays.toString();
 
             case BotSettings.GoldStatusDonationAmount:
-                defaultValue = this.DefaultGoldAmount.toString();
-                break;
+                return this.DefaultGoldAmount.toString();
 
             case BotSettings.DonationPointsPerDollar:
-                defaultValue = this.DefaultDonationPointsPerDollar.toString();
-                break;
+                return this.DefaultDonationPointsPerDollar.toString();
 
             case BotSettings.PointsPerBit:
-                defaultValue = this.DefaultPointsPerBit.toString();
-                break;
+                return this.DefaultPointsPerBit.toString();
 
             case BotSettings.SongRequestDonationAmount:
-                defaultValue = this.DefaultSongRequestDonationAmount.toString();
-                break;
+                return this.DefaultSongRequestDonationAmount.toString();
 
             case BotSettings.SubPoints:
-                defaultValue = this.DefaultSubPoints.toString();
-                break;
+                return this.DefaultSubPoints.toString();
 
             case BotSettings.SubPointsPerYear:
-                defaultValue = this.DefaultSubPointsPerYearMultiplier.toString();
-                break;
+                return this.DefaultSubPointsPerYearMultiplier.toString();
 
             case BotSettings.RedeemCost:
-                defaultValue = this.DefaultRedeemCost.toString();
-                break;
+                return this.DefaultRedeemCost.toString();
         }
 
-        return (await this.botSettings.get(key))?.value ?? defaultValue;
+        return "";
     }
 
     public async getSettings(key: BotSettings): Promise<IBotSettings> {

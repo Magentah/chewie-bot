@@ -14,6 +14,12 @@ export default class BotSettingsRepository {
         return botSettings as IBotSettings;
     }
 
+    public async getAll(): Promise<IBotSettings[]> {
+        const databaseService = await this.databaseProvider();
+        const botSettings = await databaseService.getQueryBuilder(DatabaseTables.BotSettings).select();
+        return botSettings as IBotSettings[];
+    }
+
     public async addOrUpdate(settings: IBotSettings): Promise<void> {
         const existingSettings = await this.get(settings.key);
         if (!existingSettings) {

@@ -13,34 +13,39 @@ import {
     InputLabel,
     InputAdornment,
     IconButton,
+    Paper,
+    ButtonGroup,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { darken } from "@material-ui/core/styles/colorManipulator";
 import axios, { AxiosResponse } from "axios";
 import React, { useEffect, useState } from "react";
 import { Image } from "react-bootstrap";
-import { Save, Visibility, VisibilityOff } from "@material-ui/icons";
+import { Save, Visibility, VisibilityOff, Check, Clear } from "@material-ui/icons";
 import AuthService from "../../services/authService";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import useUser from "../../hooks/user";
+import MaterialTable from "material-table";
 
 const useStyles = makeStyles((theme) => ({
     title: {
         fontSize: 24,
     },
-    form: {
-        //margin: theme.spacing(1),
+    buttonGroup: {
+        margin: theme.spacing(1, 0, 0, 0),
     },
     saveButton: {
         margin: theme.spacing(3, 0, 2),
     },
     twitchButton: {
         backgroundColor: "#9147ff",
-        marginRight: "10px",
         textTransform: "none",
         "&:hover, &:focus": {
             backgroundColor: darken("#9147ff", 0.25),
         },
+        "&:disabled": {
+            backgroundColor: "#9147ff",
+        }
     },
     streamlabsButton: {
         backgroundColor: "#80f5d2",
@@ -48,6 +53,9 @@ const useStyles = makeStyles((theme) => ({
         "&:hover, &:focus": {
             backgroundColor: darken("#80f5d2", 0.25),
         },
+        "&:disabled": {
+            backgroundColor: "#80f5d2",
+        }
     },
     streamlabsImage: {
         width: "130px",
@@ -55,55 +63,54 @@ const useStyles = makeStyles((theme) => ({
     },
     spotifyButton: {
         backgroundColor: "#1ED760",
-        margin: theme.spacing(0, 1, 0),
         textTransform: "none",
         "&:hover, &:focus": {
             backgroundColor: darken("#1ED760", 0.25),
         },
-    },
+        "&:disabled": {
+            backgroundColor: "#1ED760",
+        }
+    }
 }));
 
 function Alert(props: AlertProps) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
+type SettingData = { key: string, value: string, description: string, readonly: boolean };
+
 const TwitchCard: React.FC<any> = (props: any) => {
     const classes = useStyles();
-    const isDev = true;
-
     const [user, loadUser] = useUser();
     const [botUsername, setBotUsername] = useState("");
     const [botOAuth, setBotOAuth] = useState("");
     const [saved, setSaved] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
     const [showBotOAuth, setShowBotOAuth] = useState(false);
+    const [settings, setSettings] = useState([] as SettingData[]);
 
     useEffect(loadUser, []);
 
     useEffect(() => {
-        axios.get("api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {
+        axios.get("/api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {
             if (response.status === 200) {
                 const botSettingsWrapper: any = { botSettings: response.data };
-                console.log(botSettingsWrapper);
                 setBotUsername(botSettingsWrapper.botSettings.username);
                 setBotOAuth(botSettingsWrapper.botSettings.oauth);
             }
         });
     }, [saved]);
 
-    const renderWelcome = () => {
-        if (isDev) {
-            return (
-                <div>
-                    <div style={{ marginTop: "10px" }}> Welcome Dango Devs!</div>
-                    <p>
-                        Any modification to <code>{"src/client/**"}</code> can be reloaded by{" "}
-                        <code>{"cd src/client && yarn build"}</code>
-                    </p>
-                </div>
-            );
-        }
-        return <p>Welome to the Dango Family! Sign in using your Twitch account</p>;
+    useEffect(() => {
+        axios.get("/api/settings").then((response) => {
+            setSettings(response.data.filter((x: SettingData) => !x.readonly));
+        });
+    }, []);
+
+    const disconnectService = (url: string) => {
+        axios.get(url).then((response: AxiosResponse<any>) => {
+            loadUser();
+        });
     };
 
     const submitBotDetails = async () => {
@@ -133,41 +140,63 @@ const TwitchCard: React.FC<any> = (props: any) => {
 
     return (
         <Card>
-            <CardContent style={{ textAlign: "center" }}>
+            <CardContent>
                 <Grid container>
-                    <Grid item xs={12} style={{ marginBottom: "20px" }}>
-                        <Image src={"/assets/chewie_logo.jpg"} alt="logo" width="25%" roundedCircle />
+                    <Grid item xs={12}>
+                        <Typography className={classes.title} color="textSecondary" gutterBottom>
+                            Authorizations
+                        </Typography>
                     </Grid>
                     <Grid item xs={12}>
-                        {renderWelcome()}
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Button className={classes.twitchButton} href="/api/auth/twitch/broadcaster">
-                            <Image
-                                src={"assets/glitch_logo.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
-                                style={{ width: "30px" }}
-                            />{" "}
-                            <span style={{ color: "white" }}>Authorize ChewieBot</span>
-                        </Button>
+                        <Grid item>
+                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group">
+                                <Button className={classes.twitchButton} disabled style={{ width: "17em" }}>
+                                    <Image
+                                        src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
+                                        style={{ width: "24px", margin: "1px 8px 2px 0px" }}
+                                    />
+                                    <span style={{ color: "white" }}>Broadcaster permissions</span>
+                                </Button>
+                                <Button style={{ color: "white" }} className={classes.twitchButton} disabled><Check /></Button>
+                                <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">Connect</Button>
+                                <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
+                            </ButtonGroup>
+                        </Grid>
 
-                        <Button className={classes.streamlabsButton} href="/api/auth/streamlabs">
-                            <Image
-                                className={classes.streamlabsImage}
-                                src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
-                            />
-                            <Typography component="span">Connect to Streamlabs</Typography>
-                        </Button>
-                        <Button className={classes.spotifyButton} href="/api/auth/spotify">
-                            <Image
-                                src={"assets/Spotify_Icon_RGB_Black.png"}
-                                style={{ width: "30px", margin: "1px 3px 2px 0px" }}
-                            />
-                            <Typography component="span">Connect to Spotify</Typography>
-                        </Button>
+                        <Grid item>
+                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                <Button className={classes.streamlabsButton} disabled style={{ width: "17em" }}>
+                                    <Image
+                                        className={classes.streamlabsImage}
+                                        src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
+                                    />
+                                </Button>
+
+                                <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>{user.streamlabsSocketToken ? <Check /> : <Clear />}</Button>
+                                <Button style={{ color: "white" }} href="/api/auth/streamlabs">Connect</Button>
+                                <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>Disconnect</Button>
+                            </ButtonGroup>
+                        </Grid>
+
+                        <Grid item>
+                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                <Button className={classes.spotifyButton} disabled style={{ width: "17em" }}>
+                                    <Image
+                                        src={"/assets/Spotify_Icon_RGB_Black.png"}
+                                        style={{ width: "30px", margin: "1px 6px 2px 0px" }}
+                                    />
+                                    <Typography style={{ color: "black" }} component="span">Spotify</Typography>
+                                </Button>
+
+                                <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>{user.spotifyRefresh ? <Check /> : <Clear />}</Button>
+                                <Button style={{ color: "white" }} href="/api/auth/spotify">Connect</Button>
+                                <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>Disconnect</Button>
+                            </ButtonGroup>
+                        </Grid>
                     </Grid>
                 </Grid>
             </CardContent>
-            <Divider />
+
             <CardContent>
                 <Grid container spacing={2}>
                     <Grid item xs={12}>
@@ -175,23 +204,25 @@ const TwitchCard: React.FC<any> = (props: any) => {
                             Bot Details
                         </Typography>
                     </Grid>
-                    <Grid item xs={12}>
-                        <Typography>
-                            To use your own Twitch.tv account for the bot account, please enter your bot account
-                            Username and OAuth Token here.
-                        </Typography>
+                    <Grid item xs={12} container spacing={1}>
+                        <Grid item>
+                            <Typography>
+                                To use your own Twitch.tv account for the bot account, please enter your bot account
+                                username and OAuth token here.
+                            </Typography>
+                        </Grid>
+                        <Grid item>
+                            <Typography>
+                                <Link href="https://twitchapps.com/tmi/" target="_blank">
+                                    Get OAuth Token
+                                </Link>
+                            </Typography>
+                        </Grid>
                     </Grid>
                     <Grid item xs={12}>
-                        <Typography>
-                            <Link href="https://twitchapps.com/tmi/" target="_blank">
-                                You can get your OAuth Token here.
-                            </Link>
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <form className={classes.form} onSubmit={submitBotDetails}>
-                            <Grid container spacing={2} justify="flex-end">
-                                <Grid item xs={12} sm={4}>
+                        <form onSubmit={submitBotDetails}>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} sm={5}>
                                     <TextField
                                         id="bot-username"
                                         label="Bot Username"
@@ -200,7 +231,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                         onChange={(e) => setBotUsername(e.target.value)}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sm={8}>
+                                <Grid item xs={12} sm={5}>
                                     <FormControl fullWidth>
                                         <InputLabel htmlFor="bot-oauth">OAuth Token</InputLabel>
                                         <Input
@@ -247,6 +278,48 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                 Bot settings failed to save.
                             </Alert>
                         </Snackbar>
+                    </Grid>
+                </Grid>
+            </CardContent>
+
+            <CardContent>
+                <Grid spacing={2}>
+                    <Grid item xs={1}>
+                        <Typography className={classes.title} color="textSecondary" gutterBottom>
+                            Settings
+                        </Typography>
+                    </Grid>
+                    <Grid item>
+                        <MaterialTable
+                            columns = {[
+                                { title: "Name", field: "description", defaultSort: "asc" },
+                                { title: "Value", field: "value" }
+                            ]}
+                            options = {{
+                                paging: false,
+                                showTitle: false,
+                                actionsColumnIndex: 2
+                            }}
+                            data = {settings}
+                            components={{
+                                Container: p => <Paper {...p} elevation={0}/>
+                            }}
+                            editable = {
+                                {
+                                    isEditable: rowData => true,
+                                    isDeletable: rowData => false,
+                                    onRowUpdate: (newData, oldData) => axios.post("/api/settings", newData).then((result) => {
+                                        if (result.status === 200) {
+                                            const newSettings = [...settings];
+                                            // @ts-ignore
+                                            const index = oldData?.tableData.id;
+                                            newSettings[index] = newData;
+                                            setSettings(newSettings);
+                                        }
+                                    })
+                                }
+                            }
+                        />
                     </Grid>
                 </Grid>
             </CardContent>
