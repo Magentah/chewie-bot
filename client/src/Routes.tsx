@@ -10,6 +10,7 @@ import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Mess
 import TwitchCard from "./components/twitch/TwitchCard";
 import MusicRequestView from "./views/music-requests/MusicRequestView";
 import SongList from "./components/songlist/songlist";
+import DonationList from "./components/donationlist/donationlist";
 import MessageList from "./components/messages/messagelist";
 import CommandList from "./components/commands/commandlist";
 import NotFound from "./components/error/404";
@@ -87,7 +88,7 @@ const DashboardRoutes: Route[] = [
         path: "/donations",
         name: "Donations",
         icon: Payment,
-        component: DefaultComponent,
+        component: DonationList,
         minUserLevel: UserLevels.Moderator
     },
     {
