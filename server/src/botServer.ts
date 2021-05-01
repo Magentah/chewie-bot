@@ -105,6 +105,7 @@ class BotServer extends Server {
         this.app.use(cors());
         this.app.set("views", dir);
         this.app.use(express.static(dir));
+        this.app.use("/img", express.static(path.join(__dirname, "../images")));
         this.app.use(
             expressSession({
                 secret: CryptoHelper.getSecret(),

@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Typography } from "@material-ui/core";
-import { DropzoneArea } from "material-ui-dropzone";
+import { Box, Button, Typography, Grid } from "@material-ui/core";
+import { Image } from "react-bootstrap";
+import { DropzoneDialog, FileObject } from "material-ui-dropzone";
 
-type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string };
+type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string };
 
-const ImageCell: React.FC<any> = (value: RowData) => {
-    const handleChange = async (files: File[]) => {
+const ImageCell: React.FC<{value: RowData}> = ({value}) => {
+    const [currentFile, setCurrentFile] = useState({ url: value.url});
+    const [open, setOpen] = React.useState(false);
+
+    const handleSave = async (files: File[]) => {
         for (const file of files) {
             const formData = new FormData();
             formData.append("card", JSON.stringify(value));
@@ -16,11 +21,36 @@ const ImageCell: React.FC<any> = (value: RowData) => {
                 headers: {
                   "Content-Type": "multipart/form-data"
                 }
-            }).then((result) => { });
+            }).then((result) => {
+                setCurrentFile({url: result.data.url });
+                setOpen(false);
+            });
         }
     }
 
-    return <DropzoneArea acceptedFiles={["image/jpeg", "image/png"]} filesLimit={1} onChange={(files) => handleChange(files)} />;
+    return <Box>
+        <Grid container>
+            <Grid item>
+                <Image height={40} src={currentFile.url} style={{ marginRight: "0.5em" }} />
+            </Grid>
+            <Grid item>
+                <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
+                    Add Image
+                </Button>
+                <DropzoneDialog
+                    acceptedFiles={["image/jpeg", "image/png"]}
+                    initialFiles={[currentFile.url]}
+                    maxFileSize={5000000}
+                    open={open}
+                    onClose={() => setOpen(false)}
+                    onSave={(files) => handleSave(files)}
+                    showPreviews={true}
+                    showFileNamesInPreview={false}
+                    filesLimit={1}
+                />
+            </Grid>
+        </Grid>
+    </Box>;
 }
 
 const UserCardList: React.FC<any> = (props: any) => {
@@ -52,7 +82,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                             4: "Legendary"
                         },
                     },
-                    { title: "Image", field: "image", render: rowData => ImageCell(rowData) }
+                    { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} /> }
                 ]}
                 options = {{
                     paging: false,

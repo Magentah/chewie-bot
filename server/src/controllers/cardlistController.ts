@@ -5,6 +5,9 @@ import { IUserCard } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import CardsRepository from "../database/cardsRepository";
+import fs = require("fs");
+import path = require("path");
+import { Guid } from "guid-typescript";
 
 @injectable()
 class CardlistController {
@@ -21,7 +24,7 @@ class CardlistController {
      * @param res Express HTTP Response
      */
     public async getCardlist(req: Request, res: Response): Promise<void> {
-        const cards = await this.cardService.getList();
+        const cards = (await this.cardService.getList()).map(x => this.addUrl(x));
         res.status(StatusCodes.OK);
         res.send(cards);
     }
@@ -39,10 +42,73 @@ class CardlistController {
             return;
         }
 
+        const cardData = await this.cardService.get(card);
+        if (!cardData) {
+            return;
+        }
+
         try {
-            await this.cardService.addOrUpdate(card);
+            await this.cardService.addOrUpdate({...cardData, name: card.name, setName: card.setName, rarity: card.rarity});
             res.status(StatusCodes.OK);
             res.send(card);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the card."
+                )
+            );
+        }
+    }
+
+    /**
+     * Adds an image to a card.
+     * Receives data as multipart formdata.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async uploadImage(req: Request, res: Response): Promise<void> {
+        const card = JSON.parse(req.body.card) as IUserCard;
+        if (!card) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a card object."));
+            return;
+        }
+
+        const cardData = await this.cardService.get(card);
+        if (!cardData) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Card not found in database."));
+            return;
+        }
+
+        const fileExt = this.cardService.getFileExt(req.files.image.mimetype);
+        if (!fileExt) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Invalid mime type."));
+            return;
+        }
+
+        try {
+            if (req.files?.image) {
+                const newCard = {...cardData, mimetype: req.files.image.mimetype};
+                await this.cardService.addOrUpdate(newCard);
+
+                const targetDir = "images";
+                if (!fs.existsSync(targetDir)) {
+                    fs.mkdirSync(targetDir);
+                }
+
+                const fstream = fs.createWriteStream(path.join(targetDir, `${cardData.imageId}.${fileExt}`));
+                fstream.write(req.files.image.data);
+                fstream.close();
+
+                res.status(StatusCodes.OK);
+                res.send(this.addUrl(newCard));
+            } else {
+                res.sendStatus(StatusCodes.OK);
+            }
         } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
@@ -68,7 +134,7 @@ class CardlistController {
         }
 
         try {
-            const result = await this.cardService.addOrUpdate({name: newCard.name, rarity: newCard.rarity, creationDate: new Date()});
+            const result = await this.cardService.addOrUpdate({name: newCard.name, rarity: newCard.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
             res.status(StatusCodes.OK);
             res.send(result);
         } catch (err) {
@@ -100,6 +166,10 @@ class CardlistController {
         }
 
         res.sendStatus(StatusCodes.OK);
+    }
+
+    private addUrl(x: IUserCard): any {
+        return {...x, url: `/img/${x.imageId}.${this.cardService.getFileExt(x.mimetype ?? "")}` };
     }
 }
 

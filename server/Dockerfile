@@ -29,6 +29,10 @@ RUN yarn install
 FROM dependencies as dev
 # Start
 WORKDIR /usr/src/chewiebot/server/
+
+RUN mkdir -p images
+RUN mkdir -p db
+
 RUN chown -R node:node .
 EXPOSE 8080
 
