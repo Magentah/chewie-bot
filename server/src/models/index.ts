@@ -50,3 +50,4 @@ export { default as IEventLog, EventLogType } from "./eventLog";
 export { default as IQuote } from "./quotes";
 export { default as IGameMessage, GameEventType, GameMessageType } from "./gameMessage";
 export { default as ICommandInfo } from "./commandInfo";
+export { default as IUserCard, CardRarity } from "./userCard";

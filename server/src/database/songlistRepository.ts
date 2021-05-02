@@ -16,6 +16,35 @@ export class SonglistRepository {
         return songlist as ISonglistItem[];
     }
 
+    public async getRandom(searchTerm: string): Promise<ISonglistItem | undefined> {
+        const databaseService = await this.databaseProvider();
+
+        if (searchTerm) {
+            // First take any random song from a given genre
+            let result = await databaseService
+                .getQueryBuilder(DatabaseTables.Songlist)
+                .where("genre", "like", `%${searchTerm}%`)
+                .orderByRaw("RANDOM()")
+                .first() as ISonglistItem;
+
+            if (result) {
+                return result;
+            }
+
+            // Otherwise any result that fits.
+            result = await databaseService
+                .getQueryBuilder(DatabaseTables.Songlist)
+                .where("album", "like", `%${searchTerm}%`)
+                .orWhere("title", "like", `%${searchTerm}%`)
+                .orderByRaw("RANDOM()")
+                .first() as ISonglistItem;
+
+            return result;
+        }
+
+        return await databaseService.getQueryBuilder(DatabaseTables.Songlist).orderByRaw("RANDOM()").first() as ISonglistItem;
+    }
+
     public async get(id: number): Promise<ISonglistItem> {
         const databaseService = await this.databaseProvider();
         const title = await databaseService

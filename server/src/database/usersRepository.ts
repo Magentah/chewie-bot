@@ -41,7 +41,7 @@ export class UsersRepository {
         return this.mapDBUserToUser(userResult);
     }
 
-    public async getByIds(ids: Number[]): Promise<IUser[]> {
+    public async getByIds(ids: number[]): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
         const userResult = await databaseService
             .getQueryBuilder(DatabaseTables.Users)
@@ -68,7 +68,6 @@ export class UsersRepository {
 
     /**
      * Gets all users from the database.
-     *  
      */
     public async getList(): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
@@ -90,6 +89,25 @@ export class UsersRepository {
 
         // Need to map from SQLResult to the correct model.
         return userResult.map((x: any) => this.mapDBUserToUser(x));
+    }
+
+    /**
+     * Gets a user leaderboard (only returns basic information)
+     */
+    public async getLeaderboard(): Promise<{username: string, points: number, rank: number}[]> {
+        const databaseService = await this.databaseProvider();
+
+        const userResult = await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .orderBy("points", "desc")
+            .limit(25)
+            .select([
+                "users.username",
+                "users.points"
+            ]);
+
+        let counter = 1;
+        return userResult.map((x: any) => { return { username: x.username, points: x.points, rank: counter++ } });
     }
 
     /**
@@ -132,7 +150,7 @@ export class UsersRepository {
      * @param user Updated user
      * @param points Number of points to add or remove (if negative)
      */
-    public async incrementPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
+    public async incrementPoints(user: IUser, points: number, eventType: PointLogType | string): Promise<void> {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.Users).increment("points", points).where({ id: user.id });
 

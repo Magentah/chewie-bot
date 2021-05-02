@@ -101,7 +101,7 @@ export class UserService {
      * @param {IUser} user The user object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUserPoints(user: IUser, points: number, eventType: PointLogType): Promise<void> {
+    public async changeUserPoints(user: IUser, points: number, eventType: PointLogType | string): Promise<void> {
         user.points += points;
         await this.users.incrementPoints(user, points, eventType);
     }

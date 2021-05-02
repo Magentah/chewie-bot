@@ -81,13 +81,15 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         while (winners.length < 3) {
             const winIndex = Math.floor(Math.random() * Math.floor(fighters.length));
             winners.push({ user: fighters[winIndex], points: 0 });
+            // Prevent participant from getting more than once place
+            fighters.splice(winIndex, 1);
         }
 
         // Payoffs are 60% for 1st place, 25% for 2nd place, and 15% for 3rd place.
         const totalPoints = this.participants.map((x) => x.points).reduce((x, y) => x + y);
         winners[0].points = Math.floor(totalPoints * 0.6);
         winners[1].points = Math.floor(totalPoints * 0.25);
-        winners[2].points = Math.floor(totalPoints * 0.15);
+        winners[2].points = Math.max(0, totalPoints - winners[1].points - winners[0].points);
 
         for (const winner of winners) {
             this.userService.changeUserPoints(winner.user, winner.points, this.pointLogType);

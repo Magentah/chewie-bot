@@ -10,7 +10,8 @@ import * as path from "path";
 import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
-import { AuthRouter, setupPassport, SonglistRouter, SongRouter, TwitchRouter, MessageListRouter, UserlistRouter, CommandListRouter } from "./routes";
+import * as Routers from "./routes";
+import { setupPassport } from "./routes/authRouter"
 import { UserCookie } from "./middleware";
 import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService } from "./services";
 import { BotContainer } from "./inversify.config";
@@ -98,11 +99,13 @@ class BotServer extends Server {
             }
         });
 
-        this.app.use(bodyParser.urlencoded({ extended: true }));
+        const busboyBodyParser = require("busboy-body-parser");
+        this.app.use(busboyBodyParser({ extended: true }));
         this.app.use(cookieParser(CryptoHelper.getSecret()));
         this.app.use(cors());
         this.app.set("views", dir);
         this.app.use(express.static(dir));
+        this.app.use("/img", express.static(path.join(process.cwd(), "images")));
         this.app.use(
             expressSession({
                 secret: CryptoHelper.getSecret(),
@@ -124,13 +127,9 @@ class BotServer extends Server {
             res.redirect("/");
         });
 
-        this.app.use(AuthRouter);
-        this.app.use(SongRouter);
-        this.app.use(TwitchRouter);
-        this.app.use(SonglistRouter);
-        this.app.use(MessageListRouter);
-        this.app.use(UserlistRouter);
-        this.app.use(CommandListRouter);
+        Object.values(Routers).forEach((val, index) => {
+            this.app.use(val);
+        });
 
         // Login/Logout Routes
         this.app.get("/api/isloggedin", async (req, res) => {

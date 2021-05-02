@@ -9,6 +9,7 @@ const userlistController: UserlistController = BotContainer.get(UserlistControll
 
 userListRouter.get("/api/userlist", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => userlistController.getUserlist(req, res));
 userListRouter.get("/api/userLevels", (req, res) => userlistController.getUserLevels(req, res));
+userListRouter.get("/api/leaderboard", (req, res) => userlistController.getLeaderboard(req, res));
 userListRouter.post("/api/userlist/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => userlistController.addUser(req, res));
 userListRouter.post("/api/userlist/addVip/:username", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => userlistController.addVipGold(req, res));
 userListRouter.post("/api/userlist", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => userlistController.updateUser(req, res));

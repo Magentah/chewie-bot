@@ -1,12 +1,14 @@
 import { Command } from "../command";
-import { UserService } from "../../services";
+import { BotSettingsService, UserService } from "../../services";
 import { ICommandAlias, IUser } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { PointLogType } from "../../models/pointLog";
+import { BotSettings } from "../../services/botSettingsService";
 
 export default class RedeemCommand extends Command {
     private userService: UserService;
-    private cost: number = 500;
+    private settingsService: BotSettingsService;
+    private cost: number = -1;
 
     private comfyUrl: string = "https://i.imgur.com/Kwrb7nS.gif";
     private clapUrl: string = "https://i.imgur.com/yCfzpSf.gif";
@@ -15,11 +17,16 @@ export default class RedeemCommand extends Command {
     constructor() {
         super();
         this.userService = BotContainer.get(UserService);
+        this.settingsService = BotContainer.get(BotSettingsService);
     }
 
     public async executeInternal(channel: string, user: IUser, variation: string, emote: string, url: string): Promise<void> {
+        if (this.cost < 0) {
+            this.cost = parseInt(await this.settingsService.getValue(BotSettings.RedeemCost), 10);
+        }
+
         if (user.points >= this.cost) {
-            await this.userService.changeUserPoints(user, -this.cost, PointLogType.Redeem);
+            await this.userService.changeUserPoints(user, -this.cost, `${PointLogType.Redeem}-${variation}`);
             await this.twitchService.triggerAlert("redeem", variation, url);
             await this.twitchService.sendMessage(channel, `${emote} ${emote} ${emote} ${emote} ${emote} ${emote} ${emote}`);
         }

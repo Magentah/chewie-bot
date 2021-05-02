@@ -8,9 +8,11 @@ export enum BotSettings {
     DonationPointsPerDollar = "points-multiplier-donations",
     SongRequestDonationAmount = "song-request-donation-amount",
     GoldStatusDonationAmount = "gold-status-donation-amount",
-    SubPointsPerMonth = "points-multiplier-sub",
+    SubPoints = "points-per-sub",
+    SubPointsPerYear = "points-per-anniversarysub",
     PointsPerBit = "points-multiplier-bits",
     PruneLogsAfterDays = "prune-logs-after-days",
+    RedeemCost = "redeem-cost",
 }
 
 @injectable()
@@ -20,41 +22,46 @@ export default class BotSettingsService {
     private readonly DefaultDonationPointsPerDollar: number = 100;
     private readonly DefaultPointsPerBit: number = 1;
     private readonly DefaultSongRequestDonationAmount: number = 15;
-    private readonly DefaultSubPointsPerMonth: number = 1000;
+    private readonly DefaultSubPoints: number = 500;
+    private readonly DefaultSubPointsPerYearMultiplier: number = 1000;
+    private readonly DefaultRedeemCost: number = 50;
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
         // Empty
     }
 
     public async getValue(key: BotSettings): Promise<string> {
-        let defaultValue = "";
+        return (await this.botSettings.get(key))?.value ?? this.getDefaultValue(key);
+    }
+
+    public getDefaultValue(key: BotSettings): string {
         switch (key) {
             case BotSettings.PruneLogsAfterDays:
-                defaultValue = this.DefaultPruneDonationsAfterDays.toString();
-                break;
+                return this.DefaultPruneDonationsAfterDays.toString();
 
             case BotSettings.GoldStatusDonationAmount:
-                defaultValue = this.DefaultGoldAmount.toString();
-                break;
+                return this.DefaultGoldAmount.toString();
 
             case BotSettings.DonationPointsPerDollar:
-                defaultValue = this.DefaultDonationPointsPerDollar.toString();
-                break;
+                return this.DefaultDonationPointsPerDollar.toString();
 
             case BotSettings.PointsPerBit:
-                defaultValue = this.DefaultPointsPerBit.toString();
-                break;
+                return this.DefaultPointsPerBit.toString();
 
             case BotSettings.SongRequestDonationAmount:
-                defaultValue = this.DefaultSongRequestDonationAmount.toString();
-                break;
+                return this.DefaultSongRequestDonationAmount.toString();
 
-            case BotSettings.SubPointsPerMonth:
-                defaultValue = this.DefaultSubPointsPerMonth.toString();
-                break;
+            case BotSettings.SubPoints:
+                return this.DefaultSubPoints.toString();
+
+            case BotSettings.SubPointsPerYear:
+                return this.DefaultSubPointsPerYearMultiplier.toString();
+
+            case BotSettings.RedeemCost:
+                return this.DefaultRedeemCost.toString();
         }
 
-        return (await this.botSettings.get(key))?.value ?? defaultValue;
+        return "";
     }
 
     public async getSettings(key: BotSettings): Promise<IBotSettings> {

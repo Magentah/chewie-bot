@@ -21,6 +21,7 @@ export enum DatabaseTables {
     EventLogs = "eventLogs",
     PointLogs = "pointLogs",
     Messages = "messages",
+    Cards = "userCards",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -94,6 +95,7 @@ export class DatabaseService {
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
                 await this.createTwitchProfileTable();
+                await this.createUserCardsTable();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -191,6 +193,7 @@ export class DatabaseService {
             table.string("message").notNullable();
             table.integer("minimumUserLevelKey").unsigned();
             table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
+            table.integer("useCount").unsigned().notNullable().defaultTo(0);
         });
     }
 
@@ -262,14 +265,25 @@ export class DatabaseService {
             table.dateTime("time").notNullable();
         });
     }
-                           
-      
+
     private async createMessagesTable(): Promise<void> {
         return this.createTable(DatabaseTables.Messages, (table) => {
             table.increments("id").primary().notNullable();
             table.string("type").notNullable();
             table.string("text").notNullable();
             table.string("eventType").notNullable();
+        });
+    }
+
+    private async createUserCardsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Cards, (table) => {
+            table.integer("id").primary().notNullable().unique();
+            table.string("name").notNullable();
+            table.string("imageId").notNullable();
+            table.string("mimetype");
+            table.string("setName");
+            table.integer("rarity").notNullable();
+            table.dateTime("creationDate").notNullable();
         });
     }
 

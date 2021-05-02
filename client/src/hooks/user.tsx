@@ -1,5 +1,5 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import { useState } from 'react';
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { useState } from "react";
 
 export enum UserLevels {
     None = 0,
@@ -12,12 +12,11 @@ export enum UserLevels {
 
 /**
  * Custom hook for accessing the data of the currently logged in user.
- * 
  * @returns User object and callback to load the user data.
  */
 const useUser = () => {
     const defaultUser: any = {
-        streamlabsToken: null,
+        streamlabsToken: undefined,
         username: "",
         userLevelKey: UserLevels.None
     };
@@ -34,11 +33,11 @@ const useUser = () => {
                 const userWrapper: any = { user: response.data };
                 setUser(userWrapper.user);
             } else if (response.status === 403) {
-                //
+                setUser(defaultUser);
             }
         })
         .catch((err: AxiosError<any>) => {
-            console.log("ERR", err);
+            setUser(defaultUser);
         });
     };
 

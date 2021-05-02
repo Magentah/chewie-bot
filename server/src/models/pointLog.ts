@@ -13,6 +13,7 @@ export enum PointLogType {
     Bankheist = "bankheist",
     Donation = "donation",
     Sub = "sub",
+    GiftSubGiver = "giftsub",
     Resub = "resub",
     Bits = "bits",
     Auction = "auction",
