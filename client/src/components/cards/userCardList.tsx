@@ -126,8 +126,8 @@ const UserCardList: React.FC<any> = (props: any) => {
     const addForm = <Box mb={2}>
             <Card><Box py={1} px={2}>
                 <form onSubmit={submitCard}>
-                    <Grid container>
-                        <Grid item xs={4}>
+                    <Grid container style={{ maxWidth: "90em" }}>
+                        <Grid item xs={6}>
                             <Grid item>
                                 <TextField
                                     id="card-name"
@@ -177,7 +177,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                                 </Button>
                             </Grid>
                         </Grid>
-                        <Grid item xs={4}>
+                        <Grid item xs={6}>
                             <Box ml={2}>
                                 <DropzoneArea maxFileSize={MaxFileSize} acceptedFiles={FileTypes} filesLimit={1}
                                     onChange={(files) => setCardFile(files.length === 0 ? undefined : files[0])} initialFiles={cardFile ? [cardFile] : undefined} />
