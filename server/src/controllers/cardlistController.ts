@@ -65,7 +65,7 @@ class CardlistController {
     }
 
     /**
-     * Adds an image to a card.
+     * Creates or updates an existing card and adds an image to it.
      * Receives data as multipart formdata.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
@@ -78,11 +78,9 @@ class CardlistController {
             return;
         }
 
-        const cardData = await this.cardService.get(card);
+        let cardData = await this.cardService.get(card);
         if (!cardData) {
-            res.status(StatusCodes.BAD_REQUEST);
-            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Card not found in database."));
-            return;
+            cardData = await this.cardService.addOrUpdate({ name: card.name, setName: card.setName, rarity: card.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
         }
 
         const fileExt = this.cardService.getFileExt(req.files.image.mimetype);
@@ -144,7 +142,7 @@ class CardlistController {
         }
 
         try {
-            const result = await this.cardService.addOrUpdate({name: newCard.name, rarity: newCard.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
+            const result = await this.cardService.addOrUpdate({ name: newCard.name, setName: newCard.setName, rarity: newCard.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
             res.status(StatusCodes.OK);
             res.send(result);
         } catch (err) {
