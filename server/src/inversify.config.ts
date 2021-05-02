@@ -41,6 +41,7 @@ import DiscordRepository from "./database/discordRepository";
 import EventLogsRepository from "./database/eventLogsRepository";
 import MessagesRepository from "./database/messagesRepository";
 import PointLogsRepository from "./database/pointLogsRepository";
+import CardsRepository from "./database/cardsRepository";
 
 // Controllers
 import SongController from "./controllers/songController";
@@ -51,10 +52,12 @@ import MessagelistController from "./controllers/messagelistController";
 import UserlistController from "./controllers/userlistController";
 import CommandlistController from "./controllers/commandlistController";
 import SettingsController from "./controllers/settingsController";
+import CardlistController from "./controllers/cardlistController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
+
 
 const botContainer = new Container();
 
@@ -128,6 +131,7 @@ botContainer.bind<TwitchUserProfileRepository>(TwitchUserProfileRepository).toSe
 botContainer.bind<DiscordRepository>(DiscordRepository).toSelf();
 botContainer.bind<EventLogsRepository>(EventLogsRepository).toSelf();
 botContainer.bind<MessagesRepository>(MessagesRepository).toSelf();
+botContainer.bind<CardsRepository>(CardsRepository).toSelf();
 
 // Controllers
 botContainer.bind<SongController>(SongController).toSelf();
@@ -138,6 +142,7 @@ botContainer.bind<MessagelistController>(MessagelistController).toSelf();
 botContainer.bind<UserlistController>(UserlistController).toSelf();
 botContainer.bind<CommandlistController>(CommandlistController).toSelf();
 botContainer.bind<SettingsController>(SettingsController).toSelf();
+botContainer.bind<CardlistController>(CardlistController).toSelf();
 
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();

@@ -3,6 +3,7 @@ version: "3"
 volumes:
     node_modules:
     chewie-db:
+    images:
 services:
     ui:
         build:
@@ -25,6 +26,7 @@ services:
         volumes:
             - ./server:/usr/src/chewiebot/server
             - chewie-db:/usr/src/chewiebot/server/db
+            - images:/usr/src/chewiebot/server/images
             - "/usr/src/chewiebot/server/node_modules/"
         ports:
             - 8080:8080

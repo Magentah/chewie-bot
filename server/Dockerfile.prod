@@ -41,6 +41,10 @@ RUN apk add --no-cache sqlite
 RUN yarn global add pm2 -y
 # Start
 WORKDIR /usr/src/chewiebot/server/dist
+
+RUN mkdir -p images
+RUN mkdir -p db
+
 RUN chown -R node:node .
 EXPOSE 8080
 

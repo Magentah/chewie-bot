@@ -4,7 +4,7 @@ import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Card, CardContent, Typography } from "@material-ui/core";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, ArrowUpward, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, ArrowUpward, Loyalty, Lens as DefaultIcon } from "@material-ui/icons";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
@@ -18,6 +18,7 @@ import Login from "./views/login/Login";
 import UserList from "./components/users/userlist";
 import UserProfileView from "./components/users/userprofile";
 import Leaderboard from "./components/users/leaderboard";
+import UserCardList from "./components/cards/userCardList";
 
 export type Route = {
     path: string;
@@ -102,6 +103,13 @@ const DashboardRoutes: Route[] = [
         name: "Messages",
         icon: Message,
         component: MessageList,
+        minUserLevel: UserLevels.Broadcaster
+    },
+    {
+        path: "/usercards",
+        name: "Cards",
+        icon: Loyalty,
+        component: UserCardList,
         minUserLevel: UserLevels.Broadcaster
     },
     {
