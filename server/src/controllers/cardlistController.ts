@@ -13,10 +13,10 @@ import { Guid } from "guid-typescript";
 class CardlistController {
     readonly ImageDir: string = "images";
 
-    constructor(@inject(CardsRepository) private cardService: CardsRepository) {
+    constructor(@inject(CardsRepository) private cardRepository: CardsRepository) {
         Logger.info(
             LogType.ServerInfo,
-            `CardlistController constructor. CardsRepository exists: ${this.cardService !== undefined}`
+            `CardlistController constructor. CardsRepository exists: ${this.cardRepository !== undefined}`
         );
     }
 
@@ -26,7 +26,7 @@ class CardlistController {
      * @param res Express HTTP Response
      */
     public async getCardlist(req: Request, res: Response): Promise<void> {
-        const cards = (await this.cardService.getList()).map(x => this.addUrl(x));
+        const cards = (await this.cardRepository.getList()).map(x => this.addUrl(x));
         res.status(StatusCodes.OK);
         res.send(cards);
     }
@@ -44,16 +44,17 @@ class CardlistController {
             return;
         }
 
-        const cardData = await this.cardService.get(card);
+        const cardData = await this.cardRepository.get(card);
         if (!cardData) {
             return;
         }
 
         try {
-            await this.cardService.addOrUpdate({...cardData, name: card.name, setName: card.setName, rarity: card.rarity});
+            await this.cardRepository.addOrUpdate({...cardData, name: card.name, setName: card.setName, rarity: card.rarity});
             res.status(StatusCodes.OK);
             res.send(card);
         } catch (err) {
+            Logger.err(LogType.Cards, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
                 APIHelper.error(
@@ -78,12 +79,12 @@ class CardlistController {
             return;
         }
 
-        let cardData = await this.cardService.get(card);
+        let cardData = await this.cardRepository.get(card);
         if (!cardData) {
-            cardData = await this.cardService.addOrUpdate({ name: card.name, setName: card.setName, rarity: card.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
+            cardData = await this.cardRepository.addOrUpdate({ name: card.name, setName: card.setName, rarity: card.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
         }
 
-        const fileExt = this.cardService.getFileExt(req.files.image.mimetype);
+        const fileExt = this.cardRepository.getFileExt(req.files.image.mimetype);
         if (!fileExt) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Invalid mime type."));
@@ -93,7 +94,7 @@ class CardlistController {
         try {
             if (req.files?.image) {
                 const newCard = {...cardData, mimetype: req.files.image.mimetype};
-                await this.cardService.addOrUpdate(newCard);
+                await this.cardRepository.addOrUpdate(newCard);
 
                 if (!fs.existsSync(this.ImageDir)) {
                     fs.mkdirSync(this.ImageDir);
@@ -101,7 +102,7 @@ class CardlistController {
 
                 // Delete old file
                 if (cardData.mimetype) {
-                    const oldFileExt = this.cardService.getFileExt(cardData.mimetype);
+                    const oldFileExt = this.cardRepository.getFileExt(cardData.mimetype);
                     const oldFile = path.join(this.ImageDir, `${cardData.imageId}.${oldFileExt}`);
                     if (fs.existsSync(oldFile)) {
                         fs.unlinkSync(oldFile);
@@ -118,6 +119,7 @@ class CardlistController {
                 res.sendStatus(StatusCodes.OK);
             }
         } catch (err) {
+            Logger.err(LogType.Cards, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
                 APIHelper.error(
@@ -142,10 +144,11 @@ class CardlistController {
         }
 
         try {
-            const result = await this.cardService.addOrUpdate({ name: newCard.name, setName: newCard.setName, rarity: newCard.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
+            const result = await this.cardRepository.addOrUpdate({ name: newCard.name, setName: newCard.setName, rarity: newCard.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
             res.status(StatusCodes.OK);
             res.send(result);
         } catch (err) {
+            Logger.err(LogType.Cards, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
                 APIHelper.error(
@@ -164,17 +167,17 @@ class CardlistController {
     public async removeCard(req: Request, res: Response): Promise<void> {
         const card = req.body as IUserCard;
         if (card) {
-            this.cardService.delete(card);
+            this.cardRepository.delete(card);
             if (card.mimetype) {
-                const fileExt = this.cardService.getFileExt(card.mimetype);
+                const fileExt = this.cardRepository.getFileExt(card.mimetype);
                 fs.unlinkSync(path.join(this.ImageDir, `${card.imageId}.${fileExt}`));
             }
         } else if (Number(req.body)) {
-            const cardData = await this.cardService.get(card);
+            const cardData = await this.cardRepository.get(card);
             if (cardData) {
-                this.cardService.delete(cardData);
+                this.cardRepository.delete(cardData);
                 if (cardData.mimetype) {
-                    const fileExt = this.cardService.getFileExt(cardData.mimetype);
+                    const fileExt = this.cardRepository.getFileExt(cardData.mimetype);
                     fs.unlinkSync(path.join(this.ImageDir, `${cardData.imageId}.${fileExt}`));
                 }
             }
@@ -188,7 +191,7 @@ class CardlistController {
     }
 
     private addUrl(x: IUserCard): any {
-        return {...x, url: `/img/${x.imageId}.${this.cardService.getFileExt(x.mimetype ?? "")}` };
+        return {...x, url: `/img/${x.imageId}.${this.cardRepository.getFileExt(x.mimetype ?? "")}` };
     }
 }
 
