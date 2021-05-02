@@ -209,7 +209,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                             4: "Legendary"
                         },
                     },
-                    { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} /> }
+                    { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} />, editable: "never" }
                 ]}
                 options = {{
                     paging: false,
