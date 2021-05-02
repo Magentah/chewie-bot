@@ -22,7 +22,9 @@ const ImageCell: React.FC<{value: RowData}> = ({value}) => {
                   "Content-Type": "multipart/form-data"
                 }
             }).then((result) => {
-                setCurrentFile({url: result.data.url });
+                if (result) {
+                    setCurrentFile({url: result.data.url });
+                }
                 setOpen(false);
             });
         }
@@ -98,7 +100,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                         isDeletable: rowData => true,
                         onRowAdd: (newData) => axios.post("/api/cards/add", newData).then((result) => {
                             if (result.status === 200) {
-                                const newList = [...cardlist, newData];
+                                const newList = [...cardlist, result.data];
                                 setCardlist(newList);
                             }
                         }),

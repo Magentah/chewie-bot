@@ -11,6 +11,8 @@ import { Guid } from "guid-typescript";
 
 @injectable()
 class CardlistController {
+    readonly ImageDir: string = "images";
+
     constructor(@inject(CardsRepository) private cardService: CardsRepository) {
         Logger.info(
             LogType.ServerInfo,
@@ -95,12 +97,20 @@ class CardlistController {
                 const newCard = {...cardData, mimetype: req.files.image.mimetype};
                 await this.cardService.addOrUpdate(newCard);
 
-                const targetDir = "images";
-                if (!fs.existsSync(targetDir)) {
-                    fs.mkdirSync(targetDir);
+                if (!fs.existsSync(this.ImageDir)) {
+                    fs.mkdirSync(this.ImageDir);
                 }
 
-                const fstream = fs.createWriteStream(path.join(targetDir, `${cardData.imageId}.${fileExt}`));
+                // Delete old file
+                if (cardData.mimetype) {
+                    const oldFileExt = this.cardService.getFileExt(cardData.mimetype);
+                    const oldFile = path.join(this.ImageDir, `${cardData.imageId}.${oldFileExt}`);
+                    if (fs.existsSync(oldFile)) {
+                        fs.unlinkSync(oldFile);
+                    }
+                }
+
+                const fstream = fs.createWriteStream(path.join(this.ImageDir, `${cardData.imageId}.${fileExt}`));
                 fstream.write(req.files.image.data);
                 fstream.close();
 
@@ -153,12 +163,23 @@ class CardlistController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public removeCard(req: Request, res: Response): void {
+    public async removeCard(req: Request, res: Response): Promise<void> {
         const card = req.body as IUserCard;
         if (card) {
             this.cardService.delete(card);
+            if (card.mimetype) {
+                const fileExt = this.cardService.getFileExt(card.mimetype);
+                fs.unlinkSync(path.join(this.ImageDir, `${card.imageId}.${fileExt}`));
+            }
         } else if (Number(req.body)) {
-            this.cardService.delete(req.body);
+            const cardData = await this.cardService.get(card);
+            if (cardData) {
+                this.cardService.delete(cardData);
+                if (cardData.mimetype) {
+                    const fileExt = this.cardService.getFileExt(cardData.mimetype);
+                    fs.unlinkSync(path.join(this.ImageDir, `${cardData.imageId}.${fileExt}`));
+                }
+            }
         } else {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a card object."));
