@@ -2,6 +2,7 @@
 version: "3"
 volumes:
     chewiebot-db:
+    images:
     certbot-var:
     certbot-etc:
     web-root:
@@ -39,6 +40,7 @@ services:
         container_name: server
         volumes:
             - chewiebot-db:/usr/src/chewiebot/server/dist/db
+            - images:/usr/src/chewiebot/server/dist/images
             - certbot-etc:/etc/letsencrypt
         environment:
             NODE_ENV: production

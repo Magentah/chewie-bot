@@ -22,6 +22,7 @@ enum LogType {
     Http = "Http",
     Streamlabs = "Streamlabs",
     Backup = "Backup",
+    Cards = "Cards",
 }
 
 enum LogLevel {

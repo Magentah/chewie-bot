@@ -9,3 +9,4 @@ export { default as TwitchUserProfileRepository } from "./twitchUserProfileRepos
 export { default as DiscordRepository } from "./discordRepository";
 export { default as EventLogsRepository } from "./eventLogsRepository";
 export { default as QuotesRepository } from "./quotesRepository";
+export { default as CardsRepository } from "./cardsRepository";
