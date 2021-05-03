@@ -39,6 +39,9 @@
         "certificatePath": "",
         "keyPath": ""
     },
+    "debug": {
+        "usernames": []
+    },
     "log": {
         "levels": "syslog",
         "level": "info",
