@@ -16,7 +16,7 @@ class DonationlistController {
     }
 
     /**
-     * Get the full song list.
+     * Get the full donation list.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
