@@ -21,9 +21,9 @@ class DonationlistController {
      * @param res Express HTTP Response
      */
     public async getDonationlist(req: Request, res: Response): Promise<void> {
-        const songs = await this.donationlistService.getAll();
+        const donationlist = await this.donationlistService.getAll();
         res.status(StatusCodes.OK);
-        res.send(songs);
+        res.send(donationlist);
     }
 }
 
