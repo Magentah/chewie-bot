@@ -22,6 +22,7 @@ export enum DatabaseTables {
     PointLogs = "pointLogs",
     Messages = "messages",
     Cards = "userCards",
+    CardStack = "userCardStack",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -96,6 +97,7 @@ export class DatabaseService {
                 await this.addDefaultBotSettings();
                 await this.createTwitchProfileTable();
                 await this.createUserCardsTable();
+                await this.createUserCardStackTable();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -284,6 +286,15 @@ export class DatabaseService {
             table.string("setName");
             table.integer("rarity").notNullable();
             table.dateTime("creationDate").notNullable();
+        });
+    }
+
+    private async createUserCardStackTable(): Promise<void> {
+        return this.createTable(DatabaseTables.CardStack, (table) => {
+            table.integer("id").primary().notNullable().unique();
+            table.integer("userId").notNullable();
+            table.integer("cardId").notNullable();
+            table.dateTime("redemptionDate").notNullable();
         });
     }
 
