@@ -293,7 +293,9 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.CardStack, (table) => {
             table.integer("id").primary().notNullable().unique();
             table.integer("userId").notNullable();
+            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users);
             table.integer("cardId").notNullable();
+            table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards);
             table.dateTime("redemptionDate").notNullable();
         });
     }
