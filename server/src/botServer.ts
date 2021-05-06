@@ -152,7 +152,7 @@ class BotServer extends Server {
                 if (Config.debug.usernames.indexOf(sessionUser.username) >= 0) {
                     sessionUser.userLevelKey = parseInt(req.query.userLevel.toString(), 10);
                     req.login(sessionUser as Express.User, (err: any) => {
-                        Logger.info(LogType.Spotify, "Updated session user");
+                        Logger.info(LogType.Server, "Updated session user");
                     });
                     res.redirect("/");
                     return;
