@@ -21,6 +21,7 @@ import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
+import { IUser } from "./models";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -142,6 +143,23 @@ class BotServer extends Server {
         this.app.get("/api/logout", (req, res) => {
             req.logOut();
             res.redirect("/");
+        });
+        // Allow setting custom user levels for debug purposes.
+        this.app.get("/api/debug", async (req, res) => {
+            const sessionUser = req.user as IUser;
+
+            if (sessionUser && req.query.userLevel) {
+                if (Config.debug.usernames.indexOf(sessionUser.username) >= 0) {
+                    sessionUser.userLevelKey = parseInt(req.query.userLevel.toString(), 10);
+                    req.login(sessionUser as Express.User, (err: any) => {
+                        Logger.info(LogType.Server, "Updated session user");
+                    });
+                    res.redirect("/");
+                    return;
+                }
+            }
+
+            return res.sendStatus(404);
         });
 
         // Test Routes

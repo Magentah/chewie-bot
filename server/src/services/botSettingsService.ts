@@ -13,6 +13,8 @@ export enum BotSettings {
     PointsPerBit = "points-multiplier-bits",
     PruneLogsAfterDays = "prune-logs-after-days",
     RedeemCost = "redeem-cost",
+    CardRedeemCost = "card-redeem-cost",
+    CardRedeemPerWeek = "card-redeem-perweek",
 }
 
 @injectable()
@@ -25,6 +27,8 @@ export default class BotSettingsService {
     private readonly DefaultSubPoints: number = 500;
     private readonly DefaultSubPointsPerYearMultiplier: number = 1000;
     private readonly DefaultRedeemCost: number = 50;
+    private readonly DefaultCardRedeemCost: number = 1000;
+    private readonly DefaultCardRedeemPerWeek: number = 10;
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
         // Empty
@@ -59,6 +63,12 @@ export default class BotSettingsService {
 
             case BotSettings.RedeemCost:
                 return this.DefaultRedeemCost.toString();
+
+            case BotSettings.CardRedeemCost:
+                return this.DefaultCardRedeemCost.toString();
+
+            case BotSettings.CardRedeemPerWeek:
+                return this.DefaultCardRedeemPerWeek.toString();
         }
 
         return "";
