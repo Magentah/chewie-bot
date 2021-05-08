@@ -1,7 +1,7 @@
 import { Command } from "../../command";
 import { IUser } from "../../../models";
 import DuelEvent from "../../../events/duelEvent";
-import { TwitchService, EventService, UserService } from "../../../services/";
+import { EventService } from "../../../services/";
 import { EventState } from "../../../models/participationEvent";
 import { Logger, LogType } from "../../../logger";
 import { BotContainer } from "../../../inversify.config";
@@ -15,7 +15,7 @@ export default class AcceptCommand extends Command {
         this.eventService = BotContainer.get(EventService);
     }
 
-    public async executeInternal(channel: string, user: IUser, target: string, wager: string): Promise<void> {
+    public async executeInternal(channel: string, user: IUser): Promise<void> {
         // Find duel that is aimed at the current user.
         Logger.info(LogType.Command, `Looking for a duel for ${user.username} to accept`);
 

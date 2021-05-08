@@ -32,6 +32,8 @@ export { default as BidCommand } from "./auction/bidCommand";
 
 // Cards
 export { default as RedeemCardCommand } from "./cards/redeemCardCommand";
+export { default as OfferCommand } from "./cards/offerCommand";
+export { default as AcceptOfferCommand } from "./cards/acceptOfferCommand";
 
 export { default as PointsCommand } from "../commandScripts/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";

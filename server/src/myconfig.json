@@ -78,7 +78,8 @@
             },
             "event": {
                 "duel": true,
-                "bankheist": true
+                "bankheist": true,
+                "cardtrading": true
             }
         }
     },

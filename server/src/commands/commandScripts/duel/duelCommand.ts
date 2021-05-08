@@ -50,6 +50,12 @@ export default class DuelCommand extends Command {
         if (target) {
             targetUser = await this.userService.getUser(target);
             if (!targetUser) {
+                if (await this.twitchService.userExistsInChat(channel, target)) {
+                    targetUser = await this.userService.addUser(target);
+                }
+            }
+
+            if (!targetUser) {
                 this.twitchService.sendMessage(channel, Lang.get("duel.userunknown", target));
                 return;
             }
