@@ -24,6 +24,40 @@ export default class CardsRepository {
         return cards as IUserCard;
     }
 
+    public async getByName(cardName: string): Promise<IUserCard | undefined> {
+        if (!cardName) {
+            return undefined;
+        }
+
+        const databaseService = await this.databaseProvider();
+        const cards = await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ name: cardName }).first();
+        return cards as IUserCard;
+    }
+
+    public async takeCardFromStack(user: IUser, cardName: string): Promise<number | undefined> {
+        if (!cardName) {
+            return undefined;
+        }
+
+        const databaseService = await this.databaseProvider();
+        const card = (await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ name: cardName }).first()) as IUserCard;
+        if (!card) {
+            return undefined;
+        }
+
+        const stack = (await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ userId: user.id, cardId: card.id, deleted: false }).select("id").first());
+        if (stack && await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ id: stack.id }).update( { deleted: true }) > 0) {
+            return stack.id;
+        }
+
+        return undefined;
+    }
+
+    public async returnCardToStack(user: IUser, stackId: number) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ id: stackId }).first().update( { deleted: false });
+    }
+
     public async addOrUpdate(card: IUserCard): Promise<IUserCard> {
         const existingMessage = await this.get(card);
         if (!existingMessage) {
@@ -82,6 +116,14 @@ export default class CardsRepository {
         return undefined;
     }
 
+    public async addCardToStack(user: IUser, cardName: string): Promise<void> {
+        const card = await this.getByName(cardName);
+        if (card) {
+            const databaseService = await this.databaseProvider();
+            await databaseService.getQueryBuilder(DatabaseTables.CardStack).insert({ cardId: card.id, userId: user.id, redemptionDate: 0 });
+        }
+    }
+
     public async getRedeemedCardCount(user: IUser, date: Date): Promise<number> {
         function getDayStartingAtMonday(d: Date): number {
             const day = d.getDay();
@@ -91,6 +133,8 @@ export default class CardsRepository {
         const startOfWeek = new Date(date.toDateString());
         startOfWeek.setDate(startOfWeek.getDate() - getDayStartingAtMonday(date));
 
+        // For redeems, include deleted cards. Trading cards or redeeming sets
+        // should not reset the number of cards redeemed per week.
         const databaseService = await this.databaseProvider();
         const countResult = await databaseService
             .getQueryBuilder(DatabaseTables.CardStack)
