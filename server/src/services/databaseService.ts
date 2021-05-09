@@ -23,6 +23,11 @@ export enum DatabaseTables {
     Messages = "messages",
     Cards = "userCards",
     CardStack = "userCardStack",
+    UserTaxStreak = "userTaxStreak",
+    UserTaxHistory = "userTaxHistory",
+    ChannelPointRewards = "channelPointRewards",
+    ChannelPointRewardEvents = "channelPointRewardEvents",
+    RewardEvents = "rewardEvents",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -98,11 +103,19 @@ export class DatabaseService {
                 await this.createTwitchProfileTable();
                 await this.createUserCardsTable();
                 await this.createUserCardStackTable();
+                await this.createUserTaxStreakTable();
+                await this.createUserTaxHistoryTable();
+                await this.createChannelPointRewardsTable();
+                await this.createChannelPointRewardEventsTable();
+                await this.createRewardEventsTable();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
+                resolve();
+            } else if (this.isInit) {
+                resolve();
             }
-            resolve();
+            reject("Database has not been initialized.");
         });
     }
 
@@ -301,6 +314,57 @@ export class DatabaseService {
         });
     }
 
+    private async createUserTaxStreakTable(): Promise<void> {
+        return this.createTable(DatabaseTables.UserTaxStreak, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("userId").notNullable();
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.integer("currentStreak").notNullable();
+            table.integer("longestStreak").notNullable();
+            table.integer("lastTaxRedemptionId").notNullable();
+            table.foreign("lastTaxRedemptionId").references("id").inTable(DatabaseTables.UserTaxHistory);
+        });
+    }
+
+    private async createUserTaxHistoryTable(): Promise<void> {
+        return this.createTable(DatabaseTables.UserTaxHistory, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("userId").notNullable();
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.dateTime("taxRedemptionDate").notNullable();
+        });
+    }
+
+    private async createChannelPointRewardsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.ChannelPointRewards, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("twitchRewardId").notNullable().unique();
+            table.string("title").notNullable();
+            table.integer("cost").notNullable();
+            table.boolean("isEnabled").notNullable().defaultTo(true);
+            table.boolean("isGlobalCooldownEnabled").notNullable().defaultTo(false);
+            table.integer("globalCooldown");
+            table.boolean("shouldSkipRequestQueue").notNullable().defaultTo(false);
+        });
+    }
+
+    private async createChannelPointRewardEventsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.ChannelPointRewardEvents, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("channelPointRewardId").notNullable();
+            table.foreign("channelPointRewardId").references("id").inTable(DatabaseTables.ChannelPointRewards);
+            table.integer("rewardEventId").notNullable();
+            table.foreign("rewardEventId").references("id").inTable(DatabaseTables.RewardEvents);
+        });
+    }
+
+    private async createRewardEventsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.RewardEvents, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.string("name").notNullable();
+        });
+    }
+
     /**
      * Adds user and vip levels to the database if they don't exist.
      */
@@ -332,6 +396,12 @@ export class DatabaseService {
                 Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
             } else {
                 Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
+            }
+
+            const taxRewardAdded = await this.db(DatabaseTables.RewardEvents).first().where("name", "like", "Tax Reward Event");
+            if (taxRewardAdded === 0) {
+                const taxReward = { name: "Tax Reward Event" };
+                await this.db(DatabaseTables.RewardEvents).insert(taxReward);
             }
             resolve();
         });
