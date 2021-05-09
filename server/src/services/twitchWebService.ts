@@ -5,10 +5,20 @@ import { UserService } from "./userService";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
-import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser } from "../models";
+import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, ITwitchChannelReward, ITwitchChannelRewardRequest } from "../models";
 import TwitchAuthService from "./twitchAuthService";
 import { Logger, LogType } from "../logger";
 import HttpStatusCodes from "http-status-codes";
+
+interface ITwitchExecutor {
+    broadcasterId: number | undefined;
+    executeFunction: any;
+}
+
+interface IParsedResponse {
+    statusCode: number;
+    data: any;
+}
 
 /**
  * Provides acces to Twitch API endpoint for checking a user's
@@ -21,6 +31,7 @@ export class TwitchWebService {
     private readonly getModeratorsUrl: string = "moderation/moderators";
     private readonly getSubscribersUrl: string = "subscriptions";
     private readonly getChannelRedemptionUrl: string = "channel_points/custom_rewards/redemptions";
+    private readonly getChannelRewardsUrl: string = "channel_points/custom_rewards";
 
     constructor(@inject(UserService) private userService: UserService, @inject(TwitchAuthService) private authService: TwitchAuthService) {
         this.twitchExecutor.setLogging(true);
@@ -60,40 +71,111 @@ export class TwitchWebService {
     }
 
     public async updateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELLED"): Promise<void> {
-        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
-        if (broadcasterCtx === undefined) {
-            Logger.err(LogType.TwitchEvents, `Unable to update channel reward status for redemption id ${redemptionRewardId}.`);
-            return;
-        }
-
-        const updateStatusUrl = `${this.getChannelRedemptionUrl}?broadcaster_id=${broadcasterCtx.userId}&reward_id=${redemptionRewardId}&id=${channelRewardId}`;
-
-        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
-        if (!header) {
-            Logger.err(LogType.TwitchEvents, "Unable to create authentication headers for updateChannelRewardStatus");
+        const executor = await this.getBroadcasterExecutor();
+        if (!executor) {
             return;
         }
 
         const body = {
             "status": status,
         };
+        const updateStatusUrl = `${this.getChannelRedemptionUrl}?broadcaster_id=${executor.broadcasterId}&reward_id=${redemptionRewardId}&id=${channelRewardId}`;
+        const response: AxiosResponse = await executor.executeFunction(HttpMethods.PATCH, updateStatusUrl, body);
 
-        const execute = this.twitchExecutor.build(header);
+        const parsedResponse = this.parseResponse("UpdateChannelReward", response);
 
-        const response: AxiosResponse = await execute(HttpMethods.PATCH, updateStatusUrl, body);
-
-        if (!response) {
+        if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
             Logger.err(LogType.TwitchEvents, "Failed to get valid response from Twitch API.", { url: updateStatusUrl, body: body });
             return;
-        } else if (response.status === HttpStatusCodes.OK) {
+        } else {
             Logger.info(LogType.TwitchEvents, `Updated ${redemptionRewardId} status to 'FULFILLED'`);
             return;
-        } else {
-            Logger.err(LogType.TwitchEvents, `Error when updating reward id ${redemptionRewardId}.`, {
-                data: response.data,
-            });
-            return;
         }
+    }
+
+    /**
+     * Gets a list of all custom channel rewards for a broadcaster.
+     * https://dev.twitch.tv/docs/api/reference#get-custom-reward
+     *
+     * @param rewardId (optional) - ID of the reward to get from twitch.
+     * @param onlyManageableRewards (optional) - When set to true, only returns the custom rewards that the calling client_id can manage.
+     * @returns List of TwitchChannelRewards.
+     */
+    public async getChannelRewards(rewardId?: string, onlyManageableRewards?: boolean): Promise<ITwitchChannelReward[]> {
+        const executor = await this.getBroadcasterExecutor();
+        if (!executor) {
+            return [];
+        }
+
+        let channelRewardsUrl = `${this.getChannelRewardsUrl}?broadcaster_id=${executor.broadcasterId}`;
+
+        if (rewardId) {
+            channelRewardsUrl += `&id=${rewardId}`;
+        }
+
+        if (onlyManageableRewards) {
+            channelRewardsUrl += `&only_manageable_rewards=${onlyManageableRewards}`;
+        }
+
+        const response: AxiosResponse = await executor.executeFunction(HttpMethods.GET, channelRewardsUrl);
+        const parsedResponse = this.parseResponse("GetChannelRewards", response);
+        if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
+            Logger.err(LogType.Twitch, "Failed to get channel rewards.");
+            return [];
+        }
+        const channelRewards: ITwitchChannelReward[] = parsedResponse.data;
+        return channelRewards;
+    }
+
+    /**
+     * Update a channel reward.
+     * https://dev.twitch.tv/docs/api/reference#update-custom-reward
+     *
+     * @param rewardId The ID of the reward to update.
+     * @param reward The updated values for the reward.
+     * @returns True if the update succeeded, false if the update failed.
+     */
+    public async updateChannelReward(rewardId: string, reward: ITwitchChannelRewardRequest): Promise<boolean> {
+        const executor = await this.getBroadcasterExecutor();
+        if (!executor) {
+            return false;
+        }
+
+        const updateChannelRewardsUrl = `${this.getChannelRewardsUrl}?broadcaster_id=${executor.broadcasterId}&id=${rewardId}`;
+
+        const result: AxiosResponse = await executor.executeFunction(HttpMethods.PATCH, updateChannelRewardsUrl, reward);
+        if (result.status != HttpStatusCodes.OK) {
+            Logger.warn(LogType.Twitch, `Failed to update channel reward ${rewardId}. Error Code: ${result.status}.`);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Create a new channel reward.
+     * https://dev.twitch.tv/docs/api/reference#create-custom-rewards
+     *
+     * @param reward The reward to create.
+     * @returns The created rewards if successful, an empty array if creation failed.
+     */
+    public async createChannelReward(reward: ITwitchChannelRewardRequest): Promise<ITwitchChannelReward[]> {
+        const executor = await this.getBroadcasterExecutor();
+        if (!executor) {
+            return [];
+        }
+
+        const createChannelRewardUrl = `${this.getChannelRewardsUrl}?broadcaster_id=${executor.broadcasterId}`;
+
+        const response: AxiosResponse = await executor.executeFunction(HttpMethods.POST, createChannelRewardUrl, reward);
+        const parsedResponse = this.parseResponse("CreateChannelReward", response);
+        if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
+            Logger.err(LogType.Twitch, "Failed to create channel reward.");
+            return [];
+        }
+
+        const createdChannelRewards: ITwitchChannelReward[] = parsedResponse.data;
+        return createdChannelRewards;
     }
 
     /**
@@ -104,13 +186,12 @@ export class TwitchWebService {
      * @param users (optional) - name of users that wants to validate for moderators
      */
     public async fetchModerators(users?: string[]): Promise<ITwitchUser[]> {
-        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
-        if (broadcasterCtx === undefined) {
-            Logger.err(LogType.Twitch, "Unable to get moderators. Broadcaster context is undefined.");
+        const executor = await this.getBroadcasterExecutor();
+        if (!executor) {
             return [] as ITwitchUser[];
         }
 
-        let getModeratorsUrl = `${this.getModeratorsUrl}?broadcaster_id=${broadcasterCtx.userId}`;
+        let getModeratorsUrl = `${this.getModeratorsUrl}?broadcaster_id=${executor.broadcasterId}`;
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(
@@ -125,34 +206,16 @@ export class TwitchWebService {
             });
         }
 
-        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
-        if (!header) {
-            Logger.err(LogType.Twitch, "Unable to create authentication headers for fetchModerators");
+        const response: AxiosResponse = await executor.executeFunction(HttpMethods.GET, getModeratorsUrl);
+
+        const parsedResponse = this.parseResponse("FetchModerators", response);
+        if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
+            Logger.err(LogType.Twitch, "Failed to get moderators list.");
             return [];
         }
 
-        const execute = this.twitchExecutor.build(header);
-
-        return await execute(HttpMethods.GET, getModeratorsUrl).then((resp: AxiosResponse) => {
-            if (resp === undefined) {
-                // Broadcaster has not given full authorization, user list cannot be fetched.
-                Logger.warn(LogType.Twitch, "Moderator list cannot be fetched");
-                return [] as ITwitchUser[];
-            }
-
-            if (resp.data === undefined) {
-                Logger.err(LogType.Twitch, "Malformed data from fetchModerators", resp);
-                return [];
-            }
-
-            const json: any = resp.data;
-            if (!json.data) {
-                // List empty: return empty array
-                return [] as ITwitchUser[];
-            }
-            const moderators: ITwitchUser[] = json.data;
-            return moderators;
-        });
+        const moderators: ITwitchUser[] = parsedResponse.data;
+        return moderators;
     }
 
     /**
@@ -163,12 +226,12 @@ export class TwitchWebService {
      * @param users (optional) - name of users that wants to validate for moderators
      */
     public async fetchSubscribers(users?: string[]): Promise<ITwitchSubscription[]> {
-        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
-        if (broadcasterCtx === undefined) {
+        const executor = await this.getBroadcasterExecutor();
+        if (!executor) {
             return [] as ITwitchSubscription[];
         }
 
-        let getSubsUrl = `${this.getSubscribersUrl}?broadcaster_id=${broadcasterCtx.userId}`;
+        let getSubsUrl = `${this.getSubscribersUrl}?broadcaster_id=${executor.broadcasterId}`;
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(
@@ -183,28 +246,35 @@ export class TwitchWebService {
             });
         }
 
-        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
-        if (!header) {
-            Logger.err(LogType.Twitch, "Unable to create authentication headers for fetchSubscribers");
+        const response: AxiosResponse = await executor.executeFunction(HttpMethods.GET, getSubsUrl);
+        const parsedResponse = this.parseResponse("FetchSubscribers", response);
+        if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
+            Logger.err(LogType.Twitch, "Failed to get Subscribers list.");
             return [];
         }
 
+        const subscriptions: ITwitchSubscription[] = response.data.data;
+        return subscriptions;
+    }
+
+    private async getBroadcasterExecutor(): Promise<ITwitchExecutor | undefined> {
+        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
+        if (broadcasterCtx === undefined) {
+            Logger.err(LogType.Twitch, "Unable to get create BroadcasterAuthHeaders. Broadcaster context is undefined.");
+            return;
+        }
+
+        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
+        if (!header) {
+            Logger.err(LogType.Twitch, "Unable to create broadcaster authentication headers.");
+            return;
+        }
+
         const execute = this.twitchExecutor.build(header);
-
-        return await execute(HttpMethods.GET, getSubsUrl).then((resp: AxiosResponse) => {
-            if (resp === undefined) {
-                // Broadcaster has not given full authorization, user list cannot be fetched.
-                Logger.warn(LogType.Twitch, "Subscriber list cannot be fetched");
-                return [] as ITwitchSubscription[];
-            }
-            if (resp.data === undefined) {
-                Logger.err(LogType.Twitch, "Malformed data from fetchSubscribers", resp);
-                return [];
-            }
-
-            const subscriptions: ITwitchSubscription[] = resp.data.data;
-            return subscriptions;
-        });
+        return {
+            broadcasterId: broadcasterCtx.userId,
+            executeFunction: execute,
+        };
     }
 
     private async buildHeaderFromUserPrincipal(ctx: IUserPrincipal): Promise<any> {
@@ -243,6 +313,39 @@ export class TwitchWebService {
 
     private async getBroadcasterUserPrincipal(): Promise<IUserPrincipal | undefined> {
         return this.userService.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
+    }
+
+    private parseResponse(functionName: string, response: AxiosResponse): IParsedResponse {
+        if (response === undefined) {
+            // Broadcaster has not given full authorization, user list cannot be fetched.
+            Logger.warn(LogType.Twitch, `Response was undefined from function call ${functionName}.`);
+            return {
+                statusCode: 0,
+                data: undefined,
+            };
+        }
+
+        if (response.data === undefined) {
+            Logger.err(LogType.Twitch, `Data was malformed in response from function call ${functionName}`);
+            return {
+                statusCode: 0,
+                data: undefined,
+            };
+        }
+
+        const json: any = response.data;
+        if (!json.data) {
+            // List empty: return empty array
+            return {
+                statusCode: response.status,
+                data: undefined,
+            };
+        } else {
+            return {
+                statusCode: response.status,
+                data: json.data,
+            };
+        }
     }
 }
 
