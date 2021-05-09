@@ -402,6 +402,9 @@ export class DatabaseService {
             if (taxRewardAdded === 0) {
                 const taxReward = { name: "Tax Reward Event" };
                 await this.db(DatabaseTables.RewardEvents).insert(taxReward);
+                Logger.debug(LogType.Database, `${DatabaseTables.RewardEvents} populated with initial data.`);
+            } else {
+                Logger.debug(LogType.Database, `${DatabaseTables.RewardEvents} already has data.`);
             }
             resolve();
         });
