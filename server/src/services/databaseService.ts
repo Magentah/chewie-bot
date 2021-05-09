@@ -297,6 +297,7 @@ export class DatabaseService {
             table.integer("cardId").notNullable();
             table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards);
             table.dateTime("redemptionDate").notNullable();
+            table.boolean("deleted").notNullable().defaultTo(false);
         });
     }
 

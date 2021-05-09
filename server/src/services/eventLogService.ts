@@ -103,6 +103,14 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
+    public async addCardTrading(username: string, data: object | Array<object>): Promise<void> {
+        if (!Config.log.enabledEventLogs.event.cardtrading) {
+            return;
+        }
+        const log = this.createLog(EventLogType.CardTrading, username, data);
+        await this.eventLogs.add(log);
+    }
+
     private createLog(type: EventLogType, username: string, data: object | Array<object>): IEventLog {
         const log: IEventLog = {
             type,

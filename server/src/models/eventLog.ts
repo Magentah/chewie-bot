@@ -18,9 +18,10 @@ export enum EventLogType {
     GiftSub = "giftsub",
     CommunityGiftSub = "communitygiftsub",
     Donation = "donation",
-    Sub  = "sub",
-    Resub  = "resub",
-    Bits   = "bits",
-    Streamlabs  = "streamlabs",
-    RenameUser = "renameuser"
+    Sub = "sub",
+    Resub = "resub",
+    Bits = "bits",
+    Streamlabs = "streamlabs",
+    RenameUser = "renameuser",
+    CardTrading = "cardtrading"
 }
