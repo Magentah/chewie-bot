@@ -37,6 +37,13 @@ export class TwitchWebService {
         this.twitchExecutor.setLogging(true);
     }
 
+    /**
+     * Gets the user profile for a user.
+     * https://dev.twitch.tv/docs/api/reference#get-users
+     *
+     * @param user The login name of the user to get the profile for.
+     * @returns The user profile if it exists. Undefined it there is no profile or there is an error.
+     */
     public async fetchUserProfile(user: string): Promise<ITwitchUserProfile | undefined> {
         const header: any = await this.buildHeaderFromClientId();
         if (!header) {
@@ -70,6 +77,15 @@ export class TwitchWebService {
         });
     }
 
+    /**
+     * Update the status of a Channel Reward Redemption.
+     *
+     * Status can be FULFILLED or CANCELLED. Should only be used to update UNFULFILLED reward redemptions.
+     *
+     * @param channelRewardId The id of the channel reward.
+     * @param redemptionRewardId The id of the channel reward redemption.
+     * @param status The status to set the redemption to. FULFILLED or CANCELLED.
+     */
     public async updateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELLED"): Promise<void> {
         const executor = await this.getBroadcasterExecutor();
         if (!executor) {
@@ -257,6 +273,13 @@ export class TwitchWebService {
         return subscriptions;
     }
 
+    /**
+     * Helper function to get an AxiosInstance configured with broadcaster authentication headers.
+     *
+     * Call the returned executeFunction with the HttpMethod, Request URL and optional Body.
+     *
+     * @returns Object with the broadcasterId and an executeFunction to call to execute the HTTP request.
+     */
     private async getBroadcasterExecutor(): Promise<ITwitchExecutor | undefined> {
         const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
         if (broadcasterCtx === undefined) {
@@ -315,6 +338,12 @@ export class TwitchWebService {
         return this.userService.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
     }
 
+    /**
+     * Parses an AxiosResponse to check for common failures.
+     * @param functionName Helper name for logs.
+     * @param response The AxiosResponse from an HTTP request.
+     * @returns An object with the statusCode of the request, and data returned from the request.
+     */
     private parseResponse(functionName: string, response: AxiosResponse): IParsedResponse {
         if (response === undefined) {
             // Broadcaster has not given full authorization, user list cannot be fetched.
