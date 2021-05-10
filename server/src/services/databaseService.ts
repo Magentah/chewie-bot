@@ -98,9 +98,6 @@ export class DatabaseService {
                 await this.createEventLogsTable();
                 await this.createPointLogsTable();
                 await this.createMessagesTable();
-                await this.populateDatabase();
-                await this.addBroadcaster();
-                await this.addDefaultBotSettings();
                 await this.createTwitchProfileTable();
                 await this.createUserCardsTable();
                 await this.createUserCardStackTable();
@@ -110,6 +107,10 @@ export class DatabaseService {
                 await this.createChannelPointRewardEventsTable();
                 await this.createRewardEventsTable();
                 await this.createStreamActivityTable();
+
+                await this.addBroadcaster();
+                await this.addDefaultBotSettings();
+                await this.populateDatabase();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -334,6 +335,7 @@ export class DatabaseService {
             table.integer("userId").notNullable();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.dateTime("taxRedemptionDate").notNullable();
+            table.integer("cost").notNullable();
         });
     }
 

@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { inject, injectable } from "inversify";
+import { inject, injectable, LazyServiceIdentifer } from "inversify";
 import { Logger, LogType } from "../logger";
 import * as Config from "../config.json";
 import Constants from "../constants";

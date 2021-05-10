@@ -2,7 +2,6 @@ import { inject, injectable } from "inversify";
 import ChannelPointRewardEventsRepository from "../database/channelPointRewardEventsRepository";
 import ChannelPointRewardsRepository, { IDBChannelPointReward } from "../database/channelPointRewardsRepository";
 import RewardEventsRepository from "../database/rewardEventsRepository";
-import TwitchChannelTaxEventService from "./twitchChannelTaxEventService";
 import TwitchWebService from "./twitchWebService";
 import { ITwitchChannelReward } from "../models";
 
@@ -13,9 +12,7 @@ export enum RewardEvent {
 @injectable()
 export default class TwitchChannelPointRewardService {
     constructor(
-        @inject(ChannelPointRewardsRepository) private channelPointRewardsRepository: ChannelPointRewardsRepository,
         @inject(ChannelPointRewardEventsRepository) private channelPointRewardEventsRepository: ChannelPointRewardEventsRepository,
-        @inject(RewardEventsRepository) private rewardEventsRepository: RewardEventsRepository,
         @inject(TwitchWebService) private twitchWebService: TwitchWebService
     ) {
         // Empty

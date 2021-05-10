@@ -1,5 +1,4 @@
-import { inject, injectable } from "inversify";
-import TwitchEventService from "./twitchEventService";
+import { inject, injectable, LazyServiceIdentifer } from "inversify";
 import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent } from "../models";
 import UserTaxHistoryRepository, { IDBUserTaxHistory } from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
@@ -8,6 +7,7 @@ import TwitchChannelPointRewardService, { RewardEvent } from "./twitchChannelPoi
 import { IDBChannelPointReward } from "../database/channelPointRewardsRepository";
 import UserService from "./userService";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
+import TwitchEventService from "./twitchEventService";
 
 @injectable()
 export default class TwitchChannelTaxEventService {
@@ -16,12 +16,12 @@ export default class TwitchChannelTaxEventService {
 
     constructor(
         @inject(UserService) private userService: UserService,
-        @inject(TwitchEventService) private twitchEventService: TwitchEventService,
         @inject(UserTaxHistoryRepository) private userTaxHistoryRepository: UserTaxHistoryRepository,
         @inject(UserTaxStreakRepository) private userTaxStreakRepository: UserTaxStreakRepository,
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
-        @inject(BotSettingsService) private botSettingsService: BotSettingsService
+        @inject(BotSettingsService) private botSettingsService: BotSettingsService,
+        @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
         this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, this.streamOnline);
     }
