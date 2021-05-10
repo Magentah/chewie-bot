@@ -3,9 +3,11 @@ import { APIHelper } from "../helpers";
 import { UserLevels } from "../models";
 import { TwitchController } from "../controllers";
 import { BotContainer } from "../inversify.config";
+import { ChannelPointRewardController } from "../controllers";
 
 const twitchRouter: express.Router = express.Router();
 const twitchController: TwitchController = BotContainer.get(TwitchController);
+const pointRewardController: ChannelPointRewardController = BotContainer.get(ChannelPointRewardController);
 
 twitchRouter.get("/api/twitch/status", (req, res) => twitchController.getStatus(req, res));
 twitchRouter.get(
@@ -30,16 +32,52 @@ twitchRouter.post(
     (req, res) => twitchController.saveBotSettings(req, res)
 );
 
-twitchRouter.post("/api/twitch/eventsub/callback", (req, res) => twitchController.eventsubCallback(req, res));
-twitchRouter.get("/api/twitch/eventsub/subscriptions", (req, res) => twitchController.getEventSubSubscriptions(req, res));
-twitchRouter.delete("/api/twitch/eventsub/subscriptions", (req, res) => {
-    if (req.query.all === "true") {
-        twitchController.deleteAllSubscriptions(req, res);
-    } else {
-        twitchController.deleteInactiveSubscriptions(req, res);
+twitchRouter.post(
+    "/api/twitch/eventsub/callback",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => twitchController.eventsubCallback(req, res)
+);
+twitchRouter.get(
+    "/api/twitch/eventsub/subscriptions",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => twitchController.getEventSubSubscriptions(req, res)
+);
+twitchRouter.delete(
+    "/api/twitch/eventsub/subscriptions",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => {
+        if (req.query.all === "true") {
+            twitchController.deleteAllSubscriptions(req, res);
+        } else {
+            twitchController.deleteInactiveSubscriptions(req, res);
+        }
     }
-});
-twitchRouter.post("/api/twitch/eventsub/subscription", (req, res) => twitchController.createEventSubscription(req, res));
-twitchRouter.post("/api/twitch/eventsub/setcallback", (req, res) => twitchController.setEventSubCallbackUrl(req, res));
+);
+twitchRouter.post(
+    "/api/twitch/eventsub/subscription",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => twitchController.createEventSubscription(req, res)
+);
+twitchRouter.post(
+    "/api/twitch/eventsub/setcallback",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => twitchController.setEventSubCallbackUrl(req, res)
+);
+
+twitchRouter.get(
+    "/api/twitch/rewards",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => pointRewardController.getChannelRewards(req, res)
+);
+twitchRouter.get(
+    "/api/twitch/rewards/associations",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => pointRewardController.getCurrentAssociations(req, res)
+);
+twitchRouter.post(
+    "/api/twitch/rewards/associations",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => pointRewardController.addAssociation(req, res)
+);
 
 export default twitchRouter;
