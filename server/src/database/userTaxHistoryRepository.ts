@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
-interface IDBUserTaxHistory {
+export interface IDBUserTaxHistory {
     id?: number;
     userId: number;
     taxRedemptionDate: Date;
@@ -26,6 +26,33 @@ export default class UserTaxHistoryRepository {
             .select("*")
             .where("userId", userId)
             .andWhere("taxRedemptionDate", ">=", sinceDate);
+        return returnUserTaxHistory;
+    }
+
+    public async getSinceDate(sinceDate: Date): Promise<IDBUserTaxHistory[]> {
+        const databaseService = await this.databaseProvider();
+        const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService
+            .getQueryBuilder(DatabaseTables.UserTaxHistory)
+            .select("*")
+            .where("taxRedemptionDate", ">=", sinceDate);
+        return returnUserTaxHistory;
+    }
+
+    public async getUsersBetweenDates(fromDate: Date, toDate: Date): Promise<IDBUserTaxHistory[]> {
+        const databaseService = await this.databaseProvider();
+        const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService
+            .getQueryBuilder(DatabaseTables.UserTaxHistory)
+            .select("*")
+            .where("taxRedemptionDate", "<", toDate)
+            .andWhere("taxRedemptionDate", ">=", fromDate)
+            .distinct("userId");
+
+        return returnUserTaxHistory;
+    }
+
+    public async getAll(): Promise<IDBUserTaxHistory[]> {
+        const databaseService = await this.databaseProvider();
+        const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).select("*");
         return returnUserTaxHistory;
     }
 
