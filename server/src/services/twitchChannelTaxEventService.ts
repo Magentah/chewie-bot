@@ -1,19 +1,58 @@
 import { inject, injectable } from "inversify";
 import TwitchEventService from "./twitchEventService";
-import { EventTypes } from "../models";
+import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent } from "../models";
 import UserTaxHistoryRepository, { IDBUserTaxHistory } from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository from "../database/streamActivityRepository";
+import TwitchChannelPointRewardService, { RewardEvent } from "./twitchChannelPointRewardService";
+import { IDBChannelPointReward } from "../database/channelPointRewardsRepository";
+import UserService from "./userService";
+import BotSettingsService, { BotSettings } from "./botSettingsService";
 
 @injectable()
 export default class TwitchChannelTaxEventService {
+    private taxChannelReward?: IDBChannelPointReward;
+    private isEnabled: boolean = false;
+
     constructor(
+        @inject(UserService) private userService: UserService,
         @inject(TwitchEventService) private twitchEventService: TwitchEventService,
         @inject(UserTaxHistoryRepository) private userTaxHistoryRepository: UserTaxHistoryRepository,
         @inject(UserTaxStreakRepository) private userTaxStreakRepository: UserTaxStreakRepository,
-        @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository
+        @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
+        @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
+        @inject(BotSettingsService) private botSettingsService: BotSettingsService
     ) {
         this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, this.streamOnline);
+    }
+
+    /**
+     * Setup the service. Sets up callback for the tax reward event if there is one configured.
+     */
+    public async setup(): Promise<void> {
+        this.isEnabled = JSON.parse(await this.botSettingsService.getValue(BotSettings.TaxEventIsEnabled));
+        this.taxChannelReward = await this.channelPointRewardService.getChannelRewardForEvent(RewardEvent.Tax);
+        if (this.taxChannelReward) {
+            this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, this.channelPointsRedeemed);
+        }
+    }
+
+    /**
+     * Callback that is triggered when a channel point redemption event happens.
+     * @param notification The channel point redemption notification.
+     */
+    private async channelPointsRedeemed(notification: IEventSubNotification): Promise<void> {
+        if (!this.isEnabled) {
+            return;
+        }
+
+        if (this.taxChannelReward && (notification.event as IRewardRedemeptionEvent).reward.title == this.taxChannelReward.title) {
+            const user = await this.userService.getUser((notification.event as IRewardRedemeptionEvent).user_login);
+            if (user && user.id) {
+                // Adds a tax redemption for the user.
+                await this.userTaxHistoryRepository.add(user.id, (notification.event as IRewardRedemeptionEvent).reward.cost);
+            }
+        }
     }
 
     /**
@@ -22,6 +61,10 @@ export default class TwitchChannelTaxEventService {
      * Will also go through all users who have not paid tax since the last stream to reset their current streaks.
      */
     private async streamOnline(): Promise<void> {
+        if (!this.isEnabled) {
+            return;
+        }
+
         const dateTimeOnline = new Date(Date.now());
         const lastOnlineEvent = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
         let lastOnlineDate: Date | undefined;
@@ -31,6 +74,8 @@ export default class TwitchChannelTaxEventService {
         if (lastOnlineEvent) {
             lastOnlineDate = lastOnlineEvent.dateTimeTriggered;
         }
+
+        //TODO: Should probably have a way to do these updates in bulk rather than iterating through each user.
 
         if (lastOnlineDate) {
             // Get all users who have paid tax since the last time the stream was online and update their streak.
@@ -58,7 +103,7 @@ export default class TwitchChannelTaxEventService {
         }
 
         // Get all users who haven't paid tax since the last online date.
-        const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2);
+        const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "asc");
         if (lastOnlineEvents.length == 2) {
             usersNotPaidTax = await this.userTaxHistoryRepository.getUsersBetweenDates(
                 lastOnlineEvents[0].dateTimeTriggered,

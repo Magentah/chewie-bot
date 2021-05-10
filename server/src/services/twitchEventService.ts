@@ -110,7 +110,7 @@ export default class TwitchEventService {
                 }
             }
             // Call all callbacks for the notification type.
-            this.eventCallbacks[notification.subscription.type].forEach((callback) => callback());
+            this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
         }
     }
 

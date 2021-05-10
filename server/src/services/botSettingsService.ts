@@ -15,6 +15,7 @@ export enum BotSettings {
     RedeemCost = "redeem-cost",
     CardRedeemCost = "card-redeem-cost",
     CardRedeemPerWeek = "card-redeem-perweek",
+    TaxEventIsEnabled = "tax-event-is-enabled",
 }
 
 @injectable()
@@ -29,6 +30,7 @@ export default class BotSettingsService {
     private readonly DefaultRedeemCost: number = 50;
     private readonly DefaultCardRedeemCost: number = 1000;
     private readonly DefaultCardRedeemPerWeek: number = 10;
+    private readonly DefaultTaxEventIsEnabled: boolean = false;
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
         // Empty
@@ -69,6 +71,9 @@ export default class BotSettingsService {
 
             case BotSettings.CardRedeemPerWeek:
                 return this.DefaultCardRedeemPerWeek.toString();
+
+            case BotSettings.TaxEventIsEnabled:
+                return this.DefaultTaxEventIsEnabled.toString();
         }
 
         return "";
