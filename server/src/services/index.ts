@@ -18,3 +18,5 @@ export { default as DiscordService } from "./discordService";
 export { default as TwitchAuthService } from "./twitchAuthService";
 export { default as RewardService } from "./rewardService";
 export { default as EventLogService } from "./eventLogService";
+export { default as TwitchChannelPointRewardService } from "./twitchChannelPointRewardService";
+export { default as TwitchChannelTaxEventService } from "./twitchChannelTaxEventService";
