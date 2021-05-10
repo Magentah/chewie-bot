@@ -39,7 +39,7 @@ twitchRouter.delete("/api/twitch/eventsub/subscriptions", (req, res) => {
         twitchController.deleteInactiveSubscriptions(req, res);
     }
 });
-twitchRouter.post("/api/twitch/eventsub/subscription", (req, res) => twitchController.subscribeEventSub(req, res));
+twitchRouter.post("/api/twitch/eventsub/subscription", (req, res) => twitchController.createEventSubscription(req, res));
 twitchRouter.post("/api/twitch/eventsub/setcallback", (req, res) => twitchController.setEventSubCallbackUrl(req, res));
 
 export default twitchRouter;
