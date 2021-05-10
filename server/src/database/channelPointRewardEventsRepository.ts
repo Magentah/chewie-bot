@@ -53,4 +53,19 @@ export default class ChannelPointRewardEventsRepository {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardEvents).insert({ rewardEventId, channelPointRewardId });
     }
+
+    public async getAll(): Promise<any[]> {
+        const databaseService = await this.databaseProvider();
+        const allAssociations = await databaseService
+            .getQueryBuilder(DatabaseTables.ChannelPointRewardEvents)
+            .join(
+                DatabaseTables.ChannelPointRewards,
+                `${DatabaseTables.ChannelPointRewards}.id`,
+                `${DatabaseTables.ChannelPointRewardEvents}.channelPointRewardId`
+            )
+            .join(DatabaseTables.RewardEvents, `${DatabaseTables.RewardEvents}.id`, `${DatabaseTables.ChannelPointRewardEvents}.rewardEventId`)
+            .select("*");
+
+        return allAssociations;
+    }
 }

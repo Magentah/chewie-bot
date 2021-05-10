@@ -10,3 +10,8 @@ export { default as DiscordRepository } from "./discordRepository";
 export { default as EventLogsRepository } from "./eventLogsRepository";
 export { default as QuotesRepository } from "./quotesRepository";
 export { default as CardsRepository } from "./cardsRepository";
+export { default as ChannelPointRewardsRepository } from "./channelPointRewardsRepository";
+export { default as ChannelPointRewardEventsRepository } from "./channelPointRewardEventsRepository";
+export { default as StreamActivityRepository } from "./streamActivityRepository";
+export { default as UserTaxHistoryRepository } from "./userTaxHistoryRepository";
+export { default as UserTaxStreakRepository } from "./userTaxHistoryRepository";
