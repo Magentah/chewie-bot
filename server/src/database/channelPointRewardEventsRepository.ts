@@ -1,11 +1,7 @@
 import { inject, injectable } from "inversify";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
-
-interface IDBChannelPointRewardEvent {
-    id?: number;
-    channelPointRewardId: number;
-    rewardEventId: number;
-}
+import { IDBChannelPointReward } from "./channelPointRewardsRepository";
+import { IDBRewardEvent } from "./rewardEventsRepository";
 
 @injectable()
 export default class ChannelPointRewardEventsRepository {
@@ -13,21 +9,48 @@ export default class ChannelPointRewardEventsRepository {
         // Empty
     }
 
-    public async getForEvent(eventId: number): Promise<IDBChannelPointRewardEvent | undefined> {
+    /**
+     * Gets the channel point reward event associated with a reward event.
+     * @param eventId The reward event id to get the channel point reward for.
+     * @returns The channel point reward associated with a reward event or undefined if it doesn't exist.
+     */
+    public async getForEvent(rewardEventName: string): Promise<IDBChannelPointReward | undefined> {
         const databaseService = await this.databaseProvider();
 
-        const channelReward = await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardEvents).select("rewardEventId", eventId);
-        return channelReward;
+        const channelReward = await databaseService
+            .getQueryBuilder(DatabaseTables.ChannelPointRewardEvents)
+            .join(
+                DatabaseTables.ChannelPointRewards,
+                `${DatabaseTables.ChannelPointRewards}.id`,
+                `${DatabaseTables.ChannelPointRewardEvents}.channelPointRewardId`
+            )
+            .select(`${DatabaseTables.ChannelPointRewards}.*`)
+            .where(`${DatabaseTables.ChannelPointRewardEvents}.name`, "like", rewardEventName);
+        return channelReward as IDBChannelPointReward;
     }
 
-    public async getForChannelPointReward(rewardId: number): Promise<IDBChannelPointRewardEvent | undefined> {
+    /**
+     * Gets the reward event associated with a channel point reward.
+     * @param rewardId The reward event to get.
+     * @returns
+     */
+    public async getForChannelPointReward(channelPointRewardId: number): Promise<IDBRewardEvent | undefined> {
         const databaseService = await this.databaseProvider();
-        const rewardEvent = await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardEvents).select("channelPointRewardId", rewardId);
+        const rewardEvent = await databaseService
+            .getQueryBuilder(DatabaseTables.ChannelPointRewardEvents)
+            .join(DatabaseTables.RewardEvents, `${DatabaseTables.RewardEvents}.id`, `${DatabaseTables.ChannelPointRewardEvents}.rewardEventId`)
+            .select(`${DatabaseTables.RewardEvents}.*`)
+            .where(`${DatabaseTables.ChannelPointRewardEvents}.channelPointRewardId`, channelPointRewardId);
         return rewardEvent;
     }
 
-    public async addChannelRewardEvent(eventId: number, rewardId: number): Promise<void> {
+    /**
+     * Add a channel point reward and reward event association.
+     * @param rewardEventId The reward event id.
+     * @param channelPointRewardId The channel point reward id.
+     */
+    public async addChannelRewardEvent(rewardEventId: number, channelPointRewardId: number): Promise<void> {
         const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardEvents).insert({ rewardEventId: eventId, channelPointRewardId: rewardId });
+        await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardEvents).insert({ rewardEventId, channelPointRewardId });
     }
 }

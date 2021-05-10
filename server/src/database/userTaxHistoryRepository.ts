@@ -56,10 +56,10 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
-    public async add(userId: number): Promise<IDBUserTaxHistory> {
+    public async add(userId: number, cost: number): Promise<IDBUserTaxHistory> {
         const databaseService = await this.databaseProvider();
         const now = Date.now();
-        await databaseService.getQueryBuilder(DatabaseTables.RewardEvents).insert({ userId, taxRedemptionDate: now });
+        await databaseService.getQueryBuilder(DatabaseTables.RewardEvents).insert({ userId, taxRedemptionDate: now, cost });
         const returnRewardEvent = await databaseService
             .getQueryBuilder(DatabaseTables.RewardEvents)
             .select("*")

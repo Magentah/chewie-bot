@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
-interface IDBRewardEvent {
+export interface IDBRewardEvent {
     id?: number;
     name: string;
 }

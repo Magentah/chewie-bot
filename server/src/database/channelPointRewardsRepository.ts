@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
-interface IDBChannelPointReward {
+export interface IDBChannelPointReward {
     id?: number;
     twitchRewardId: number;
     title: string;
