@@ -28,6 +28,7 @@ export enum DatabaseTables {
     ChannelPointRewards = "channelPointRewards",
     ChannelPointRewardEvents = "channelPointRewardEvents",
     RewardEvents = "rewardEvents",
+    StreamActivity = "streamActivity",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -108,6 +109,7 @@ export class DatabaseService {
                 await this.createChannelPointRewardsTable();
                 await this.createChannelPointRewardEventsTable();
                 await this.createRewardEventsTable();
+                await this.createStreamActivityTable();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -362,6 +364,14 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.RewardEvents, (table) => {
             table.increments("id").primary().notNullable().unique();
             table.string("name").notNullable();
+        });
+    }
+
+    private async createStreamActivityTable(): Promise<void> {
+        return this.createTable(DatabaseTables.StreamActivity, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.string("event").notNullable();
+            table.dateTime("dateTimeTriggered").notNullable();
         });
     }
 
