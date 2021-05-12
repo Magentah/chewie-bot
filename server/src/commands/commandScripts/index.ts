@@ -14,6 +14,7 @@ export { default as AddVipCommand } from "./addVipCommand";
 export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
 export { default as VipCommand } from "./vipCommand";
 export { default as RandomCommand } from "./randomCommand";
+export { default as TimeCommand } from "./timeCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";

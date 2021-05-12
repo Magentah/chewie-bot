@@ -36,8 +36,10 @@ class UserlistController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-        public async getLeaderboard(req: Request, res: Response): Promise<void> {
-        const users = await this.userRepository.getLeaderboard();
+    public async getLeaderboard(req: Request, res: Response): Promise<void> {
+        const sessionUser = req.user as IUser;
+        const currentUser = sessionUser ? await this.userService.getUser(sessionUser.username) : undefined;
+        const users = await this.userRepository.getLeaderboard(10, currentUser);
         res.status(StatusCodes.OK);
         res.send(users);
     }
