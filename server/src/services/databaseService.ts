@@ -357,6 +357,7 @@ export class DatabaseService {
             table.integer("userId").notNullable();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.string("rewardId").notNullable();
+            table.string("associatedRedemption").notNullable();
             table.dateTime("dateTimeTriggered").notNullable();
         });
     }

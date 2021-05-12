@@ -18,5 +18,6 @@ export interface IChannelPointRewardHistory {
     id?: number;
     userId: string;
     rewardId: string;
+    associatedRedemption: string;
     timeTriggered: Date;
 }
