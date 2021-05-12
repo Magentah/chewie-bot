@@ -10,14 +10,14 @@ export default class ChannelPointRewardHistoryRepository {
     //TODO: Move channel point reward / event things to a single table. Use enum ChannelPointRedemptions for events instead.
     public async getAll(): Promise<IChannelPointRewardHistory[]> {
         const databaseService = await this.databaseProvider();
-        const channelPointRewards = await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewards).select("*");
+        const channelPointRewards = await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardHistory).select("*");
         return channelPointRewards;
     }
 
     public async getForRedemption(redemption: ChannelPointRedemption): Promise<IChannelPointRewardHistory> {
         const databaseService = await this.databaseProvider();
         const channelPointReward = await databaseService
-            .getQueryBuilder(DatabaseTables.ChannelPointRewards)
+            .getQueryBuilder(DatabaseTables.ChannelPointRewardHistory)
             .select("*")
             .where("associatedRedemption", redemption);
         return channelPointReward;
@@ -25,6 +25,6 @@ export default class ChannelPointRewardHistoryRepository {
 
     public async add(channelPointReward: IChannelPointRewardHistory): Promise<void> {
         const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewards).insert(channelPointReward);
+        await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardHistory).insert(channelPointReward);
     }
 }

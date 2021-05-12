@@ -17,7 +17,7 @@ export default interface ITwitchChannelReward {
     is_paused: boolean;
     is_in_stock: boolean;
     should_redemptions_skip_request_queue: boolean;
-    redemptions_redeemed_current_stream: number;
+    redemptions_redeemed_current_stream: number | null;
     cooldown_expires_at: string | null;
 }
 

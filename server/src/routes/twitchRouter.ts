@@ -65,19 +65,28 @@ twitchRouter.post(
 );
 
 twitchRouter.get(
-    "/api/twitch/rewards",
+    "/api/twitch/channelrewards",
     (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
     (req, res) => pointRewardController.getChannelRewards(req, res)
 );
 twitchRouter.get(
-    "/api/twitch/rewards/associations",
+    "/api/twitch/channelrewards/redemptions",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (res, req) => pointRewardController.getRedemptions(res, req)
+);
+twitchRouter.get(
+    "/api/twitch/channelrewards/associations",
     (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
     (req, res) => pointRewardController.getCurrentAssociations(req, res)
 );
 twitchRouter.post(
-    "/api/twitch/rewards/associations",
+    "/api/twitch/channelrewards/associations",
     (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
     (req, res) => pointRewardController.addAssociation(req, res)
 );
-
+twitchRouter.delete(
+    "/api/twitch/channelrewards/associations",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => pointRewardController.deleteAssociation(req, res)
+);
 export default twitchRouter;

@@ -28,7 +28,8 @@ export default class ChannelPointRewardRepository {
             .getQueryBuilder(DatabaseTables.ChannelPointRewards)
             .first("*")
             .where("associatedRedemption", redemption)
-            .andWhere("isEnabled", true);
+            .andWhere("isEnabled", true)
+            .andWhere("isDeleted", false);
         return channelPointReward;
     }
 
@@ -39,7 +40,11 @@ export default class ChannelPointRewardRepository {
      */
     public async getReward(channelPointReward: ITwitchChannelReward): Promise<IChannelPointReward | undefined> {
         const databaseService = await this.databaseProvider();
-        const reward = await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewards).first("*").where("twitchRewardId", channelPointReward.id);
+        const reward = await databaseService
+            .getQueryBuilder(DatabaseTables.ChannelPointRewards)
+            .first("*")
+            .where("twitchRewardId", channelPointReward.id)
+            .andWhere("isDeleted", false);
         return reward;
     }
 
@@ -50,7 +55,18 @@ export default class ChannelPointRewardRepository {
      */
     public async add(channelPointReward: IChannelPointReward): Promise<void> {
         const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewards).insert(channelPointReward);
+        const exists = await databaseService
+            .getQueryBuilder(DatabaseTables.ChannelPointRewards)
+            .first("*")
+            .where("twitchRewardId", channelPointReward.twitchRewardId);
+        if (exists && exists.id) {
+            channelPointReward.id = exists.id;
+            channelPointReward.isDeleted = false;
+            await this.update(channelPointReward);
+            return;
+        } else {
+            await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewards).insert(channelPointReward);
+        }
     }
 
     /**
@@ -61,6 +77,16 @@ export default class ChannelPointRewardRepository {
         if (channelPointReward.id) {
             const databaseService = await this.databaseProvider();
             await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewards).update(channelPointReward).where("id", channelPointReward.id);
+        }
+    }
+
+    public async delete(channelPointRewardId: number): Promise<void> {
+        const databaseService = await this.databaseProvider();
+        const exists = await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewards).first("*").where("id", channelPointRewardId);
+        if (exists && exists.id) {
+            exists.isDeleted = true;
+            await this.update(exists);
+            return;
         }
     }
 }

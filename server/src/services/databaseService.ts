@@ -348,6 +348,7 @@ export class DatabaseService {
             table.integer("globalCooldown");
             table.boolean("shouldSkipRequestQueue").notNullable().defaultTo(false);
             table.string("associatedRedemption");
+            table.boolean("isDeleted").notNullable().defaultTo(false);
         });
     }
 

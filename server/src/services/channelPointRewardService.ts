@@ -39,6 +39,7 @@ export default class ChannelPointRewardService {
             globalCooldown: channelPointReward.global_cooldown_setting.global_cooldown_seconds,
             shouldSkipRequestQueue: channelPointReward.should_redemptions_skip_request_queue,
             associatedRedemption: redemption,
+            isDeleted: false,
         };
 
         await this.channelPointRewardRepository.add(newChannelRewardRedemption);
@@ -88,5 +89,9 @@ export default class ChannelPointRewardService {
 
             await this.channelPointRewardHistoryRepository.add(channelPointRewardHistoryEntry);
         }
+    }
+
+    public async deleteChannelRewardRedemption(channelPointRewardId: number): Promise<void> {
+        await this.channelPointRewardRepository.delete(channelPointRewardId);
     }
 }

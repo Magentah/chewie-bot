@@ -1,4 +1,5 @@
 export enum ChannelPointRedemption {
+    None = "None",
     Tax = "Tax Reward Event",
 }
 
@@ -12,6 +13,7 @@ export default interface IChannelPointReward {
     globalCooldown?: number;
     shouldSkipRequestQueue: boolean;
     associatedRedemption?: string;
+    isDeleted: boolean;
 }
 
 export interface IChannelPointRewardHistory {
