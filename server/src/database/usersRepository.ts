@@ -94,20 +94,36 @@ export class UsersRepository {
     /**
      * Gets a user leaderboard (only returns basic information)
      */
-    public async getLeaderboard(): Promise<{username: string, points: number, rank: number}[]> {
+    public async getLeaderboard(topCount: number, includeUser: IUser | undefined): Promise<{username: string, points: number, rank: number}[]> {
         const databaseService = await this.databaseProvider();
 
         const userResult = await databaseService
             .getQueryBuilder(DatabaseTables.Users)
-            .orderBy("points", "desc")
-            .limit(25)
+            .orderBy("points", "desc").orderBy("username", "asc")
+            .limit(topCount)
             .select([
                 "users.username",
                 "users.points"
             ]);
 
         let counter = 1;
-        return userResult.map((x: any) => { return { username: x.username, points: x.points, rank: counter++ } });
+        const result = userResult.map((x: any) => { return { username: x.username, points: x.points, rank: counter++ } });
+
+        // Check if user is part of toplist and add if not
+        if (includeUser) {
+            const curentUser = result.filter((item: any) => item.username === includeUser.username)[0] || undefined;
+            if (!curentUser) {
+                const currentUserRank = (await databaseService
+                    .getQueryBuilder(DatabaseTables.Users)
+                    .where("points", ">", includeUser.points)
+                    .count("id as cnt")
+                    .first()).cnt;
+                result.push({ username: includeUser.username, points: includeUser.points, rank: currentUserRank + 1});
+                return result;
+            }
+        }
+
+        return result;
     }
 
     /**
