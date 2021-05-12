@@ -30,7 +30,7 @@ export default class TaxService {
      */
     public async setup(): Promise<void> {
         this.isEnabled = JSON.parse(await this.botSettingsService.getValue(BotSettings.TaxEventIsEnabled));
-        this.taxChannelReward = await this.channelPointRewardService.getChannelReward(ChannelPointRedemption.Tax);
+        this.taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
         if (this.taxChannelReward) {
             this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, this.channelPointsRedeemed);
         }
