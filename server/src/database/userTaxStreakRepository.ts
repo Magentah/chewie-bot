@@ -24,7 +24,7 @@ export default class UserTaxStreakRepository {
     public async add(userId: number, taxRedemptionId: number): Promise<IDBUserTaxStreak> {
         const databaseService = await this.databaseProvider();
         await databaseService
-            .getQueryBuilder(DatabaseTables.RewardEvents)
+            .getQueryBuilder(DatabaseTables.UserTaxStreak)
             .insert({ userId, lastTaxRedemptionId: taxRedemptionId, currentStreak: 1, longestStreak: 1 });
         const returnRewardEvent = await databaseService
             .getQueryBuilder(DatabaseTables.UserTaxStreak)

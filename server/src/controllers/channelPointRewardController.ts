@@ -1,22 +1,19 @@
 import { inject, injectable } from "inversify";
 import { Request, Response } from "express";
 import HttpStatusCodes from "http-status-codes";
-import TwitchChannelPointRewardService from "../services/twitchChannelPointRewardService";
+import { ChannelPointRewardService } from "../services";
 import { Logger, LogType } from "../logger";
-import RewardEventsRepository from "../database/rewardEventsRepository";
+import { ChannelPointRedemption } from "../models";
 
 @injectable()
 export default class ChannelPointRewardController {
-    constructor(
-        @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
-        @inject(RewardEventsRepository) private rewardEventsRepository: RewardEventsRepository
-    ) {
+    constructor(@inject(ChannelPointRewardService) private channelPointRewardService: ChannelPointRewardService) {
         // Empty
     }
 
     public async addAssociation(req: Request, res: Response): Promise<void> {
         try {
-            await this.channelPointRewardService.addEventAssociation(req.body.rewardEvent, req.body.channelPointReward);
+            await this.channelPointRewardService.addChannelRewardRedemption(req.body.rewardEvent, req.body.channelPointRedemption);
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error occured in addAssociation.", error);
             res.sendStatus(HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -36,7 +33,7 @@ export default class ChannelPointRewardController {
 
     public async getCurrentAssociations(req: Request, res: Response): Promise<void> {
         try {
-            const associations = await this.channelPointRewardService.getAllEventAssociations();
+            const associations = await this.channelPointRewardService.getAllChannelRewards();
             res.status(HttpStatusCodes.OK).send(associations);
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error occured in getCurrentAssociations", error);
@@ -46,8 +43,7 @@ export default class ChannelPointRewardController {
 
     public async getRewardEvents(req: Request, res: Response): Promise<void> {
         try {
-            const rewardEvents = await this.rewardEventsRepository.getAll();
-            res.status(HttpStatusCodes.OK).send(rewardEvents);
+            res.status(HttpStatusCodes.OK).send(Object.keys(ChannelPointRedemption));
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error occured in getRewardEvents", error);
             res.sendStatus(HttpStatusCodes.INTERNAL_SERVER_ERROR);

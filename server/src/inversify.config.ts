@@ -24,8 +24,8 @@ import TwitchWebService from "./services/twitchWebService";
 import DiscordService from "./services/discordService";
 import DropboxService from "./services/dropboxService";
 import EventLogService from "./services/eventLogService";
-import TwitchChannelPointRewardService from "./services/twitchChannelPointRewardService";
-import TwitchChannelTaxEventService from "./services/twitchChannelTaxEventService";
+import ChannelPointRewardService from "./services/channelPointRewardService";
+import TaxService from "./services/taxService";
 
 // Database Repositories
 
@@ -44,9 +44,7 @@ import EventLogsRepository from "./database/eventLogsRepository";
 import MessagesRepository from "./database/messagesRepository";
 import PointLogsRepository from "./database/pointLogsRepository";
 import CardsRepository from "./database/cardsRepository";
-import ChannelPointRewardsRepository from "./database/channelPointRewardsRepository";
-import ChannelPointRewardEventsRepository from "./database/channelPointRewardEventsRepository";
-import RewardEventsRepository from "./database/rewardEventsRepository";
+import ChannelPointRewardRepository from "./database/channelPointRewardRepository";
 import UserTaxHistoryRepository from "./database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "./database/userTaxStreakRepository";
 import StreamActivityRepository from "./database/streamActivityRepository";
@@ -123,8 +121,8 @@ botContainer.bind<RewardService>(RewardService).toSelf().inSingletonScope();
 botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
 botContainer.bind<DropboxService>(DropboxService).toSelf().inSingletonScope();
 botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
-botContainer.bind<TwitchChannelPointRewardService>(TwitchChannelPointRewardService).toSelf().inSingletonScope();
-botContainer.bind<TwitchChannelTaxEventService>(TwitchChannelTaxEventService).toSelf().inSingletonScope();
+botContainer.bind<ChannelPointRewardService>(ChannelPointRewardService).toSelf().inSingletonScope();
+botContainer.bind<TaxService>(TaxService).toSelf().inSingletonScope();
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
@@ -142,9 +140,7 @@ botContainer.bind<DiscordRepository>(DiscordRepository).toSelf();
 botContainer.bind<EventLogsRepository>(EventLogsRepository).toSelf();
 botContainer.bind<MessagesRepository>(MessagesRepository).toSelf();
 botContainer.bind<CardsRepository>(CardsRepository).toSelf();
-botContainer.bind<ChannelPointRewardEventsRepository>(ChannelPointRewardEventsRepository).toSelf();
-botContainer.bind<ChannelPointRewardsRepository>(ChannelPointRewardsRepository).toSelf();
-botContainer.bind<RewardEventsRepository>(RewardEventsRepository).toSelf();
+botContainer.bind<ChannelPointRewardRepository>(ChannelPointRewardRepository).toSelf();
 botContainer.bind<UserTaxHistoryRepository>(UserTaxHistoryRepository).toSelf();
 botContainer.bind<UserTaxStreakRepository>(UserTaxStreakRepository).toSelf();
 botContainer.bind<StreamActivityRepository>(StreamActivityRepository).toSelf();

@@ -26,8 +26,7 @@ export enum DatabaseTables {
     UserTaxStreak = "userTaxStreak",
     UserTaxHistory = "userTaxHistory",
     ChannelPointRewards = "channelPointRewards",
-    ChannelPointRewardEvents = "channelPointRewardEvents",
-    RewardEvents = "rewardEvents",
+    ChannelPointRewardHistory = "channelPointRewardHistory",
     StreamActivity = "streamActivity",
 }
 
@@ -104,8 +103,7 @@ export class DatabaseService {
                 await this.createUserTaxStreakTable();
                 await this.createUserTaxHistoryTable();
                 await this.createChannelPointRewardsTable();
-                await this.createChannelPointRewardEventsTable();
-                await this.createRewardEventsTable();
+                await this.createChannelPointRewardHistoryTable();
                 await this.createStreamActivityTable();
 
                 await this.addBroadcaster();
@@ -335,37 +333,31 @@ export class DatabaseService {
             table.integer("userId").notNullable();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.dateTime("taxRedemptionDate").notNullable();
-            table.integer("cost").notNullable();
+            table.string("channelPointRewardTwitchId").notNullable();
         });
     }
 
     private async createChannelPointRewardsTable(): Promise<void> {
         return this.createTable(DatabaseTables.ChannelPointRewards, (table) => {
             table.increments("id").primary().notNullable().unique();
-            table.integer("twitchRewardId").notNullable().unique();
+            table.string("twitchRewardId").notNullable().unique();
             table.string("title").notNullable();
             table.integer("cost").notNullable();
             table.boolean("isEnabled").notNullable().defaultTo(true);
             table.boolean("isGlobalCooldownEnabled").notNullable().defaultTo(false);
             table.integer("globalCooldown");
             table.boolean("shouldSkipRequestQueue").notNullable().defaultTo(false);
+            table.string("associatedRedemption");
         });
     }
 
-    private async createChannelPointRewardEventsTable(): Promise<void> {
-        return this.createTable(DatabaseTables.ChannelPointRewardEvents, (table) => {
+    private async createChannelPointRewardHistoryTable(): Promise<void> {
+        return this.createTable(DatabaseTables.ChannelPointRewardHistory, (table) => {
             table.increments("id").primary().notNullable().unique();
-            table.integer("channelPointRewardId").notNullable();
-            table.foreign("channelPointRewardId").references("id").inTable(DatabaseTables.ChannelPointRewards);
-            table.integer("rewardEventId").notNullable();
-            table.foreign("rewardEventId").references("id").inTable(DatabaseTables.RewardEvents);
-        });
-    }
-
-    private async createRewardEventsTable(): Promise<void> {
-        return this.createTable(DatabaseTables.RewardEvents, (table) => {
-            table.increments("id").primary().notNullable().unique();
-            table.string("name").notNullable();
+            table.integer("userId").notNullable();
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.string("rewardId").notNullable();
+            table.dateTime("dateTimeTriggered").notNullable();
         });
     }
 
@@ -408,15 +400,6 @@ export class DatabaseService {
                 Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
             } else {
                 Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
-            }
-
-            const taxRewardAdded = await this.db(DatabaseTables.RewardEvents).first().where("name", "like", "Tax Reward Event");
-            if (taxRewardAdded === 0) {
-                const taxReward = { name: "Tax Reward Event" };
-                await this.db(DatabaseTables.RewardEvents).insert(taxReward);
-                Logger.debug(LogType.Database, `${DatabaseTables.RewardEvents} populated with initial data.`);
-            } else {
-                Logger.debug(LogType.Database, `${DatabaseTables.RewardEvents} already has data.`);
             }
             resolve();
         });

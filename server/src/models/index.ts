@@ -51,3 +51,4 @@ export {
     IMaxPerUserPerStream,
     IGlobalCooldown,
 } from "./twitchChannelReward";
+export { default as IChannelPointReward, ChannelPointRedemption } from "./channelPointReward";

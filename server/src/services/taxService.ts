@@ -1,17 +1,16 @@
 import { inject, injectable, LazyServiceIdentifer } from "inversify";
-import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent } from "../models";
+import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward } from "../models";
 import UserTaxHistoryRepository, { IDBUserTaxHistory } from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository from "../database/streamActivityRepository";
-import TwitchChannelPointRewardService, { RewardEvent } from "./twitchChannelPointRewardService";
-import { IDBChannelPointReward } from "../database/channelPointRewardsRepository";
+import TwitchChannelPointRewardService from "./channelPointRewardService";
 import UserService from "./userService";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import TwitchEventService from "./twitchEventService";
 
 @injectable()
-export default class TwitchChannelTaxEventService {
-    private taxChannelReward?: IDBChannelPointReward;
+export default class TaxService {
+    private taxChannelReward?: IChannelPointReward;
     private isEnabled: boolean = false;
 
     constructor(
@@ -31,7 +30,7 @@ export default class TwitchChannelTaxEventService {
      */
     public async setup(): Promise<void> {
         this.isEnabled = JSON.parse(await this.botSettingsService.getValue(BotSettings.TaxEventIsEnabled));
-        this.taxChannelReward = await this.channelPointRewardService.getChannelRewardForEvent(RewardEvent.Tax);
+        this.taxChannelReward = await this.channelPointRewardService.getChannelReward(ChannelPointRedemption.Tax);
         if (this.taxChannelReward) {
             this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, this.channelPointsRedeemed);
         }
@@ -50,7 +49,7 @@ export default class TwitchChannelTaxEventService {
             const user = await this.userService.getUser((notification.event as IRewardRedemeptionEvent).user_login);
             if (user && user.id) {
                 // Adds a tax redemption for the user.
-                await this.userTaxHistoryRepository.add(user.id, (notification.event as IRewardRedemeptionEvent).reward.cost);
+                await this.userTaxHistoryRepository.add(user.id, (notification.event as IRewardRedemeptionEvent).reward.id);
             }
         }
     }

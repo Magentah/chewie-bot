@@ -5,6 +5,7 @@ export interface IDBUserTaxHistory {
     id?: number;
     userId: number;
     taxRedemptionDate: Date;
+    channelPointRewardTwitchId: string;
 }
 
 @injectable()
@@ -56,12 +57,14 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
-    public async add(userId: number, cost: number): Promise<IDBUserTaxHistory> {
+    public async add(userId: number, channelPointRewardId: string): Promise<IDBUserTaxHistory> {
         const databaseService = await this.databaseProvider();
         const now = Date.now();
-        await databaseService.getQueryBuilder(DatabaseTables.RewardEvents).insert({ userId, taxRedemptionDate: now, cost });
+        await databaseService
+            .getQueryBuilder(DatabaseTables.UserTaxHistory)
+            .insert({ userId, taxRedemptionDate: now, channelPointRewardTwitchId: channelPointRewardId });
         const returnRewardEvent = await databaseService
-            .getQueryBuilder(DatabaseTables.RewardEvents)
+            .getQueryBuilder(DatabaseTables.UserTaxHistory)
             .select("*")
             .where("userId", userId)
             .andWhere("taxRedemptionDate", now);

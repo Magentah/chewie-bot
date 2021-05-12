@@ -5,7 +5,7 @@ import { UserService } from "./userService";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
-import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, ITwitchChannelReward, ITwitchChannelRewardRequest } from "../models";
+import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, IChannelPointReward, ITwitchChannelRewardRequest, ITwitchChannelReward } from "../models";
 import TwitchAuthService from "./twitchAuthService";
 import { Logger, LogType } from "../logger";
 import HttpStatusCodes from "http-status-codes";
