@@ -11,7 +11,7 @@ import TwitchEventService from "./twitchEventService";
 @injectable()
 export default class TaxService {
     private taxChannelReward?: IChannelPointReward;
-    private isEnabled: boolean = false;
+    private isEnabled = async (): Promise<boolean> => JSON.parse(await this.botSettingsService.getValue(BotSettings.TaxEventIsEnabled));
 
     constructor(
         @inject(UserService) private userService: UserService,
@@ -29,7 +29,6 @@ export default class TaxService {
      * Setup the service. Sets up callback for the tax reward event if there is one configured.
      */
     public async setup(): Promise<void> {
-        this.isEnabled = JSON.parse(await this.botSettingsService.getValue(BotSettings.TaxEventIsEnabled));
         this.taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
         if (this.taxChannelReward) {
             this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, this.channelPointsRedeemed);
@@ -41,7 +40,7 @@ export default class TaxService {
      * @param notification The channel point redemption notification.
      */
     private async channelPointsRedeemed(notification: IEventSubNotification): Promise<void> {
-        if (!this.isEnabled) {
+        if (!(await this.isEnabled())) {
             return;
         }
 
@@ -60,7 +59,7 @@ export default class TaxService {
      * Will also go through all users who have not paid tax since the last stream to reset their current streaks.
      */
     private async streamOnline(): Promise<void> {
-        if (!this.isEnabled) {
+        if (!(await this.isEnabled())) {
             return;
         }
 
