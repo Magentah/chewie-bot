@@ -15,7 +15,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string };
+type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string, baseCardName: string };
 const MaxFileSize = 1024 * 1024 * 5;
 const FileTypes = ["image/jpeg", "image/png"];
 
@@ -70,6 +70,7 @@ const UserCardList: React.FC<any> = (props: any) => {
 
     const [cardName, setCardName] = useState<string>("");
     const [cardSetName, setCardSetName] = useState<string>("");
+    const [cardBaseCardName, setCardBaseCardName] = useState<string>("");
     const [cardRarity, setCardRarity] = useState<number>(0);
     const [cardFile, setCardFile] = useState<File>();
 
@@ -89,7 +90,7 @@ const UserCardList: React.FC<any> = (props: any) => {
         try {
             setCardListState({state: "progress"});
 
-            const newData = { name: cardName, setName: cardSetName, rarity: cardRarity } as RowData;
+            const newData = { name: cardName, setName: cardSetName, rarity: cardRarity, baseCardName: cardBaseCardName } as RowData;
 
             const formData = new FormData();
             formData.append("card", JSON.stringify(newData));
@@ -106,6 +107,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                     setCardlist(newList);
                     setCardName("");
                     setCardSetName("");
+                    setCardBaseCardName("");
                     setCardRarity(0);
                     setCardFile(undefined);
                 } else {
@@ -148,6 +150,20 @@ const UserCardList: React.FC<any> = (props: any) => {
                                     onInputChange={(event: any, newValue: string | null) => setCardSetName(newValue ?? "")}
                                     renderInput={(params: any) => (
                                         <TextField {...params} label="Set name" fullWidth />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item>
+                                <Autocomplete
+                                    id="card-basecard"
+                                    freeSolo
+                                    fullWidth
+                                    inputValue={cardBaseCardName}
+                                    /* Use unique values for autocomplete */
+                                    options={cardlist.map((x) => x.name).filter((v,i,a) => v && a.indexOf(v) === i)}
+                                    onInputChange={(event: any, newValue: string | null) => setCardBaseCardName(newValue ?? "")}
+                                    renderInput={(params: any) => (
+                                        <TextField {...params} label="Base card name" fullWidth />
                                     )}
                                 />
                             </Grid>
@@ -198,6 +214,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                         defaultSort: "asc",
                     },
                     { title: "Set name", field: "setName" },
+                    { title: "Base card name", field: "baseCardName" },
                     {
                         title: "Rarity", field: "rarity",
                         initialEditValue: 0,
@@ -213,7 +230,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 4,
+                    actionsColumnIndex: 5,
                     showTitle: false,
                     addRowPosition: "first",
                     tableLayout: "auto",
