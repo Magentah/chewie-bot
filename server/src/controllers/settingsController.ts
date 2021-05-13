@@ -27,6 +27,7 @@ class SettingsController {
             title: "Tax: If Tax is enabled, then tax history and streaks will be tracked when channel point rewards are redeemed.",
             readonly: false,
         },
+        [BotSettings.SeasonEnd]: { title: "Season end date", readonly: false },
     };
 
     constructor(
@@ -52,6 +53,28 @@ class SettingsController {
 
             res.status(StatusCodes.OK);
             res.send(settings);
+        } catch (err) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
+        }
+    }
+
+    /**
+     * Gets value of a specific setting (only public information)
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async getSetting(req: Request, res: Response): Promise<void> {
+        try {
+            const setting = req.params.name;
+
+            if (setting === BotSettings.SeasonEnd) {
+                const storedSettings = await this.settingsRepository.get(setting);
+                res.status(StatusCodes.OK);
+                res.send(storedSettings ? storedSettings.value : "");
+            } else {
+                res.sendStatus(StatusCodes.FORBIDDEN);
+            }
         } catch (err) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
