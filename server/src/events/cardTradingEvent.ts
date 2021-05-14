@@ -51,11 +51,11 @@ export class CardTradingEvent extends ParticipationEvent<EventParticipant> {
             return;
         }
 
-        if (this.participants.length > 1) {
+        if (this.targetUser) {
             if (this.pointsWanted > 0) {
-                this.sendMessage(Lang.get("cards.trading.startforpoints.touser", this.participants[0].user.username, this.cardOffered, this.pointsWanted, this.participants[1].user.username));
+                this.sendMessage(Lang.get("cards.trading.startforpoints.touser", this.participants[0].user.username, this.cardOffered, this.pointsWanted, this.targetUser.username));
             } else {
-                this.sendMessage(Lang.get("cards.trading.startforcard.touser", this.participants[0].user.username, this.cardOffered, this.cardWanted, this.participants[1].user.username));
+                this.sendMessage(Lang.get("cards.trading.startforcard.touser", this.participants[0].user.username, this.cardOffered, this.cardWanted, this.targetUser.username));
             }
         } else{
             if (this.pointsWanted > 0) {
@@ -73,12 +73,13 @@ export class CardTradingEvent extends ParticipationEvent<EventParticipant> {
         // Event will have completed if a user has accepted, otherwise we'll
         // still have only one participant now.
         if (this.participants.length === 1) {
+            this.eventService.stopEvent(this);
+
             // No one has accepted...
             if (this.cardRemovedFromStackId) {
                 this.cardsRepository.returnCardToStack(this.participants[0].user, this.cardRemovedFromStackId);
             }
             this.sendMessage(Lang.get("cards.trading.incomplete", this.participants[0].user.username));
-            this.eventService.stopEvent(this);
         }
     }
 
