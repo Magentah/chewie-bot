@@ -84,7 +84,7 @@ export class TextCommand extends Command {
         const seconds = durationInSeconds - (hours * 3600) - (minutes * 60);
 
         if (hours > 0) {
-            return `${hours} h ${minutes} minutes`;
+            return `${hours} hours ${minutes} minutes`;
         } else {
             return `${minutes} minutes`;
         }
