@@ -58,6 +58,20 @@ export default class CardsRepository {
         await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ id: stackId }).first().update( { deleted: false });
     }
 
+    public async getCardStack(user: IUser): Promise<IUserCard[]> {
+        const databaseService = await this.databaseProvider();
+        const cards = (await databaseService.getQueryBuilder(DatabaseTables.CardStack).select()
+            .join(DatabaseTables.Cards, "userCards.id", "userCardStack.cardId")
+            .groupBy("userCards.id")
+            .where({ userId: user.id, deleted: false })
+            .orderBy("userCards.name")
+            .select([
+                "userCards.*",
+                databaseService.raw("COUNT(usercards.id) AS cardCount"),
+            ])) as IUserCard[];
+        return cards;
+    }
+
     public async addOrUpdate(card: IUserCard): Promise<IUserCard> {
         const existingMessage = await this.get(card);
         if (!existingMessage) {

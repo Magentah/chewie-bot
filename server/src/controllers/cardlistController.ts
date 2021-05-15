@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { IUserCard } from "../models";
+import { IUser, IUserCard } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import CardsRepository from "../database/cardsRepository";
@@ -27,6 +27,24 @@ class CardlistController {
      */
     public async getCardlist(req: Request, res: Response): Promise<void> {
         const cards = (await this.cardRepository.getList()).map(x => this.addUrl(x));
+        res.status(StatusCodes.OK);
+        res.send(cards);
+    }
+
+    /**
+     * Gets the user's personal card stack.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async getCardStack(req: Request, res: Response): Promise<void> {
+        const user = req.user as IUser;
+        if (!user) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "User not logged in."));
+            return;
+        }
+
+        const cards = (await this.cardRepository.getCardStack(user)).map(x => this.addUrl(x));
         res.status(StatusCodes.OK);
         res.send(cards);
     }

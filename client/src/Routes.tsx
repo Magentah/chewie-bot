@@ -20,6 +20,7 @@ import UserList from "./components/users/userlist";
 import UserProfileView from "./components/users/userprofile";
 import Leaderboard from "./components/users/leaderboard";
 import UserCardList from "./components/cards/userCardList";
+import UserCardStackList from "./components/cards/userCardStackList";
 
 export type Route = {
     path: string;
@@ -76,6 +77,13 @@ const DashboardRoutes: Route[] = [
         name: "Leaderboard",
         icon: ArrowUpward,
         component: Leaderboard,
+        minUserLevel: UserLevels.Viewer
+    },
+    {
+        path: "/mycards",
+        name: "My cards",
+        icon: Loyalty,
+        component: UserCardStackList,
         minUserLevel: UserLevels.Viewer
     },
     {
