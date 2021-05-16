@@ -7,11 +7,12 @@ import CardlistController from "../controllers/cardlistController";
 const cardlistRouter: express.Router = express.Router();
 const cardlistController: CardlistController = BotContainer.get(CardlistController);
 
-cardlistRouter.get("/api/cards", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Broadcaster), (res, req) => cardlistController.getCardlist(res, req));
-cardlistRouter.get("/api/mycards", (res, req, next) => cardlistController.getCardStack(res, req));
-cardlistRouter.post("/api/cards/add", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Broadcaster), (res, req) => cardlistController.addCard(res, req));
-cardlistRouter.post("/api/cards", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Broadcaster), (res, req) => cardlistController.updateCard(res, req));
-cardlistRouter.post("/api/cards/upload", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Broadcaster), (res, req) => cardlistController.uploadImage(res, req));
-cardlistRouter.post("/api/cards/delete", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Broadcaster), (res, req) => cardlistController.removeCard(res, req));
+cardlistRouter.get("/api/cards", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.getCardlist(req, res));
+cardlistRouter.get("/api/mycards", (req, res) => cardlistController.getCardStack(req, res));
+cardlistRouter.post("/api/redeemcard", (req, res) => cardlistController.redeemCard(req, res));
+cardlistRouter.post("/api/cards/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.addCard(req, res));
+cardlistRouter.post("/api/cards", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.updateCard(req, res));
+cardlistRouter.post("/api/cards/upload", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.uploadImage(req, res));
+cardlistRouter.post("/api/cards/delete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.removeCard(req, res));
 
 export default cardlistRouter;

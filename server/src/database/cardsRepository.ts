@@ -14,6 +14,11 @@ export default class CardsRepository {
         return cards as IUserCard[];
     }
 
+    public async getCount(): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        return (await databaseService.getQueryBuilder(DatabaseTables.Cards).count("id AS cnt").first()).cnt;
+    }
+
     public async get(card: IUserCard): Promise<IUserCard | undefined> {
         if (!card.id) {
             return undefined;

@@ -8,12 +8,14 @@ import CardsRepository from "../database/cardsRepository";
 import fs = require("fs");
 import path = require("path");
 import { Guid } from "guid-typescript";
+import CardService from "../services/cardService";
 
 @injectable()
 class CardlistController {
     readonly ImageDir: string = "images";
 
-    constructor(@inject(CardsRepository) private cardRepository: CardsRepository) {
+    constructor(@inject(CardsRepository) private cardRepository: CardsRepository,
+                @inject(CardService) private cardService: CardService) {
         Logger.info(
             LogType.ServerInfo,
             `CardlistController constructor. CardsRepository exists: ${this.cardRepository !== undefined}`
@@ -44,9 +46,28 @@ class CardlistController {
             return;
         }
 
+        const totalCardCount = await this.cardRepository.getCount();
         const cards = (await this.cardRepository.getCardStack(user)).map(x => this.addUrl(x));
         res.status(StatusCodes.OK);
-        res.send(cards);
+        res.send({ count: totalCardCount, cards });
+    }
+
+    /**
+     * Redeem a new random card for the user.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async redeemCard(req: Request, res: Response): Promise<void> {
+        const user = req.user as IUser;
+        if (!user) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "User not logged in."));
+            return;
+        }
+
+        const result = await this.cardService.redeemRandomCard(user.username);
+        res.status(StatusCodes.OK);
+        res.send(result);
     }
 
     /**

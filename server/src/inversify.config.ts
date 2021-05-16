@@ -24,6 +24,7 @@ import TwitchWebService from "./services/twitchWebService";
 import DiscordService from "./services/discordService";
 import DropboxService from "./services/dropboxService";
 import EventLogService from "./services/eventLogService";
+import CardService from "./services/cardService";
 
 // Database Repositories
 
@@ -115,6 +116,7 @@ botContainer.bind<RewardService>(RewardService).toSelf().inSingletonScope();
 botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
 botContainer.bind<DropboxService>(DropboxService).toSelf().inSingletonScope();
 botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
+botContainer.bind<CardService>(CardService).toSelf().inSingletonScope();
 
 
 // Database Repositories

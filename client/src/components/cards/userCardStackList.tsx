@@ -1,21 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
-import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, GridList, GridListTile, GridListTileBar } from "@material-ui/core";
+import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@material-ui/core";
 import { Image } from "react-bootstrap";
-import { DropzoneArea, DropzoneDialog } from "material-ui-dropzone";
-import { AddToListState } from "../common/addToListState";
-import { Autocomplete } from "@material-ui/lab";
-import AddIcon from "@material-ui/icons/Add";
 
 const useStyles = makeStyles((theme) => ({
-    redeemButton: {
-
-    },
-    gridList: {
-
-    },
     cardsCountBox: {
         textTransform: "uppercase",
         fontWeight: "bold",
@@ -32,6 +21,10 @@ const useStyles = makeStyles((theme) => ({
         background: theme.palette.divider,
         padding: theme.spacing(1)
     },
+    noCardsGrid: {
+        background: theme.palette.divider,
+        padding: theme.spacing(15, 5)
+    },
     individualCardCounter: {
         borderRadius: "1em",
         background: theme.palette.background.default,
@@ -41,33 +34,73 @@ const useStyles = makeStyles((theme) => ({
     individualCardCounterText: {
         fontSize: "0.9em",
         color: theme.palette.text.hint
-    }
+    },
+    noCardsText: {
+        textTransform: "uppercase"
+    },
 }));
 
 type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string, cardCount: number };
 
-const ImageCell: React.FC<{value: RowData}> = ({value}) => {
-
-    return <Grid container>
-            <Grid item>
-                <Image height={40} src={""} style={{ marginRight: "0.5em" }} />
-            </Grid>
-        </Grid>;
-}
-
 const UserCardStackList: React.FC<any> = (props: any) => {
     const [cardlist, setCardlist] = useState([] as RowData[]);
-    const [cardListState, setCardListState] = useState<AddToListState>();
+    const [cardcount, setCardcount] = useState(0);
+    const [resetDialogOpen, setResetDialogOpen] = useState(false);
+    const [redeemInfoResultMsg, setRedeemInfoResultMsg] = useState("");
 
     const classes = useStyles();
 
-    useEffect(() => {
+    const updateCards = useCallback(() => {
         axios.get("/api/mycards").then((response) => {
-            setCardlist(response.data);
+            if (response) {
+                setCardlist(response.data.cards);
+                setCardcount(response.data.count);
+            }
         });
     }, []);
 
+    const handleCloseReset = (redeemCard: boolean) => {
+        setResetDialogOpen(false);
+
+        if (redeemCard) {
+            axios.post("/api/redeemcard").then((result) => {
+                if (result.status === 200) {
+                    if (typeof result.data === "string") {
+                        setRedeemInfoResultMsg(result.data);
+                    } else {
+                        setRedeemInfoResultMsg(`You got ${result.data.name}!`);
+                        updateCards();
+                    }
+                }
+            })
+        }
+    };
+
+    useEffect(() => updateCards(), []);
+
+    // TODO: Get from settings controller.
+    const cardCost = 1000;
+
     return <Card>
+            <Dialog open={redeemInfoResultMsg !== ""} onClose={() => setRedeemInfoResultMsg("")}>
+                <DialogTitle>Redeem dango card</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>{redeemInfoResultMsg}</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setRedeemInfoResultMsg("")} color="primary" autoFocus>Close</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={resetDialogOpen} onClose={handleCloseReset}>
+                <DialogTitle>Get a random dango card</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>Would you like to trade {cardCost} chews for a random dango card?</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Trade</Button>
+                    <Button onClick={() => handleCloseReset(false)} color="primary">Cancel</Button>
+                </DialogActions>
+            </Dialog>
             <Grid xs>
                 <Box padding={3}>
                     <Grid item>
@@ -78,13 +111,13 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                 </Grid>
                                 <Grid item>
                                     <Box border={2} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} className={classes.cardsCountFont}>
-                                        4 / 24
+                                        {cardlist.length} / {cardcount}
                                     </Box>
                                 </Grid>
                             </Grid>
                             <Grid item xs />
                             <Grid item>
-                                <Button className={classes.redeemButton} variant="contained" color="primary">Get a dango card</Button>
+                                <Button variant="contained" color="primary" onClick={() => setResetDialogOpen(true)}>Get a dango card</Button>
                             </Grid>
                         </Grid>
                     </Grid>
@@ -92,20 +125,31 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                         <Typography variant="h6">Your collection</Typography>
                     </Grid>
                     <Grid item>
+                        {cardlist.length === 0 ?
+                        <Box className={classes.noCardsGrid} padding={15}>
+                            <Grid>
+                                <Grid item>
+                                    <Typography align="center" variant="h6" className={classes.noCardsText} style={{marginBottom: "2em"}}>You don't have any cards yet</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a radom dango card!</Typography>
+                                </Grid>
+                            </Grid>
+                        </Box> :
                         <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
                             {cardlist.map((tile) => (
                             <Box m={1}><Grid key={tile.name}>
                                 <Grid item>
                                     <Box display="flex" justifyContent="center">
                                         <Box className={classes.individualCardCounter}>
-                                            <Typography className={classes.individualCardCounterText} align="center">x {tile.cardCount}</Typography>
+                                            <Typography className={classes.individualCardCounterText} align="center">× {tile.cardCount}</Typography>
                                         </Box>
                                     </Box>
                                 </Grid>
-                                <Grid item></Grid><Image height={250} src={tile.url} alt={tile.name} />
+                                <Grid item></Grid><Image title={tile.name} height={250} src={tile.url} alt={tile.name} />
                             </Grid></Box>
                             ))}
-                        </Box>
+                        </Box>}
                     </Grid>
                 </Box>
         </Grid>
