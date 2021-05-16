@@ -91,7 +91,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                     <Button onClick={() => setRedeemInfoResultMsg("")} color="primary" autoFocus>Close</Button>
                 </DialogActions>
             </Dialog>
-            <Dialog open={resetDialogOpen} onClose={handleCloseReset}>
+            <Dialog open={resetDialogOpen} onClose={() => handleCloseReset(false)}>
                 <DialogTitle>Get a random dango card</DialogTitle>
                 <DialogContent>
                     <DialogContentText>Would you like to trade {cardCost} chews for a random dango card?</DialogContentText>
