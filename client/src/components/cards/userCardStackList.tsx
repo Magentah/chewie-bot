@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@material-ui/core";
+import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps } from "@material-ui/core";
 import { Image } from "react-bootstrap";
+import * as Cookie from "js-cookie";
 
 const useStyles = makeStyles((theme) => ({
     cardsCountBox: {
@@ -49,6 +50,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const [redeemInfoResultMsg, setRedeemInfoResultMsg] = useState("");
 
     const classes = useStyles();
+    const userProfile = Cookie.getJSON("user");
 
     const updateCards = useCallback(() => {
         axios.get("/api/mycards").then((response) => {
@@ -80,6 +82,11 @@ const UserCardStackList: React.FC<any> = (props: any) => {
 
     // TODO: Get from settings controller.
     const cardCost = 1000;
+    function PaperComponent(paperProps: PaperProps) {
+        return (
+          <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em"}} />
+        );
+    }
 
     return <Card>
             <Dialog open={redeemInfoResultMsg !== ""} onClose={() => setRedeemInfoResultMsg("")}>
@@ -91,15 +98,22 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                     <Button onClick={() => setRedeemInfoResultMsg("")} color="primary" autoFocus>Close</Button>
                 </DialogActions>
             </Dialog>
-            <Dialog open={resetDialogOpen} onClose={() => handleCloseReset(false)}>
+            <Dialog open={resetDialogOpen} onClose={() => handleCloseReset(false)} PaperComponent={PaperComponent}>
                 <DialogTitle>Get a random dango card</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>Would you like to trade {cardCost} chews for a random dango card?</DialogContentText>
+                <DialogContent style={{overflow: "visible"}}>
+                    <Image src={"/assets/leaderboard/1st-Place-Prize-Leaderboard.png"} style={{marginLeft: "-11em", marginTop: "-11em", width:"12em", position: "absolute", zIndex: 100}} />
+                    {userProfile.username ?
+                    <Typography>Would you like to trade {cardCost} chews for a random dango card?</Typography>
+                    :<Typography>You need to be logged in to start collecting dango cards!</Typography>}
                 </DialogContent>
+                {userProfile.username ?
                 <DialogActions>
                     <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Trade</Button>
                     <Button onClick={() => handleCloseReset(false)} color="primary">Cancel</Button>
-                </DialogActions>
+                </DialogActions> :
+                <DialogActions>
+                    <Button onClick={() => handleCloseReset(false)} color="primary">OK</Button>
+                </DialogActions>}
             </Dialog>
             <Grid xs>
                 <Box padding={3}>
