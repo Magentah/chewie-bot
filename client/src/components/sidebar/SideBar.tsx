@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
-import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer } from "@material-ui/core";
+import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon } from "@material-ui/core";
 
 import { Route, DashboardRoutes } from "../../Routes";
 import useUser from "../../hooks/user";
@@ -53,7 +53,7 @@ const SideBar: React.FC<any> = (props: any) => {
                     <ListItem button selected={r.path === location.pathname} onClick={() => reroute(r.path)}>
                         {r.icon && (
                             <ListItemIcon>
-                                <r.icon />
+                                {typeof r.icon === "string" ? <Icon>{r.icon}</Icon> : <r.icon />}
                             </ListItemIcon>
                         )}
                         <ListItemText primary={r.name} />

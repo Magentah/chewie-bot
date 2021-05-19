@@ -101,7 +101,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
             <Dialog open={resetDialogOpen} onClose={() => handleCloseReset(false)} PaperComponent={PaperComponent}>
                 <DialogTitle>Get a random dango card</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
-                    <Image src={"/assets/leaderboard/1st-Place-Prize-Leaderboard.png"} style={{marginLeft: "-11em", marginTop: "-11em", width:"12em", position: "absolute", zIndex: 100}} />
+                    <Image src={"/assets/Dango-Card-Pop-Up.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"12em", position: "absolute", zIndex: 100}} />
                     {userProfile.username ?
                     <Typography>Would you like to trade {cardCost} chews for a random dango card?</Typography>
                     :<Typography>You need to be logged in to start collecting dango cards!</Typography>}
