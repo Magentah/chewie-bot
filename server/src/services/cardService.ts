@@ -36,8 +36,16 @@ export default class CardService {
             }
         }
 
-        const card = await this.cardsRepository.redeemRandomCard(user);
+        const lastCard = await this.cardsRepository.getLastRedeemedCard(user);
+        let card = await this.cardsRepository.redeemRandomCard(user);
+
+        // Reduce chance for getting same card twice in a row.
+        if (lastCard && card?.id === lastCard) {
+            card = await this.cardsRepository.redeemRandomCard(user);
+        }
+
         if (card) {
+            await this.cardsRepository.saveCardRedemption(user, card);
             await this.userService.changeUserPoints(user, -cost, PointLogType.RedeemCard);
             return card;
         }

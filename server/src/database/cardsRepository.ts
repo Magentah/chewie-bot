@@ -104,6 +104,19 @@ export default class CardsRepository {
         return false;
     }
 
+    public async deleteFromStack(card: IUserCard): Promise<boolean> {
+        const databaseService = await this.databaseProvider();
+        if (card.id) {
+            await databaseService
+                .getQueryBuilder(DatabaseTables.CardStack)
+                .where({ id: card.id })
+                .delete();
+            return true;
+        }
+
+        return false;
+    }
+
     public async redeemRandomCard(user: IUser): Promise<IUserCard | undefined> {
         // Rarity distribution is yet subject to change.
         const rarities = [
@@ -127,12 +140,16 @@ export default class CardsRepository {
                 .first()
                 .orderByRaw("RANDOM()") as IUserCard;
             if (card) {
-                await databaseService.getQueryBuilder(DatabaseTables.CardStack).insert({ cardId: card.id, userId: user.id, redemptionDate: new Date() });
                 return card as IUserCard;
             }
         }
 
         return undefined;
+    }
+
+    public async saveCardRedemption(user: IUser, card: IUserCard): Promise<void> {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.CardStack).insert({ cardId: card.id, userId: user.id, redemptionDate: new Date() });
     }
 
     public async addCardToStack(user: IUser, cardName: string): Promise<void> {
@@ -163,6 +180,24 @@ export default class CardsRepository {
             .first();
 
         return countResult.cnt as number;
+    }
+
+    public async getLastRedeemedCard(user: IUser): Promise<number | undefined> {
+        // Include deleted cards here since we need to consider
+        // the entire redeem history.
+        const databaseService = await this.databaseProvider();
+        const countResult = await databaseService
+            .getQueryBuilder(DatabaseTables.CardStack)
+            .where("userId", "=", user.id ?? 0)
+            .andWhere("redemptionDate", ">", 0)
+            .orderBy("redemptionDate", "desc")
+            .first("cardId");
+
+        if (!countResult) {
+            return undefined;
+        }
+
+        return countResult.cardId as number;
     }
 
     public getFileExt(mimetype: string): string | undefined {
