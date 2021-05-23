@@ -37,8 +37,7 @@ const useStyles = makeStyles((theme) => ({
         background: "#E4E4E4",
         textTransform: "uppercase",
         textAlign: "center",
-        padding: theme.spacing(1,1),
-        fontWeight: "bold"
+        padding: theme.spacing(1,4)
     },
     prizeNote: {
         color: "#FF213B",
@@ -50,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Leaderboard: React.FC<any> = (props: any) => {
     const [userlist, setUserlist] = useState([] as RowData[]);
+    const [seasonEnd, setSeasonEnd] = useState("");
 
     const classes = useStyles();
     const numberFormat = new Intl.NumberFormat();
@@ -61,6 +61,12 @@ const Leaderboard: React.FC<any> = (props: any) => {
         });
     }, []);
 
+    useEffect(() => {
+        axios.get("/api/setting/season-end").then((response) => {
+            setSeasonEnd(response.data);
+        });
+    }, []);
+
     const userProfile = Cookie.getJSON("user");
 
     // Generate list of all top users. Current user is displayed
@@ -69,6 +75,10 @@ const Leaderboard: React.FC<any> = (props: any) => {
     let leaderboardList;
     if (userlist.length >= 3) {
         leaderboardList = <Grid xs>
+            {seasonEnd ? 
+            <Box marginBottom={4} display="flex" justifyContent="center">
+                <Box className={classes.prizeHeader}>Season ends on <span style={{ fontWeight: "bold" }}>{seasonEnd}</span></Box>
+            </Box> : undefined}
             <Grid item container alignItems="flex-end" justify="center" direction="row">
                 <Grid item xs={1} />
                 <Grid item xs>
@@ -135,7 +145,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
             </Box>
             <Box marginTop={4} display="flex" justifyContent="center">
                 <Grid>
-                    <Box minWidth="20em" className={classes.prizeHeader}>Top 3 prizes</Box>
+                    <Box minWidth="20em" className={classes.prizeHeader} style={{ fontWeight: "bold" }}>Top 3 prizes</Box>
                     <Typography className={classes.prizeNote}>Note: All prizes get a discord color and role.</Typography>
                 </Grid>
             </Box>

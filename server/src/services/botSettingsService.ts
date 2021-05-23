@@ -17,6 +17,7 @@ export enum BotSettings {
     CardRedeemPerWeek = "card-redeem-perweek",
     TaxEventIsEnabled = "tax-event-is-enabled",
     Timezone = "timezone",
+    SeasonEnd = "season-end",
 }
 
 @injectable()
@@ -36,6 +37,7 @@ export default class BotSettingsService {
         [BotSettings.CardRedeemCost]: 1000,
         [BotSettings.CardRedeemPerWeek]: 10,
         [BotSettings.TaxEventIsEnabled]: false,
+        [BotSettings.SeasonEnd]: "",
     };
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
