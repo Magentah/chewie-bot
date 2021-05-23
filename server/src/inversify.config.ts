@@ -26,6 +26,7 @@ import DropboxService from "./services/dropboxService";
 import EventLogService from "./services/eventLogService";
 import ChannelPointRewardService from "./services/channelPointRewardService";
 import TaxService from "./services/taxService";
+import CardService from "./services/cardService";
 
 // Database Repositories
 
@@ -124,6 +125,7 @@ botContainer.bind<DropboxService>(DropboxService).toSelf().inSingletonScope();
 botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
 botContainer.bind<ChannelPointRewardService>(ChannelPointRewardService).toSelf().inSingletonScope();
 botContainer.bind<TaxService>(TaxService).toSelf().inSingletonScope();
+botContainer.bind<CardService>(CardService).toSelf().inSingletonScope();
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();

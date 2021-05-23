@@ -475,6 +475,10 @@ export class DatabaseService {
     public getQueryBuilder(tableName: string): Knex.QueryBuilder {
         return this.db(tableName);
     }
+
+    public raw(value: string): any {
+        return this.db.raw(value);
+    }
 }
 
 export default DatabaseService;
