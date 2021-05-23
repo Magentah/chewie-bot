@@ -115,8 +115,24 @@ export class DatabaseService {
                 resolve();
             } else if (this.isInit) {
                 resolve();
+            } else if (this.inSetup) {
+                await this.waitForSetup();
+                resolve();
             }
-            reject("Database has not been initialized.");
+        });
+    }
+
+    /**
+     * Function that loops and resolves after no longer in setup stage.
+     * @returns Promise that resolves when this.inSetup is false.
+     */
+    private async waitForSetup(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            if (this.inSetup) {
+                setTimeout(this.waitForSetup, 100);
+            } else {
+                resolve();
+            }
         });
     }
 
