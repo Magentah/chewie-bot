@@ -15,6 +15,7 @@ export enum BotSettings {
     RedeemCost = "redeem-cost",
     CardRedeemCost = "card-redeem-cost",
     CardRedeemPerWeek = "card-redeem-perweek",
+    CardRecyclePoints = "card-recycle-points",
     TaxEventIsEnabled = "tax-event-is-enabled",
     Timezone = "timezone",
     SeasonEnd = "season-end",
@@ -36,6 +37,7 @@ export default class BotSettingsService {
         [BotSettings.Timezone]: "",
         [BotSettings.CardRedeemCost]: 1000,
         [BotSettings.CardRedeemPerWeek]: 10,
+        [BotSettings.CardRecyclePoints]: 300,
         [BotSettings.TaxEventIsEnabled]: false,
         [BotSettings.SeasonEnd]: "",
     };
