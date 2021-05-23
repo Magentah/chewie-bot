@@ -79,7 +79,7 @@ export default class ChannelPointRewardService {
     public async channelPointRewardRedemptionTriggered(channelPointReward: ITwitchChannelReward, userId: number): Promise<void> {
         const reward = await this.getChannelReward(channelPointReward);
         if (reward?.associatedRedemption) {
-            const now = new Date(Date.now());
+            const now = new Date();
             const channelPointRewardHistoryEntry: IChannelPointRewardHistory = {
                 associatedRedemption: reward?.associatedRedemption,
                 rewardId: channelPointReward.id,
