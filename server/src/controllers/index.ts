@@ -7,3 +7,4 @@ export { default as CommandlistController } from "./commandlistController";
 export { default as SettingsController } from "./settingsController";
 export { default as DonationlistController } from "./donationlistController";
 export { default as CardlistController } from "./cardlistController";
+export { default as ChannelPointRewardController } from "./channelPointRewardController";

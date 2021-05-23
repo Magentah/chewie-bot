@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { inject, injectable } from "inversify";
+import { inject, injectable, LazyServiceIdentifer } from "inversify";
 import { Logger, LogType } from "../logger";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -8,7 +8,9 @@ import { StatusCodes } from "http-status-codes";
 import { UserService } from "./userService";
 import DiscordService from "./discordService";
 import EventLogService from "./eventLogService";
+import ChannelPointRewardService from "./channelPointRewardService";
 import * as EventSub from "../models";
+import { ITwitchChannelReward } from "../models";
 import { TwitchAuthService } from ".";
 import { PointLogType } from "../models/pointLog";
 import { TwitchWebService } from "./twitchWebService";
@@ -26,13 +28,15 @@ export default class TwitchEventService {
         EventSub.EventTypes.StreamOffline,
     ];
     private broadcasterUserId: number = 0;
+    private eventCallbacks: { [key: string]: Function[] } = {};
 
     constructor(
         @inject(UserService) private users: UserService,
         @inject(DiscordService) private discord: DiscordService,
         @inject(TwitchAuthService) private authService: TwitchAuthService,
         @inject(TwitchWebService) private twitchWebService: TwitchWebService,
-        @inject(EventLogService) private eventLogService: EventLogService
+        @inject(EventLogService) private eventLogService: EventLogService,
+        @inject(ChannelPointRewardService) private channelPointRewardService: ChannelPointRewardService
     ) {
         this.accessToken = {
             token: "",
@@ -54,10 +58,7 @@ export default class TwitchEventService {
             if (broadcaster?.twitchUserProfile) {
                 this.broadcasterUserId = broadcaster.twitchUserProfile.id;
             } else {
-                Logger.warn(
-                    LogType.TwitchEvents,
-                    "Broadcaster Twitch Profile does not exist. Cannot create subscriptions to EventSub."
-                );
+                Logger.warn(LogType.TwitchEvents, "Broadcaster Twitch Profile does not exist. Cannot create subscriptions to EventSub.");
                 return;
             }
         }
@@ -111,6 +112,21 @@ export default class TwitchEventService {
                     break;
                 }
             }
+            // Call all callbacks for the notification type.
+            this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
+        }
+    }
+
+    /**
+     * Subscribe to a Twitch Event.
+     * @param eventType The EventType of the Twitch Event
+     * @param callback The function to call when the event is triggered.
+     */
+    public subscribeToEvent(eventType: EventSub.EventTypes, callback: Function): void {
+        if (this.eventCallbacks[eventType]) {
+            this.eventCallbacks[eventType].push(callback);
+        } else {
+            this.eventCallbacks[eventType] = [callback];
         }
     }
 
@@ -132,17 +148,14 @@ export default class TwitchEventService {
                 event: notificationEvent,
                 pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
             });
-            await this.users.changeUserPoints(
-                user,
-                notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
-                PointLogType.PointRewardRedemption
-            );
+            // This should always have an id at this point, but TypeScript doesn't like if you don't actually check for it.
+            if (user.id) {
+                // If there is a reward redemption associated with a twitch channel reward, this will add it to the history with the associated redemption.
+                await this.channelPointRewardService.channelPointRewardRedemptionTriggered(notificationEvent.reward as ITwitchChannelReward, user.id);
+            }
+            await this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier, PointLogType.PointRewardRedemption);
             // Set reward status to fulfilled.
-            await this.twitchWebService.updateChannelRewardStatus(
-                notificationEvent.reward.id,
-                notificationEvent.id,
-                "FULFILLED"
-            );
+            await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
         }
     }
 
@@ -178,28 +191,28 @@ export default class TwitchEventService {
         this.discord.sendStreamOffline();
     }
 
-    public async subscribeEvent(event: EventSub.EventTypes, userId: string): Promise<void> {
+    public async createEventSubscription(event: EventSub.EventTypes, userId: string): Promise<void> {
         const data = this.getSubscriptionData(event, userId);
         const result = await this.createSubscription(data);
         Logger.info(LogType.Twitch, `Created subscription for event type: ${event} for user id: ${userId}`, result);
     }
 
-    public async subscribeStreamOnline(userId: string): Promise<void> {
+    public async createStreamOnlineSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.StreamOnline, userId);
         const result = await this.createSubscription(data);
     }
 
-    public async subscribeStreamOffline(userId: string): Promise<void> {
+    public async createStreamOfflineSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.StreamOffline, userId);
         const result = await this.createSubscription(data);
     }
 
-    public async subscribePointsRedeemed(userId: string): Promise<void> {
+    public async createPointsRedeemedSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.ChannelPointsRedeemed, userId);
         const result = await this.createSubscription(data);
     }
 
-    public async subscribePointsRedeemedUpdate(userId: string): Promise<void> {
+    public async createPointsRedeemedUpdateSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.ChannelPointsRedeemedUpdate, userId);
         const result = await this.createSubscription(data);
     }
@@ -260,9 +273,7 @@ export default class TwitchEventService {
         const result = await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
     }
 
-    private async createSubscription(
-        data: EventSub.ISubscriptionData
-    ): Promise<EventSub.ISubscriptionResponse | undefined> {
+    private async createSubscription(data: EventSub.ISubscriptionData): Promise<EventSub.ISubscriptionResponse | undefined> {
         const options = await this.getOptions("application/json");
 
         data.transport.secret = this.verificationSecret;

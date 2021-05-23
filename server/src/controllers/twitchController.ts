@@ -96,8 +96,8 @@ class TwitchController {
         res.status(StatusCodes.OK).send(subscriptions);
     }
 
-    public async subscribeEventSub(req: Request, res: Response): Promise<void> {
-        await this.twitchEventService.subscribeEvent(req.body.event, req.body.userId);
+    public async createEventSubscription(req: Request, res: Response): Promise<void> {
+        await this.twitchEventService.createEventSubscription(req.body.event, req.body.userId);
         res.sendStatus(StatusCodes.ACCEPTED);
     }
 

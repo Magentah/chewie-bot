@@ -15,6 +15,7 @@ export enum BotSettings {
     RedeemCost = "redeem-cost",
     CardRedeemCost = "card-redeem-cost",
     CardRedeemPerWeek = "card-redeem-perweek",
+    TaxEventIsEnabled = "tax-event-is-enabled",
     Timezone = "timezone",
 }
 
@@ -34,6 +35,7 @@ export default class BotSettingsService {
         [BotSettings.Timezone]: "",
         [BotSettings.CardRedeemCost]: 1000,
         [BotSettings.CardRedeemPerWeek]: 10,
+        [BotSettings.TaxEventIsEnabled]: false,
     };
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
@@ -44,7 +46,7 @@ export default class BotSettingsService {
         return (await this.botSettings.get(key))?.value ?? this.getDefaultValue(key);
     }
 
-    public getDefaultValue(key: BotSettings): string | number {
+    public getDefaultValue(key: BotSettings): string | number | boolean {
         return this.SettingDefaults[key];
     }
 
