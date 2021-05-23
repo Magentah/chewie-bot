@@ -12,6 +12,7 @@ export default interface IUserCard {
     imageId: string;
     mimetype?: string;
     setName?: string;
+    baseCardName?: string;
     rarity: CardRarity;
     creationDate: Date
 }

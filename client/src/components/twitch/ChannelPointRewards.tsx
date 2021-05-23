@@ -11,14 +11,14 @@ type RowData = { twitchRewardId: number, title: string, cost: number, isEnabled:
 const ChannelPointRewards: React.FC<any> = (props: any) => {
     const [channelPointRewards, setChannelPointRewards] = useState([] as RowData[]);
     const [redemptions, setRedemptions] = useState<string[]>([]);
-    const [selectedRedemption, setSelectedRedemption] = useState<string>();
+    const [selectedRedemption, setSelectedRedemption] = useState<string>("");
     const [currentRewardForAction, setCurrentRewardForAction] = useState<RowData>();
     const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
 
     //TODO: Might be better to do this on the server instead of here. First API call gets all rewards from the Twitch API
     // Second API call gets the saved redemptions from the database and adds the data to the other results.
     useEffect(() => {
-        axios.get("api/twitch/channelrewards").then((result) => {
+        axios.get("/api/twitch/channelrewards").then((result) => {
             let results = result.data;
             axios.get("api/twitch/channelrewards/associations").then((savedChannelPointRewards) => {
                 results = results.map((result: any) => {
@@ -32,7 +32,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
     }, []);
 
     useEffect(() => {
-        axios.get("api/twitch/channelrewards/redemptions").then((result) => {
+        axios.get("/api/twitch/channelrewards/redemptions").then((result) => {
             setRedemptions(result.data);
             setSelectedRedemption(redemptions[0]);
         });
@@ -60,7 +60,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
             channelPointRedemption: selectedRedemption
         };
 
-        const result = await axios.post("api/twitch/channelrewards/associations", postData);
+        const result = await axios.post("/api/twitch/channelrewards/associations", postData);
         if (result.status === 200) {
             const newChannelPointRewards = [...channelPointRewards];
             const index = channelPointRewards.indexOf(currentRewardForAction);
@@ -82,7 +82,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
     }
 
     const deleteRedemption = async (rewardToDelete: any) => {
-        const result = await axios.delete(`api/twitch/channelrewards/associations?id=${rewardToDelete.id}`);
+        const result = await axios.delete(`/api/twitch/channelrewards/associations?id=${rewardToDelete.id}`);
         if (result.status === 200) {
             const newChannelPointRewards = [...channelPointRewards];
             const index = channelPointRewards.indexOf(rewardToDelete);
