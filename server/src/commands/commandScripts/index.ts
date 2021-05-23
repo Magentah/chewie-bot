@@ -14,7 +14,6 @@ export { default as AddVipCommand } from "./addVipCommand";
 export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
 export { default as VipCommand } from "./vipCommand";
 export { default as RandomCommand } from "./randomCommand";
-export { default as TimeCommand } from "./timeCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";
@@ -35,6 +34,7 @@ export { default as BidCommand } from "./auction/bidCommand";
 export { default as RedeemCardCommand } from "./cards/redeemCardCommand";
 export { default as OfferCommand } from "./cards/offerCommand";
 export { default as AcceptOfferCommand } from "./cards/acceptOfferCommand";
+export { default as RecycleCardCommand } from "./cards/recycleCommand";
 
 export { default as PointsCommand } from "../commandScripts/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";

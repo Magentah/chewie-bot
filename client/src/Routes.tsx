@@ -20,6 +20,7 @@ import UserList from "./components/users/userlist";
 import UserProfileView from "./components/users/userprofile";
 import Leaderboard from "./components/users/leaderboard";
 import UserCardList from "./components/cards/userCardList";
+import ChannelPointRewards from "./components/twitch/ChannelPointRewards";
 import UserCardStackList from "./components/cards/userCardStackList";
 
 export type Route = {
@@ -128,6 +129,13 @@ const DashboardRoutes: Route[] = [
         component: UserList,
         minUserLevel: UserLevels.Moderator
     },
+    {
+        path: "/channelpointrewards",
+        name: "Channel Point Rewards",
+        icon: Extension,
+        component: ChannelPointRewards,
+        minUserLevel: UserLevels.Moderator
+    }
 ];
 
 const NotFoundRoute: Route = {

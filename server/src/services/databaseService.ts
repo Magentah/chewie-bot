@@ -23,6 +23,11 @@ export enum DatabaseTables {
     Messages = "messages",
     Cards = "userCards",
     CardStack = "userCardStack",
+    UserTaxStreak = "userTaxStreak",
+    UserTaxHistory = "userTaxHistory",
+    ChannelPointRewards = "channelPointRewards",
+    ChannelPointRewardHistory = "channelPointRewardHistory",
+    StreamActivity = "streamActivity",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -92,17 +97,42 @@ export class DatabaseService {
                 await this.createEventLogsTable();
                 await this.createPointLogsTable();
                 await this.createMessagesTable();
-                await this.populateDatabase();
-                await this.addBroadcaster();
-                await this.addDefaultBotSettings();
                 await this.createTwitchProfileTable();
                 await this.createUserCardsTable();
                 await this.createUserCardStackTable();
+                await this.createUserTaxStreakTable();
+                await this.createUserTaxHistoryTable();
+                await this.createChannelPointRewardsTable();
+                await this.createChannelPointRewardHistoryTable();
+                await this.createStreamActivityTable();
+
+                await this.addBroadcaster();
+                await this.addDefaultBotSettings();
+                await this.populateDatabase();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
+                resolve();
+            } else if (this.isInit) {
+                resolve();
+            } else if (this.inSetup) {
+                await this.waitForSetup();
+                resolve();
             }
-            resolve();
+        });
+    }
+
+    /**
+     * Function that loops and resolves after no longer in setup stage.
+     * @returns Promise that resolves when this.inSetup is false.
+     */
+    private async waitForSetup(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            if (this.inSetup) {
+                setTimeout(this.waitForSetup, 100);
+            } else {
+                resolve();
+            }
         });
     }
 
@@ -280,10 +310,11 @@ export class DatabaseService {
     private async createUserCardsTable(): Promise<void> {
         return this.createTable(DatabaseTables.Cards, (table) => {
             table.integer("id").primary().notNullable().unique();
-            table.string("name").notNullable();
+            table.string("name").unique().notNullable();
             table.string("imageId").notNullable();
             table.string("mimetype");
             table.string("setName");
+            table.string("baseCardName");
             table.integer("rarity").notNullable();
             table.dateTime("creationDate").notNullable();
         });
@@ -298,6 +329,62 @@ export class DatabaseService {
             table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards);
             table.dateTime("redemptionDate").notNullable();
             table.boolean("deleted").notNullable().defaultTo(false);
+        });
+    }
+
+    private async createUserTaxStreakTable(): Promise<void> {
+        return this.createTable(DatabaseTables.UserTaxStreak, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("userId").notNullable();
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.integer("currentStreak").notNullable();
+            table.integer("longestStreak").notNullable();
+            table.integer("lastTaxRedemptionId").notNullable();
+            table.foreign("lastTaxRedemptionId").references("id").inTable(DatabaseTables.UserTaxHistory);
+        });
+    }
+
+    private async createUserTaxHistoryTable(): Promise<void> {
+        return this.createTable(DatabaseTables.UserTaxHistory, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("userId").notNullable();
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.dateTime("taxRedemptionDate").notNullable();
+            table.string("channelPointRewardTwitchId").notNullable();
+        });
+    }
+
+    private async createChannelPointRewardsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.ChannelPointRewards, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.string("twitchRewardId").notNullable().unique();
+            table.string("title").notNullable();
+            table.integer("cost").notNullable();
+            table.boolean("isEnabled").notNullable().defaultTo(true);
+            table.boolean("isGlobalCooldownEnabled").notNullable().defaultTo(false);
+            table.integer("globalCooldown");
+            table.boolean("shouldSkipRequestQueue").notNullable().defaultTo(false);
+            table.string("associatedRedemption");
+            table.boolean("isDeleted").notNullable().defaultTo(false);
+        });
+    }
+
+    private async createChannelPointRewardHistoryTable(): Promise<void> {
+        return this.createTable(DatabaseTables.ChannelPointRewardHistory, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("userId").notNullable();
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.string("rewardId").notNullable();
+            table.string("associatedRedemption").notNullable();
+            table.dateTime("dateTimeTriggered").notNullable();
+        });
+    }
+
+    private async createStreamActivityTable(): Promise<void> {
+        return this.createTable(DatabaseTables.StreamActivity, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.string("event").notNullable();
+            table.dateTime("dateTimeTriggered").notNullable();
         });
     }
 
