@@ -310,10 +310,11 @@ export class DatabaseService {
     private async createUserCardsTable(): Promise<void> {
         return this.createTable(DatabaseTables.Cards, (table) => {
             table.integer("id").primary().notNullable().unique();
-            table.string("name").notNullable();
+            table.string("name").unique().notNullable();
             table.string("imageId").notNullable();
             table.string("mimetype");
             table.string("setName");
+            table.string("baseCardName");
             table.integer("rarity").notNullable();
             table.dateTime("creationDate").notNullable();
         });

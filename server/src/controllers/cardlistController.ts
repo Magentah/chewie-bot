@@ -50,7 +50,12 @@ class CardlistController {
         }
 
         try {
-            await this.cardRepository.addOrUpdate({...cardData, name: card.name, setName: card.setName, rarity: card.rarity});
+            await this.cardRepository.addOrUpdate({...cardData,
+                name: card.name,
+                setName: card.setName,
+                baseCardName: card.baseCardName,
+                rarity: card.rarity
+            });
             res.status(StatusCodes.OK);
             res.send(card);
         } catch (err) {
@@ -81,7 +86,14 @@ class CardlistController {
 
         let cardData = await this.cardRepository.get(card);
         if (!cardData) {
-            cardData = await this.cardRepository.addOrUpdate({ name: card.name, setName: card.setName, rarity: card.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
+            cardData = await this.cardRepository.addOrUpdate({
+                name: card.name,
+                setName: card.setName,
+                baseCardName: card.baseCardName,
+                rarity: card.rarity,
+                creationDate: new Date(),
+                imageId: Guid.create().toString()
+            });
         }
 
         const fileExt = this.cardRepository.getFileExt(req.files.image.mimetype);
@@ -144,7 +156,14 @@ class CardlistController {
         }
 
         try {
-            const result = await this.cardRepository.addOrUpdate({ name: newCard.name, setName: newCard.setName, rarity: newCard.rarity, creationDate: new Date(), imageId: Guid.create().toString() });
+            const result = await this.cardRepository.addOrUpdate({
+                name: newCard.name,
+                setName: newCard.setName,
+                baseCardName: newCard.baseCardName,
+                rarity: newCard.rarity,
+                creationDate: new Date(),
+                imageId: Guid.create().toString()
+            });
             res.status(StatusCodes.OK);
             res.send(result);
         } catch (err) {
