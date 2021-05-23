@@ -3,6 +3,7 @@ import { Lang } from "../lang";
 Lang.register("cards.insufficientpoints", "$1, you don't have enough chews to redeem a card!");
 Lang.register("cards.cardredeemed", "$1, you got the card \"$2\"!");
 Lang.register("cards.redeemlimitexceeded", "$1, you have already redeemed $2 cards this week!");
+Lang.register("cards.cardrecycled", "$1, you got $3 chews for recycling the card \"$2\"!");
 
 Lang.register("cards.trading.nocardoffered", "$1, you need to offer a card for trading!");
 Lang.register("cards.trading.missingargument", "$1, use !offer <card> <for card or chews> <optional: to user>");
