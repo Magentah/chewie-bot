@@ -15,20 +15,32 @@ export enum BotSettings {
     RedeemCost = "redeem-cost",
     CardRedeemCost = "card-redeem-cost",
     CardRedeemPerWeek = "card-redeem-perweek",
+    CardRecyclePoints = "card-recycle-points",
+    TaxEventIsEnabled = "tax-event-is-enabled",
+    Timezone = "timezone",
+    SeasonEnd = "season-end",
 }
 
 @injectable()
 export default class BotSettingsService {
-    private readonly DefaultPruneDonationsAfterDays: number = 7 * 5;
-    private readonly DefaultGoldAmount: number = 50;
-    private readonly DefaultDonationPointsPerDollar: number = 100;
-    private readonly DefaultPointsPerBit: number = 1;
-    private readonly DefaultSongRequestDonationAmount: number = 15;
-    private readonly DefaultSubPoints: number = 500;
-    private readonly DefaultSubPointsPerYearMultiplier: number = 1000;
-    private readonly DefaultRedeemCost: number = 50;
-    private readonly DefaultCardRedeemCost: number = 1000;
-    private readonly DefaultCardRedeemPerWeek: number = 10;
+    private readonly SettingDefaults = {
+        [BotSettings.DonationPointsPerDollar]: 100,
+        [BotSettings.GoldStatusDonationAmount]: 50,
+        [BotSettings.PointsPerBit]: 1,
+        [BotSettings.PruneLogsAfterDays]: 7 * 5,
+        [BotSettings.RedeemCost]: 50,
+        [BotSettings.SongRequestDonationAmount]: 15,
+        [BotSettings.SubPoints]: 500,
+        [BotSettings.SubPointsPerYear]: 1000,
+        [BotSettings.BotUsername]: "",
+        [BotSettings.BotUserAuth]: "",
+        [BotSettings.Timezone]: "",
+        [BotSettings.CardRedeemCost]: 1000,
+        [BotSettings.CardRedeemPerWeek]: 10,
+        [BotSettings.CardRecyclePoints]: 300,
+        [BotSettings.TaxEventIsEnabled]: false,
+        [BotSettings.SeasonEnd]: "",
+    };
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
         // Empty
@@ -38,40 +50,8 @@ export default class BotSettingsService {
         return (await this.botSettings.get(key))?.value ?? this.getDefaultValue(key);
     }
 
-    public getDefaultValue(key: BotSettings): string {
-        switch (key) {
-            case BotSettings.PruneLogsAfterDays:
-                return this.DefaultPruneDonationsAfterDays.toString();
-
-            case BotSettings.GoldStatusDonationAmount:
-                return this.DefaultGoldAmount.toString();
-
-            case BotSettings.DonationPointsPerDollar:
-                return this.DefaultDonationPointsPerDollar.toString();
-
-            case BotSettings.PointsPerBit:
-                return this.DefaultPointsPerBit.toString();
-
-            case BotSettings.SongRequestDonationAmount:
-                return this.DefaultSongRequestDonationAmount.toString();
-
-            case BotSettings.SubPoints:
-                return this.DefaultSubPoints.toString();
-
-            case BotSettings.SubPointsPerYear:
-                return this.DefaultSubPointsPerYearMultiplier.toString();
-
-            case BotSettings.RedeemCost:
-                return this.DefaultRedeemCost.toString();
-
-            case BotSettings.CardRedeemCost:
-                return this.DefaultCardRedeemCost.toString();
-
-            case BotSettings.CardRedeemPerWeek:
-                return this.DefaultCardRedeemPerWeek.toString();
-        }
-
-        return "";
+    public getDefaultValue(key: BotSettings): string | number | boolean {
+        return this.SettingDefaults[key];
     }
 
     public async getSettings(key: BotSettings): Promise<IBotSettings> {

@@ -18,3 +18,6 @@ export { default as DiscordService } from "./discordService";
 export { default as TwitchAuthService } from "./twitchAuthService";
 export { default as RewardService } from "./rewardService";
 export { default as EventLogService } from "./eventLogService";
+export { default as ChannelPointRewardService } from "./channelPointRewardService";
+export { default as TaxService } from "./taxService";
+export { default as CardService } from "./cardService";

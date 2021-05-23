@@ -4,7 +4,7 @@ import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Card, CardContent, Typography } from "@material-ui/core";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, ArrowUpward, Loyalty, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Lens as DefaultIcon } from "@material-ui/icons";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
@@ -20,12 +20,14 @@ import UserList from "./components/users/userlist";
 import UserProfileView from "./components/users/userprofile";
 import Leaderboard from "./components/users/leaderboard";
 import UserCardList from "./components/cards/userCardList";
+import ChannelPointRewards from "./components/twitch/ChannelPointRewards";
+import UserCardStackList from "./components/cards/userCardStackList";
 
 export type Route = {
     path: string;
     name: string;
     component: any;
-    icon: OverridableComponent<SvgIconTypeMap<{}, "svg">>;
+    icon: OverridableComponent<SvgIconTypeMap<{}, "svg">> | string;
     minUserLevel: UserLevels,
     hideInSidebar?: boolean
 };
@@ -59,7 +61,7 @@ const DashboardRoutes: Route[] = [
     },
     {
         path: "/songqueue",
-        name: "Music Requests",
+        name: "Song Queue",
         icon: QueueMusic,
         component: MusicRequestView,
         minUserLevel: UserLevels.Viewer
@@ -74,8 +76,15 @@ const DashboardRoutes: Route[] = [
     {
         path: "/leaderboard",
         name: "Leaderboard",
-        icon: ArrowUpward,
+        icon: EmojiEvents,
         component: Leaderboard,
+        minUserLevel: UserLevels.Viewer
+    },
+    {
+        path: "/mycards",
+        name: "My cards",
+        icon: "contact_page",
+        component: UserCardStackList,
         minUserLevel: UserLevels.Viewer
     },
     {
@@ -109,7 +118,7 @@ const DashboardRoutes: Route[] = [
     {
         path: "/usercards",
         name: "Cards",
-        icon: Loyalty,
+        icon: "contact_page",
         component: UserCardList,
         minUserLevel: UserLevels.Broadcaster
     },
@@ -120,6 +129,13 @@ const DashboardRoutes: Route[] = [
         component: UserList,
         minUserLevel: UserLevels.Moderator
     },
+    {
+        path: "/channelpointrewards",
+        name: "Channel Point Rewards",
+        icon: Extension,
+        component: ChannelPointRewards,
+        minUserLevel: UserLevels.Moderator
+    }
 ];
 
 const NotFoundRoute: Route = {

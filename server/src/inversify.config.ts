@@ -24,6 +24,9 @@ import TwitchWebService from "./services/twitchWebService";
 import DiscordService from "./services/discordService";
 import DropboxService from "./services/dropboxService";
 import EventLogService from "./services/eventLogService";
+import ChannelPointRewardService from "./services/channelPointRewardService";
+import TaxService from "./services/taxService";
+import CardService from "./services/cardService";
 
 // Database Repositories
 
@@ -42,6 +45,11 @@ import EventLogsRepository from "./database/eventLogsRepository";
 import MessagesRepository from "./database/messagesRepository";
 import PointLogsRepository from "./database/pointLogsRepository";
 import CardsRepository from "./database/cardsRepository";
+import ChannelPointRewardRepository from "./database/channelPointRewardRepository";
+import ChannelPointRewardHistoryRepository from "./database/channelPointRewardHistoryRepository";
+import UserTaxHistoryRepository from "./database/userTaxHistoryRepository";
+import UserTaxStreakRepository from "./database/userTaxStreakRepository";
+import StreamActivityRepository from "./database/streamActivityRepository";
 
 // Controllers
 import SongController from "./controllers/songController";
@@ -54,11 +62,11 @@ import UserlistController from "./controllers/userlistController";
 import CommandlistController from "./controllers/commandlistController";
 import SettingsController from "./controllers/settingsController";
 import CardlistController from "./controllers/cardlistController";
+import ChannelPointRewardController from "./controllers/channelPointRewardController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
 import { Command } from "./commands/command";
-
 
 const botContainer = new Container();
 
@@ -115,7 +123,9 @@ botContainer.bind<RewardService>(RewardService).toSelf().inSingletonScope();
 botContainer.bind<StreamlabsService>(StreamlabsService).toSelf().inSingletonScope();
 botContainer.bind<DropboxService>(DropboxService).toSelf().inSingletonScope();
 botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
-
+botContainer.bind<ChannelPointRewardService>(ChannelPointRewardService).toSelf().inSingletonScope();
+botContainer.bind<TaxService>(TaxService).toSelf().inSingletonScope();
+botContainer.bind<CardService>(CardService).toSelf().inSingletonScope();
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
@@ -133,6 +143,11 @@ botContainer.bind<DiscordRepository>(DiscordRepository).toSelf();
 botContainer.bind<EventLogsRepository>(EventLogsRepository).toSelf();
 botContainer.bind<MessagesRepository>(MessagesRepository).toSelf();
 botContainer.bind<CardsRepository>(CardsRepository).toSelf();
+botContainer.bind<ChannelPointRewardRepository>(ChannelPointRewardRepository).toSelf();
+botContainer.bind<ChannelPointRewardHistoryRepository>(ChannelPointRewardHistoryRepository).toSelf();
+botContainer.bind<UserTaxHistoryRepository>(UserTaxHistoryRepository).toSelf();
+botContainer.bind<UserTaxStreakRepository>(UserTaxStreakRepository).toSelf();
+botContainer.bind<StreamActivityRepository>(StreamActivityRepository).toSelf();
 
 // Controllers
 botContainer.bind<SongController>(SongController).toSelf();
@@ -145,6 +160,7 @@ botContainer.bind<UserlistController>(UserlistController).toSelf();
 botContainer.bind<CommandlistController>(CommandlistController).toSelf();
 botContainer.bind<SettingsController>(SettingsController).toSelf();
 botContainer.bind<CardlistController>(CardlistController).toSelf();
+botContainer.bind<ChannelPointRewardController>(ChannelPointRewardController).toSelf();
 
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();

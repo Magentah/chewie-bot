@@ -1,15 +1,7 @@
 export { default as IDonation } from "./donation";
 export { default as ISong, RequestSource, SongSource } from "./song";
 export { default as ITextCommand } from "./textCommand";
-export {
-    ITwitchAuthResponse,
-    ITwitchCacheValue,
-    ITwitchChatList,
-    ITwitchChatters,
-    ITwitchIDToken,
-    ITwitchRedirectResponse,
-    ITwitchUser,
-} from "./twitchApi";
+export { ITwitchAuthResponse, ITwitchCacheValue, ITwitchChatList, ITwitchChatters, ITwitchIDToken, ITwitchRedirectResponse, ITwitchUser } from "./twitchApi";
 export { default as IUser } from "./user";
 export { default as IUserLevel, UserLevels } from "./userLevel";
 export { default as IVIPLevel } from "./vipLevel";
@@ -51,3 +43,12 @@ export { default as IQuote } from "./quotes";
 export { default as IGameMessage, GameEventType, GameMessageType } from "./gameMessage";
 export { default as ICommandInfo } from "./commandInfo";
 export { default as IUserCard, CardRarity } from "./userCard";
+export {
+    default as ITwitchChannelReward,
+    ITwitchChannelRewardRequest,
+    IChannelRewardImage,
+    IMaxPerStream,
+    IMaxPerUserPerStream,
+    IGlobalCooldown,
+} from "./twitchChannelReward";
+export { default as IChannelPointReward, IChannelPointRewardHistory, ChannelPointRedemption } from "./channelPointReward";

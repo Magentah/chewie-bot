@@ -11,9 +11,9 @@ import * as redis from "redis";
 import { CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import * as Routers from "./routes";
-import { setupPassport } from "./routes/authRouter"
+import { setupPassport } from "./routes/authRouter";
 import { UserCookie } from "./middleware";
-import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService } from "./services";
+import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService, TaxService } from "./services";
 import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
 import TwitchHelper from "./helpers/twitchHelper";
@@ -30,6 +30,7 @@ class BotServer extends Server {
     private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
     private socket: WebsocketService;
     private commands: CommandService;
+    private taxService: TaxService;
 
     constructor() {
         super(true);
@@ -40,6 +41,8 @@ class BotServer extends Server {
         // Force call constructor before they're used by anything else. Probably a better way to do this...
         this.socket = BotContainer.get<WebsocketService>(WebsocketService);
         this.commands = BotContainer.get<CommandService>(CommandService);
+        this.taxService = BotContainer.get<TaxService>(TaxService);
+        this.taxService.setup();
 
         // Go live on startup (if configured).
         const twitchService = BotContainer.get<TwitchService>(TwitchService);
