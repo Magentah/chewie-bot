@@ -68,6 +68,21 @@ export default class UserTaxHistoryRepository {
         return users;
     }
 
+    public async getLongestTaxStreaks(limit: number): Promise<{ userId: number, username: string, longestStreak: number }[]> {
+        const databaseService = await this.databaseProvider();
+
+        const users = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxStreak)
+            .join(DatabaseTables.Users, "userTaxStreak.userId", "users.id")
+            .orderBy("longestStreak", "desc")
+            .limit(limit)
+            .select([
+                "userTaxStreak.userId",
+                "users.username",
+                "longestStreak",
+            ])) as { userId: number, username: string, longestStreak: number }[];
+        return users;
+    }
+
     public async getAll(): Promise<IDBUserTaxHistory[]> {
         const databaseService = await this.databaseProvider();
         const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).select("*");

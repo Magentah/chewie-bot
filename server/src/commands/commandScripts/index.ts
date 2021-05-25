@@ -38,6 +38,7 @@ export { default as RecycleCardCommand } from "./cards/recycleCommand";
 
 // Tax
 export { default as TaxboardCommand } from "./tax/taxboardCommand";
+export { default as TaxStreakCommand } from "./tax/taxStreakCommand";
 
 export { default as PointsCommand } from "../commandScripts/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";
