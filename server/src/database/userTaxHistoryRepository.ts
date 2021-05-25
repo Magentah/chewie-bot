@@ -51,6 +51,23 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
+    public async getTopTaxpayers(rewardId: number, limit: number): Promise<{ userId: number, username: string, taxCount: number }[]> {
+        const databaseService = await this.databaseProvider();
+
+        const users = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory)
+            .join(DatabaseTables.Users, "userTaxHistory.userId", "users.id")
+            .groupBy("userTaxHistory.userId")
+            .orderBy("taxCount", "desc")
+            .where("channelPointRewardTwitchId", rewardId)
+            .limit(limit)
+            .select([
+                "userTaxHistory.userId",
+                "users.username",
+                databaseService.raw("COUNT(userTaxHistory.id) AS taxCount"),
+            ])) as { userId: number, username: string, taxCount: number }[];
+        return users;
+    }
+
     public async getAll(): Promise<IDBUserTaxHistory[]> {
         const databaseService = await this.databaseProvider();
         const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).select("*");

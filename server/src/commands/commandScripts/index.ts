@@ -36,6 +36,9 @@ export { default as OfferCommand } from "./cards/offerCommand";
 export { default as AcceptOfferCommand } from "./cards/acceptOfferCommand";
 export { default as RecycleCardCommand } from "./cards/recycleCommand";
 
+// Tax
+export { default as TaxboardCommand } from "./tax/taxboardCommand";
+
 export { default as PointsCommand } from "../commandScripts/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";
 export { default as AddPointsCommand } from "../commandScripts/addPointsCommand";
