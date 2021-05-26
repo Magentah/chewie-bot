@@ -82,7 +82,7 @@ const DashboardRoutes: Route[] = [
     },
     {
         path: "/mycards",
-        name: "My cards",
+        name: "My Cards",
         icon: "contact_page",
         component: UserCardStackList,
         minUserLevel: UserLevels.Viewer
