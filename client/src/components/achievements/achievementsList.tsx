@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox } from "@material-ui/core";
+import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Typography } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import { DropzoneArea, DropzoneDialog } from "material-ui-dropzone";
 import { AddToListState } from "../common/addToListState";
@@ -68,8 +68,9 @@ const AchievementsList: React.FC<any> = (props: any) => {
     const [achievementListState, setAchievementListState] = useState<AddToListState>();
 
     const [achievementType, setAchievementType] = useState<number>(0);
-    const [achievementAmount, setAchievementAmount] = useState<number>(0);
+    const [achievementAmount, setAchievementAmount] = useState<number>(1);
     const [achievementSeasonal, setAchievementSeasonal] = useState<boolean>(false);
+    const [achievementAmountIsNumberOfStreams, setAchievementAmountIsNumberOfStreams] = useState<boolean>(false);
     const [achievementFile, setAchievementFile] = useState<File>();
 
     const classes = useStyles();
@@ -102,7 +103,11 @@ const AchievementsList: React.FC<any> = (props: any) => {
         try {
             setAchievementListState({state: "progress"});
 
-            const newData = { type: achievementType, amount: achievementAmount, seasonal: achievementSeasonal } as RowData;
+            const newData = {
+                type: achievementType,
+                amount: achievementAmountIsNumberOfStreams ? -1 : achievementAmount,
+                seasonal: achievementSeasonal
+            } as RowData;
 
             const formData = new FormData();
             formData.append("achievement", JSON.stringify(newData));
@@ -118,7 +123,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                     setAchievementListState({state: "success"});
                     setAchievementlist(newList);
                     setAchievementType(0);
-                    setAchievementAmount(0);
+                    setAchievementAmount(1);
                     setAchievementSeasonal(false);
                     setAchievementFile(undefined);
                 } else {
@@ -151,21 +156,37 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item>
-                                <TextField
-                                    id="achievement-amount"
-                                    label="Amount required"
-                                    type="number"
-                                    fullWidth
-                                    value={achievementAmount}
-                                    onChange={(e) => setAchievementAmount(parseInt(e.target.value, 10))}
-                                />
+                            <Grid item container alignItems="center" direction="row">
+                                <Grid item>
+                                    <TextField
+                                        id="achievement-amount"
+                                        label="Amount required"
+                                        type="number"
+                                        InputProps={{ inputProps: { min: 1 } }}
+                                        fullWidth
+                                        disabled={achievementAmountIsNumberOfStreams}
+                                        value={achievementAmount}
+                                        onChange={(e) => setAchievementAmount(parseInt(e.target.value, 10))}
+                                    />
+                                </Grid>
+                                <Grid item>
+                                    <FormControlLabel style={{marginTop: "1.5em", marginLeft: "0.5em"}}
+                                        control={
+                                        <Checkbox
+                                            checked={achievementAmountIsNumberOfStreams}
+                                            onChange={(e) => setAchievementAmountIsNumberOfStreams(e.target.checked)}
+                                            name="achievement-isnumberofstreams"
+                                        />}
+                                        label="Use number of streams in season"
+                                    />
+                                </Grid>
                             </Grid>
                             <Grid item>
                                 <FormControlLabel
                                     control={
                                     <Checkbox
-                                        checked={achievementSeasonal}
+                                        checked={achievementSeasonal || achievementAmountIsNumberOfStreams}
+                                        readOnly={achievementAmountIsNumberOfStreams}
                                         onChange={(e) => setAchievementSeasonal(e.target.checked)}
                                         name="achievement-seasonal"
                                         color="primary"
@@ -205,7 +226,34 @@ const AchievementsList: React.FC<any> = (props: any) => {
                         defaultSort: "asc",
                         lookup: achievementTypes
                     },
-                    { title: "Amount", field: "amount" },
+                    {
+                        title: "Amount", field: "amount", type: "numeric",
+                        render: rowData => <Typography>{rowData.amount === -1 ? "Every stream in season" : rowData.amount}</Typography>,
+                        editComponent: editProps => (
+                            <Grid container justify="flex-end">
+                                <Grid item>
+                                    <TextField style={{width: "8em"}}
+                                        type="number"
+                                        InputProps={{ inputProps: { min: 1 } }}
+                                        disabled={editProps.rowData.amount === -1}
+                                        fullWidth
+                                        value={editProps.rowData.amount}
+                                        onChange={(e) => editProps.onChange(e.target.value)}
+                                    />
+                                </Grid>
+                                <Grid item>
+                                    <FormControlLabel
+                                        control={
+                                        <Checkbox style={{marginLeft: "0.5em"}}
+                                            checked={editProps.rowData.amount === -1}
+                                            onChange={(e) => editProps.onChange(e.target.checked ? -1 : 1)}
+                                        />}
+                                        label="Every stream in season"
+                                    />
+                                </Grid>
+                            </Grid>
+                          )
+                    },
                     { title: "Seasonal", field: "seasonal", type: "boolean" },
                     { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} />, editable: "never" }
                 ]}
