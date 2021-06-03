@@ -52,3 +52,4 @@ export {
     IGlobalCooldown,
 } from "./twitchChannelReward";
 export { default as IChannelPointReward, IChannelPointRewardHistory, ChannelPointRedemption } from "./channelPointReward";
+export { default as IAchievement, AchievementType } from "./achievement";
