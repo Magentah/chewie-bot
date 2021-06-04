@@ -83,7 +83,7 @@ export class UserService {
         userData.vipExpiry = undefined;
         userData.vipPermanentRequests = 0;
         await this.updateUser(userData);
-        await this.pointsLog.reset(userData.username);
+        await this.pointsLog.reset(userData);
         await this.changeUserPoints(userData, -userData.points, PointLogType.Reset);
     }
 
