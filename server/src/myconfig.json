@@ -71,7 +71,6 @@
                 "events": true
             },
             "song": {
-                "requested": true,
                 "played": true,
                 "removed": true,
                 "gold": true

@@ -172,7 +172,7 @@ export class UsersRepository {
 
         await databaseService
             .getQueryBuilder(DatabaseTables.PointLogs)
-            .insert({ eventType, username: user.username, pointsBefore: user.points - points, points, time: new Date() });
+            .insert({ eventType, userId: user.id, username: user.username, pointsBefore: user.points - points, points, time: new Date() });
     }
 
     /**
@@ -185,18 +185,6 @@ export class UsersRepository {
             .getQueryBuilder(DatabaseTables.Users)
             .update({ vipExpiry: user.vipExpiry, vipPermanentRequests: user.vipPermanentRequests })
             .where({ id: user.id });
-    }
-
-    /**
-     * Renames the points log for a given user.
-     */
-     public async renameUserInLog(oldUserName: string, newUserName: string): Promise<void> {
-        const databaseService = await this.databaseProvider();
-
-        await databaseService
-            .getQueryBuilder(DatabaseTables.PointLogs)
-            .where({ username: oldUserName })
-            .update({ username: newUserName });
     }
 
     /**

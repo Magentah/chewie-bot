@@ -1,5 +1,5 @@
 import { inject, injectable, LazyServiceIdentifer } from "inversify";
-import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward } from "../models";
+import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward, AchievementType } from "../models";
 import UserTaxHistoryRepository, { IDBUserTaxHistory } from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository from "../database/streamActivityRepository";
@@ -7,6 +7,7 @@ import TwitchChannelPointRewardService from "./channelPointRewardService";
 import UserService from "./userService";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import TwitchEventService from "./twitchEventService";
+import AchievementService from "./achievementService";
 
 @injectable()
 export default class TaxService {
@@ -20,6 +21,7 @@ export default class TaxService {
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
+        @inject(AchievementService) private achievementService: AchievementService,
         @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
         this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, this.streamOnline);
@@ -49,6 +51,9 @@ export default class TaxService {
             if (user && user.id) {
                 // Adds a tax redemption for the user.
                 await this.userTaxHistoryRepository.add(user.id, (notification.event as IRewardRedemeptionEvent).reward.id);
+
+                const count = await this.userTaxHistoryRepository.getCountForUser(user.id);
+                this.achievementService.grantAchievements(user, AchievementType.DailyTaxesPaid, count);
             }
         }
     }

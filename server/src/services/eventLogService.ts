@@ -9,15 +9,25 @@ export class EventLogService {
         // Empty
     }
 
-    public async addSongRequest(username: string, data: object | Array<object>): Promise<void> {
-        if (!Config.log.enabledEventLogs.song.requested) {
-            return;
-        }
+    public async addSongRequest(username: string, data: object | object[]): Promise<void> {
+        // Always log since needed for achievements.
         const log = this.createLog(EventLogType.SongRequest, username, data);
         await this.eventLogs.add(log);
     }
 
-    public async addSongPlayed(username: string, data: object | Array<object>): Promise<void> {
+    public async addSudoku(user: IUser) {
+        // Always log since needed for achievements.
+        const log = this.createLog(EventLogType.Sudoku, user.username, {});
+        await this.eventLogs.add(log);
+    }
+
+    public async addRedeem(user: IUser, type: string) {
+        // Always log since needed for achievements.
+        const log = this.createLog(EventLogType.RedeemCommand, user.username, { type });
+        await this.eventLogs.add(log);
+    }
+
+    public async addSongPlayed(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.song.played) {
             return;
         }
@@ -25,7 +35,7 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addSongRemoved(username: string, data: object | Array<object>): Promise<void> {
+    public async addSongRemoved(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.song.removed) {
             return;
         }
@@ -33,12 +43,12 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addChannelPointRedemption(username: string, data: object | Array<object>): Promise<void> {
+    public async addChannelPointRedemption(username: string, data: object | object[]): Promise<void> {
         const log = this.createLog(EventLogType.PointRewardRedemption, username, data);
         await this.eventLogs.add(log);
     }
 
-    public async addDuel(username: string, data: object | Array<object>): Promise<void> {
+    public async addDuel(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.event.duel) {
             return;
         }
@@ -46,7 +56,7 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addBankheist(username: string, data: object | Array<object>): Promise<void> {
+    public async addBankheist(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.event.bankheist) {
             return;
         }
@@ -54,12 +64,12 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addCommand(username: string, data: object | Array<object>): Promise<void> {
+    public async addCommand(username: string, data: object | object[]): Promise<void> {
         const log = this.createLog(EventLogType.Command, username, data);
         await this.eventLogs.add(log);
     }
 
-    public async addVipGoldAdded(username: string, data: object | Array<object>): Promise<void> {
+    public async addVipGoldAdded(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.song.gold) {
             return;
         }
@@ -67,7 +77,7 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addTwitchGiftSub(username: string, data: object | Array<object>): Promise<void> {
+    public async addTwitchGiftSub(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.twitch.subs) {
             return;
         }
@@ -76,7 +86,7 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addTwitchCommunityGiftSub(username: string, data: object | Array<object>): Promise<void> {
+    public async addTwitchCommunityGiftSub(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.twitch.subs) {
             return;
         }
@@ -85,7 +95,7 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addStreamlabsEventReceived(username: string, type: EventLogType, data: object | Array<object>) {
+    public async addStreamlabsEventReceived(username: string, type: EventLogType, data: object | object[]) {
         if (!Config.log.enabledEventLogs.streamlabs.events) {
             return;
         }
@@ -103,7 +113,7 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addCardTrading(username: string, data: object | Array<object>): Promise<void> {
+    public async addCardTrading(username: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.event.cardtrading) {
             return;
         }
@@ -111,7 +121,11 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    private createLog(type: EventLogType, username: string, data: object | Array<object>): IEventLog {
+    public async getCount(type: EventLogType, username: string) : Promise<number> {
+        return await this.eventLogs.getCount(type, username);
+    }
+
+    private createLog(type: EventLogType, username: string, data: object | object[]): IEventLog {
         const log: IEventLog = {
             type,
             username,

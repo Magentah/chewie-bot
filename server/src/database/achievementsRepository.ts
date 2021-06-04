@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
-import { IAchievement } from "../models";
+import { AchievementType, IAchievement, IUser } from "../models";
 
 @injectable()
 export default class AchievementsRepository {
@@ -11,6 +11,18 @@ export default class AchievementsRepository {
     public async getList(): Promise<IAchievement[]> {
         const databaseService = await this.databaseProvider();
         const results = await databaseService.getQueryBuilder(DatabaseTables.Achievements);
+        return results as IAchievement[];
+    }
+
+    public async getGlobalByType(type: AchievementType, exlucdeExistingUser: IUser): Promise<IAchievement[]> {
+        const databaseService = await this.databaseProvider();
+        const queryBuilder = databaseService.getQueryBuilder(DatabaseTables.Achievements);
+        const results = await queryBuilder
+            .where({ seasonal: false, type })
+            .whereNotExists(databaseService.getQueryBuilder(DatabaseTables.UserAchievements)
+                .select("id").from(DatabaseTables.UserAchievements).where({ userId: exlucdeExistingUser.id }).andWhereRaw("userAchievements.achievementId = achievements.id")
+            )
+            .orderBy("amount");
         return results as IAchievement[];
     }
 
@@ -49,6 +61,12 @@ export default class AchievementsRepository {
         }
 
         return false;
+    }
+
+    public async grantAchievement(user: IUser, achievement: IAchievement) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.UserAchievements)
+            .insert({ userId: user.id, achievementId: achievement.id, date: new Date().getTime() }).onConflict(["userId", "achievementId", "expiredDate"]).ignore()
     }
 
     public getFileExt(mimetype: string): string | undefined {

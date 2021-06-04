@@ -20,6 +20,12 @@ export default class UserTaxHistoryRepository {
         return returnRewardEvent;
     }
 
+    public async getCountForUser(userId: number): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).count("id as cnt").where("userId", userId).first()).cnt;
+        return count;
+    }
+
     public async getForUserSinceDate(userId: number, sinceDate: Date): Promise<IDBUserTaxHistory[]> {
         const databaseService = await this.databaseProvider();
         const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService

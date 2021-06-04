@@ -1,5 +1,5 @@
-import { EventService, UserService, TwitchService, EventLogService } from "../services";
-import { IUser } from "../models";
+import { EventService, UserService, TwitchService, EventLogService, AchievementService } from "../services";
+import { AchievementType, IUser } from "../models";
 import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
@@ -8,6 +8,7 @@ import { DuelWeapon } from "./duelWeapon";
 import { inject } from "inversify";
 import { Lang } from "../lang";
 import { PointLogType } from "../models/pointLog";
+import PointLogsRepository from "../database/pointLogsRepository";
 
 /**
  * Rough description of a duel:
@@ -30,6 +31,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         @inject(UserService) userService: UserService,
         @inject(EventService) private eventService: EventService,
         @inject(EventLogService) private eventLogService: EventLogService,
+        @inject(PointLogsRepository) private pointLogsRepository: PointLogsRepository,
+        @inject(AchievementService) private achievementService: AchievementService,
         initiatingUser: IUser,
         targetUser: IUser | undefined,
         wager: number
@@ -181,7 +184,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         );
     }
 
-    private startDuel() {
+    private async startDuel() {
         Logger.info(LogType.Command, `Starting duel with weapons ${this.participants[0].weapon} and ${this.participants[1].weapon}`);
 
         this.eventService.stopEventStartCooldown(this);
@@ -254,7 +257,10 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
                 winner: winner.user.username,
                 pointsWon: this.wager,
             });
-            this.userService.changeUserPoints(winner.user, this.wager * 2, this.pointLogType);
+
+            await this.userService.changeUserPoints(winner.user, this.wager * 2, this.pointLogType);
+            const duelsWon = await this.pointLogsRepository.getWinCount(winner.user, PointLogType.Duel);
+            this.achievementService.grantAchievements(winner.user, AchievementType.DuelsWon, duelsWon);
 
             switch (winner.weapon) {
                 case DuelWeapon.Rock:

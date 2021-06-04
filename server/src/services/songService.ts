@@ -2,11 +2,13 @@ import { inject, injectable } from "inversify";
 import moment = require("moment");
 import { InvalidSongUrlError, SongAlreadyInQueueError } from "../errors";
 import { Logger, LogType } from "../logger";
-import { ISong, RequestSource, SocketMessageType, SongSource } from "../models";
+import { AchievementType, EventLogType, ISong, RequestSource, SocketMessageType, SongSource } from "../models";
 import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
 import { EventLogService } from "./eventLogService";
+import AchievementService from "./achievementService";
+import UserService from "./userService";
 
 @injectable()
 export class SongService {
@@ -17,7 +19,9 @@ export class SongService {
         @inject(YoutubeService) private youtubeService: YoutubeService,
         @inject(SpotifyService) private spotifyService: SpotifyService,
         @inject(WebsocketService) private websocketService: WebsocketService,
-        @inject(EventLogService) private eventLogService: EventLogService
+        @inject(EventLogService) private eventLogService: EventLogService,
+        @inject(AchievementService) private achievementService: AchievementService,
+        @inject(UserService) private userService: UserService,
     ) {
         //
     }
@@ -130,7 +134,14 @@ export class SongService {
             song.requestSource = requestSource;
             song.requestTime = moment.now();
 
-            this.eventLogService.addSongRequest(username, {
+            this.websocketService.send({
+                type: SocketMessageType.SongAdded,
+                message: "Song Added",
+                data: song,
+                username,
+            });
+
+            await this.eventLogService.addSongRequest(username, {
                 message: "Song was requested.",
                 song: {
                     title: song.details.title,
@@ -140,12 +151,12 @@ export class SongService {
                     url,
                 },
             });
-            this.websocketService.send({
-                type: SocketMessageType.SongAdded,
-                message: "Song Added",
-                data: song,
-                username,
-            });
+
+            const user = await this.userService.getUser(username);
+            if (user) {
+                const count = await this.eventLogService.getCount(EventLogType.SongRequest, username);
+                this.achievementService.grantAchievements(user, AchievementType.SongRequests, count);
+            }
 
             return song;
         } catch (err) {

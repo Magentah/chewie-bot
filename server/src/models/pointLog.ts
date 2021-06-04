@@ -1,6 +1,7 @@
 export default interface IPointLog {
     id?: number;
     eventType: PointLogType;
+    userId: number;
     username: string;
     pointsBefore: number;
     points: number;
