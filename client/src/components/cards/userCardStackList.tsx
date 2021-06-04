@@ -86,14 +86,15 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const cardCost = 1000;
     function PaperComponent(paperProps: PaperProps) {
         return (
-          <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em"}} />
+          <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em", paddingRight: "1em", paddingBottom: "0.5em", minWidth: "30em"}} />
         );
     }
 
     return <Card>
-            <Dialog open={redeemInfoResultMsg !== ""} onClose={() => setRedeemInfoResultMsg("")}>
+            <Dialog open={redeemInfoResultMsg !== ""} onClose={() => setRedeemInfoResultMsg("")} PaperComponent={PaperComponent}>
                 <DialogTitle>Redeem dango card</DialogTitle>
-                <DialogContent>
+                <DialogContent style={{overflow: "visible"}}>
+                    <Image src={"/assets/Dango-Treasure-Box.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"10em", position: "absolute", zIndex: 100}} />
                     <DialogContentText>{redeemInfoResultMsg}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
