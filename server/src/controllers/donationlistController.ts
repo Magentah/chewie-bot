@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { IDonation } from "../models";
-import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { DonationsRepository } from "../database";
 
@@ -21,7 +19,9 @@ class DonationlistController {
      * @param res Express HTTP Response
      */
     public async getDonationlist(req: Request, res: Response): Promise<void> {
-        const donationlist = await this.donationlistService.getAll();
+        const donationlist = (await this.donationlistService.getAll()).map(x =>
+            ({ username: x.username, amount: x.amount, message: x.message, date: new Date(x.date).toDateString() })
+        );
         res.status(StatusCodes.OK);
         res.send(donationlist);
     }
