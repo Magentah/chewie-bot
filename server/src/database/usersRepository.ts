@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
-import { IUser, UserLevels } from "../models";
+import { EventLogType, IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -89,6 +89,25 @@ export class UsersRepository {
 
         // Need to map from SQLResult to the correct model.
         return userResult.map((x: any) => this.mapDBUserToUser(x));
+    }
+
+    /**
+     * Gets all users that made song requests in the past.
+     */
+    public async getUsersWithSongrequests(): Promise<{ username: string, id: number }[]> {
+        const databaseService = await this.databaseProvider();
+
+        const userResult = await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .innerJoin(DatabaseTables.EventLogs, "eventLogs.username", "users.username")
+            .where("eventLogs.type", "=", EventLogType.SongRequest)
+            .select([
+                "users.username",
+                "users.id"
+            ]).distinct();
+
+        // Need to map from SQLResult to the correct model.
+        return userResult;
     }
 
     /**

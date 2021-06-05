@@ -278,6 +278,7 @@ export class DatabaseService {
             table.string("title").notNullable();
             table.string("genre").notNullable();
             table.dateTime("created").notNullable();
+            table.integer("attributedUserId").references(`id`).inTable(DatabaseTables.Users);
         });
     }
 
@@ -340,7 +341,7 @@ export class DatabaseService {
     private async createUserTaxStreakTable(): Promise<void> {
         return this.createTable(DatabaseTables.UserTaxStreak, (table) => {
             table.increments("id").primary().notNullable().unique();
-            table.integer("userId").notNullable();
+            table.integer("userId").notNullable().unique();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.integer("currentStreak").notNullable();
             table.integer("longestStreak").notNullable();

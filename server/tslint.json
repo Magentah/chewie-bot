@@ -11,7 +11,7 @@
     "quotemark": [true, "double"],
     "variable-name": [true, "allow-pascal-case"],
     "indent": [true, "spaces", 4],
-    "no-null-keyword": true,
+    "no-null-keyword": false,
     "trailing-comma": false
   }
 }
