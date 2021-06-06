@@ -1,38 +1,60 @@
 import { Command } from "../command";
-import { IUser } from "../../models";
+import { IUser, UserLevels } from "../../models";
+import { BotContainer } from "../../inversify.config";
+import { UserService } from "../../services";
+import { Lang } from "../../lang";
 
 export class VipCommand extends Command {
+    private userService: UserService;
+
     constructor() {
         super();
+
+        this.userService = BotContainer.get(UserService);
     }
 
-    public executeInternal(channel: string, user: IUser): void {
+    public async executeInternal(channel: string, user: IUser, targetUserName: string): Promise<void> {
+        let userToCheck = user;
+
+        if (targetUserName) {
+            // Allow mods to see the status of any user.
+            if (user.userLevel && user.userLevel.rank >= UserLevels.Moderator) {
+                const targetUser = await this.userService.getUser(targetUserName);
+                if (targetUser) {
+                    userToCheck = targetUser;
+                } else {
+                    this.twitchService.sendMessage(channel, Lang.get("points.userunknown", targetUserName));
+                    return;
+                }
+            }
+        }
+
         const todayDate = new Date(new Date().toDateString());
         let vipInfo = "";
         let lastReqInfo = "";
         const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
         const dateFormatWithWeek = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
 
-        if (user.vipExpiry) {
-            if (new Date(user.vipExpiry) < todayDate) {
-                vipInfo += `Expired on: ${dateFormat.format(new Date(user.vipExpiry))}.`;
+        if (userToCheck.vipExpiry) {
+            if (new Date(userToCheck.vipExpiry) < todayDate) {
+                vipInfo += `Expired on: ${dateFormat.format(new Date(userToCheck.vipExpiry))}.`;
             } else {
-                vipInfo += `Can be used until: ${dateFormat.format(new Date(user.vipExpiry))}.`;
+                vipInfo += `Can be used until: ${dateFormat.format(new Date(userToCheck.vipExpiry))}.`;
             }
         }
 
-        if (user.vipPermanentRequests) {
-            vipInfo += ` You have ${user.vipPermanentRequests} non-expiring request(s).`;
+        if (userToCheck.vipPermanentRequests) {
+            vipInfo += ` You have ${userToCheck.vipPermanentRequests} non-expiring request(s).`;
         }
 
-        if (user.vipLastRequest) {
-            lastReqInfo = ` Your last request was: ${dateFormatWithWeek.format(new Date(user.vipLastRequest))}`;
+        if (userToCheck.vipLastRequest) {
+            lastReqInfo = ` Your last request was: ${dateFormatWithWeek.format(new Date(userToCheck.vipLastRequest))}`;
         }
 
         if (vipInfo) {
-            this.twitchService.sendMessage(channel, `${user.username}, your VIP status: ${vipInfo} ${lastReqInfo}`);
+            this.twitchService.sendMessage(channel, `${userToCheck.username}, your VIP status: ${vipInfo} ${lastReqInfo}`);
         } else {
-            this.twitchService.sendMessage(channel, `${user.username}, you do not have VIP gold currently. ${lastReqInfo}`);
+            this.twitchService.sendMessage(channel, `${userToCheck.username}, you do not have VIP gold currently. ${lastReqInfo}`);
         }
     }
 }
