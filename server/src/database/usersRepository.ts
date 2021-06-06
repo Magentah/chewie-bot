@@ -207,6 +207,18 @@ export class UsersRepository {
     }
 
     /**
+     * Renames the points log for a given user.
+     */
+    public async moveUserPointsLog(oldUser: IUser, newUser: IUser): Promise<void> {
+        const databaseService = await this.databaseProvider();
+
+        await databaseService
+            .getQueryBuilder(DatabaseTables.PointLogs)
+            .where({ userId: oldUser.id })
+            .update({ userId: newUser.id });
+    }
+
+    /**
      * Updates user data in the database if the user already exists.
      * @param user Updated user
      */

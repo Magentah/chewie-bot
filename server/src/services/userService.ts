@@ -91,10 +91,13 @@ export class UserService {
      * Renames an existing user.
      * @param {IUser} user User to be renamed.
      */
-    public async renameUser(user: IUser, newUserName: string): Promise<void> {
+    public async renameUser(user: IUser, previousUser: IUser | undefined, newUserName: string): Promise<void> {
         const oldUserName = user.username;
         user.username = newUserName;
         await this.users.update(user);
+        if (previousUser) {
+            this.users.moveUserPointsLog(previousUser, user);
+        }
     }
 
     /**
