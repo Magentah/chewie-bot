@@ -45,7 +45,7 @@ export default class RenameUserCommand extends Command {
             }
 
             // Rename existing user.
-            await this.userService.renameUser(oldUser, newUserName);
+            await this.userService.renameUser(oldUser, newUser, newUserName);
 
             this.eventLog.addUserRename(user, oldUserName, newUserName);
 
