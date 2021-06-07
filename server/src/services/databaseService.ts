@@ -28,6 +28,7 @@ export enum DatabaseTables {
     ChannelPointRewards = "channelPointRewards",
     ChannelPointRewardHistory = "channelPointRewardHistory",
     StreamActivity = "streamActivity",
+    Achievements = "achievements",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -105,6 +106,7 @@ export class DatabaseService {
                 await this.createChannelPointRewardsTable();
                 await this.createChannelPointRewardHistoryTable();
                 await this.createStreamActivityTable();
+                await this.createAchievementsTable();
 
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -385,6 +387,18 @@ export class DatabaseService {
             table.increments("id").primary().notNullable().unique();
             table.string("event").notNullable();
             table.dateTime("dateTimeTriggered").notNullable();
+        });
+    }
+
+    private async createAchievementsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Achievements, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("type").notNullable();
+            table.integer("amount").notNullable();
+            table.boolean("seasonal").notNullable().defaultTo(false);
+            table.string("imageId").notNullable();
+            table.string("mimetype");
+            table.dateTime("creationDate").notNullable();
         });
     }
 
