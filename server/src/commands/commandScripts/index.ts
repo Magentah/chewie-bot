@@ -1,5 +1,6 @@
 export { default as TestCommand } from "./testCommand";
 export { default as AddCmdCommand } from "./addCmdCommand";
+export { default as EditCmdCommand } from "./editCmdCommand";
 export { default as TextCommand } from "./textCommand";
 export { default as DelCmdCommand } from "./delCmdCommand";
 export { default as AddSongCommand } from "./addSongCommand";
@@ -40,11 +41,11 @@ export { default as RecycleCardCommand } from "./cards/recycleCommand";
 export { default as TaxboardCommand } from "./tax/taxboardCommand";
 export { default as TaxStreakCommand } from "./tax/taxStreakCommand";
 
-export { default as PointsCommand } from "../commandScripts/pointsCommand";
-export { default as GivePointsCommand } from "../commandScripts/givePointsCommand";
-export { default as AddPointsCommand } from "../commandScripts/addPointsCommand";
+export { default as PointsCommand } from "../commandScripts/points/pointsCommand";
+export { default as GivePointsCommand } from "../commandScripts/points/givePointsCommand";
+export { default as AddPointsCommand } from "../commandScripts/points/addPointsCommand";
 export { default as RenameUserCommand } from "../commandScripts/renameUserCommand";
-export { default as TopCommand } from "../commandScripts/topCommand";
+export { default as TopCommand } from "../commandScripts/points/topCommand";
 export { default as CheckLossesCommand } from "../commandScripts/checklossesCommand";
 
 export { default as RedeemCommand } from "../commandScripts/redeemCommand";

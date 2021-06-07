@@ -32,6 +32,7 @@ class CommandlistController {
                 content: command.message,
                 type: CommandType.Text,
                 minUserLevel: UserLevels.Viewer,
+                useCount: command.useCount
             });
         }
 
@@ -105,6 +106,7 @@ class CommandlistController {
                     if (txtCommand) {
                         txtCommand.commandName = commandInfo.commandName;
                         txtCommand.message = commandInfo.content;
+                        txtCommand.useCount = commandInfo.useCount ?? 0;
                         await this.textCommandsRepository.update(txtCommand);
                     }
 
