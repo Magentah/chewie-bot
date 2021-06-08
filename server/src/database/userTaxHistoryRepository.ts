@@ -1,12 +1,6 @@
 import { inject, injectable } from "inversify";
+import { IDBUserTaxHistory, TaxType } from "../models/taxHistory";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
-
-export interface IDBUserTaxHistory {
-    id?: number;
-    userId: number;
-    taxRedemptionDate: Date;
-    channelPointRewardTwitchId: string;
-}
 
 @injectable()
 export default class UserTaxHistoryRepository {
@@ -14,15 +8,15 @@ export default class UserTaxHistoryRepository {
         // Empty
     }
 
-    public async getForUser(userId: number): Promise<IDBUserTaxHistory[]> {
+    public async getForUser(userId: number, type: TaxType): Promise<IDBUserTaxHistory[]> {
         const databaseService = await this.databaseProvider();
-        const returnRewardEvent: IDBUserTaxHistory[] = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).select("*").where("userId", userId);
+        const returnRewardEvent: IDBUserTaxHistory[] = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).select("*").where("userId", userId).andWhere("type", type);
         return returnRewardEvent;
     }
 
-    public async getCountForUser(userId: number): Promise<number> {
+    public async getCountForUser(userId: number, type: TaxType): Promise<number> {
         const databaseService = await this.databaseProvider();
-        const count = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).count("id as cnt").where("userId", userId).first()).cnt;
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).count("id as cnt").where("userId", userId).andWhere("type", type).first()).cnt;
         return count;
     }
 
@@ -32,6 +26,7 @@ export default class UserTaxHistoryRepository {
             .getQueryBuilder(DatabaseTables.UserTaxHistory)
             .select("*")
             .where("userId", userId)
+            .andWhere("type", TaxType.ChannelPoints)
             .andWhere("taxRedemptionDate", ">=", sinceDate);
         return returnUserTaxHistory;
     }
@@ -41,7 +36,8 @@ export default class UserTaxHistoryRepository {
         const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService
             .getQueryBuilder(DatabaseTables.UserTaxHistory)
             .select("*")
-            .where("taxRedemptionDate", ">=", sinceDate);
+            .where("taxRedemptionDate", ">=", sinceDate)
+            .andWhere("type", TaxType.ChannelPoints);
         return returnUserTaxHistory;
     }
 
@@ -52,6 +48,7 @@ export default class UserTaxHistoryRepository {
             .select("*")
             .where("taxRedemptionDate", "<", toDate)
             .andWhere("taxRedemptionDate", ">=", fromDate)
+            .andWhere("type", TaxType.ChannelPoints)
             .distinct("userId");
 
         return returnUserTaxHistory;
@@ -89,18 +86,18 @@ export default class UserTaxHistoryRepository {
         return users;
     }
 
-    public async getAll(): Promise<IDBUserTaxHistory[]> {
+    public async getAll(type: TaxType): Promise<IDBUserTaxHistory[]> {
         const databaseService = await this.databaseProvider();
-        const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).select("*");
+        const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).where("type", type).select("*");
         return returnUserTaxHistory;
     }
 
-    public async add(userId: number, channelPointRewardId: string): Promise<IDBUserTaxHistory> {
+    public async add(userId: number, channelPointRewardId: string | undefined, type: TaxType): Promise<IDBUserTaxHistory> {
         const databaseService = await this.databaseProvider();
         const now = Date.now();
         await databaseService
             .getQueryBuilder(DatabaseTables.UserTaxHistory)
-            .insert({ userId, taxRedemptionDate: now, channelPointRewardTwitchId: channelPointRewardId });
+            .insert({ userId, taxRedemptionDate: now, channelPointRewardTwitchId: channelPointRewardId, type });
         const returnRewardEvent = await databaseService
             .getQueryBuilder(DatabaseTables.UserTaxHistory)
             .select("*")

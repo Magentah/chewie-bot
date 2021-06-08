@@ -19,6 +19,7 @@ export enum BotSettings {
     TaxEventIsEnabled = "tax-event-is-enabled",
     Timezone = "timezone",
     SeasonEnd = "season-end",
+    DailyTaxBitAmount = "daily-tax-bits",
 }
 
 @injectable()
@@ -40,6 +41,7 @@ export default class BotSettingsService {
         [BotSettings.CardRecyclePoints]: 300,
         [BotSettings.TaxEventIsEnabled]: false,
         [BotSettings.SeasonEnd]: "",
+        [BotSettings.DailyTaxBitAmount]: 0,
     };
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {

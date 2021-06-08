@@ -1,6 +1,6 @@
 import { inject, injectable, LazyServiceIdentifer } from "inversify";
-import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward, AchievementType } from "../models";
-import UserTaxHistoryRepository, { IDBUserTaxHistory } from "../database/userTaxHistoryRepository";
+import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward, AchievementType, IUser } from "../models";
+import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository from "../database/streamActivityRepository";
 import TwitchChannelPointRewardService from "./channelPointRewardService";
@@ -8,6 +8,7 @@ import UserService from "./userService";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import TwitchEventService from "./twitchEventService";
 import EventAggregator from "./eventAggregator";
+import { IDBUserTaxHistory, TaxType } from "../models/taxHistory";
 
 @injectable()
 export default class TaxService {
@@ -46,15 +47,31 @@ export default class TaxService {
             return;
         }
 
-        if (this.taxChannelReward && (notification.event as IRewardRedemeptionEvent).reward.title == this.taxChannelReward.title) {
+        if (this.taxChannelReward && (notification.event as IRewardRedemeptionEvent).reward.title === this.taxChannelReward.title) {
             const user = await this.userService.getUser((notification.event as IRewardRedemeptionEvent).user_login);
-            if (user && user.id) {
-                // Adds a tax redemption for the user.
-                await this.userTaxHistoryRepository.add(user.id, (notification.event as IRewardRedemeptionEvent).reward.id);
-
-                const count = await this.userTaxHistoryRepository.getCountForUser(user.id);
-                this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyTaxesPaid, count });
+            if (user) {
+                this.logDailyTax(user, (notification.event as IRewardRedemeptionEvent).reward.id);
             }
+        }
+    }
+
+    public async logDailyTax(user: IUser, rewardId: string) {
+        // Adds a tax redemption for the user.
+        if (user.id) {
+            await this.userTaxHistoryRepository.add(user.id, rewardId, TaxType.ChannelPoints);
+
+            const count = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.ChannelPoints);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyTaxesPaid, count });
+        }
+    }
+
+    public async logDailyBitTax(user: IUser) {
+        // Adds a tax redemption for the user.
+        if (user.id) {
+            await this.userTaxHistoryRepository.add(user.id, undefined, TaxType.Bits);
+
+            const count = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.Bits);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyBitTaxesPaid, count });
         }
     }
 
@@ -97,7 +114,7 @@ export default class TaxService {
             });
         } else {
             // Stream hasn't been online yet, so streaks still need to be setup.
-            const usersPaidTax = await this.userTaxHistoryRepository.getAll();
+            const usersPaidTax = await this.userTaxHistoryRepository.getAll(TaxType.ChannelPoints);
             usersPaidTax.forEach(async (taxEvent) => {
                 if (taxEvent.id) {
                     await this.userTaxStreakRepository.add(taxEvent.userId, taxEvent.id);

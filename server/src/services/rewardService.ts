@@ -5,6 +5,7 @@ import SongService from "./songService";
 import { IBitsMessage, IDonationMessage, ISubscriptionMessage, SubscriptionPlan, SubType } from "./streamlabsService";
 import TwitchService from "../services/twitchService";
 import UserService from "../services/userService";
+import TaxService from "../services/taxService";
 import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
 
@@ -14,6 +15,7 @@ export default class RewardService {
         @inject(SongService) private songService: SongService,
         @inject(UserService) private userService: UserService,
         @inject(TwitchService) private twitchService: TwitchService,
+        @inject(TaxService) private taxService: TaxService,
         @inject(BotSettingsService) private settings: BotSettingsService
     ) {
         this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>
@@ -34,7 +36,14 @@ export default class RewardService {
 
         if (user) {
             const pointsPerBits = parseInt(await this.settings.getValue(BotSettings.PointsPerBit), 10);
-            await this.userService.changeUserPoints(user, pointsPerBits * bits.amount, PointLogType.Bits);
+            if (pointsPerBits) {
+                await this.userService.changeUserPoints(user, pointsPerBits * bits.amount, PointLogType.Bits);
+            }
+
+            const dailyTax = parseInt(await this.settings.getValue(BotSettings.DailyTaxBitAmount), 10);
+            if (dailyTax > 0) {
+                this.taxService.logDailyBitTax(user);
+            }
         }
     }
 

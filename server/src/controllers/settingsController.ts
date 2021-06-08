@@ -29,6 +29,7 @@ class SettingsController {
             readonly: false,
         },
         [BotSettings.SeasonEnd]: { title: "Season end date", readonly: false },
+        [BotSettings.DailyTaxBitAmount]: { title: "Amount of bits considered as daily tax", readonly: false },
     };
 
     constructor(

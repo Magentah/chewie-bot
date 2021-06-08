@@ -354,9 +354,10 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.UserTaxHistory, (table) => {
             table.increments("id").primary().notNullable().unique();
             table.integer("userId").notNullable();
+            table.integer("type").notNullable();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.dateTime("taxRedemptionDate").notNullable();
-            table.string("channelPointRewardTwitchId").notNullable();
+            table.string("channelPointRewardTwitchId");
         });
     }
 
