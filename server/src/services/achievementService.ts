@@ -4,6 +4,8 @@ import { BotSettings } from "./botSettingsService";
 import BotSettingsService from "./botSettingsService";
 import AchievementsRepository from "../database/achievementsRepository";
 import Logger, { LogType } from "../logger";
+import * as redis from "redis";
+import AchievementMessage from "../models/achievementMessage";
 
 @injectable()
 export default class AchievementService {
@@ -11,6 +13,19 @@ export default class AchievementService {
         @inject(BotSettingsService) private settingsService: BotSettingsService,
         @inject(AchievementsRepository) private repository: AchievementsRepository,
     ) {
+    }
+
+    public setup() {
+        const subscriber = redis.createClient({
+            url: process.env.REDIS_URL,
+            port: 6379,
+        });
+
+        subscriber.on("message", (channel: string, message: string) => {
+            const msg: AchievementMessage = JSON.parse(message);
+            this.grantAchievements(msg.user, msg.type, msg.count);
+        });
+        subscriber.subscribe("achievements");
     }
 
     public async grantAchievements(user: IUser, type: AchievementType, currentAmount: number) {

@@ -5,12 +5,12 @@ import { AchievementType, ISonglistItem } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SonglistRepository, UsersRepository } from "../database";
-import { AchievementService } from "../services";
+import { EventAggregator } from "../services";
 
 @injectable()
 class SonglistController {
     constructor(@inject(SonglistRepository) private songlistService: SonglistRepository,
-                @inject(AchievementService) private achievementService: AchievementService,
+                @inject(EventAggregator) private eventAggregator: EventAggregator,
                 @inject(UsersRepository) private usersRepository: UsersRepository) {
         Logger.info(
             LogType.ServerInfo,
@@ -55,7 +55,8 @@ class SonglistController {
                 const user = (await this.usersRepository.getByIds([newSong.attributedUserId]))[0];
                 if (user) {
                     const count = await this.songlistService.countAttributions(newSong.attributedUserId);
-                    this.achievementService.grantAchievements(user, AchievementType.Songlist, count);
+                    const msg = { user, count, type: AchievementType.Songlist };
+                    this.eventAggregator.publishAchievement(msg);
                 }
             }
 

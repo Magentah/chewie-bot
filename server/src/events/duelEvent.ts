@@ -1,4 +1,4 @@
-import { EventService, UserService, TwitchService, EventLogService, AchievementService } from "../services";
+import { EventService, UserService, TwitchService, EventLogService, EventAggregator } from "../services";
 import { AchievementType, IUser } from "../models";
 import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
@@ -32,7 +32,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         @inject(EventService) private eventService: EventService,
         @inject(EventLogService) private eventLogService: EventLogService,
         @inject(PointLogsRepository) private pointLogsRepository: PointLogsRepository,
-        @inject(AchievementService) private achievementService: AchievementService,
+        @inject(EventAggregator) private eventAggregator: EventAggregator,
         initiatingUser: IUser,
         targetUser: IUser | undefined,
         wager: number
@@ -260,7 +260,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
 
             await this.userService.changeUserPoints(winner.user, this.wager * 2, this.pointLogType);
             const duelsWon = await this.pointLogsRepository.getWinCount(winner.user, PointLogType.Duel);
-            this.achievementService.grantAchievements(winner.user, AchievementType.DuelsWon, duelsWon);
+            this.eventAggregator.publishAchievement({user: winner.user, type: AchievementType.DuelsWon, count: duelsWon });
 
             switch (winner.weapon) {
                 case DuelWeapon.Rock:

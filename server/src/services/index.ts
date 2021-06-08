@@ -22,3 +22,4 @@ export { default as ChannelPointRewardService } from "./channelPointRewardServic
 export { default as TaxService } from "./taxService";
 export { default as CardService } from "./cardService";
 export { default as AchievementService } from "./achievementService";
+export { default as EventAggregator } from "./eventAggregator";

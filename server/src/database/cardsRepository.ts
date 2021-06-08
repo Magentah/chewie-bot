@@ -1,12 +1,12 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 import { AchievementType, CardRarity, IUser, IUserCard } from "../models";
-import AchievementService from "../services/achievementService";
+import EventAggregator from "../services/eventAggregator";
 
 @injectable()
 export default class CardsRepository {
     constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider,
-                @inject(AchievementService) private achievementService: AchievementService,) {
+                @inject(EventAggregator) private eventAggregator: EventAggregator,) {
         // Empty
     }
 
@@ -175,7 +175,7 @@ export default class CardsRepository {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.CardStack).insert(card);
         const count = await this.getUniqueCardsCount(user);
-        this.achievementService.grantAchievements(user, AchievementType.UniqueCards, count);
+        this.eventAggregator.publishAchievement({ user, type: AchievementType.UniqueCards, count });
     }
 
     public async getRedeemedCardCount(user: IUser, date: Date): Promise<number> {

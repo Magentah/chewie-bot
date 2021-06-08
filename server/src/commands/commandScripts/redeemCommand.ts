@@ -4,13 +4,13 @@ import { AchievementType, EventLogType, ICommandAlias, IUser } from "../../model
 import { BotContainer } from "../../inversify.config";
 import { PointLogType } from "../../models/pointLog";
 import { BotSettings } from "../../services/botSettingsService";
-import AchievementService from "../../services/achievementService";
+import EventAggregator from "../../services/eventAggregator";
 
 export default class RedeemCommand extends Command {
     private userService: UserService;
     private settingsService: BotSettingsService;
     private eventLogService: EventLogService;
-    private achievementService: AchievementService;
+    private eventAggregator: EventAggregator;
     private cost: number = -1;
 
     private comfyUrl: string = "https://i.imgur.com/Kwrb7nS.gif";
@@ -22,7 +22,7 @@ export default class RedeemCommand extends Command {
         this.userService = BotContainer.get(UserService);
         this.settingsService = BotContainer.get(BotSettingsService);
         this.eventLogService = BotContainer.get(EventLogService);
-        this.achievementService = BotContainer.get(AchievementService);
+        this.eventAggregator = BotContainer.get(EventAggregator);
     }
 
     public async executeInternal(channel: string, user: IUser, variation: string, emote: string, url: string): Promise<void> {
@@ -37,7 +37,9 @@ export default class RedeemCommand extends Command {
 
             await this.eventLogService.addRedeem(user, variation);
             const count = await this.eventLogService.getCount(EventLogType.RedeemCommand, user.username);
-            this.achievementService.grantAchievements(user, AchievementType.AnimationRedeems, count);
+
+            const msg = { user, type: AchievementType.AnimationRedeems, count };
+            this.eventAggregator.publishAchievement(msg);
         }
     }
 

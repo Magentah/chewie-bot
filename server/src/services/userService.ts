@@ -7,13 +7,13 @@ import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
 import { Logger, LogType } from "../logger";
 import PointLogsRepository from "../database/pointLogsRepository";
-import AchievementService from "./achievementService";
+import EventAggregator from "./eventAggregator";
 
 @injectable()
 export class UserService {
     constructor(@inject(UsersRepository) private users: UsersRepository,
                 @inject(EventLogService) private eventLog: EventLogService,
-                @inject(AchievementService) private achievements: AchievementService,
+                @inject(EventAggregator) private eventAggregator: EventAggregator,
                 @inject(PointLogsRepository) private pointsLog: PointLogsRepository) {
         // Empty
     }
@@ -108,7 +108,8 @@ export class UserService {
     public async changeUserPoints(user: IUser, points: number, eventType: PointLogType | string): Promise<void> {
         user.points += points;
         await this.users.incrementPoints(user, points, eventType);
-        await this.achievements.grantAchievements(user, AchievementType.Points, user.points);
+
+        this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points });
     }
 
     /**

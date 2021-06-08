@@ -2,17 +2,17 @@ import { Command } from "../command";
 import { AchievementType, EventLogType, ICommandAlias, IUser, UserLevels } from "../../models";
 import { EventLogService } from "../../services";
 import { BotContainer } from "../../inversify.config";
-import AchievementService from "../../services/achievementService";
+import EventAggregator from "../../services/eventAggregator";
 
 export class SudokuCommand extends Command {
     private readonly SudokuTimeoutLength = 120;
     private eventLogService: EventLogService;
-    private achievementService: AchievementService;
+    private eventAggregator: EventAggregator;
 
     constructor() {
         super();
         this.eventLogService = BotContainer.get(EventLogService);
-        this.achievementService = BotContainer.get(AchievementService);
+        this.eventAggregator = BotContainer.get(EventAggregator);
     }
 
     public async executeInternal(channel: string, user: IUser, force: number): Promise<void> {
@@ -25,8 +25,10 @@ export class SudokuCommand extends Command {
         this.twitchService.sendMessage(channel, `${user.username} just got their guts spilled chewieSudoku`);
 
         await this.eventLogService.addSudoku(user);
+
         const count = await this.eventLogService.getCount(EventLogType.Sudoku, user.username);
-        this.achievementService.grantAchievements(user, AchievementType.Sudoku, count);
+        const msg = { user, type: AchievementType.Sudoku, count };
+        this.eventAggregator.publishAchievement(msg);
     }
 
     /**

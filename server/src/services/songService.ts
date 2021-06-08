@@ -7,7 +7,7 @@ import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
 import { EventLogService } from "./eventLogService";
-import AchievementService from "./achievementService";
+import EventAggregator from "./eventAggregator";
 import UserService from "./userService";
 
 @injectable()
@@ -20,7 +20,7 @@ export class SongService {
         @inject(SpotifyService) private spotifyService: SpotifyService,
         @inject(WebsocketService) private websocketService: WebsocketService,
         @inject(EventLogService) private eventLogService: EventLogService,
-        @inject(AchievementService) private achievementService: AchievementService,
+        @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(UserService) private userService: UserService,
     ) {
         //
@@ -155,7 +155,7 @@ export class SongService {
             const user = await this.userService.getUser(username);
             if (user) {
                 const count = await this.eventLogService.getCount(EventLogType.SongRequest, username);
-                this.achievementService.grantAchievements(user, AchievementType.SongRequests, count);
+                this.eventAggregator.publishAchievement({ user, type: AchievementType.SongRequests, count });
             }
 
             return song;
