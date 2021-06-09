@@ -13,13 +13,18 @@ const DonationList: React.FC<any> = (props: any) => {
         });
     }, []);
 
+    const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
+
     return <div>
             <MaterialTable
                 columns = {[
                     { title: "Username", field: "username" },
-                    { title: "Date", field: "date", defaultGroupOrder: 0, defaultGroupSort: "desc" },
+                    {
+                         title: "Date", field: "date", defaultGroupOrder: 0, defaultGroupSort: "desc", type: "date",
+                         render: (rowData: any) => <span>{dateFormat.format(new Date(rowData))}</span>
+                    },
                     { title: "Message", field: "message" },
-                    { title: "Amount", field: "amount" }
+                    { title: "Amount", field: "amount", type: "currency" }
                 ]}
                 options = {{
                     paging: false,

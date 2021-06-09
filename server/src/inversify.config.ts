@@ -27,6 +27,8 @@ import EventLogService from "./services/eventLogService";
 import ChannelPointRewardService from "./services/channelPointRewardService";
 import TaxService from "./services/taxService";
 import CardService from "./services/cardService";
+import AchievementService from "./services/achievementService";
+import EventAggregator from "./services/eventAggregator";
 
 // Database Repositories
 
@@ -128,6 +130,8 @@ botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
 botContainer.bind<ChannelPointRewardService>(ChannelPointRewardService).toSelf().inSingletonScope();
 botContainer.bind<TaxService>(TaxService).toSelf().inSingletonScope();
 botContainer.bind<CardService>(CardService).toSelf().inSingletonScope();
+botContainer.bind<AchievementService>(AchievementService).toSelf().inSingletonScope();
+botContainer.bind<EventAggregator>(EventAggregator).toSelf().inSingletonScope();
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();

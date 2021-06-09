@@ -14,9 +14,9 @@ export class AddSongCommand extends Command {
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async executeInternal(channel: string, user: IUser, url: string) {
+    public async executeInternal(channel: string, user: IUser, url: string, forUser: string) {
         try {
-            const song = await this.songService.addSong(url, RequestSource.Chat, user.username);
+            const song = await this.songService.addSong(url, RequestSource.Chat, forUser ? forUser : user.username);
             if (song) {
                 this.twitchService.sendMessage(
                     channel,

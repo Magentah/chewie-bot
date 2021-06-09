@@ -24,7 +24,7 @@ export default class AddCmdCommand extends Command {
         if (!command) {
             command = {
                 commandName,
-                message: args.join(' '),
+                message: args.join(" "),
                 useCount: 0
             };
 

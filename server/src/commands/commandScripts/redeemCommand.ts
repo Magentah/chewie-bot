@@ -1,13 +1,16 @@
 import { Command } from "../command";
-import { BotSettingsService, UserService } from "../../services";
-import { ICommandAlias, IUser } from "../../models";
+import { BotSettingsService, EventLogService, UserService } from "../../services";
+import { AchievementType, EventLogType, ICommandAlias, IUser } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { PointLogType } from "../../models/pointLog";
 import { BotSettings } from "../../services/botSettingsService";
+import EventAggregator from "../../services/eventAggregator";
 
 export default class RedeemCommand extends Command {
     private userService: UserService;
     private settingsService: BotSettingsService;
+    private eventLogService: EventLogService;
+    private eventAggregator: EventAggregator;
     private cost: number = -1;
 
     private comfyUrl: string = "https://i.imgur.com/Kwrb7nS.gif";
@@ -18,6 +21,8 @@ export default class RedeemCommand extends Command {
         super();
         this.userService = BotContainer.get(UserService);
         this.settingsService = BotContainer.get(BotSettingsService);
+        this.eventLogService = BotContainer.get(EventLogService);
+        this.eventAggregator = BotContainer.get(EventAggregator);
     }
 
     public async executeInternal(channel: string, user: IUser, variation: string, emote: string, url: string): Promise<void> {
@@ -29,6 +34,12 @@ export default class RedeemCommand extends Command {
             await this.userService.changeUserPoints(user, -this.cost, `${PointLogType.Redeem}-${variation}`);
             await this.twitchService.triggerAlert("redeem", variation, url);
             await this.twitchService.sendMessage(channel, `${emote} ${emote} ${emote} ${emote} ${emote} ${emote} ${emote}`);
+
+            await this.eventLogService.addRedeem(user, variation);
+            const count = await this.eventLogService.getCount(EventLogType.RedeemCommand, user.username);
+
+            const msg = { user, type: AchievementType.AnimationRedeems, count };
+            this.eventAggregator.publishAchievement(msg);
         }
     }
 

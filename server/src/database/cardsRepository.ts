@@ -1,10 +1,12 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
-import { CardRarity, IUser, IUserCard } from "../models";
+import { AchievementType, CardRarity, IUser, IUserCard } from "../models";
+import EventAggregator from "../services/eventAggregator";
 
 @injectable()
 export default class CardsRepository {
-    constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider) {
+    constructor(@inject("DatabaseProvider") private databaseProvider: DatabaseProvider,
+                @inject(EventAggregator) private eventAggregator: EventAggregator,) {
         // Empty
     }
 
@@ -75,6 +77,15 @@ export default class CardsRepository {
                 databaseService.raw("COUNT(usercards.id) AS cardCount"),
             ])) as IUserCard[];
         return cards;
+    }
+
+    public async getUniqueCardsCount(user: IUser): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.CardStack)
+            .countDistinct("cardId as cnt")
+            .where({ userId: user.id, deleted: false })
+            .first()).cnt;
+        return count;
     }
 
     public async addOrUpdate(card: IUserCard): Promise<IUserCard> {
@@ -148,16 +159,23 @@ export default class CardsRepository {
     }
 
     public async saveCardRedemption(user: IUser, card: IUserCard): Promise<void> {
-        const databaseService = await this.databaseProvider();
-        await databaseService.getQueryBuilder(DatabaseTables.CardStack).insert({ cardId: card.id, userId: user.id, redemptionDate: new Date() });
+        if (card.id && user.id) {
+            await this.saveToCardStack(user, { cardId: card.id, userId: user.id, redemptionDate: new Date() });
+        }
     }
 
     public async addCardToStack(user: IUser, cardName: string): Promise<void> {
         const card = await this.getByName(cardName);
-        if (card) {
-            const databaseService = await this.databaseProvider();
-            await databaseService.getQueryBuilder(DatabaseTables.CardStack).insert({ cardId: card.id, userId: user.id, redemptionDate: 0 });
+        if (card && card.id && user.id) {
+            await this.saveToCardStack(user, { cardId: card.id, userId: user.id, redemptionDate: 0 });
         }
+    }
+
+    private async saveToCardStack(user: IUser, card: { cardId: number, userId: number, redemptionDate: Date | number }) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.CardStack).insert(card);
+        const count = await this.getUniqueCardsCount(user);
+        this.eventAggregator.publishAchievement({ user, type: AchievementType.UniqueCards, count });
     }
 
     public async getRedeemedCardCount(user: IUser, date: Date): Promise<number> {

@@ -3,9 +3,10 @@ import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
 import useUser, { UserLevels } from "../../hooks/user";
-import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon } from "@material-ui/core";
+import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon, Popover, MenuItem } from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import AddIcon from "@material-ui/icons/Add";
+import SaveIcon from "@material-ui/icons/Save";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { AddToListState } from "../common/addToListState";
 
@@ -47,16 +48,23 @@ function copyTextToClipboard(text: string) {
 }
 
 const SongList: React.FC<any> = (props: any) => {
-    type RowData = {title: string, album: string, genre: string, created: number};
+    type RowData = { id: number, title: string, album: string, genre: string, created: number, attributedUserId?: number, attributedUsername: string };
+    type AutocompleteUser = { username: string, id: number };
 
     const classes = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
+    const [userlist, setUserlist] = useState([] as AutocompleteUser[]);
     const [user, loadUser] = useUser();
+
+    const [popupAnchor, setPopupAnchor] = React.useState<HTMLButtonElement | undefined>(undefined);
+    const [currentRowForAction, setCurrentRowForAction] = useState<RowData>();
+    const open = Boolean(popupAnchor);
 
     const [songlistOrigin, setSonglistOrigin] = useState<string>("");
     const [songlistTitle, setSonglistTitle] = useState<string>("");
     const [songlistGenre, setSonglistGenre] = useState<string>("");
     const [songListState, setSongListState] = useState<AddToListState>();
+    const [attributedUser, setAttributedUser] = useState<AutocompleteUser | null>(null);
 
     useEffect(loadUser, []);
 
@@ -78,6 +86,12 @@ const SongList: React.FC<any> = (props: any) => {
             }
 
             setSonglist(results.concat(newSongs));
+        });
+    }, []);
+
+    useEffect(() => {
+        axios.get("/api/userlist/songrequests").then((response) => {
+            setUserlist(response.data);
         });
     }, []);
 
@@ -105,6 +119,35 @@ const SongList: React.FC<any> = (props: any) => {
                 state: "failed",
                 message: error.message
             });
+        }
+    };
+
+    const updateSong = (newData: RowData, oldData: RowData | undefined) => axios.post("/api/songlist", newData).then((result) => {
+        if (result.status === 200) {
+            const newSonglist = [...songlist];
+            // @ts-ignore
+            const index = oldData?.tableData.id;
+            newSonglist[index] = newData;
+            setSonglist(newSonglist);
+        }
+    });
+
+    const openAttributionPopup = (button: HTMLButtonElement, song: RowData) => {
+        setPopupAnchor(button);
+        setCurrentRowForAction(song);
+        if (song.attributedUserId) {
+            setAttributedUser({id: song.attributedUserId, username: song.attributedUsername});
+        } else {
+            setAttributedUser(null);
+        }
+    };
+
+    const saveAttribution = async () => {
+        if (currentRowForAction) {
+            const updatedRow: RowData = {...currentRowForAction};
+            updatedRow.attributedUserId = attributedUser?.id;
+            updateSong(updatedRow, currentRowForAction);
+            setPopupAnchor(undefined);
         }
     };
 
@@ -184,7 +227,39 @@ const SongList: React.FC<any> = (props: any) => {
             </Box></Card>
         </Box>;
 
+    const attributionPopover = <Popover
+        open = {open}
+        anchorEl = {popupAnchor}
+        onClose = {() => setPopupAnchor(undefined)}
+        anchorOrigin = {{
+            vertical: "bottom",
+            horizontal: "center"
+        }}>
+            <Box py={1} px={2}>
+                <form>
+                    <Grid container spacing={2} justify="flex-start" wrap={"nowrap"} alignItems="center">
+                        <Grid item>
+                            <Autocomplete
+                                id="set-user"
+                                options={userlist}
+                                value={attributedUser}
+                                onChange={(event: any, newValue: AutocompleteUser | null) => {
+                                    setAttributedUser(newValue);
+                                }}
+                                getOptionLabel={(option) => option.username}
+                                renderInput={(params) => <TextField {...params} label="Attribute to user" helperText="Select the user who requested this song often enough to be on the song list." />}
+                            />
+                        </Grid>
+                        <Grid item>
+                            <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={() => saveAttribution()}>Save</Button>
+                        </Grid>
+                    </Grid>
+                </form>
+            </Box>
+        </Popover>;
+
     return <div>
+            {attributionPopover}
             {songrequestRules}
             {addForm}
             <MaterialTable
@@ -209,22 +284,25 @@ const SongList: React.FC<any> = (props: any) => {
                             copyTextToClipboard((rowData as RowData).album + " - " + (rowData as RowData).title);
                         }
                       }
-                    }
+                    },
+                    rowData => ({
+                        icon: "attribution",
+                        iconProps: rowData.attributedUserId ? { color: "primary" } : undefined,
+                        tooltip: "Attribute to user",
+                        hidden: user.userLevelKey < UserLevels.Moderator,
+                        onClick: (event, r) => {
+                          if ((r as RowData).title !== undefined) {
+                            openAttributionPopup(event.currentTarget, r as RowData);
+                          }
+                        }
+                    })
                 ]}
                 data = {songlist}
                 editable = {(user.userLevelKey < UserLevels.Moderator) ? undefined :
                     {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,
-                        onRowUpdate: (newData, oldData) => axios.post("/api/songlist", newData).then((result) => {
-                            if (result.status === 200) {
-                                const newSonglist = [...songlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
-                                newSonglist[index] = newData;
-                                setSonglist(newSonglist);
-                            }
-                        }),
+                        onRowUpdate: updateSong,
                         onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
                             if (result.status === 200) {
                                 const newSonglist = [...songlist];
