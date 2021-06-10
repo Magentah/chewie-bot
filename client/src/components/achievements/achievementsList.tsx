@@ -10,11 +10,11 @@ import AddIcon from "@material-ui/icons/Add";
 
 const useStyles = makeStyles((theme) => ({
     addButton: {
-        margin: theme.spacing(2, 0, 2),
+        margin: theme.spacing(0, 0, 2),
     },
 }));
 
-type RowData = { id?: number, type: number, amount: number, seasonal: boolean, imageId: string, url: string };
+type RowData = { id?: number, type: number, amount: number, seasonal: boolean, imageId: string, announcementMessage: string, url: string };
 const MaxFileSize = 1024 * 1024 * 5;
 const FileTypes = ["image/jpeg", "image/png"];
 
@@ -68,6 +68,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
     const [achievementListState, setAchievementListState] = useState<AddToListState>();
 
     const [achievementType, setAchievementType] = useState<number>(0);
+    const [achievementMsg, setAchievementMsg] = useState<string>("");
     const [achievementAmount, setAchievementAmount] = useState<number>(1);
     const [achievementSeasonal, setAchievementSeasonal] = useState<boolean>(false);
     const [achievementAmountIsNumberOfStreams, setAchievementAmountIsNumberOfStreams] = useState<boolean>(false);
@@ -106,7 +107,8 @@ const AchievementsList: React.FC<any> = (props: any) => {
             const newData = {
                 type: achievementType,
                 amount: achievementAmountIsNumberOfStreams ? -1 : achievementAmount,
-                seasonal: achievementSeasonal
+                seasonal: achievementSeasonal,
+                announcementMessage: achievementMsg
             } as RowData;
 
             const formData = new FormData();
@@ -124,6 +126,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                     setAchievementlist(newList);
                     setAchievementType(0);
                     setAchievementAmount(1);
+                    setAchievementMsg("");
                     setAchievementSeasonal(false);
                     setAchievementFile(undefined);
                 } else {
@@ -155,6 +158,15 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                         {Object.entries(achievementTypes).map(([key, value]) => <MenuItem value={key}>{value}</MenuItem>)}
                                     </Select>
                                 </FormControl>
+                            </Grid>
+                            <Grid item>
+                                <TextField
+                                    id="achievement-msg"
+                                    label="Announcement message"
+                                    fullWidth
+                                    value={achievementMsg}
+                                    onChange={(e) => setAchievementMsg(e.target.value)}
+                                />
                             </Grid>
                             <Grid item container alignItems="center" direction="row">
                                 <Grid item>
@@ -255,11 +267,12 @@ const AchievementsList: React.FC<any> = (props: any) => {
                           )
                     },
                     { title: "Seasonal", field: "seasonal", type: "boolean" },
+                    { title: "Announcement message", field: "announcementMessage", },
                     { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} />, editable: "never" }
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 4,
+                    actionsColumnIndex: 5,
                     showTitle: false,
                     addRowPosition: "first",
                     tableLayout: "auto",

@@ -19,5 +19,6 @@ export default interface IAchievement {
     seasonal: boolean;
     imageId: string;
     mimetype?: string;
+    announcementMessage?: string;
     creationDate: Date
 }

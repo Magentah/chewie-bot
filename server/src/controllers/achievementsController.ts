@@ -53,7 +53,8 @@ class AchievementsController {
             await this.achievementsRepository.addOrUpdate({...achievementData,
                 type: achievement.type,
                 amount: achievement.amount,
-                seasonal: achievement.seasonal
+                seasonal: achievement.seasonal,
+                announcementMessage: achievement.announcementMessage
             });
             res.status(StatusCodes.OK);
             res.send(achievement);
@@ -89,6 +90,7 @@ class AchievementsController {
                 type: achievement.type,
                 amount: achievement.amount,
                 seasonal: achievement.seasonal,
+                announcementMessage: achievement.announcementMessage,
                 creationDate: new Date(),
                 imageId: Guid.create().toString()
             });
@@ -146,8 +148,8 @@ class AchievementsController {
      * @param res Express HTTP Response
      */
     public async addAchievement(req: Request, res: Response): Promise<void> {
-        const newachievement = req.body as IAchievement;
-        if (!newachievement) {
+        const newAchievement = req.body as IAchievement;
+        if (!newAchievement) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a achievement object."));
             return;
@@ -155,9 +157,10 @@ class AchievementsController {
 
         try {
             const result = await this.achievementsRepository.addOrUpdate({
-                type: newachievement.type,
-                amount: newachievement.amount,
-                seasonal: newachievement.seasonal,
+                type: newAchievement.type,
+                amount: newAchievement.amount,
+                seasonal: newAchievement.seasonal,
+                announcementMessage: newAchievement.announcementMessage,
                 creationDate: new Date(),
                 imageId: Guid.create().toString()
             });

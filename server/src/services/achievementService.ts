@@ -6,12 +6,15 @@ import AchievementsRepository from "../database/achievementsRepository";
 import Logger, { LogType } from "../logger";
 import * as redis from "redis";
 import AchievementMessage from "../models/achievementMessage";
+import TwitchService from "./twitchService";
+import * as Config from "../config.json";
 
 @injectable()
 export default class AchievementService {
     constructor(
         @inject(BotSettingsService) private settingsService: BotSettingsService,
         @inject(AchievementsRepository) private repository: AchievementsRepository,
+        @inject(TwitchService) private twitchService: TwitchService,
     ) {
     }
 
@@ -44,6 +47,14 @@ export default class AchievementService {
         for (const achievement of achievements) {
             if (currentAmount >= achievement.amount) {
                 await this.repository.grantAchievement(user, achievement);
+
+                // Send announcement message to chat.
+                if (achievement.announcementMessage) {
+                    let msg = achievement.announcementMessage;
+                    msg = msg.replace("{user}", user.username);
+                    msg = msg.replace("{amount}", achievement.amount.toString());
+                    this.twitchService.sendMessage(Config.twitch.broadcasterName, msg);
+                }
             } else {
                 // Achievements sorted by amount asc, so once we got beyond
                 // our current amount we can stop.
