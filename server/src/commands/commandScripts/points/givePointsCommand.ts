@@ -1,9 +1,9 @@
-import { Command } from "../command";
-import { UserService } from "../../services";
-import { ICommandAlias, IUser } from "../../models";
-import { BotContainer } from "../../inversify.config";
-import { Lang } from "../../lang";
-import { PointLogType } from "../../models/pointLog";
+import { Command } from "../../command";
+import { UserService } from "../../../services";
+import { ICommandAlias, IUser } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
+import { PointLogType } from "../../../models/pointLog";
 
 export default class GivePointsCommand extends Command {
     private userService: UserService;

@@ -12,7 +12,7 @@ enum CommandType {
     System
 }
 
-type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number };
+type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number, useCount: number };
 
 const CommandNameCell: React.FC<any> = (value: RowData) => {
     let icon = <Settings />;
@@ -60,12 +60,13 @@ const CommandList: React.FC<any> = (props: any) => {
                         validate: rowData => rowData.commandName !== "" && commandlist.filter(x => x.commandName === rowData.commandName && x.type === rowData.type && x.id !== rowData.id).length === 0
                     },
                     { title: "Content", field: "content", filtering: false },
+                    { title: "Use count", field: "useCount", filtering: false, type: "numeric" },
                     { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
                     { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 4,
+                    actionsColumnIndex: 5,
                     showTitle: false,
                     filtering: true
                 }}

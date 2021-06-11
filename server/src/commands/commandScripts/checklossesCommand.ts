@@ -15,7 +15,7 @@ export default class CheckLossesCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser, eventTypeArgument: string): Promise<void> {
         const eventType = eventTypeArgument.toLowerCase();
-        const stats = await this.pointsLog.getStats(user.username, eventType as PointLogType ? eventType as PointLogType : undefined);
+        const stats = await this.pointsLog.getStats(user, eventType as PointLogType ? eventType as PointLogType : undefined);
 
         switch (eventType) {
             case PointLogType.Bankheist:

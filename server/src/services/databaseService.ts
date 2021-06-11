@@ -28,6 +28,8 @@ export enum DatabaseTables {
     ChannelPointRewards = "channelPointRewards",
     ChannelPointRewardHistory = "channelPointRewardHistory",
     StreamActivity = "streamActivity",
+    Achievements = "achievements",
+    UserAchievements = "userAchievements"
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -105,6 +107,8 @@ export class DatabaseService {
                 await this.createChannelPointRewardsTable();
                 await this.createChannelPointRewardHistoryTable();
                 await this.createStreamActivityTable();
+                await this.createAchievementsTable();
+                await this.createUserAchievementsTable();
 
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -274,6 +278,7 @@ export class DatabaseService {
             table.string("title").notNullable();
             table.string("genre").notNullable();
             table.dateTime("created").notNullable();
+            table.integer("attributedUserId").references(`id`).inTable(DatabaseTables.Users);
         });
     }
 
@@ -291,6 +296,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.PointLogs, (table) => {
             table.increments("id").primary().notNullable();
             table.string("eventType").notNullable();
+            table.integer("userId").notNullable().references(`id`).inTable(DatabaseTables.Users);
             table.string("username").notNullable();
             table.integer("pointsBefore").notNullable();
             table.integer("points").notNullable();
@@ -335,7 +341,7 @@ export class DatabaseService {
     private async createUserTaxStreakTable(): Promise<void> {
         return this.createTable(DatabaseTables.UserTaxStreak, (table) => {
             table.increments("id").primary().notNullable().unique();
-            table.integer("userId").notNullable();
+            table.integer("userId").notNullable().unique();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.integer("currentStreak").notNullable();
             table.integer("longestStreak").notNullable();
@@ -348,9 +354,10 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.UserTaxHistory, (table) => {
             table.increments("id").primary().notNullable().unique();
             table.integer("userId").notNullable();
+            table.integer("type").notNullable();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.dateTime("taxRedemptionDate").notNullable();
-            table.string("channelPointRewardTwitchId").notNullable();
+            table.string("channelPointRewardTwitchId");
         });
     }
 
@@ -385,6 +392,32 @@ export class DatabaseService {
             table.increments("id").primary().notNullable().unique();
             table.string("event").notNullable();
             table.dateTime("dateTimeTriggered").notNullable();
+        });
+    }
+
+    private async createAchievementsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Achievements, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("type").notNullable();
+            table.integer("amount").notNullable();
+            table.boolean("seasonal").notNullable().defaultTo(false);
+            table.string("imageId").notNullable();
+            table.string("mimetype");
+            table.string("announcementMessage");
+            table.dateTime("creationDate").notNullable();
+        });
+    }
+
+    private async createUserAchievementsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.UserAchievements, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users);
+            table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements);
+            table.dateTime("date").notNullable();
+            table.dateTime("expiredDate");
+            // Achievements can only be granted once, unless seasonal, then they need to have different
+            // expiration dates for each season.
+            table.unique(["userId", "achievementId", "expiredDate"]);
         });
     }
 

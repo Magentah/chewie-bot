@@ -23,5 +23,7 @@ export enum EventLogType {
     Bits = "bits",
     Streamlabs = "streamlabs",
     RenameUser = "renameuser",
-    CardTrading = "cardtrading"
+    CardTrading = "cardtrading",
+    Sudoku = "sudoku",
+    RedeemCommand = "redeem"
 }

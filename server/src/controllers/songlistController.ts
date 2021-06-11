@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { ISong, ISonglistItem } from "../models";
+import { AchievementType, ISonglistItem } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
-import { SonglistRepository } from "../database";
+import { SonglistRepository, UsersRepository } from "../database";
+import { EventAggregator } from "../services";
 
 @injectable()
 class SonglistController {
-    constructor(@inject(SonglistRepository) private songlistService: SonglistRepository) {
+    constructor(@inject(SonglistRepository) private songlistService: SonglistRepository,
+                @inject(EventAggregator) private eventAggregator: EventAggregator,
+                @inject(UsersRepository) private usersRepository: UsersRepository) {
         Logger.info(
             LogType.ServerInfo,
             `SonglistController constructor. SonglistRepository exists: ${this.songlistService !== undefined}`
@@ -40,7 +43,23 @@ class SonglistController {
         }
 
         try {
-            await this.songlistService.update(newSong);
+            await this.songlistService.update({
+                id: newSong.id,
+                album: newSong.album,
+                genre: newSong.genre,
+                title: newSong.title,
+                attributedUserId: newSong.attributedUserId ?? null
+            });
+
+            if (newSong.attributedUserId) {
+                const user = (await this.usersRepository.getByIds([newSong.attributedUserId]))[0];
+                if (user) {
+                    const count = await this.songlistService.countAttributions(newSong.attributedUserId);
+                    const msg = { user, count, type: AchievementType.Songlist };
+                    this.eventAggregator.publishAchievement(msg);
+                }
+            }
+
             res.status(StatusCodes.OK);
             res.send(newSong);
         } catch (err) {

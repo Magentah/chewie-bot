@@ -1,8 +1,8 @@
-import { Command } from "../command";
-import { UserService } from "../../services";
-import { ICommandAlias, IUser, UserLevels } from "../../models";
-import { BotContainer } from "../../inversify.config";
-import { Lang } from "../../lang";
+import { Command } from "../../command";
+import { UserService } from "../../../services";
+import { ICommandAlias, IUser, UserLevels } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
+import { Lang } from "../../../lang";
 
 export default class PointsCommand extends Command {
     private userService: UserService;

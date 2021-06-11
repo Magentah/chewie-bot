@@ -20,11 +20,13 @@ const useStyles = makeStyles((theme) => ({
     },
     cardsGrid: {
         background: theme.palette.divider,
-        padding: theme.spacing(1)
+        padding: theme.spacing(1),
+        marginTop: theme.spacing(2)
     },
     noCardsGrid: {
         background: theme.palette.divider,
-        padding: theme.spacing(15, 5)
+        padding: theme.spacing(15, 5),
+        marginTop: theme.spacing(2)
     },
     individualCardCounter: {
         borderRadius: "1em",
@@ -84,14 +86,15 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const cardCost = 1000;
     function PaperComponent(paperProps: PaperProps) {
         return (
-          <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em"}} />
+          <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em", paddingRight: "1em", paddingBottom: "0.5em", minWidth: "30em"}} />
         );
     }
 
     return <Card>
-            <Dialog open={redeemInfoResultMsg !== ""} onClose={() => setRedeemInfoResultMsg("")}>
+            <Dialog open={redeemInfoResultMsg !== ""} onClose={() => setRedeemInfoResultMsg("")} PaperComponent={PaperComponent}>
                 <DialogTitle>Redeem dango card</DialogTitle>
-                <DialogContent>
+                <DialogContent style={{overflow: "visible"}}>
+                    <Image src={"/assets/Dango-Treasure-Box.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"10em", position: "absolute", zIndex: 100}} />
                     <DialogContentText>{redeemInfoResultMsg}</DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -99,7 +102,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                 </DialogActions>
             </Dialog>
             <Dialog open={resetDialogOpen} onClose={() => handleCloseReset(false)} PaperComponent={PaperComponent}>
-                <DialogTitle>Get a random dango card</DialogTitle>
+                <DialogTitle>Get a Random Dango Card</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
                     <Image src={"/assets/Dango-Card-Pop-Up.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"12em", position: "absolute", zIndex: 100}} />
                     {userProfile.username ?
@@ -134,9 +137,6 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                 <Button variant="contained" color="primary" onClick={() => setResetDialogOpen(true)}>Get a dango card</Button>
                             </Grid>
                         </Grid>
-                    </Grid>
-                    <Grid item className={classes.collectionHeader}>
-                        <Typography variant="h6">Your collection</Typography>
                     </Grid>
                     <Grid item>
                         {cardlist.length === 0 ?

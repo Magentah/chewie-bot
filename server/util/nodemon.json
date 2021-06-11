@@ -1,5 +1,4 @@
 {
-    "watch": ["src"],
     "ext": "ts",
     "ignore": ["src/public", ".git", "node_modules/**/*"],
     "env": {
@@ -9,5 +8,5 @@
     "verbose": true,
     "execMap": {
         "ts": "node --require ts-node/register"
-      }
+    }
 }

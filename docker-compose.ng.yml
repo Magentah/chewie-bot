@@ -30,4 +30,4 @@ services:
             - "/usr/src/chewiebot/server/node_modules/"
         environment:
             NODE_ENV: development
-        command: ["pm2-dev", "ecosystem.config.json"]
+        command: ["npm", "run", "start-debug"]

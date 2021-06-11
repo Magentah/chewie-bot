@@ -1,17 +1,19 @@
 import { injectable, inject } from "inversify";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
-import { IUser, ITwitchChatList } from "../models";
+import { IUser, ITwitchChatList, AchievementType } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
 import { Logger, LogType } from "../logger";
 import PointLogsRepository from "../database/pointLogsRepository";
+import EventAggregator from "./eventAggregator";
 
 @injectable()
 export class UserService {
     constructor(@inject(UsersRepository) private users: UsersRepository,
                 @inject(EventLogService) private eventLog: EventLogService,
+                @inject(EventAggregator) private eventAggregator: EventAggregator,
                 @inject(PointLogsRepository) private pointsLog: PointLogsRepository) {
         // Empty
     }
@@ -81,7 +83,7 @@ export class UserService {
         userData.vipExpiry = undefined;
         userData.vipPermanentRequests = 0;
         await this.updateUser(userData);
-        await this.pointsLog.reset(userData.username);
+        await this.pointsLog.reset(userData);
         await this.changeUserPoints(userData, -userData.points, PointLogType.Reset);
     }
 
@@ -89,11 +91,13 @@ export class UserService {
      * Renames an existing user.
      * @param {IUser} user User to be renamed.
      */
-    public async renameUser(user: IUser, newUserName: string): Promise<void> {
+    public async renameUser(user: IUser, previousUser: IUser | undefined, newUserName: string): Promise<void> {
         const oldUserName = user.username;
         user.username = newUserName;
         await this.users.update(user);
-        await this.users.renameUserInLog(oldUserName, newUserName);
+        if (previousUser) {
+            this.users.moveUserPointsLog(previousUser, user);
+        }
     }
 
     /**
@@ -104,6 +108,8 @@ export class UserService {
     public async changeUserPoints(user: IUser, points: number, eventType: PointLogType | string): Promise<void> {
         user.points += points;
         await this.users.incrementPoints(user, points, eventType);
+
+        this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points });
     }
 
     /**
@@ -187,7 +193,8 @@ export class UserService {
      * @param {string} username The username of the user to get.
      */
     public async getUser(username: string): Promise<IUser | undefined> {
-        return await this.users.get(username);
+        const name = username.startsWith("@") ? username.substr(1) : username;
+        return await this.users.get(name);
     }
 
     /**

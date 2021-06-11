@@ -1,7 +1,7 @@
-import { Command } from "../command";
-import { IUser } from "../../models";
-import { BotContainer } from "../../inversify.config";
-import { UsersRepository } from "../../database";
+import { Command } from "../../command";
+import { IUser } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
+import { UsersRepository } from "../../../database";
 
 export class TopCommand extends Command {
     private usersRepository: UsersRepository;
@@ -17,10 +17,10 @@ export class TopCommand extends Command {
         let result = "Users with top Chews are: ";
         let counter = 1;
         const numFormat = new Intl.NumberFormat();
-        for (const user of await this.usersRepository.getTopUsers(userCount)) {
-            result += `${counter++}. ${user.username}: ${numFormat.format(user.points)} / `
+        for (const topUser of await this.usersRepository.getTopUsers(userCount)) {
+            result += `${counter++}. ${topUser.username}: ${numFormat.format(topUser.points)} / `
         }
-        
+
         this.twitchService.sendMessage(channel, result.substr(0, result.length - 2));
     }
 }

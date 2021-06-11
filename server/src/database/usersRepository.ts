@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
-import { IUser, UserLevels } from "../models";
+import { EventLogType, IUser, UserLevels } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -92,6 +92,25 @@ export class UsersRepository {
     }
 
     /**
+     * Gets all users that made song requests in the past.
+     */
+    public async getUsersWithSongrequests(): Promise<{ username: string, id: number }[]> {
+        const databaseService = await this.databaseProvider();
+
+        const userResult = await databaseService
+            .getQueryBuilder(DatabaseTables.Users)
+            .innerJoin(DatabaseTables.EventLogs, "eventLogs.username", "users.username")
+            .where("eventLogs.type", "=", EventLogType.SongRequest)
+            .select([
+                "users.username",
+                "users.id"
+            ]).distinct();
+
+        // Need to map from SQLResult to the correct model.
+        return userResult;
+    }
+
+    /**
      * Gets a user leaderboard (only returns basic information)
      */
     public async getLeaderboard(topCount: number, includeUser: IUser | undefined): Promise<{username: string, points: number, rank: number}[]> {
@@ -172,7 +191,7 @@ export class UsersRepository {
 
         await databaseService
             .getQueryBuilder(DatabaseTables.PointLogs)
-            .insert({ eventType, username: user.username, pointsBefore: user.points - points, points, time: new Date() });
+            .insert({ eventType, userId: user.id, username: user.username, pointsBefore: user.points - points, points, time: new Date() });
     }
 
     /**
@@ -190,13 +209,13 @@ export class UsersRepository {
     /**
      * Renames the points log for a given user.
      */
-     public async renameUserInLog(oldUserName: string, newUserName: string): Promise<void> {
+    public async moveUserPointsLog(oldUser: IUser, newUser: IUser): Promise<void> {
         const databaseService = await this.databaseProvider();
 
         await databaseService
             .getQueryBuilder(DatabaseTables.PointLogs)
-            .where({ username: oldUserName })
-            .update({ username: newUserName });
+            .where({ userId: oldUser.id })
+            .update({ userId: newUser.id });
     }
 
     /**

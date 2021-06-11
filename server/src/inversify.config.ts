@@ -27,6 +27,8 @@ import EventLogService from "./services/eventLogService";
 import ChannelPointRewardService from "./services/channelPointRewardService";
 import TaxService from "./services/taxService";
 import CardService from "./services/cardService";
+import AchievementService from "./services/achievementService";
+import EventAggregator from "./services/eventAggregator";
 
 // Database Repositories
 
@@ -50,6 +52,7 @@ import ChannelPointRewardHistoryRepository from "./database/channelPointRewardHi
 import UserTaxHistoryRepository from "./database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "./database/userTaxStreakRepository";
 import StreamActivityRepository from "./database/streamActivityRepository";
+import AchievementsRepository from "./database/achievementsRepository";
 
 // Controllers
 import SongController from "./controllers/songController";
@@ -63,6 +66,7 @@ import CommandlistController from "./controllers/commandlistController";
 import SettingsController from "./controllers/settingsController";
 import CardlistController from "./controllers/cardlistController";
 import ChannelPointRewardController from "./controllers/channelPointRewardController";
+import AchievementsController from "./controllers/achievementsController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
@@ -126,6 +130,8 @@ botContainer.bind<EventLogService>(EventLogService).toSelf().inSingletonScope();
 botContainer.bind<ChannelPointRewardService>(ChannelPointRewardService).toSelf().inSingletonScope();
 botContainer.bind<TaxService>(TaxService).toSelf().inSingletonScope();
 botContainer.bind<CardService>(CardService).toSelf().inSingletonScope();
+botContainer.bind<AchievementService>(AchievementService).toSelf().inSingletonScope();
+botContainer.bind<EventAggregator>(EventAggregator).toSelf().inSingletonScope();
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
@@ -148,6 +154,7 @@ botContainer.bind<ChannelPointRewardHistoryRepository>(ChannelPointRewardHistory
 botContainer.bind<UserTaxHistoryRepository>(UserTaxHistoryRepository).toSelf();
 botContainer.bind<UserTaxStreakRepository>(UserTaxStreakRepository).toSelf();
 botContainer.bind<StreamActivityRepository>(StreamActivityRepository).toSelf();
+botContainer.bind<AchievementsRepository>(AchievementsRepository).toSelf();
 
 // Controllers
 botContainer.bind<SongController>(SongController).toSelf();
@@ -161,6 +168,7 @@ botContainer.bind<CommandlistController>(CommandlistController).toSelf();
 botContainer.bind<SettingsController>(SettingsController).toSelf();
 botContainer.bind<CardlistController>(CardlistController).toSelf();
 botContainer.bind<ChannelPointRewardController>(ChannelPointRewardController).toSelf();
+botContainer.bind<AchievementsController>(AchievementsController).toSelf();
 
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();

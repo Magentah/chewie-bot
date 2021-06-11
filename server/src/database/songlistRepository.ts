@@ -12,7 +12,8 @@ export class SonglistRepository {
         const databaseService = await this.databaseProvider();
         const songlist = await databaseService
             .getQueryBuilder(DatabaseTables.Songlist)
-            .select();
+            .leftJoin(DatabaseTables.Users, "songlist.attributedUserId", "users.id")
+            .select(["songlist.*", "users.username AS attributedUsername"]);
         return songlist as ISonglistItem[];
     }
 
@@ -52,6 +53,16 @@ export class SonglistRepository {
             .first()
             .where({ id });
         return title as ISonglistItem;
+    }
+
+    public async countAttributions(userId: number) : Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService
+            .getQueryBuilder(DatabaseTables.Songlist)
+            .count("id AS cnt")
+            .where({ attributedUserId: userId })
+            .first()).cnt;
+        return count;
     }
 
     public async add(item: ISonglistItem): Promise<void> {

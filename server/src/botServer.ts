@@ -13,7 +13,7 @@ import { Logger, LogType } from "./logger";
 import * as Routers from "./routes";
 import { setupPassport } from "./routes/authRouter";
 import { UserCookie } from "./middleware";
-import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService, TaxService } from "./services";
+import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService, TaxService, AchievementService } from "./services";
 import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
 import TwitchHelper from "./helpers/twitchHelper";
@@ -31,6 +31,7 @@ class BotServer extends Server {
     private socket: WebsocketService;
     private commands: CommandService;
     private taxService: TaxService;
+    private achievementService: AchievementService;
 
     constructor() {
         super(true);
@@ -43,6 +44,9 @@ class BotServer extends Server {
         this.commands = BotContainer.get<CommandService>(CommandService);
         this.taxService = BotContainer.get<TaxService>(TaxService);
         this.taxService.setup();
+
+        this.achievementService = BotContainer.get<AchievementService>(AchievementService);
+        this.achievementService.setup();
 
         // Go live on startup (if configured).
         const twitchService = BotContainer.get<TwitchService>(TwitchService);

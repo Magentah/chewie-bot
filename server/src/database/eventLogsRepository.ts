@@ -33,12 +33,27 @@ export class EventLogsRepository {
         return eventLogs;
     }
 
+    public async getCount(type: EventLogType, username: string): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
+            .select().where({ username, type }).count("id as cnt").first()).cnt;
+        return count;
+    }
+
     public async add(log: IEventLog): Promise<void> {
         const databaseService = await this.databaseProvider();
         log.time = moment().utc().toDate();
         await databaseService.getQueryBuilder(DatabaseTables.EventLogs).insert(log);
 
-        // Prune data older than a configured amount of das
+        switch (log.type) {
+            case EventLogType.SongRequest:
+            case EventLogType.Sudoku:
+            case EventLogType.RedeemCommand:
+                // Do not prune, needed for achievements.
+                return;
+        }
+
+        // Prune data older than a configured amount
         const pruneDays = parseInt(await this.settingsSerivce.getValue(BotSettings.PruneLogsAfterDays), 10);
         const pruneDate = new Date(log.time);
         pruneDate.setDate(-pruneDays);

@@ -1,0 +1,24 @@
+export enum AchievementType {
+    SongRequests = 0,
+    Points = 1,
+    Songlist = 2,
+    UniqueCards = 3,
+    Sudoku = 4,
+    AnimationRedeems = 5,
+    DailyTaxesPaid = 6,
+    DuelsWon = 7,
+    BackheistPointsWon = 8,
+    BankheistPointsLost = 9,
+    DailyBitTaxesPaid = 10
+}
+
+export default interface IAchievement {
+    id?: number;
+    type: number;
+    amount: number;
+    seasonal: boolean;
+    imageId: string;
+    mimetype?: string;
+    announcementMessage?: string;
+    creationDate: Date
+}

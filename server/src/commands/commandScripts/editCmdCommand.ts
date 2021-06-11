@@ -3,7 +3,7 @@ import { TextCommandsRepository } from "./../../database";
 import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
 
-export default class AddCmdCommand extends Command {
+export default class EditCmdCommand extends Command {
     private textCommands: TextCommandsRepository;
 
     constructor() {
@@ -20,18 +20,13 @@ export default class AddCmdCommand extends Command {
             commandName = commandName.substr(1);
         }
 
-        let command = await this.textCommands.get(commandName);
-        if (!command) {
-            command = {
-                commandName,
-                message: args.join(" "),
-                useCount: 0
-            };
-
-            await this.textCommands.add(command);
-            await this.twitchService.sendMessage(channel, `!${commandName} has been added!`);
+        const command = await this.textCommands.get(commandName);
+        if (command) {
+            command.message = args.join(" ");
+            await this.textCommands.update(command);
+            await this.twitchService.sendMessage(channel, `!${commandName} has been updated!`);
         } else {
-            this.twitchService.sendMessage(channel, `The command !${commandName} already exists.` );
+            this.twitchService.sendMessage(channel, `The command !${commandName} does not exist.` );
         }
     }
 }

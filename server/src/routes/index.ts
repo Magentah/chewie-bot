@@ -8,3 +8,4 @@ export { default as UserlistRouter } from "./userlistRouter";
 export { default as CommandListRouter } from "./commandlistRouter";
 export { default as SettingsRouter } from "./settingsRouter";
 export { default as CardlistRouter } from "./cardlistRouter";
+export { default as AchievementlistRouter } from "./achievementlistRouter";

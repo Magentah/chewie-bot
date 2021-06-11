@@ -8,6 +8,7 @@ const userListRouter: express.Router = express.Router();
 const userlistController: UserlistController = BotContainer.get(UserlistController);
 
 userListRouter.get("/api/userlist", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => userlistController.getUserlist(req, res));
+userListRouter.get("/api/userlist/songrequests", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => userlistController.getUsersWithSongrequests(req, res));
 userListRouter.get("/api/userLevels", (req, res) => userlistController.getUserLevels(req, res));
 userListRouter.get("/api/leaderboard", (req, res) => userlistController.getLeaderboard(req, res));
 userListRouter.post("/api/userlist/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => userlistController.addUser(req, res));
