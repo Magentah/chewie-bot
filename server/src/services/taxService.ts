@@ -12,7 +12,6 @@ import { IDBUserTaxHistory, TaxType } from "../models/taxHistory";
 
 @injectable()
 export default class TaxService {
-    private taxChannelReward?: IChannelPointReward;
     private isEnabled = async (): Promise<boolean> => JSON.parse(await this.botSettingsService.getValue(BotSettings.TaxEventIsEnabled));
 
     constructor(
@@ -38,7 +37,8 @@ export default class TaxService {
             return;
         }
 
-        if (this.taxChannelReward && (notification.event as IRewardRedemeptionEvent).reward.title === this.taxChannelReward.title) {
+        const taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
+        if (taxChannelReward && (notification.event as IRewardRedemeptionEvent).reward.title === taxChannelReward.title) {
             const user = await this.userService.getUser((notification.event as IRewardRedemeptionEvent).user_login);
             if (user) {
                 this.logDailyTax(user, (notification.event as IRewardRedemeptionEvent).reward.id);
