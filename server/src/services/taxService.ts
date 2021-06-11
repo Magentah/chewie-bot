@@ -26,16 +26,7 @@ export default class TaxService {
         @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
         this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, this.streamOnline);
-    }
-
-    /**
-     * Setup the service. Sets up callback for the tax reward event if there is one configured.
-     */
-    public async setup(): Promise<void> {
-        this.taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
-        if (this.taxChannelReward) {
-            this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, this.channelPointsRedeemed);
-        }
+        this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, this.channelPointsRedeemed);
     }
 
     /**
@@ -124,7 +115,7 @@ export default class TaxService {
 
         // Get all users who haven't paid tax since the last online date.
         const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "asc");
-        if (lastOnlineEvents.length == 2) {
+        if (lastOnlineEvents.length === 2) {
             usersNotPaidTax = await this.userTaxHistoryRepository.getUsersBetweenDates(
                 lastOnlineEvents[0].dateTimeTriggered,
                 lastOnlineEvents[1].dateTimeTriggered

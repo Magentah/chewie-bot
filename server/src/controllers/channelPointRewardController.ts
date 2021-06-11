@@ -25,7 +25,7 @@ export default class ChannelPointRewardController {
         try {
             const channelRewards = await this.channelPointRewardService.getChannelRewardsForBroadcaster();
             // Return something for now. Taken from documentation page.
-            if (channelRewards.length == 0) {
+            if (channelRewards.length === 0) {
                 channelRewards.push({
                     "broadcaster_name": "torpedo09",
                     "broadcaster_login": "torpedo09",
@@ -71,7 +71,7 @@ export default class ChannelPointRewardController {
 
     public async getRedemptions(req: Request, res: Response): Promise<void> {
         try {
-            res.status(HttpStatusCodes.OK).send(Object.keys(ChannelPointRedemption));
+            res.status(HttpStatusCodes.OK).send(Object.values(ChannelPointRedemption));
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error occured in getRedemptions", error);
             res.sendStatus(HttpStatusCodes.INTERNAL_SERVER_ERROR);
@@ -88,19 +88,10 @@ export default class ChannelPointRewardController {
         }
     }
 
-    public async getRewardEvents(req: Request, res: Response): Promise<void> {
-        try {
-            res.status(HttpStatusCodes.OK).send(Object.keys(ChannelPointRedemption));
-        } catch (error: any) {
-            Logger.err(LogType.Twitch, "Error occured in getRewardEvents", error);
-            res.sendStatus(HttpStatusCodes.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     public async deleteAssociation(req: Request, res: Response): Promise<void> {
         try {
             if (req.query && req.query.id) {
-                const id: number = Number.parseInt(req.query.id.toString());
+                const id: number = Number.parseInt(req.query.id.toString(), 10);
                 await this.channelPointRewardService.deleteChannelRewardRedemption(id);
             }
             res.sendStatus(HttpStatusCodes.OK);
