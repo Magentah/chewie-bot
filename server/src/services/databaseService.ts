@@ -403,6 +403,7 @@ export class DatabaseService {
             table.boolean("seasonal").notNullable().defaultTo(false);
             table.string("imageId").notNullable();
             table.string("mimetype");
+            table.string("announcementMessage");
             table.dateTime("creationDate").notNullable();
         });
     }
