@@ -10,7 +10,7 @@
         "start-dev:build": "cd ../client && yarn build && cd ../server && nodemon --config \"./util/nodemon.json\"/ src/start.ts",
         "start-dev": "nodemon --config \".util/nodemon.json\"/ src/start.ts",
         "start-debug:build": "cd ../client && yarn build && cd ../server && nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
-        "start-debug": "nodemon --config \"./util/nodemon.json\"/ --inspect src/start.ts",
+        "start-debug": "nodemon --config \"./util/nodemon.json\"/ --inspect=0.0.0.0:9229 src/start.ts",
         "tsc": "tsc",
         "start-static": "cd ../client && yarn build && cd ../server && copyfiles \"../client/build/**/*\" ./dist/ && cd .. && yarn tsc && node ./dist/start.js",
         "build": "cd ../server && yarn tsc && cd ../client && yarn build",
