@@ -137,26 +137,23 @@ export default class TwitchEventService {
     private async channelPointsRedeemedEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): Promise<void> {
         // We only update points if the redemption was fulfilled. If it's cancelled, we don't.
         Logger.info(LogType.Twitch, "Channel Points Redeemed Add", notificationEvent);
-        if (this.rewardAddsUserPoints(notificationEvent)) {
-            let user = await this.users.getUser(notificationEvent.user_login);
-            if (!user) {
-                // User hasn't logged in to the bot, or it's their first time interacting with the bot. Need to add as a new user.
-                user = await this.users.addUser(notificationEvent.user_login);
-            }
-            this.eventLogService.addChannelPointRedemption(user.username, {
-                message: `${user.username} has redeemed ${notificationEvent.reward.title} with cost ${notificationEvent.reward.cost}`,
-                event: notificationEvent,
-                pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
-            });
-            // This should always have an id at this point, but TypeScript doesn't like if you don't actually check for it.
-            if (user.id) {
-                // If there is a reward redemption associated with a twitch channel reward, this will add it to the history with the associated redemption.
-                await this.channelPointRewardService.channelPointRewardRedemptionTriggered(notificationEvent.reward as ITwitchChannelReward, user.id);
-            }
-            await this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier, PointLogType.PointRewardRedemption);
-            // Set reward status to fulfilled.
-            await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+        let user = await this.users.getUser(notificationEvent.user_login);
+        if (!user) {
+            // User hasn't logged in to the bot, or it's their first time interacting with the bot. Need to add as a new user.
+            user = await this.users.addUser(notificationEvent.user_login);
         }
+        this.eventLogService.addChannelPointRedemption(user.username, {
+            message: `${user.username} has redeemed ${notificationEvent.reward.title} with cost ${notificationEvent.reward.cost}`,
+            event: notificationEvent,
+            pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+        });
+        // This should always have an id at this point, but TypeScript doesn't like if you don't actually check for it.
+        if (user.id) {
+            // If there is a reward redemption associated with a twitch channel reward, this will add it to the history with the associated redemption.
+            await this.channelPointRewardService.channelPointRewardRedemptionTriggered(notificationEvent.reward as ITwitchChannelReward, user.id);
+        }
+        // Set reward status to fulfilled.
+        await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
     }
 
     /**
