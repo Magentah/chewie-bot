@@ -34,6 +34,7 @@ export default class TaxService {
      * @param notification The channel point redemption notification.
      */
     private async channelPointsRedeemed(notification: IEventSubNotification): Promise<void> {
+        Logger.info(LogType.TwitchEvents, `Tax event redeemed. Tax is enabled: ${await this.isEnabled()}`);
         if (!(await this.isEnabled())) {
             return;
         }

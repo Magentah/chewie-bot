@@ -12,7 +12,7 @@ import HttpStatusCodes from "http-status-codes";
 
 interface ITwitchExecutor {
     broadcasterId: number | undefined;
-    executeFunction: any;
+    executeFunction: (method: HttpMethods, apiPath: string, body?: any) => Promise<AxiosResponse>;
 }
 
 interface IParsedResponse {
@@ -107,9 +107,7 @@ export class TwitchWebService {
             Logger.err(LogType.TwitchEvents, "Failed to get valid response from Twitch API.", {
                 url: updateStatusUrl,
                 requestBody: body,
-                statusCode: response.status,
-                statusText: response.statusText,
-                data: response.data,
+                response: parsedResponse,
             });
             return;
         } else {
