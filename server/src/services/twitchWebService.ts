@@ -101,7 +101,13 @@ export class TwitchWebService {
         const parsedResponse = this.parseResponse("UpdateChannelReward", response);
 
         if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
-            Logger.err(LogType.TwitchEvents, "Failed to get valid response from Twitch API.", { url: updateStatusUrl, body: body });
+            Logger.err(LogType.TwitchEvents, "Failed to get valid response from Twitch API.", {
+                url: updateStatusUrl,
+                requestBody: body,
+                statusCode: response.status,
+                statusText: response.statusText,
+                data: response.data,
+            });
             return;
         } else {
             Logger.info(LogType.TwitchEvents, `Updated ${redemptionRewardId} status to 'FULFILLED'`);
