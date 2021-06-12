@@ -139,8 +139,8 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 const msgIndex = Math.floor(Math.random() * Math.floor(winMessages.length));
 
                 // Replace variables for "single user" scenario.
-                const winMessageResult = winMessages[msgIndex].replace("{user}", winners[0].participant.user.username)
-                    .replace("{amount}", winners[0].pointsWon.toString());
+                const winMessageResult = winMessages[msgIndex].replace(/\{user\}/ig, winners[0].participant.user.username)
+                    .replace(/\{amount\}/ig, winners[0].pointsWon.toString());
                 this.sendMessage(winMessageResult);
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${messageType}`);
@@ -163,10 +163,10 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 const useSudoku = loseMessages[msgIndex].toLowerCase().indexOf("sudoku") !== -1;
 
                 // Replace variables for "single user" scenario.
-                const loseMessageResult = loseMessages[msgIndex].replace("{user}", this.participants[0].user.username)
-                    .replace("{amount}", this.participants[0].points.toString());
+                const loseMessageResult = loseMessages[msgIndex].replace(/\{user\}/ig, this.participants[0].user.username)
+                    .replace(/\{amount\}/ig, this.participants[0].points.toString());
                 this.sendMessage(loseMessageResult);
-                
+
                 if (useSudoku) {
                     this.sudokuParticipants();
                 }
@@ -187,7 +187,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         });
         this.eventService.stopEventStartCooldown(this);
     }
-    
+
     private async sudokuParticipants() {
         // Give users time to process the message and realize their fate.
         await this.delay(5000);

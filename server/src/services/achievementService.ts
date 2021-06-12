@@ -51,8 +51,8 @@ export default class AchievementService {
                 // Send announcement message to chat.
                 if (achievement.announcementMessage) {
                     let msg = achievement.announcementMessage;
-                    msg = msg.replace("{user}", user.username);
-                    msg = msg.replace("{amount}", achievement.amount.toString());
+                    msg = msg.replace(/\{user\}/ig, user.username);
+                    msg = msg.replace(/\{amount\}/ig, achievement.amount.toString());
                     this.twitchService.sendMessage(Config.twitch.broadcasterName, msg);
                 }
             } else {
