@@ -25,8 +25,8 @@ export default class TaxService {
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
-        this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, this.streamOnline);
-        this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, this.channelPointsRedeemed);
+        this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, () => this.streamOnline());
+        this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, (e: IEventSubNotification) => this.channelPointsRedeemed(e));
     }
 
     /**
