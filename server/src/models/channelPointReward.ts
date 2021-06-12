@@ -1,6 +1,7 @@
 export enum ChannelPointRedemption {
     None = "None",
     Tax = "Tax Reward Event",
+    Points = "Redeem points",
 }
 
 export default interface IChannelPointReward {
@@ -21,5 +22,5 @@ export interface IChannelPointRewardHistory {
     userId: number;
     rewardId: string;
     associatedRedemption: string;
-    timeTriggered: Date;
+    dateTimeTriggered: Date;
 }

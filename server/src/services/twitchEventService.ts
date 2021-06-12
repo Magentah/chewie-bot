@@ -10,7 +10,7 @@ import DiscordService from "./discordService";
 import EventLogService from "./eventLogService";
 import ChannelPointRewardService from "./channelPointRewardService";
 import * as EventSub from "../models";
-import { ITwitchChannelReward } from "../models";
+import { ChannelPointRedemption, ITwitchChannelReward } from "../models";
 import { TwitchAuthService } from ".";
 import { PointLogType } from "../models/pointLog";
 import { TwitchWebService } from "./twitchWebService";
@@ -147,10 +147,16 @@ export default class TwitchEventService {
             event: notificationEvent,
             pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
         });
+
         // This should always have an id at this point, but TypeScript doesn't like if you don't actually check for it.
         if (user.id) {
             // If there is a reward redemption associated with a twitch channel reward, this will add it to the history with the associated redemption.
             await this.channelPointRewardService.channelPointRewardRedemptionTriggered(notificationEvent.reward as ITwitchChannelReward, user.id);
+
+            const pointsReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Points);
+            if (pointsReward && notificationEvent.reward.title === pointsReward.title) {
+                await this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier, PointLogType.PointRewardRedemption);
+            }
         }
         // Set reward status to fulfilled.
         await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
