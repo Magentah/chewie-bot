@@ -34,6 +34,27 @@ export default class ChannelPointRewardRepository {
     }
 
     /**
+     * Gets the redemption type for a specific Twitch redemption.
+     * @param redemptionId Twitch ID of the channel point redemption
+     * @returns Type of the redemption (or None)
+     */
+    public async getTypeForRedemption(redemptionId: string): Promise<ChannelPointRedemption> {
+        const databaseService = await this.databaseProvider();
+        const channelPointReward = await databaseService
+            .getQueryBuilder(DatabaseTables.ChannelPointRewards)
+            .first("associatedRedemption")
+            .where("twitchRewardId", redemptionId)
+            .andWhere("isEnabled", true)
+            .andWhere("isDeleted", false);
+
+        if (!channelPointReward) {
+            return ChannelPointRedemption.None;
+        }
+
+        return channelPointReward.associatedRedemption;
+    }
+
+    /**
      * Gets a ChannelPointReward object containing the redemption for a Twitch Channel Point Reward.
      * @param channelPointReward The Twitch Channel Point Reward to search for.
      * @returns The ChannelPointReward object if it exists, undefined if it does not.
