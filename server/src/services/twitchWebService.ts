@@ -95,7 +95,7 @@ export class TwitchWebService {
         const body = {
             "status": status,
         };
-        const updateStatusUrl = `${this.getChannelRedemptionUrl}?broadcaster_id=${executor.broadcasterId}&reward_id=${redemptionRewardId}&id=${channelRewardId}`;
+        const updateStatusUrl = `${this.getChannelRedemptionUrl}?broadcaster_id=${executor.broadcasterId}&reward_id=${channelRewardId}&id=${redemptionRewardId}`;
         const response: AxiosResponse = await executor.executeFunction(HttpMethods.PATCH, updateStatusUrl, body);
 
         const parsedResponse = this.parseResponse("UpdateChannelReward", response);

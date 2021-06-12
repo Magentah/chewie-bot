@@ -9,6 +9,7 @@ import BotSettingsService, { BotSettings } from "./botSettingsService";
 import TwitchEventService from "./twitchEventService";
 import EventAggregator from "./eventAggregator";
 import { IDBUserTaxHistory, TaxType } from "../models/taxHistory";
+import { Logger, LogType } from "../logger";
 
 @injectable()
 export default class TaxService {
@@ -37,9 +38,16 @@ export default class TaxService {
             return;
         }
 
+        Logger.info(LogType.TwitchEvents, `TaxService Channel Point Redemption`, notification);
         const taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
+
+        Logger.info(
+            LogType.TwitchEvents,
+            `TaxChannelReward Title: ${taxChannelReward?.title} -- Notified Reward Title: ${(notification.event as IRewardRedemeptionEvent).reward.title}`
+        );
         if (taxChannelReward && (notification.event as IRewardRedemeptionEvent).reward.title === taxChannelReward.title) {
             const user = await this.userService.getUser((notification.event as IRewardRedemeptionEvent).user_login);
+            Logger.info(LogType.TwitchEvents, "User for reward redemption", user);
             if (user) {
                 this.logDailyTax(user, (notification.event as IRewardRedemeptionEvent).reward.id);
             }
