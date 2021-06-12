@@ -83,7 +83,7 @@ export default class ChannelPointRewardService {
             const channelPointRewardHistoryEntry: IChannelPointRewardHistory = {
                 associatedRedemption: reward?.associatedRedemption,
                 rewardId: channelPointReward.id,
-                timeTriggered: now,
+                dateTimeTriggered: now,
                 userId,
             };
 
