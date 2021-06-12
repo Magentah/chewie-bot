@@ -32,11 +32,7 @@ twitchRouter.post(
     (req, res) => twitchController.saveBotSettings(req, res)
 );
 
-twitchRouter.post(
-    "/api/twitch/eventsub/callback",
-    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
-    (req, res) => twitchController.eventsubCallback(req, res)
-);
+twitchRouter.post("/api/twitch/eventsub/callback", (req, res) => twitchController.eventsubCallback(req, res));
 twitchRouter.get(
     "/api/twitch/eventsub/subscriptions",
     (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),

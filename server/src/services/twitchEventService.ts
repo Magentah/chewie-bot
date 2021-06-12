@@ -53,7 +53,7 @@ export default class TwitchEventService {
      * @returns
      */
     public async startup(): Promise<void> {
-        if (this.broadcasterUserId == 0) {
+        if (this.broadcasterUserId === 0) {
             const broadcaster = await this.users.getBroadcaster();
             if (broadcaster?.twitchUserProfile) {
                 this.broadcasterUserId = broadcaster.twitchUserProfile.id;
