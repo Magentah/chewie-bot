@@ -49,17 +49,17 @@ export class TextCommand extends Command {
         // Replace variable with current counter
         // Use after increment since starting with 1 makes more sense.
         if (message.indexOf("{count}") !== -1) {
-            message = message.replace("{count}", newUseCount.toString());
+            message = message.replace(/\{count\}/ig, newUseCount.toString());
         }
 
         if (message.indexOf("{time}") !== -1) {
             const timezone = await this.settingsService.getValue(BotSettings.Timezone);
             const options: any = timezone ? { timeStyle: "long", timeZone: timezone } : { timeStyle: "long" };
             const time = new Intl.DateTimeFormat("en-US", options).format(new Date());
-            message = message.replace("{time}", time);
+            message = message.replace(/\{time\}/ig, time);
         }
 
-        message = message.replace("{username}", user.username);
+        message = message.replace(/\{username\}/ig, user.username);
 
         // Determine uptime of stream
         if (message.indexOf("{uptime}") !== -1) {
@@ -72,7 +72,7 @@ export class TextCommand extends Command {
                 }
             }
 
-            message = message.replace("{uptime}", uptime);
+            message = message.replace(/\{uptime\}/ig, uptime);
         }
 
         return message;

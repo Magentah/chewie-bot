@@ -158,8 +158,8 @@ export default class TwitchEventService {
             // If there is a reward redemption associated with a twitch channel reward, this will add it to the history with the associated redemption.
             await this.channelPointRewardService.channelPointRewardRedemptionTriggered(notificationEvent.reward as ITwitchChannelReward, user.id);
 
-            const pointsReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Points);
-            if (pointsReward && notificationEvent.reward.title === pointsReward.title) {
+            const redemptionType = await this.channelPointRewardService.getRedemptionType(notificationEvent.reward.id);
+            if (redemptionType === ChannelPointRedemption.Points) {
                 await this.users.changeUserPoints(
                     user,
                     notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,

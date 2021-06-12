@@ -38,20 +38,28 @@ export class CommandService {
             const commandAlias = await this.aliasCommands.get(commandName);
             if (commandAlias) {
                 const command = this.commandList.get(commandAlias.commandName);
-                if (commandAlias.commandArguments) {
-                    this.executeCommandInternal(command, commandName, channel, user, commandAlias.commandArguments);
+                if (command) {
+                    if (commandAlias.commandArguments) {
+                        this.executeCommandInternal(command, commandName, channel, user, commandAlias.commandArguments);
+                    } else {
+                        this.executeCommandInternal(command, commandName, channel, user, args);
+                    }
                 } else {
-                    this.executeCommandInternal(command, commandName, channel, user, args);
+                    await this.executeTextCommand(commandAlias.commandName, channel, user, args);
                 }
             } else {
                 // Execute a user defined text command
-                const textCommand = await this.textCommands.get(commandName);
-                if (textCommand) {
-                    if (this.commandList.has("text")) {
-                        const command = this.commandList.get("text") as Command;
-                        command.execute(channel, user, commandName, ...[textCommand.message, ...args]);
-                    }
-                }
+                await this.executeTextCommand(commandName, channel, user, args);
+            }
+        }
+    }
+
+    private async executeTextCommand(commandName: string, channel: string, user: IUser, args: string[]) {
+        const textCommand = await this.textCommands.get(commandName);
+        if (textCommand) {
+            if (this.commandList.has("text")) {
+                const command = this.commandList.get("text") as Command;
+                command.execute(channel, user, commandName, ...[textCommand.message, ...args]);
             }
         }
     }

@@ -55,6 +55,15 @@ export default class ChannelPointRewardService {
     }
 
     /**
+     * Gets the redemption type for a specific Twitch redemption.
+     * @param redemptionId Twitch ID of the channel point redemption
+     * @returns Type of the redemption (or None)
+     */
+    public async getRedemptionType(redemptionId: string): Promise<ChannelPointRedemption> {
+        return await this.channelPointRewardRepository.getTypeForRedemption(redemptionId);
+    }
+
+    /**
      * Gets all Twitch Channel Point Rewards that have a redemption.
      * @returns A list of ChannelPointRewards.
      */
