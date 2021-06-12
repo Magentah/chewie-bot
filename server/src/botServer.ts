@@ -43,7 +43,6 @@ class BotServer extends Server {
         this.socket = BotContainer.get<WebsocketService>(WebsocketService);
         this.commands = BotContainer.get<CommandService>(CommandService);
         this.taxService = BotContainer.get<TaxService>(TaxService);
-        this.taxService.setup();
 
         this.achievementService = BotContainer.get<AchievementService>(AchievementService);
         this.achievementService.setup();
