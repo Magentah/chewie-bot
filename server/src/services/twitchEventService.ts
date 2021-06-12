@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { inject, injectable, LazyServiceIdentifer } from "inversify";
+import { inject, injectable } from "inversify";
 import { Logger, LogType } from "../logger";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -20,7 +20,6 @@ export default class TwitchEventService {
     private accessToken: EventSub.IAccessToken;
     private verificationSecret: string = Config.twitch.eventSub.secret;
     private baseCallbackUrl: string = Config.twitch.eventSub.callbackBaseUri;
-    private channelRewards: any[];
     private activeEventTypes: EventSub.EventTypes[] = [
         EventSub.EventTypes.ChannelPointsRedeemed,
         EventSub.EventTypes.ChannelPointsRedeemedUpdate,
@@ -42,7 +41,6 @@ export default class TwitchEventService {
             token: "",
             expiry: 0,
         };
-        this.channelRewards = [];
     }
 
     /**
@@ -73,7 +71,7 @@ export default class TwitchEventService {
 
         // If there's any subscriptions that don't exist that we want, create them again.
         this.activeEventTypes.forEach(async (type) => {
-            if (!existingSubscriptionTypes.find((existingType) => type == existingType)) {
+            if (!existingSubscriptionTypes.find((existingType) => type === existingType)) {
                 const data = this.getSubscriptionData(type, this.broadcasterUserId.toString());
                 const result = await this.createSubscription(data);
             }
@@ -118,7 +116,7 @@ export default class TwitchEventService {
                 LogType.TwitchEvents,
                 `There are currently ${this.eventCallbacks.length} callbacks for the following types: ${Object.keys(this.eventCallbacks).join(" - ")}`
             );
-            this.eventCallbacks[notification.subscription.type].forEach((callback) => () => callback(notification));
+            this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
         }
     }
 
@@ -177,20 +175,6 @@ export default class TwitchEventService {
      */
     private async channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): Promise<void> {
         Logger.info(LogType.TwitchEvents, "Channel Points Redeemed Update", notificationEvent);
-    }
-
-    /**
-     * Checks if a Channel Point Reward should add user points
-     * @param notificationEvent The EventSub event
-     * @returns True if the reward should add points to the user, false if not.
-     */
-    private rewardAddsUserPoints(notificationEvent: EventSub.IRewardRedemeptionEvent): boolean {
-        // TODO: For now just check if the reward title includes "chews". This should probably be changed later
-        // so that you can configure each custom point reward but this will work for now.
-        if (notificationEvent.reward.title.toLowerCase().indexOf("chews") > -1) {
-            return true;
-        }
-        return false;
     }
 
     private channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): void {
