@@ -113,6 +113,11 @@ export default class TwitchEventService {
                 }
             }
             // Call all callbacks for the notification type.
+            Logger.info(LogType.TwitchEvents, `Calling event callback for ${notification.subscription.type}`, notification);
+            Logger.info(
+                LogType.TwitchEvents,
+                `There are currently ${this.eventCallbacks.length} callbacks for the following types: ${Object.keys(this.eventCallbacks).join(" - ")}`
+            );
             this.eventCallbacks[notification.subscription.type].forEach((callback) => () => callback(notification));
         }
     }
@@ -155,7 +160,11 @@ export default class TwitchEventService {
 
             const pointsReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Points);
             if (pointsReward && notificationEvent.reward.title === pointsReward.title) {
-                await this.users.changeUserPoints(user, notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier, PointLogType.PointRewardRedemption);
+                await this.users.changeUserPoints(
+                    user,
+                    notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+                    PointLogType.PointRewardRedemption
+                );
             }
         }
         // Set reward status to fulfilled.
