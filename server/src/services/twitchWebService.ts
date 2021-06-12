@@ -100,6 +100,9 @@ export class TwitchWebService {
 
         const parsedResponse = this.parseResponse("UpdateChannelReward", response);
 
+        Logger.info(LogType.TwitchEvents, "Update Reward AxiosResponse: ", response);
+        Logger.info(LogType.TwitchEvents, "Update Reward ParsedResponse: ", parsedResponse);
+
         if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
             Logger.err(LogType.TwitchEvents, "Failed to get valid response from Twitch API.", {
                 url: updateStatusUrl,
