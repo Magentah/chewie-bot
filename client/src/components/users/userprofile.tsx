@@ -38,11 +38,13 @@ const UserProfileView: React.FC<any> = (props: any) => {
     }
 
     useEffect(() => {
-        axios.get(`/api/userlist/profile/${userProfile.username}`).then((response) => {
-            if (response) {
-                setFullUserProfile(response.data);
-            }
-        });
+        if (userProfile) {
+            axios.get(`/api/userlist/profile/${userProfile.username}`).then((response) => {
+                if (response) {
+                    setFullUserProfile(response.data);
+                }
+            });
+        }
     }, []);
 
     let userProfileContent;

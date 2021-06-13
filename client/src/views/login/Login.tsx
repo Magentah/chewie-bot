@@ -82,13 +82,13 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
 
     const userProfile = Cookie.getJSON("user");
 
-    const requireBroadcasterAuth = Cookie.get("broadcaster_user");
+    const requireBroadcasterAuth = Cookie.get("broadcaster_user") === "1";
 
     let loginHeader : JSX.Element | undefined;
     let loginButton : JSX.Element | undefined;
 
     // Do not show login button if already logged in
-    if (userProfile.username) {
+    if (userProfile?.username) {
         loginHeader = loginButton = undefined;
     } else {
         loginHeader = <Grid item xs={12} className={classes.sectionRow}>

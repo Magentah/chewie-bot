@@ -1,6 +1,6 @@
 {
     "ext": "ts",
-    "ignore": ["src/public", ".git", "node_modules/**/*"],
+    "ignore": ["src/public", ".git", "node_modules/**/*", "*.db", "*.log", "*.gz"],
     "env": {
         "NODE_ENV": "development"
     },
