@@ -78,8 +78,11 @@ export class CardTradingEvent extends ParticipationEvent<EventParticipant> {
             // No one has accepted...
             if (this.cardRemovedFromStackId) {
                 this.cardsRepository.returnCardToStack(this.participants[0].user, this.cardRemovedFromStackId);
+
+                // Message only if a card has been reserved initially. Otherwise the trading event
+                // was already cancelled.
+                this.sendMessage(Lang.get("cards.trading.incomplete", this.participants[0].user.username));
             }
-            this.sendMessage(Lang.get("cards.trading.incomplete", this.participants[0].user.username));
         }
     }
 
