@@ -146,7 +146,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                     <Typography align="center" variant="h6" className={classes.noCardsText} style={{marginBottom: "2em"}}>You don't have any cards yet</Typography>
                                 </Grid>
                                 <Grid item>
-                                    <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a radom dango card!</Typography>
+                                    <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a random dango card!</Typography>
                                 </Grid>
                             </Grid>
                         </Box> :
