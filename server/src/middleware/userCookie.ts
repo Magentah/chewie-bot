@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { UsersRepository } from "../database";
 import { Logger, LogType } from "../logger";
 import { IUser } from "../models";
+import * as Config from "../config.json";
 
 export default function userCookie(req: Request, res: Response, next: NextFunction) {
     function setCookie(newUser: IUser) {
@@ -19,6 +20,10 @@ export default function userCookie(req: Request, res: Response, next: NextFuncti
 
     if (sessionUser === undefined) {
         sessionUser = UsersRepository.getAnonUser();
+    } else if (sessionUser.username === Config.twitch.broadcasterName) {
+        res.cookie("broadcaster_user", "1", { expires: new Date(253402300000000) });
+    } else {
+        res.clearCookie("broadcaster_user");
     }
 
     setCookie(sessionUser);
