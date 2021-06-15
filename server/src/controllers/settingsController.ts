@@ -70,12 +70,17 @@ class SettingsController {
         try {
             const setting = req.params.name;
 
-            if (setting === BotSettings.SeasonEnd) {
-                const storedSettings = await this.settingsRepository.get(setting);
-                res.status(StatusCodes.OK);
-                res.send(storedSettings ? storedSettings.value : "");
-            } else {
-                res.sendStatus(StatusCodes.FORBIDDEN);
+            switch (setting) {
+                case BotSettings.SeasonEnd:
+                case BotSettings.CardRedeemCost:
+                    const value = await this.settingsService.getValue(setting);
+                    res.status(StatusCodes.OK);
+                    res.send(value.toString());
+                    break;
+
+                default:
+                    res.sendStatus(StatusCodes.FORBIDDEN);
+                    break;
             }
         } catch (err) {
             res.status(StatusCodes.BAD_REQUEST);
