@@ -13,6 +13,7 @@ import moment from "moment";
 import axios from "axios";
 import useUser, { UserLevels } from "../../hooks/user";
 import MaterialTable, { Action, Options } from "material-table";
+import useSetting from "../../hooks/setting";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -145,7 +146,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [user, loadUser] = useUser();
     const [songRequestUrl, setSongRequestUrl] = useState<string>();
-    const [donationLinkUrl, setDonationLinkUrl] = useState<string>();
+    const donationLinkUrl = useSetting<string>("song-donation-link");
     const [songRequestState, setSongRequestState] = useState<SongRequestState>();
 
     const classes = useStyles();
@@ -178,12 +179,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             // Returned array might have gaps in index, these will be filled with null objects here.
             // We don't want that, so filter.
             setSongs(response.data.filter((obj: Song, i: number) => obj !== null));
-        });
-    }, []);
-
-    useEffect(() => {
-        axios.get("/api/setting/song-donation-link").then((response) => {
-            setDonationLinkUrl(response.data);
         });
     }, []);
 

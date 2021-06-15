@@ -4,6 +4,7 @@ import axios from "axios";
 import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import * as Cookie from "js-cookie";
+import useSetting from "../../hooks/setting";
 
 const useStyles = makeStyles((theme) => ({
     cardsCountBox: {
@@ -55,7 +56,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const [resetDialogOpen, setResetDialogOpen] = useState(false);
     const [redeemInfoResultMsg, setRedeemInfoResultMsg] = useState("");
     const [cardViewUrl, setCardViewUrl] = useState("");
-    const [cardCost, setCardCost] = useState(0);
+    const cardCost = useSetting<number>("card-redeem-cost");
 
     const classes = useStyles();
     const userProfile = Cookie.getJSON("user");
@@ -85,12 +86,6 @@ const UserCardStackList: React.FC<any> = (props: any) => {
             })
         }
     };
-
-    useEffect(() => {
-        axios.get("/api/setting/card-redeem-cost").then((response) => {
-            setCardCost(parseInt(response.data, 10));
-        });
-    }, []);
 
     useEffect(() => updateCards(), []);
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Image } from "react-bootstrap";
-import MaterialTable from "material-table"
 import { Card, Box, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import * as Cookie from "js-cookie";
+import useSetting from "../../hooks/setting";
 
 type RowData = { username: string, points: number, rank: number };
 
@@ -49,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Leaderboard: React.FC<any> = (props: any) => {
     const [userlist, setUserlist] = useState([] as RowData[]);
-    const [seasonEnd, setSeasonEnd] = useState("");
+    const seasonEnd = useSetting<string>("season-end");
 
     const classes = useStyles();
     const numberFormat = new Intl.NumberFormat();
@@ -58,12 +58,6 @@ const Leaderboard: React.FC<any> = (props: any) => {
     useEffect(() => {
         axios.get("/api/leaderboard").then((response) => {
             setUserlist(response.data);
-        });
-    }, []);
-
-    useEffect(() => {
-        axios.get("/api/setting/season-end").then((response) => {
-            setSeasonEnd(response.data);
         });
     }, []);
 
