@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Image } from "react-bootstrap";
-import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress, Paper } from "@material-ui/core";
+import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress, Paper, Link } from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import IconButton from "@material-ui/core/IconButton";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 import AddIcon from "@material-ui/icons/Add";
 import VerticalAlignTopIcon from "@material-ui/icons/VerticalAlignTop";
+import AttachMoneyIcon from "@material-ui/icons/AttachMoney";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
@@ -16,19 +17,19 @@ import MaterialTable, { Action, Options } from "material-table";
 
 const useStyles = makeStyles((theme) => ({
     root: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      justifyContent: 'flex-start',
-      overflow: 'hidden',
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "flex-start",
+      overflow: "hidden",
       backgroundColor: theme.palette.background.paper,
-      marginBottom: '2em',
-      marginTop: '1em'
+      marginBottom: "2em",
+      marginTop: "1em"
     },
     gridList: {
-        width: '100%'
+        width: "100%"
     },
     icon: {
-      color: 'rgba(255, 255, 255, 0.54)',
+      color: "rgba(255, 255, 255, 0.54)",
     },
     addButton: {
         margin: theme.spacing(2, 0, 2),
@@ -143,7 +144,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [user, loadUser] = useUser();
-    const [songRequestUrl, setsongRequestUrl] = useState<string>();
+    const [songRequestUrl, setSongRequestUrl] = useState<string>();
+    const [donationLinkUrl, setDonationLinkUrl] = useState<string>();
     const [songRequestState, setSongRequestState] = useState<SongRequestState>();
 
     const classes = useStyles();
@@ -176,6 +178,12 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             // Returned array might have gaps in index, these will be filled with null objects here.
             // We don't want that, so filter.
             setSongs(response.data.filter((obj: Song, i: number) => obj !== null));
+        });
+    }, []);
+
+    useEffect(() => {
+        axios.get("/api/setting/song-donation-link").then((response) => {
+            setDonationLinkUrl(response.data);
         });
     }, []);
 
@@ -213,10 +221,10 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             setSongRequestState({state: "progress"});
 
             const result = await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: "Bot UI" },
-                    { validateStatus: function(status) {  return true; }});
+                    { validateStatus: (status) => true });
             if (result.status === 200) {
                 setSongRequestState({state: "success"});
-                setsongRequestUrl("");
+                setSongRequestUrl("");
             } else {
                 setSongRequestState({
                     state: "failed",
@@ -279,7 +287,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                             label="Add song request (URL)"
                             fullWidth
                             value={songRequestUrl}
-                            onChange={(e) => setsongRequestUrl(e.target.value)}
+                            onChange={(e) => setSongRequestUrl(e.target.value)}
                         />
                     </Grid>
                     <Grid item xs={12} sm={2}>
@@ -313,7 +321,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const ownSongQueue = !user.username ? undefined :
         <Box mb={1}>
             {(ownSongs.length === 0)
-             ? undefined
+             ? (donationLinkUrl ?
+                 <Typography>
+                    <Link href={donationLinkUrl} target="_blank">
+                        <AttachMoneyIcon /> Donate for your song request
+                    </Link>
+                </Typography>
+               : undefined)
              : <Box>
                 <Typography variant="h5">
                     Your requests

@@ -20,6 +20,7 @@ export enum BotSettings {
     Timezone = "timezone",
     SeasonEnd = "season-end",
     DailyTaxBitAmount = "daily-tax-bits",
+    SongDonationLink = "song-donation-link",
 }
 
 @injectable()
@@ -42,6 +43,7 @@ export default class BotSettingsService {
         [BotSettings.TaxEventIsEnabled]: false,
         [BotSettings.SeasonEnd]: "",
         [BotSettings.DailyTaxBitAmount]: 0,
+        [BotSettings.SongDonationLink]: "",
     };
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
