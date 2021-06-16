@@ -23,7 +23,7 @@ export default function userCookie(req: Request, res: Response, next: NextFuncti
     } else if (sessionUser.username === Config.twitch.broadcasterName) {
         res.cookie("broadcaster_user", "1", { expires: new Date(253402300000000) });
     } else {
-        res.clearCookie("broadcaster_user");
+        res.cookie("broadcaster_user", "0");
     }
 
     setCookie(sessionUser);

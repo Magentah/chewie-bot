@@ -120,13 +120,13 @@ const Leaderboard: React.FC<any> = (props: any) => {
                 <Grid xs={12}>
                     {userlist.slice(3).map(x => (<Grid item container spacing={2}>
                         <Grid item>
-                            <Box className={x.username === userProfile.username ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}` :`${classes.flexBox} ${classes.flexBoxNumber}`}
+                            <Box className={x.username === userProfile?.username ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}` :`${classes.flexBox} ${classes.flexBoxNumber}`}
                                  style={{ background: rankingColors[x.rank - 1] }}>
                                 {x.rank}
                             </Box>
                         </Grid>
                         <Grid item xs>
-                            <Box className={x.username === userProfile.username ? `${classes.flexBox} ${classes.flexBoxCurrentUser}` : classes.flexBox}
+                            <Box className={x.username === userProfile?.username ? `${classes.flexBox} ${classes.flexBoxCurrentUser}` : classes.flexBox}
                                  style={{ background: rankingColors[x.rank - 1] }}>
                                 <Grid container>
                                     <Grid xs item style={{ width: "80%" }}>{x.username}</Grid>

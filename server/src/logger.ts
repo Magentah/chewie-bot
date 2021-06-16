@@ -210,17 +210,21 @@ export class Logger {
                         return `${info.timestamp} :: ${info.label}/${info.level} :: ${info.message} ${info.meta ? " :::: " + JSON.stringify(info.meta) : ""}`;
                     })
                 ),
-            }),
-            new Winston.transports.DailyRotateFile({
-                filename: Config.log.logfile,
-                datePattern: "YYYY-MM-DD-HH",
-                zippedArchive: true,
-                maxFiles: "14d",
-                maxSize: "10m",
-                level: Config.log.level,
-                format: fileFormat,
-            }),
+            })
         ];
+
+        if (Config.log.logfile) {
+            options.transports.push(
+                new Winston.transports.DailyRotateFile({
+                    filename: Config.log.logfile,
+                    datePattern: "YYYY-MM-DD-HH",
+                    zippedArchive: true,
+                    maxFiles: "14d",
+                    maxSize: "10m",
+                    level: Config.log.level,
+                    format: fileFormat,
+            }));
+        }
 
         return options;
     }
