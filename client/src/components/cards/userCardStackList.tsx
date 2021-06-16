@@ -105,11 +105,11 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                 <DialogTitle>Get a Random Dango Card</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
                     <Image src={"/assets/Dango-Card-Pop-Up.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"12em", position: "absolute", zIndex: 100}} />
-                    {userProfile.username ?
+                    {userProfile?.username ?
                     <Typography>Would you like to trade {cardCost} chews for a random dango card?</Typography>
                     :<Typography>You need to be logged in to start collecting dango cards!</Typography>}
                 </DialogContent>
-                {userProfile.username ?
+                {userProfile?.username ?
                 <DialogActions>
                     <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Trade</Button>
                     <Button onClick={() => handleCloseReset(false)} color="primary">Cancel</Button>
@@ -146,7 +146,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                     <Typography align="center" variant="h6" className={classes.noCardsText} style={{marginBottom: "2em"}}>You don't have any cards yet</Typography>
                                 </Grid>
                                 <Grid item>
-                                    <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a radom dango card!</Typography>
+                                    <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a random dango card!</Typography>
                                 </Grid>
                             </Grid>
                         </Box> :
