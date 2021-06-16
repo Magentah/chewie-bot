@@ -30,6 +30,7 @@ class SettingsController {
         },
         [BotSettings.SeasonEnd]: { title: "Season end date", readonly: false },
         [BotSettings.DailyTaxBitAmount]: { title: "Amount of bits considered as daily tax", readonly: false },
+        [BotSettings.SongDonationLink]: { title: "URL for donations on song queue page", readonly: false },
     };
 
     constructor(
@@ -70,12 +71,18 @@ class SettingsController {
         try {
             const setting = req.params.name;
 
-            if (setting === BotSettings.SeasonEnd) {
-                const storedSettings = await this.settingsRepository.get(setting);
-                res.status(StatusCodes.OK);
-                res.send(storedSettings ? storedSettings.value : "");
-            } else {
-                res.sendStatus(StatusCodes.FORBIDDEN);
+            switch (setting) {
+                case BotSettings.SeasonEnd:
+                case BotSettings.CardRedeemCost:
+                case BotSettings.SongDonationLink:
+                    const value = await this.settingsService.getValue(setting);
+                    res.status(StatusCodes.OK);
+                    res.send(value.toString());
+                    break;
+
+                default:
+                    res.sendStatus(StatusCodes.FORBIDDEN);
+                    break;
             }
         } catch (err) {
             res.status(StatusCodes.BAD_REQUEST);
