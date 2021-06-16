@@ -37,7 +37,7 @@ export default class CardsRepository {
         }
 
         const databaseService = await this.databaseProvider();
-        const cards = await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ name: cardName }).first();
+        const cards = await databaseService.getQueryBuilder(DatabaseTables.Cards).where("name", "LIKE", cardName).first();
         return cards as IUserCard;
     }
 
@@ -47,7 +47,7 @@ export default class CardsRepository {
         }
 
         const databaseService = await this.databaseProvider();
-        const card = (await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ name: cardName }).first()) as IUserCard;
+        const card = (await databaseService.getQueryBuilder(DatabaseTables.Cards).where("name", "LIKE", cardName).first()) as IUserCard;
         if (!card) {
             return undefined;
         }

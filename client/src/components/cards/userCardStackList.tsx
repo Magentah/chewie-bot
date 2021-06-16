@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps } from "@material-ui/core";
+import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import * as Cookie from "js-cookie";
+import useSetting from "../../hooks/setting";
 
 const useStyles = makeStyles((theme) => ({
     cardsCountBox: {
@@ -41,6 +42,10 @@ const useStyles = makeStyles((theme) => ({
     noCardsText: {
         textTransform: "uppercase"
     },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1,
+        color: "#fff",
+    },
 }));
 
 type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string, cardCount: number };
@@ -50,6 +55,8 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const [cardcount, setCardcount] = useState(0);
     const [resetDialogOpen, setResetDialogOpen] = useState(false);
     const [redeemInfoResultMsg, setRedeemInfoResultMsg] = useState("");
+    const [cardViewUrl, setCardViewUrl] = useState("");
+    const cardCost = useSetting<number>("card-redeem-cost");
 
     const classes = useStyles();
     const userProfile = Cookie.getJSON("user");
@@ -82,8 +89,6 @@ const UserCardStackList: React.FC<any> = (props: any) => {
 
     useEffect(() => updateCards(), []);
 
-    // TODO: Get from settings controller.
-    const cardCost = 1000;
     function PaperComponent(paperProps: PaperProps) {
         return (
           <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em", paddingRight: "1em", paddingBottom: "0.5em", minWidth: "30em"}} />
@@ -91,6 +96,9 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     }
 
     return <Card>
+            <Backdrop className={classes.backdrop} open={cardViewUrl !== ""} onClick={() => setCardViewUrl("")}>
+                <Image src={cardViewUrl} alt={""} onClick={() => setCardViewUrl("")} style={{maxWidth: "90%", maxHeight: "90%"}} />
+            </Backdrop>
             <Dialog open={redeemInfoResultMsg !== ""} onClose={() => setRedeemInfoResultMsg("")} PaperComponent={PaperComponent}>
                 <DialogTitle>Redeem dango card</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
@@ -105,11 +113,11 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                 <DialogTitle>Get a Random Dango Card</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
                     <Image src={"/assets/Dango-Card-Pop-Up.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"12em", position: "absolute", zIndex: 100}} />
-                    {userProfile.username ?
+                    {userProfile?.username ?
                     <Typography>Would you like to trade {cardCost} chews for a random dango card?</Typography>
                     :<Typography>You need to be logged in to start collecting dango cards!</Typography>}
                 </DialogContent>
-                {userProfile.username ?
+                {userProfile?.username ?
                 <DialogActions>
                     <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Trade</Button>
                     <Button onClick={() => handleCloseReset(false)} color="primary">Cancel</Button>
@@ -134,7 +142,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                             </Grid>
                             <Grid item xs />
                             <Grid item>
-                                <Button variant="contained" color="primary" onClick={() => setResetDialogOpen(true)}>Get a dango card</Button>
+                                {cardCost ? <Button variant="contained" color="primary" onClick={() => setResetDialogOpen(true)}>Get a dango card</Button> : undefined}
                             </Grid>
                         </Grid>
                     </Grid>
@@ -145,9 +153,10 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                 <Grid item>
                                     <Typography align="center" variant="h6" className={classes.noCardsText} style={{marginBottom: "2em"}}>You don't have any cards yet</Typography>
                                 </Grid>
+                                {cardCost ?
                                 <Grid item>
-                                    <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a radom dango card!</Typography>
-                                </Grid>
+                                    <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a random dango card!</Typography>
+                                </Grid> : undefined}
                             </Grid>
                         </Box> :
                         <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
@@ -160,7 +169,9 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                         </Box>
                                     </Box>
                                 </Grid>
-                                <Grid item></Grid><Image title={tile.name} height={250} src={tile.url} alt={tile.name} />
+                                <Grid item>
+                                    <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
+                                </Grid>
                             </Grid></Box>
                             ))}
                         </Box>}
