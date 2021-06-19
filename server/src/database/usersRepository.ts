@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
 import { EventLogType, IUser, UserLevels } from "../models";
-import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
+import DatabaseService, { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
 export class UsersRepository {
@@ -10,20 +10,13 @@ export class UsersRepository {
         // Empty
     }
 
-    /**
-     * Gets a user from the database if the user exists.
-     * @param username Username of the user to get
-     */
-    public async get(username: string): Promise<IUser | undefined> {
-        const databaseService = await this.databaseProvider();
-
-        const userResult = await databaseService
+    private makeUserQuery(databaseService: DatabaseService) {
+        return databaseService
             .getQueryBuilder(DatabaseTables.Users)
             .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
             .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
             .leftJoin(DatabaseTables.TwitchUserProfile, "twitchUserProfile.id", "users.twitchProfileKey")
-            .where("users.username", "like", username)
-            .first([
+            .select([
                 "vipLevels.name as vipLevel",
                 "userLevels.name as userLevel",
                 "userLevels.rank as rank",
@@ -32,6 +25,15 @@ export class UsersRepository {
                 "twitchUserProfile.profileImageUrl as profileImageUrl",
                 "users.*",
             ]);
+    }
+
+    /**
+     * Gets a user from the database if the user exists.
+     * @param username Username of the user to get
+     */
+    public async get(username: string): Promise<IUser | undefined> {
+        const databaseService = await this.databaseProvider();
+        const userResult = await this.makeUserQuery(databaseService).where("users.username", "like", username);
 
         if (!userResult) {
             return undefined;
@@ -43,21 +45,7 @@ export class UsersRepository {
 
     public async getByIds(ids: number[]): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
-        const userResult = await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
-            .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
-            .leftJoin(DatabaseTables.TwitchUserProfile, "twitchUserProfile.id", "users.twitchProfileKey")
-            .whereIn("users.id", ids)
-            .select([
-                "vipLevels.name as vipLevel",
-                "userLevels.name as userLevel",
-                "userLevels.rank as rank",
-                "twitchUserProfile.id as profileId",
-                "twitchUserProfile.displayName as profileDisplayName",
-                "twitchUserProfile.profileImageUrl as profileImageUrl",
-                "users.*",
-            ]);
+        const userResult = await this.makeUserQuery(databaseService).whereIn("users.id", ids);
 
         if (!userResult) {
             return [];
@@ -71,21 +59,18 @@ export class UsersRepository {
      */
     public async getList(): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
+        const userResult = await this.makeUserQuery(databaseService);
 
-        const userResult = await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
-            .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
-            .leftJoin(DatabaseTables.TwitchUserProfile, "twitchUserProfile.id", "users.twitchProfileKey")
-            .select([
-                "vipLevels.name as vipLevel",
-                "userLevels.name as userLevel",
-                "userLevels.rank as rank",
-                "twitchUserProfile.id as profileId",
-                "twitchUserProfile.displayName as profileDisplayName",
-                "twitchUserProfile.profileImageUrl as profileImageUrl",
-                "users.*",
-            ]);
+        // Need to map from SQLResult to the correct model.
+        return userResult.map((x: any) => this.mapDBUserToUser(x));
+    }
+
+    /**
+     * Gets all users from the database that still have an active VIP gold subscription for a given date.
+     */
+    public async getActiveVipGoldUsers(referenceDate: Date): Promise<IUser[]> {
+        const databaseService = await this.databaseProvider();
+        const userResult = await this.makeUserQuery(databaseService).where("vipExpiry", ">", referenceDate);
 
         // Need to map from SQLResult to the correct model.
         return userResult.map((x: any) => this.mapDBUserToUser(x));
