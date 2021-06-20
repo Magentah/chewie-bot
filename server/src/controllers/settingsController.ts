@@ -24,10 +24,6 @@ class SettingsController {
         [BotSettings.CardRedeemCost]: { title: "Points required for redeeming cards", readonly: false },
         [BotSettings.CardRedeemPerWeek]: { title: "Number of cards which can be redeemed per week (0 = no limit)", readonly: false },
         [BotSettings.CardRecyclePoints]: { title: "Points received for recycling a card", readonly: false },
-        [BotSettings.TaxEventIsEnabled]: {
-            title: "Tax: If Tax is enabled, then tax history and streaks will be tracked when channel point rewards are redeemed.",
-            readonly: false,
-        },
         [BotSettings.SeasonEnd]: { title: "Season end date", readonly: false },
         [BotSettings.DailyTaxBitAmount]: { title: "Amount of bits considered as daily tax", readonly: false },
         [BotSettings.SongDonationLink]: { title: "URL for donations on song queue page", readonly: false },
