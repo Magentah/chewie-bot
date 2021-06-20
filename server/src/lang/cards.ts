@@ -10,6 +10,7 @@ Lang.register("cards.trading.missingargument", "$1, use !offer <card> <for card 
 Lang.register("cards.trading.userunknown", "$1 is not a valid user.");
 Lang.register("cards.trading.cardnotfound", "$1, the card \"$2\" was not found in your stack of cards.");
 Lang.register("cards.trading.notenoughchews", "$1, you don't have enough chews to accept the offer!");
+Lang.register("cards.trading.nosamecard", "Why do you want to trade for the same card you dufus?");
 
 Lang.register("cards.trading.startforpoints", "$1 wants to trade \"$2\" for $3 chews. Use !acceptoffer to trade!");
 Lang.register("cards.trading.startforcard", "$1 wants to trade \"$2\" for the card \"$3\". Use !acceptoffer to trade!");
