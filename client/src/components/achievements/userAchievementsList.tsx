@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(15, 5),
         marginTop: theme.spacing(2)
     },
-    noDataText: {
+    uppercase: {
         textTransform: "uppercase"
     },
 }));
@@ -50,7 +50,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                                 <Box className={classes.noAchievementsGrid} padding={15}>
                                     <Grid>
                                         <Grid item>
-                                            <Typography align="center" variant="h6" className={classes.noDataText} style={{marginBottom: "2em"}}>You don't have any achievements yet</Typography>
+                                            <Typography align="center" variant="h6" className={classes.uppercase} style={{marginBottom: "2em"}}>You don't have any achievements yet</Typography>
                                         </Grid>
                                     </Grid>
                                 </Box>
@@ -72,12 +72,12 @@ const UserAchievementList: React.FC<any> = (props: any) => {
             <Grid>
                 <Box padding={3}>
                     <Grid item>
-                        <Typography variant="h6">{group}</Typography>
+                        <Typography variant="h6" className={classes.uppercase}>{group}</Typography>
                     </Grid>
                     <Grid item>
                         <Box flexWrap="wrap" display="flex" className={classes.achievementsGrid}>
                             {groupedResult[group].map((tile: RowData) => (
-                            <Box m={1}>
+                            <Box m={1} width={140}>
                                 <Grid container direction="column" alignItems="center">
                                     <Grid item>
                                         <Image title={tile.description} height={100} src={tile.url} alt={tile.description} />
