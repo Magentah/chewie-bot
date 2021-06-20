@@ -85,7 +85,6 @@ export default class TaxService {
             return;
         }
 
-        const dateTimeOnline = new Date(Date.now());
         const lastOnlineEvent = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
         let lastOnlineDate: Date | undefined;
         let usersNotPaidTax: IDBUserTaxHistory[] = [];
@@ -141,7 +140,5 @@ export default class TaxService {
                 await this.userTaxStreakRepository.updateStreak(taxEvent.userId, taxEvent.id, 0, streakEvent.longestStreak);
             }
         });
-
-        await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
     }
 }
