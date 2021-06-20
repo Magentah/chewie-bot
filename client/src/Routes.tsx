@@ -23,6 +23,7 @@ import UserCardList from "./components/cards/userCardList";
 import ChannelPointRewards from "./components/twitch/ChannelPointRewards";
 import UserCardStackList from "./components/cards/userCardStackList";
 import AchievementsList from "./components/achievements/achievementsList";
+import UserAchievementsList from "./components/achievements/userAchievementsList";
 
 export type Route = {
     path: string;
@@ -86,6 +87,13 @@ const DashboardRoutes: Route[] = [
         name: "My Cards",
         icon: "contact_page",
         component: UserCardStackList,
+        minUserLevel: UserLevels.Viewer
+    },
+    {
+        path: "/myachievements",
+        name: "My Achievements",
+        icon: "military_tech",
+        component: UserAchievementsList,
         minUserLevel: UserLevels.Viewer
     },
     {
