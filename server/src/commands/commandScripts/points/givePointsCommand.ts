@@ -49,7 +49,7 @@ export default class GivePointsCommand extends Command {
     public getAliases(): ICommandAlias[] {
         return [
             { alias: "give", commandName: "givepoints" },
-            { alias: "choos", commandName: "givepoints" },
+            { alias: "givechoos", commandName: "givepoints" },
         ];
     }
 }
