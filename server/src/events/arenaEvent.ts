@@ -47,6 +47,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
 
         // Participants missing?
         if (this.participants.length < 4) {
+            this.refundPoints();
             this.sendMessage(Lang.get("arena.insufficientparticipants"));
             this.eventService.stopEvent(this);
         } else {
@@ -109,6 +110,12 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         this.sendMessage(Lang.get("arena.result1st", numberOfWinsNeeded, winners[0].points, winners[0].user.username));
 
         this.eventService.stopEventStartCooldown(this);
+    }
+
+    private async refundPoints() {
+        for (const user of this.participants) {
+            await this.userService.changeUserPoints(user.user, user.points, this.pointLogType);
+        }
     }
 
     public onCooldownComplete(): void {
