@@ -14,20 +14,6 @@ import { Lang } from "../lang";
 class AchievementsController {
     readonly ImageDir: string = "images";
 
-    private readonly AchievementTitles = {
-        [AchievementType.SongRequests]: "achievements.songrequests",
-        [AchievementType.Points]: "achievements.points",
-        [AchievementType.Songlist]: "achievements.songlist",
-        [AchievementType.UniqueCards]: "achievements.uniquecards",
-        [AchievementType.Sudoku]: "achievements.sudoku",
-        [AchievementType.AnimationRedeems]: "achievements.animationredeems",
-        [AchievementType.DailyTaxesPaid]: "achievements.dailytaxespaid",
-        [AchievementType.DuelsWon]: "achievements.duelswon",
-        [AchievementType.BackheistPointsWon]: "achievements.backheistpointswon",
-        [AchievementType.BankheistPointsLost]: "achievements.bankheistpointslost",
-        [AchievementType.DailyBitTaxesPaid]: "achievements.dailybittaxespaid",
-    };
-
     private readonly AchievementCategories = {
         [AchievementType.SongRequests]: "achievements.group.songrequests",
         [AchievementType.Points]: "achievements.group.points",
@@ -78,7 +64,6 @@ class AchievementsController {
         const resultAchievements = [];
         for (const achievement of achievements) {
             const fullData = {...achievement,
-                description: Lang.get(this.AchievementTitles[achievement.type], achievement.amount),
                 group: Lang.get(this.AchievementCategories[achievement.type], achievement.amount),
             };
             resultAchievements.push(this.addUrl(fullData));
@@ -111,6 +96,7 @@ class AchievementsController {
                 type: achievement.type,
                 amount: achievement.amount,
                 seasonal: achievement.seasonal,
+                name: achievement.name,
                 announcementMessage: achievement.announcementMessage
             });
             res.status(StatusCodes.OK);
@@ -147,6 +133,7 @@ class AchievementsController {
                 type: achievement.type,
                 amount: achievement.amount,
                 seasonal: achievement.seasonal,
+                name: achievement.name,
                 announcementMessage: achievement.announcementMessage,
                 creationDate: new Date(),
                 imageId: Guid.create().toString()
@@ -217,6 +204,7 @@ class AchievementsController {
                 type: newAchievement.type,
                 amount: newAchievement.amount,
                 seasonal: newAchievement.seasonal,
+                name: newAchievement.name,
                 announcementMessage: newAchievement.announcementMessage,
                 creationDate: new Date(),
                 imageId: Guid.create().toString()

@@ -24,13 +24,12 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-type RowData = { achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, url: string, description: string, group: string };
+type RowData = { achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, url: string, name: string, group: string };
 
 const UserAchievementList: React.FC<any> = (props: any) => {
     const [achievementList, setAchievementList] = useState([] as RowData[]);
 
     const classes = useStyles();
-    const userProfile = Cookie.getJSON("user");
 
     const updateAchievements = useCallback(() => {
         axios.get("/api/myachievements").then((response) => {
@@ -80,10 +79,10 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                             <Box m={1} width={140}>
                                 <Grid container direction="column" alignItems="center">
                                     <Grid item>
-                                        <Image title={tile.description} height={100} src={tile.url} alt={tile.description} />
+                                        <Image title={tile.name} height={100} src={tile.url} alt={""} />
                                     </Grid>
                                     <Grid item>
-                                        <Typography align="center">{tile.description}</Typography>
+                                        <Typography align="center">{tile.name}</Typography>
                                     </Grid>
                                 </Grid>
                             </Box>
