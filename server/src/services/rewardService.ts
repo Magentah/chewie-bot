@@ -73,7 +73,7 @@ export default class RewardService {
         // Unless when gifted, because multi-month gifts are possible.
         // For re-subs, months should be the total number of months so far.
         // For points, we can this always use "months".
-        this.addSubUserPoints(user, sub.months, PointLogType.Sub, sub.sub_type === SubType.Resub);
+        this.addSubUserPoints(user, sub.months, PointLogType.Sub, sub.sub_type === SubType.Resub, sub.sub_plan);
 
         if (sub.sub_plan === SubscriptionPlan.Tier3) {
             if (sub.sub_type === SubType.Resub) {
@@ -87,7 +87,7 @@ export default class RewardService {
     public async processGiftSub(username: string, giftedMonths: number, plan: string | undefined) {
         const giftingUser = await this.getUserForEvent(username);
         if (giftingUser) {
-            this.addSubUserPoints(giftingUser, giftedMonths, PointLogType.GiftSubGiver, false);
+            this.addSubUserPoints(giftingUser, giftedMonths, PointLogType.GiftSubGiver, false, plan as SubscriptionPlan);
 
             if (plan === SubscriptionPlan.Tier3) {
                 // Both gifter and receiver gets half the amount of VIP gold.
@@ -132,8 +132,22 @@ export default class RewardService {
         }
     }
 
-    private async addSubUserPoints(user: IUser, months: number, logType: PointLogType, isResub: boolean) {
-        const pointsPerSub = parseInt(await this.settings.getValue(BotSettings.SubPoints), 10);
+    private async addSubUserPoints(user: IUser, months: number, logType: PointLogType, isResub: boolean, plan: SubscriptionPlan) {
+        let pointsPerSub;
+        switch (plan) {
+            case SubscriptionPlan.Tier2:
+                pointsPerSub = parseInt(await this.settings.getValue(BotSettings.SubPointsT2), 10);
+                break;
+
+            case SubscriptionPlan.Tier3:
+                pointsPerSub = parseInt(await this.settings.getValue(BotSettings.SubPointsT3), 10);
+                break;
+
+            default:
+                pointsPerSub = parseInt(await this.settings.getValue(BotSettings.SubPointsT1), 10);
+                break;
+        }
+
         if (isResub) {
             let totalPoints = pointsPerSub;
             // Consider anniversary
