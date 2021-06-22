@@ -64,15 +64,15 @@ export default class CheckLossesCommand extends Command {
 
     private async outputGameResults(channel: string, user: IUser, stats: any, title: string) {
         const total = stats.won + stats.lost;
-        let msg = Lang.get("points.check.gamestats", user.username, stats.won, Math.abs(stats.lost), title);
+        let msg = "";
         if (stats.won === 0 && stats.lost === 0) {
             msg = Lang.get("points.check.nogame", user.username, title);
         } else if (total === 0) {
-            msg += Lang.get("points.check.gameneutral");
+            msg = Lang.get("points.check.gameneutral", user.username);
         } else if (total > 0) {
-            msg += Lang.get("points.check.gamewin", total);
+            msg = Lang.get("points.check.gamewin", user.username, total);
         } else if (total < 0) {
-            msg += Lang.get("points.check.gameloss", Math.abs(total));
+            msg = Lang.get("points.check.gameloss", user.username, Math.abs(total));
         }
 
         this.twitchService.sendMessage(channel, msg);
