@@ -33,7 +33,7 @@ export default class AuctionCommand extends Command {
     ): Promise<void> {
         if (minAmountOrAction === "close") {
             // Close existing auction
-            for (const auctionInProgress of this.eventService.getEvents<AuctionEvent>()) {
+            for (const auctionInProgress of this.eventService.getEvents(AuctionEvent)) {
                 if (auctionInProgress.state === EventState.Open) {
                     auctionInProgress.endAction();
                 }
