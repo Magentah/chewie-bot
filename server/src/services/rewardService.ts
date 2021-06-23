@@ -1,5 +1,5 @@
-import { inject, injectable } from "inversify";
-import { IUser, RequestSource } from "../models";
+import { inject, injectable, LazyServiceIdentifer } from "inversify";
+import { EventTypes, IUser, RequestSource } from "../models";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import SongService from "./songService";
 import { IBitsMessage, IDonationMessage, ISubscriptionMessage, SubscriptionPlan, SubType } from "./streamlabsService";
@@ -8,19 +8,27 @@ import UserService from "../services/userService";
 import TaxService from "../services/taxService";
 import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
+import TwitchEventService from "./twitchEventService";
+import StreamActivityRepository from "../database/streamActivityRepository";
+import UsersRepository  from "../database/usersRepository";
 
 @injectable()
 export default class RewardService {
     constructor(
         @inject(SongService) private songService: SongService,
         @inject(UserService) private userService: UserService,
+        @inject(UsersRepository) private usersRepository: UsersRepository,
         @inject(TwitchService) private twitchService: TwitchService,
         @inject(TaxService) private taxService: TaxService,
-        @inject(BotSettingsService) private settings: BotSettingsService
+        @inject(BotSettingsService) private settings: BotSettingsService,
+        @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
+        @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
         this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>
             this.processGiftSub(username, giftedMonths, plan)
         );
+
+        this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, () => this.extendGoldStatusForWeeksWithoutStream());
     }
 
     public async processDonation(donation: IDonationMessage) {
@@ -158,6 +166,31 @@ export default class RewardService {
             await this.userService.changeUserPoints(user, totalPoints, logType);
         } else {
             await this.userService.changeUserPoints(user, pointsPerSub * months, logType);
+        }
+    }
+
+    /**
+     * If there has not been a stream for an entire week or more,
+     * extend gold status subscriptions for that period of time.
+     */
+    public async extendGoldStatusForWeeksWithoutStream() {
+        const lastOnlineEvent = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
+        if (lastOnlineEvent) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            const nowDate = new Date(new Date().toDateString());
+            const lastStreamDate = new Date(lastOnlineEvent.dateTimeTriggered);
+            lastStreamDate.setHours(0, 0, 0, 0);
+
+            // Calculate number of weeks without stream (= amount of VIP gold extension)
+            const diffDays = Math.round(Math.abs((nowDate.getTime() - lastStreamDate.getTime()) / oneDay)) - 1;
+            const weeksMissed = Math.floor(diffDays / 7);
+            if (weeksMissed > 0) {
+                // Find all users, whose VIP gold was active beyond last stream and extend
+                const users = await this.usersRepository.getActiveVipGoldUsers(lastStreamDate);
+                for (const user of users) {
+                    await this.userService.addVipGoldWeeks(user, weeksMissed, "Stream offline");
+                }
+            }
         }
     }
 

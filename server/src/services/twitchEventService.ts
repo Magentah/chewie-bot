@@ -8,9 +8,10 @@ import { StatusCodes } from "http-status-codes";
 import { UserService } from "./userService";
 import DiscordService from "./discordService";
 import EventLogService from "./eventLogService";
+import StreamActivityRepository from "../database/streamActivityRepository";
 import ChannelPointRewardService from "./channelPointRewardService";
 import * as EventSub from "../models";
-import { ChannelPointRedemption, ITwitchChannelReward } from "../models";
+import { EventTypes, ChannelPointRedemption, ITwitchChannelReward } from "../models";
 import { TwitchAuthService } from ".";
 import { PointLogType } from "../models/pointLog";
 import { TwitchWebService } from "./twitchWebService";
@@ -35,7 +36,8 @@ export default class TwitchEventService {
         @inject(TwitchAuthService) private authService: TwitchAuthService,
         @inject(TwitchWebService) private twitchWebService: TwitchWebService,
         @inject(EventLogService) private eventLogService: EventLogService,
-        @inject(ChannelPointRewardService) private channelPointRewardService: ChannelPointRewardService
+        @inject(ChannelPointRewardService) private channelPointRewardService: ChannelPointRewardService,
+        @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository
     ) {
         this.accessToken = {
             token: "",
@@ -79,46 +81,56 @@ export default class TwitchEventService {
     }
 
     public async handleNotification(notification: EventSub.IEventSubNotification): Promise<void> {
-        if (notification.subscription.type) {
-            switch (notification.subscription.type) {
-                case EventSub.EventTypes.ChannelPointsRedeemed: {
-                    this.channelPointsRedeemedEvent(notification.event);
-                    break;
-                }
-                case EventSub.EventTypes.ChannelPointsRedeemedUpdate: {
-                    this.channelPointsRedeemedUpdateEvent(notification.event);
-                    break;
-                }
-                case EventSub.EventTypes.StreamOnline: {
-                    this.channelOnlineEvent(notification.event);
-                    break;
-                }
-                case EventSub.EventTypes.StreamOffline: {
-                    this.channelOfflineEvent(notification.event);
-                    break;
-                }
-                case EventSub.EventTypes.ChannelFollow: {
-                    Logger.info(LogType.TwitchEvents, `Received event`, notification);
-                    break;
-                }
-                default: {
-                    Logger.warn(
-                        LogType.Twitch,
-                        `Twitch EventSub Notification received for event type ${notification.subscription.type}, but that event type is not handled.`,
-                        notification
-                    );
-                    break;
-                }
+        if (!notification.subscription.type) {
+            return;
+        }
+
+        switch (notification.subscription.type) {
+            case EventSub.EventTypes.ChannelPointsRedeemed: {
+                this.channelPointsRedeemedEvent(notification.event);
+                break;
             }
-            // Call all callbacks for the notification type.
-            Logger.info(LogType.TwitchEvents, `Calling event callback for ${notification.subscription.type}`, notification);
-            Logger.info(
-                LogType.TwitchEvents,
-                `There are currently ${Object.keys(this.eventCallbacks).length} callbacks for the following types: ${Object.keys(this.eventCallbacks).join(
-                    " - "
-                )}`
-            );
-            this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
+            case EventSub.EventTypes.ChannelPointsRedeemedUpdate: {
+                this.channelPointsRedeemedUpdateEvent(notification.event);
+                break;
+            }
+            case EventSub.EventTypes.StreamOnline: {
+                this.channelOnlineEvent(notification.event);
+                break;
+            }
+            case EventSub.EventTypes.StreamOffline: {
+                this.channelOfflineEvent(notification.event);
+                break;
+            }
+            case EventSub.EventTypes.ChannelFollow: {
+                Logger.info(LogType.TwitchEvents, `Received event`, notification);
+                break;
+            }
+            default: {
+                Logger.warn(
+                    LogType.Twitch,
+                    `Twitch EventSub Notification received for event type ${notification.subscription.type}, but that event type is not handled.`,
+                    notification
+                );
+                break;
+            }
+        }
+
+        // Call all callbacks for the notification type.
+        Logger.info(LogType.TwitchEvents, `Calling event callback for ${notification.subscription.type}`, notification);
+        Logger.info(
+            LogType.TwitchEvents,
+            `There are currently ${Object.keys(this.eventCallbacks).length} callbacks for the following types: ${Object.keys(this.eventCallbacks).join(
+                " - "
+            )}`
+        );
+        this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
+
+        switch (notification.subscription.type) {
+            case EventSub.EventTypes.StreamOnline:
+                const dateTimeOnline = new Date();
+                await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
+                break;
         }
     }
 
