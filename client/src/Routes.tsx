@@ -1,5 +1,5 @@
 import React from "react";
-import { SvgIconTypeMap } from "@material-ui/core";
+import { Divider, SvgIconTypeMap } from "@material-ui/core";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Card, CardContent, Typography } from "@material-ui/core";
 
@@ -31,7 +31,8 @@ export type Route = {
     component: any;
     icon: OverridableComponent<SvgIconTypeMap<{}, "svg">> | string;
     minUserLevel: UserLevels,
-    hideInSidebar?: boolean
+    hideInSidebar?: boolean,
+    makeDivider?: (userLevel: UserLevels) => JSX.Element | undefined
 };
 
 const DefaultComponent: React.FC<{}> = (props) => {
@@ -101,21 +102,16 @@ const DashboardRoutes: Route[] = [
         name: "Commands",
         icon: Extension,
         component: CommandList,
-        minUserLevel: UserLevels.Viewer
-    },
-    {
-        path: "/donations",
-        name: "Donations",
-        icon: Payment,
-        component: DonationList,
-        minUserLevel: UserLevels.Moderator
-    },
-    {
-        path: "/bot",
-        name: "Bot Settings",
-        icon: Build,
-        component: TwitchCard,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Viewer,
+        makeDivider: (level) => level >= UserLevels.Moderator ?
+                <li>
+                <Typography
+                    style={{marginLeft: "1em", marginTop: "1em"}}
+                    color="textSecondary"
+                    display="block"
+                    variant="caption"
+                >Configuration</Typography>
+            </li> : undefined
     },
     {
         path: "/messages",
@@ -151,6 +147,20 @@ const DashboardRoutes: Route[] = [
         icon: Extension,
         component: ChannelPointRewards,
         minUserLevel: UserLevels.Moderator
+    },
+    {
+        path: "/donations",
+        name: "Donations",
+        icon: Payment,
+        component: DonationList,
+        minUserLevel: UserLevels.Moderator
+    },
+    {
+        path: "/bot",
+        name: "Bot Settings",
+        icon: Build,
+        component: TwitchCard,
+        minUserLevel: UserLevels.Broadcaster
     }
 ];
 
