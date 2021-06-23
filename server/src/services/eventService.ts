@@ -4,6 +4,8 @@ import { EventParticipant } from "../models/eventParticipant";
 import Logger, { LogType } from "../logger";
 import { IUser } from "../models";
 
+type Constructor<T> = new (...args: any[]) => T;
+
 @injectable()
 
 /**
@@ -86,20 +88,16 @@ export class EventService {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    // Taken from https://stackoverflow.com/a/65152869/259059
+    private ofType<TElements, TFilter extends TElements>(array: TElements[], filterType: Constructor<TFilter>): TFilter[] {
+        return array.filter(e => e instanceof filterType) as TFilter[];
+    }
+
     /**
      * Returns a list of all active events of a given type.
      */
-    public getEvents<T extends ParticipationEvent<EventParticipant>>(): T[] {
-        const events: T[] = [];
-
-        for (const runningEvent of this.runningEvents) {
-            const e = runningEvent as T;
-            if (e) {
-                events.push(e);
-            }
-        }
-
-        return events;
+    public getEvents<T extends ParticipationEvent<EventParticipant>>(filterType: Constructor<T>): T[] {
+        return this.ofType(this.runningEvents, filterType);
     }
 }
 

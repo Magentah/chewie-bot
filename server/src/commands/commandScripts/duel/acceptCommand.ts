@@ -19,7 +19,7 @@ export default class AcceptCommand extends Command {
         // Find duel that is aimed at the current user.
         Logger.info(LogType.Command, `Looking for a duel for ${user.username} to accept`);
 
-        const runningDuels = this.eventService.getEvents<DuelEvent>();
+        const runningDuels = this.eventService.getEvents(DuelEvent);
         for (const duel of runningDuels) {
             if (
                 duel.state === EventState.BoardingCompleted &&

@@ -17,7 +17,7 @@ export default class AcceptOfferCommand extends Command {
     public async executeInternal(channel: string, user: IUser): Promise<void> {
         Logger.info(LogType.Command, `Looking for a trade for ${user.username} to accept`);
 
-        const runningTrades = this.eventService.getEvents<CardTradingEvent>();
+        const runningTrades = this.eventService.getEvents(CardTradingEvent);
         for (const trade of runningTrades) {
             const [result, msg] = await trade.accept(user);
             if (result) {

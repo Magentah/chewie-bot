@@ -21,7 +21,7 @@ export default class JoinArenaCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser): Promise<void> {
         // Arena in progress? Join existing event.
-        for (const arenaInProgress of this.eventService.getEvents<ArenaEvent>()) {
+        for (const arenaInProgress of this.eventService.getEvents(ArenaEvent)) {
             if (arenaInProgress.state === EventState.Open) {
                 // Check if user has enough points (needs to be same amount for all users).
                 const result = EventHelper.validatePoints(user, arenaInProgress.wager);
