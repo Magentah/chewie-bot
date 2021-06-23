@@ -11,11 +11,11 @@ COPY package.json .
 # Install git for package installations
 RUN apk add --no-cache git
 # install node packages
-RUN yarn install --prod 
+RUN npm install --production
 # copy production node_modules aside
 RUN cp -R node_modules prod_node_modules
 # install ALL node_modules, including 'devDependencies'
-RUN yarn install
+RUN npm install
 
 
 # --- Typescript ---
@@ -25,7 +25,7 @@ WORKDIR /usr/src/chewiebot/server
 # Copy src
 COPY . .
 # Install and run typescript
-RUN yarn global add typescript
+RUN npm install -g typescript
 RUN tsc
 
 # --- Production ---
@@ -38,7 +38,7 @@ COPY --from=dependencies /usr/src/chewiebot/server/prod_node_modules ./node_modu
 # Add sqlite3 for checking db
 RUN apk add --no-cache sqlite
 # Install pm2
-RUN yarn global add pm2 -y
+RUN npm install -g pm2
 # Start
 WORKDIR /usr/src/chewiebot/server/dist
 
