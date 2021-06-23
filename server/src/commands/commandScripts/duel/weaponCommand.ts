@@ -44,7 +44,7 @@ export default class WeaponCommand extends Command {
         }
 
         // Find the duel which the current user is participating in.
-        const runningDuels = this.eventService.getEvents<DuelEvent>();
+        const runningDuels = this.eventService.getEvents(DuelEvent);
         for (const duel of runningDuels) {
             if (duel.state === EventState.BoardingCompleted) {
                 if (duel.setWeapon(user, weapon)) {

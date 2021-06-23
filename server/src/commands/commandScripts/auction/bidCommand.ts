@@ -23,7 +23,7 @@ export default class BidCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser, bid: number): Promise<void> {
         // Auction in progress? Join existing event.
-        for (const auctionInProgress of this.eventService.getEvents<AuctionEvent>()) {
+        for (const auctionInProgress of this.eventService.getEvents(AuctionEvent)) {
             if (auctionInProgress.state === EventState.Open) {
                 // Check if user has enough points to bid
                 const result = EventHelper.validatePoints(user, bid);
