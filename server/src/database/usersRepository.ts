@@ -33,7 +33,7 @@ export class UsersRepository {
      */
     public async get(username: string): Promise<IUser | undefined> {
         const databaseService = await this.databaseProvider();
-        const userResult = await this.makeUserQuery(databaseService).where("users.username", "like", username);
+        const userResult = await this.makeUserQuery(databaseService).where("users.username", "like", username).first();
 
         if (!userResult) {
             return undefined;
