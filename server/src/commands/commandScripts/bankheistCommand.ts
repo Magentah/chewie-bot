@@ -39,7 +39,7 @@ export class BankheistCommand extends Command {
         }
 
         // Bankheist in progress? Join existing event.
-        for (const heistInProgress of this.eventService.getEvents<BankheistEvent>()) {
+        for (const heistInProgress of this.eventService.getEvents(BankheistEvent)) {
             if (heistInProgress.state === EventState.Open) {
                 if (!await heistInProgress.addParticipant(new EventParticipant(user, wager))) {
                     this.twitchService.sendMessage(channel, Lang.get("bankheist.alreadyjoined", user.username));

@@ -157,6 +157,12 @@ const Leaderboard: React.FC<any> = (props: any) => {
                             <Grid item>
                                 <Typography style={{ textAlign: "center" }}>A customized dango box delivered to you</Typography>
                             </Grid>
+                            <Grid item>
+                                <Typography style={{ textAlign: "center" }}>VIP gold for a month</Typography>
+                            </Grid>
+                            <Grid item>
+                                <Typography style={{ textAlign: "center" }}>Pink diamond icon in Twitch chat for a season</Typography>
+                            </Grid>
                         </Grid>
                     </Grid>
                     <Grid item xs>
@@ -170,6 +176,9 @@ const Leaderboard: React.FC<any> = (props: any) => {
                             <Grid item>
                                 <Typography style={{ textAlign: "center" }}>VIP gold for a month</Typography>
                             </Grid>
+                            <Grid item>
+                                <Typography style={{ textAlign: "center" }}>Pink diamond icon in Twitch chat for a season</Typography>
+                            </Grid>
                         </Grid>
                     </Grid>
                     <Grid item xs>
@@ -181,7 +190,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
                                 <Typography className={classes.topUsersUsername} style={{ color: rankingColors[0] }}>3rd Place</Typography>
                             </Grid>
                             <Grid item>
-                                <Typography style={{ textAlign: "center" }}>Pink diamond icon in Twitch chat</Typography>
+                                <Typography style={{ textAlign: "center" }}>Pink diamond icon in Twitch chat for a season</Typography>
                             </Grid>
                         </Grid>
                     </Grid>

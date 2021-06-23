@@ -5,13 +5,13 @@ import { APIHelper } from "../helpers";
 import AchievementsController from "../controllers/achievementsController";
 
 const achievementlistRouter: express.Router = express.Router();
-const cardlistController: AchievementsController = BotContainer.get(AchievementsController);
+const achievementsController: AchievementsController = BotContainer.get(AchievementsController);
 
-achievementlistRouter.get("/api/achievements", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.getList(req, res));
-// achievementlistRouter.get("/api/myachievements", (req, res) => cardlistController.getUserAchievements(req, res));
-achievementlistRouter.post("/api/achievements/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.addAchievement(req, res));
-achievementlistRouter.post("/api/achievements", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.updateAchievement(req, res));
-achievementlistRouter.post("/api/achievements/upload", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.uploadImage(req, res));
-achievementlistRouter.post("/api/achievements/delete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => cardlistController.removeAchievement(req, res));
+achievementlistRouter.get("/api/achievements", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => achievementsController.getList(req, res));
+ achievementlistRouter.get("/api/myachievements", (req, res) => achievementsController.getUserAchievements(req, res));
+achievementlistRouter.post("/api/achievements/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => achievementsController.addAchievement(req, res));
+achievementlistRouter.post("/api/achievements", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => achievementsController.updateAchievement(req, res));
+achievementlistRouter.post("/api/achievements/upload", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => achievementsController.uploadImage(req, res));
+achievementlistRouter.post("/api/achievements/delete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), (req, res) => achievementsController.removeAchievement(req, res));
 
 export default achievementlistRouter;

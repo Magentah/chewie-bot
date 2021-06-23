@@ -15,6 +15,7 @@ export enum AchievementType {
 export default interface IAchievement {
     id?: number;
     type: number;
+    name: string;
     amount: number;
     seasonal: boolean;
     imageId: string;

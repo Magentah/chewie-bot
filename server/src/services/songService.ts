@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import moment = require("moment");
 import { InvalidSongUrlError, SongAlreadyInQueueError } from "../errors";
 import { Logger, LogType } from "../logger";
-import { AchievementType, EventLogType, ISong, RequestSource, SocketMessageType, SongSource } from "../models";
+import { AchievementType, EventLogType, ISong, IUser, RequestSource, SocketMessageType, SongSource } from "../models";
 import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
@@ -170,6 +170,48 @@ export class SongService {
     }
 
     /**
+     * Adds a song to the queue using a gold song request.
+     * @param url URL to the song
+     * @param user User who requested
+     * @returns Error message or result song
+     */
+    public async addGoldSong(url: string, user: IUser): Promise<string|ISong> {
+        // Check if user has gold status
+        if (!user.vipExpiry && !user.vipPermanentRequests) {
+            return `${user.username}, you need VIP gold status to request a song. Check !vipgold for details.`;
+        }
+
+        const todayDate = new Date(new Date().toDateString());
+
+        // Check if gold status has expired (expiration date is inclusive).
+        if (!user.vipPermanentRequests && user.vipExpiry) {
+            if (user.vipExpiry < todayDate) {
+                return `${user.username}, your VIP gold status expired on ${user.vipExpiry.toDateString()}.`;
+            }
+        }
+
+        // Check if gold song has been used this week.
+        if (user.vipLastRequest && user.vipExpiry) {
+            const startOfWeek = this.getIndividualStartOfWeek(todayDate, user.vipExpiry);
+            if (user.vipLastRequest >= startOfWeek) {
+                return `Sorry ${user.username}, you already had a gold song request this week.`;
+            }
+        }
+
+        const song = await this.addSong(url, RequestSource.GoldSong, user.username);
+        user.vipLastRequest = todayDate;
+
+        // Any gold song used will always reduce the amount of permanent requests left.
+        // Adding a permanent request will also extend the VIP period, so no request will be lost.
+        if (user.vipPermanentRequests) {
+            user.vipPermanentRequests--;
+        }
+
+        this.userService.updateUser(user);
+        return song;
+    }
+
+    /**
      * Set a song in the queue to Played status.
      * @param song The song or song id to update.
      */
@@ -330,6 +372,39 @@ export class SongService {
             return song.requestedBy === username;
         });
         return userSongs;
+    }
+
+    private getDayStartingAtMonday(date: Date): number {
+        const day = date.getDay();
+        return day === 0 ? 6 : day -1;
+    }
+
+    /**
+     * Determines the start of the week based on the individual VIP expiry date.
+     * If VIP expires on Friday (inclusive), the next VIP week starts on Saturday.
+     * @param dateToCheck Day when the request is being made (should be today)
+     * @param vipExpiry Day when VIP expires
+     * @returns Start of the current VIP week. Within result and dateToCheck, only one VIP request is allowed.
+     */
+    private getIndividualStartOfWeek(dateToCheck: Date, vipExpiry: Date) {
+        // Make copy
+        vipExpiry = new Date(vipExpiry);
+
+        // Determine week start day based on VIP expiry (VIP weekday + 1)
+        vipExpiry.setDate(vipExpiry.getDate() + 1);
+        const vipWeekday = this.getDayStartingAtMonday(vipExpiry);
+
+        const todayWeekday = this.getDayStartingAtMonday(dateToCheck);
+        const dayDifference = todayWeekday - vipWeekday;
+        const weekStartDay = new Date(new Date(dateToCheck).setDate(dateToCheck.getDate() - dayDifference));
+
+        if (weekStartDay > dateToCheck)  {
+            // Date for this weekday is in the future, use last week instead.
+            weekStartDay.setDate(weekStartDay.getDate() - 7);
+            return weekStartDay;
+        } else {
+            return weekStartDay;
+        }
     }
 }
 
