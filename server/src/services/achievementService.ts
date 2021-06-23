@@ -4,10 +4,10 @@ import { BotSettings } from "./botSettingsService";
 import BotSettingsService from "./botSettingsService";
 import AchievementsRepository from "../database/achievementsRepository";
 import Logger, { LogType } from "../logger";
-import * as redis from "redis";
 import AchievementMessage from "../models/achievementMessage";
 import TwitchService from "./twitchService";
 import * as Config from "../config.json";
+import EventAggregator, { EventChannel } from "./eventAggregator";
 
 @injectable()
 export default class AchievementService {
@@ -15,20 +15,17 @@ export default class AchievementService {
         @inject(BotSettingsService) private settingsService: BotSettingsService,
         @inject(AchievementsRepository) private repository: AchievementsRepository,
         @inject(TwitchService) private twitchService: TwitchService,
+        @inject(EventAggregator) private eventAggregator: EventAggregator,
     ) {
     }
 
     public setup() {
-        const subscriber = redis.createClient({
-            url: process.env.REDIS_URL,
-            port: 6379,
-        });
-
+        const subscriber = this.eventAggregator.getSubscriber();
         subscriber.on("message", (channel: string, message: string) => {
             const msg: AchievementMessage = JSON.parse(message);
             this.grantAchievements(msg.user, msg.type, msg.count);
         });
-        subscriber.subscribe("achievements");
+        subscriber.subscribe(EventChannel.Achievements);
     }
 
     public async grantAchievements(user: IUser, type: AchievementType, currentAmount: number) {

@@ -17,8 +17,7 @@ Lang.register("points.check.givestats", "$1 has given $2 and got $3 points. ");
 Lang.register("points.check.receiver", "That's $1 more points received than given.");
 Lang.register("points.check.giver", "That's $1 more points given than received.");
 
-Lang.register("points.check.gamestats", "$1 has won $2 and lost $3 points $4. ");
 Lang.register("points.check.nogame", "$1 has not yet lost or won points $2.");
-Lang.register("points.check.gameneutral", "You win some, you lose some.");
-Lang.register("points.check.gamewin", "That's a total win of $1 points. It's not gambling, it's investing!");
-Lang.register("points.check.gameloss", "That's a total loss of $1 points. Gambling is dangerous.");
+Lang.register("points.check.gameneutral", "$1 has won just as much points as lost.");
+Lang.register("points.check.gamewin", "$1 has won a total of $2 points. It's not gambling, it's investing!");
+Lang.register("points.check.gameloss", "$1 has lost a total of $2 points. Gambling is dangerous.");

@@ -130,7 +130,5 @@ export default class TaxService {
                 await this.userTaxStreakRepository.updateStreak(taxEvent.userId, taxEvent.id, 0, streakEvent.longestStreak);
             }
         });
-
-        await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
     }
 }
