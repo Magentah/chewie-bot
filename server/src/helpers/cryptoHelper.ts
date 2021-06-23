@@ -2,7 +2,7 @@ import * as Crypto from "crypto";
 import * as jwks from "jwks-rsa";
 import * as Config from "../config.json";
 import Constants from "../constants";
-import { verify } from "jsonwebtoken";
+import { verify, VerifyErrors } from "jsonwebtoken";
 import { CertSigningKey, RsaSigningKey } from "jwks-rsa";
 import { ITwitchIDToken } from "../models";
 
@@ -87,7 +87,7 @@ export class CryptoHelper {
                     }
                 });
             }
-            verify(token, getKey, undefined, (err, decoded) => {
+            verify(token, getKey, undefined, (err: VerifyErrors | null, decoded: object | undefined) => {
                 if (err) {
                     reject(err);
                 } else {
