@@ -143,7 +143,7 @@ const DashboardRoutes: Route[] = [
     },
     {
         path: "/channelpointrewards",
-        name: "Channel Point Rewards",
+        name: "Channel Points",
         icon: Extension,
         component: ChannelPointRewards,
         minUserLevel: UserLevels.Moderator
