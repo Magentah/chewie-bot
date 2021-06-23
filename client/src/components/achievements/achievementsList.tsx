@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-type RowData = { id?: number, type: number, amount: number, seasonal: boolean, imageId: string, announcementMessage: string, url: string };
+type RowData = { id?: number, type: number, amount: number, seasonal: boolean, imageId: string, announcementMessage: string, url: string, name: string };
 const MaxFileSize = 1024 * 1024 * 5;
 const FileTypes = ["image/jpeg", "image/png"];
 
@@ -69,6 +69,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
 
     const [achievementType, setAchievementType] = useState<number>(0);
     const [achievementMsg, setAchievementMsg] = useState<string>("");
+    const [achievementName, setAchievementName] = useState<string>("");
     const [achievementAmount, setAchievementAmount] = useState<number>(1);
     const [achievementSeasonal, setAchievementSeasonal] = useState<boolean>(false);
     const [achievementAmountIsNumberOfStreams, setAchievementAmountIsNumberOfStreams] = useState<boolean>(false);
@@ -108,6 +109,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                 type: achievementType,
                 amount: achievementAmountIsNumberOfStreams ? -1 : achievementAmount,
                 seasonal: achievementSeasonal,
+                name: achievementName,
                 announcementMessage: achievementMsg
             } as RowData;
 
@@ -127,6 +129,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                     setAchievementType(0);
                     setAchievementAmount(1);
                     setAchievementMsg("");
+                    setAchievementName("");
                     setAchievementSeasonal(false);
                     setAchievementFile(undefined);
                 } else {
@@ -166,6 +169,15 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                     fullWidth
                                     value={achievementMsg}
                                     onChange={(e) => setAchievementMsg(e.target.value)}
+                                />
+                            </Grid>
+                            <Grid item>
+                                <TextField
+                                    id="achievement-name"
+                                    label="Title"
+                                    fullWidth
+                                    value={achievementName}
+                                    onChange={(e) => setAchievementName(e.target.value)}
                                 />
                             </Grid>
                             <Grid item container alignItems="center" direction="row">
@@ -238,6 +250,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                         defaultSort: "asc",
                         lookup: achievementTypes
                     },
+                    { title: "Title", field: "name", },
                     {
                         title: "Amount", field: "amount", type: "numeric",
                         render: rowData => <Typography>{rowData.amount === -1 ? "Every stream in season" : rowData.amount}</Typography>,
@@ -272,7 +285,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 5,
+                    actionsColumnIndex: 6,
                     showTitle: false,
                     addRowPosition: "first",
                     tableLayout: "auto",

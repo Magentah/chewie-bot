@@ -14,6 +14,16 @@ export default class AchievementsRepository {
         return results as IAchievement[];
     }
 
+    public async getUserAchievements(user: IUser): Promise<{achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string}[]> {
+        const databaseService = await this.databaseProvider();
+        const results = await databaseService.getQueryBuilder(DatabaseTables.UserAchievements).where("userId", user.id)
+            .join(DatabaseTables.Achievements, "achievements.id", "userAchievements.achievementId")
+            .orderBy("type")
+            .orderBy("amount")
+            .select(["achievementId", "date", "expiredDate", "mimetype", "imageId", "type", "amount", "name"]);
+        return results as {achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string}[];
+    }
+
     public async getGlobalByType(type: AchievementType, exlucdeExistingUser: IUser): Promise<IAchievement[]> {
         const databaseService = await this.databaseProvider();
         const queryBuilder = databaseService.getQueryBuilder(DatabaseTables.Achievements);

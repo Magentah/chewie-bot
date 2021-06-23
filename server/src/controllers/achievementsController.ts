@@ -1,17 +1,32 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { IAchievement } from "../models";
+import { AchievementType, IAchievement, IUser } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import AchievementsRepository from "../database/achievementsRepository";
 import fs = require("fs");
 import path = require("path");
 import { Guid } from "guid-typescript";
+import { Lang } from "../lang";
 
 @injectable()
 class AchievementsController {
     readonly ImageDir: string = "images";
+
+    private readonly AchievementCategories = {
+        [AchievementType.SongRequests]: "achievements.group.songrequests",
+        [AchievementType.Points]: "achievements.group.points",
+        [AchievementType.Songlist]: "achievements.group.songlist",
+        [AchievementType.UniqueCards]: "achievements.group.uniquecards",
+        [AchievementType.Sudoku]: "achievements.group.sudoku",
+        [AchievementType.AnimationRedeems]: "achievements.group.animationredeems",
+        [AchievementType.DailyTaxesPaid]: "achievements.group.dailytaxespaid",
+        [AchievementType.DuelsWon]: "achievements.group.duelswon",
+        [AchievementType.BackheistPointsWon]: "achievements.group.backheistpointswon",
+        [AchievementType.BankheistPointsLost]: "achievements.group.bankheistpointslost",
+        [AchievementType.DailyBitTaxesPaid]: "achievements.group.dailybittaxespaid",
+    };
 
     constructor(@inject(AchievementsRepository) private achievementsRepository: AchievementsRepository) {
         Logger.info(
@@ -29,6 +44,33 @@ class AchievementsController {
         const achievements = (await this.achievementsRepository.getList()).map(x => this.addUrl(x));
         res.status(StatusCodes.OK);
         res.send(achievements);
+    }
+
+    /**
+     * Returns all achievements for a user (grouped by category).
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async getUserAchievements(req: Request, res: Response): Promise<void> {
+        const user = req.user as IUser;
+        if (!user) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "User not logged in."));
+            return;
+        }
+
+        const achievements = await this.achievementsRepository.getUserAchievements(user)
+
+        const resultAchievements = [];
+        for (const achievement of achievements) {
+            const fullData = {...achievement,
+                group: Lang.get(this.AchievementCategories[achievement.type], achievement.amount),
+            };
+            resultAchievements.push(this.addUrl(fullData));
+        }
+
+        res.status(StatusCodes.OK);
+        res.send(resultAchievements);
     }
 
     /**
@@ -54,6 +96,7 @@ class AchievementsController {
                 type: achievement.type,
                 amount: achievement.amount,
                 seasonal: achievement.seasonal,
+                name: achievement.name,
                 announcementMessage: achievement.announcementMessage
             });
             res.status(StatusCodes.OK);
@@ -90,6 +133,7 @@ class AchievementsController {
                 type: achievement.type,
                 amount: achievement.amount,
                 seasonal: achievement.seasonal,
+                name: achievement.name,
                 announcementMessage: achievement.announcementMessage,
                 creationDate: new Date(),
                 imageId: Guid.create().toString()
@@ -160,6 +204,7 @@ class AchievementsController {
                 type: newAchievement.type,
                 amount: newAchievement.amount,
                 seasonal: newAchievement.seasonal,
+                name: newAchievement.name,
                 announcementMessage: newAchievement.announcementMessage,
                 creationDate: new Date(),
                 imageId: Guid.create().toString()
@@ -209,7 +254,7 @@ class AchievementsController {
         res.sendStatus(StatusCodes.OK);
     }
 
-    private addUrl(x: IAchievement): any {
+    private addUrl(x: { mimetype?: string, imageId: string }): any {
         return {...x, url: `/img/${x.imageId}.${this.achievementsRepository.getFileExt(x.mimetype ?? "")}` };
     }
 }

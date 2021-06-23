@@ -48,8 +48,15 @@ export default class OfferCommand extends Command {
         const cardWanted = await this.cardsRepository.getByName(cardNameOrChews);
         const pointsWanted = Number(cardNameOrChews);
 
+        // Abort if card does not exist at all.
         if (cardWanted === undefined && isNaN(pointsWanted)) {
             this.twitchService.sendMessage(channel, Lang.get("cards.trading.cardnotexists", user.username, cardNameOrChews));
+            return;
+        }
+
+        // Abort if card wanted is same as card offered.
+        if (cardWanted && cardWanted.name.toLowerCase() === cardName.toLowerCase()) {
+            this.twitchService.sendMessage(channel, Lang.get("cards.trading.nosamecard", user.username, cardNameOrChews));
             return;
         }
 

@@ -13,8 +13,6 @@ import { Logger, LogType } from "../logger";
 
 @injectable()
 export default class TaxService {
-    private isEnabled = async (): Promise<boolean> => JSON.parse(await this.botSettingsService.getValue(BotSettings.TaxEventIsEnabled));
-
     constructor(
         @inject(UserService) private userService: UserService,
         @inject(UserTaxHistoryRepository) private userTaxHistoryRepository: UserTaxHistoryRepository,
@@ -34,11 +32,6 @@ export default class TaxService {
      * @param notification The channel point redemption notification.
      */
     private async channelPointsRedeemed(notification: IEventSubNotification): Promise<void> {
-        Logger.info(LogType.TwitchEvents, `Tax event redeemed. Tax is enabled: ${await this.isEnabled()}`);
-        if (!(await this.isEnabled())) {
-            return;
-        }
-
         Logger.info(LogType.TwitchEvents, `TaxService Channel Point Redemption`, notification);
         const taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
 
@@ -81,10 +74,7 @@ export default class TaxService {
      * Will also go through all users who have not paid tax since the last stream to reset their current streaks.
      */
     private async streamOnline(): Promise<void> {
-        if (!(await this.isEnabled())) {
-            return;
-        }
-
+        const dateTimeOnline = new Date(Date.now());
         const lastOnlineEvent = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
         let lastOnlineDate: Date | undefined;
         let usersNotPaidTax: IDBUserTaxHistory[] = [];
