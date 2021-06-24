@@ -27,7 +27,7 @@ export default class TwitchPubSubService {
      * @returns
      */
     public async connect(): Promise<void> {
-        if (!this.websocket === undefined || !this.websocket === null) return;
+        if (this.websocket !== undefined || this.websocket !== null) return;
 
         this.websocket = new WebSocket(Constants.TwitchPubSubUrl);
 
