@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { Database } from "sqlite3";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 
-interface IDBStreamActivity {
+export interface IDBStreamActivity {
     id?: number;
     event: string;
     dateTimeTriggered: Date;
