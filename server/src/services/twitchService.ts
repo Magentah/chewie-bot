@@ -459,10 +459,12 @@ export class TwitchService {
         methods: tmi.SubMethods,
         userstate: tmi.SubGiftUserstate
     ) {
-        this.eventLogService.addTwitchGiftSub(username, { channel, streakMonths, recipient, methods, userstate });
+        // userstate.login should contain the plain (non international) username.
+        const actualUser = userstate.login ?? username;
+        this.eventLogService.addTwitchGiftSub(actualUser, { channel, streakMonths, recipient, methods, userstate });
 
         if (this.giftSubCallback) {
-            this.giftSubCallback(username, recipient, userstate["msg-param-gift-months"], methods.plan);
+            this.giftSubCallback(actualUser, recipient, userstate["msg-param-gift-months"], methods.plan);
         }
     }
 
