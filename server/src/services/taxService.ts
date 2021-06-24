@@ -2,7 +2,7 @@ import { inject, injectable, LazyServiceIdentifer } from "inversify";
 import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward, AchievementType, IUser } from "../models";
 import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
-import StreamActivityRepository from "../database/streamActivityRepository";
+import StreamActivityRepository, { IDBStreamActivity } from "../database/streamActivityRepository";
 import TwitchChannelPointRewardService from "./channelPointRewardService";
 import UserService from "./userService";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
@@ -74,8 +74,14 @@ export default class TaxService {
      * Will also go through all users who have not paid tax since the last stream to reset their current streaks.
      */
     private async streamOnline(): Promise<void> {
-        const dateTimeOnline = new Date(Date.now());
-        const lastOnlineEvent = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
+        // Gets the last 2 streamOnline events. The first should be the one that just occured when this function is called,
+        // The second should be the last stream online event.
+        // If there's only 1, then this is the first stream.
+        const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "desc");
+        var lastOnlineEvent: IDBStreamActivity | undefined;
+        if (lastOnlineEvents) {
+            lastOnlineEvent = lastOnlineEvents.length === 2 ? lastOnlineEvents[1] : lastOnlineEvents[0];
+        }
         let lastOnlineDate: Date | undefined;
         let usersNotPaidTax: IDBUserTaxHistory[] = [];
         let usersPaidTax: IDBUserTaxHistory[] = [];
@@ -85,7 +91,7 @@ export default class TaxService {
         }
 
         //TODO: Should probably have a way to do these updates in bulk rather than iterating through each user.
-
+        // Last Online Date is the online time of the previous stream before the current one that is online.
         if (lastOnlineDate) {
             // Get all users who have paid tax since the last time the stream was online and update their streak.
             usersPaidTax = await this.userTaxHistoryRepository.getSinceDate(lastOnlineDate);
@@ -112,7 +118,7 @@ export default class TaxService {
         }
 
         // Get all users who haven't paid tax since the last online date.
-        const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "asc");
+        //const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "asc");
         if (lastOnlineEvents.length === 2) {
             usersNotPaidTax = await this.userTaxHistoryRepository.getUsersBetweenDates(
                 lastOnlineEvents[0].dateTimeTriggered,
