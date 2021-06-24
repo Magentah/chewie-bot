@@ -13,9 +13,13 @@ export default class RedeemCommand extends Command {
     private eventAggregator: EventAggregator;
     private cost: number = -1;
 
-    private comfyUrl: string = "https://i.imgur.com/Kwrb7nS.gif";
-    private clapUrl: string = "https://i.imgur.com/yCfzpSf.gif";
-    private catjamUrl: string = "https://i.imgur.com/Yhp8rDt.gif";
+    private readonly comfyUrl: string = "https://i.imgur.com/Kwrb7nS.gif";
+    private readonly clapUrl: string = "https://i.imgur.com/yCfzpSf.gif";
+    private readonly catjamUrl: string = "https://i.imgur.com/Yhp8rDt.gif";
+
+    private readonly VariationCatjam: string = "catjam";
+    private readonly VariationClap: string = "clap";
+    private readonly VariationComfy: string = "comfy";
 
     constructor() {
         super();
@@ -26,6 +30,17 @@ export default class RedeemCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, variation: string, emote: string, url: string): Promise<void> {
+        switch (variation) {
+            case this.VariationCatjam:
+            case this.VariationClap:
+            case this.VariationComfy:
+                break;
+
+            default:
+                // Ignore invalid variations.
+                return;
+        }
+
         if (this.cost < 0) {
             this.cost = parseInt(await this.settingsService.getValue(BotSettings.RedeemCost), 10);
         }
@@ -45,9 +60,9 @@ export default class RedeemCommand extends Command {
 
     public getAliases(): ICommandAlias[] {
         return [
-            { alias: "redeemclap", commandName: "redeem", commandArguments: ["clap", "chewieClap", this.clapUrl] },
-            { alias: "redeemcatjam", commandName: "redeem", commandArguments: ["catjam", "catJAM", this.catjamUrl] },
-            { alias: "redeemcomfy", commandName: "redeem", commandArguments: ["comfy", "chewieMmm", this.comfyUrl] },
+            { alias: "redeemclap", commandName: "redeem", commandArguments: [this.VariationClap, "chewieClap", this.clapUrl] },
+            { alias: "redeemcatjam", commandName: "redeem", commandArguments: [this.VariationCatjam, "catJAM", this.catjamUrl] },
+            { alias: "redeemcomfy", commandName: "redeem", commandArguments: [this.VariationComfy, "chewieMmm", this.comfyUrl] },
         ];
     }
 }
