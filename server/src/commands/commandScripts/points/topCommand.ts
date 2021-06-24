@@ -12,7 +12,7 @@ export class TopCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, numberOfUsers: number): Promise<void> {
-        const userCount = numberOfUsers ? Math.min(25, numberOfUsers) : 10;
+        const userCount = numberOfUsers && Number.isInteger(numberOfUsers) ? Math.min(25, numberOfUsers) : 10;
 
         let result = "Users with top Chews are: ";
         let counter = 1;
