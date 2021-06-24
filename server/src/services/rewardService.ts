@@ -10,7 +10,7 @@ import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
 import TwitchEventService from "./twitchEventService";
 import StreamActivityRepository from "../database/streamActivityRepository";
-import UsersRepository  from "../database/usersRepository";
+import UsersRepository from "../database/usersRepository";
 
 @injectable()
 export default class RewardService {
@@ -36,7 +36,7 @@ export default class RewardService {
 
         this.addUserPoints(user, donation);
 
-        if (await this.addGoldStatus(user, donation) && user) {
+        if ((await this.addGoldStatus(user, donation)) && user) {
             // Use goldsong for queue if possible
             const matches = this.getSongsForQueue(donation.message);
             for (const match of matches) {
@@ -161,7 +161,7 @@ export default class RewardService {
             // Consider anniversary
             if (months % 12 === 0) {
                 const pointsPerYear = parseInt(await this.settings.getValue(BotSettings.SubPointsPerYear), 10);
-                totalPoints += months / 12 * pointsPerYear;
+                totalPoints += (months / 12) * pointsPerYear;
             }
             await this.userService.changeUserPoints(user, totalPoints, logType);
         } else {
@@ -174,7 +174,9 @@ export default class RewardService {
      * extend gold status subscriptions for that period of time.
      */
     public async extendGoldStatusForWeeksWithoutStream() {
-        const lastOnlineEvent = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
+        // Gets the last 2 stream online events, as the last event is the one that was just triggred.
+        const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "desc");
+        const lastOnlineEvent = lastOnlineEvents?.length === 2 ? lastOnlineEvents[1] : lastOnlineEvents[0];
         if (lastOnlineEvent) {
             const oneDay = 24 * 60 * 60 * 1000;
             const nowDate = new Date(new Date().toDateString());
