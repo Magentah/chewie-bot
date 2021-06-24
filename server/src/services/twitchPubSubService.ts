@@ -64,7 +64,9 @@ export default class TwitchPubSubService {
      */
     private onMessage(event: MessageEvent): void {
         // For now just log the event.
-        Logger.info(LogType.TwitchPubSub, "Received message from Twitch PubSub.", event);
+        if (event.data?.type != "PONG") {
+            Logger.info(LogType.TwitchPubSub, "Received message from Twitch PubSub.", event);
+        }
     }
 
     /**
