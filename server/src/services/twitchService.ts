@@ -309,7 +309,7 @@ export class TwitchService {
     }
 
     private async chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
-        Logger.info(LogType.Twitch, `Chat event: ${channel}:${userstate.username} -- ${message}`);
+        Logger.debug(LogType.Twitch, `Chat event: ${channel}:${userstate.username} -- ${message}`);
 
         if (self) {
             return;
@@ -385,7 +385,7 @@ export class TwitchService {
     }
 
     private joinEventHandler(channel: string, username: string, self: boolean) {
-        Logger.info(LogType.Twitch, `Channel:: ${channel} - JOIN:: ${username}`);
+        Logger.debug(LogType.Twitch, `Channel:: ${channel} - JOIN:: ${username}`);
         if (self) {
             this.getChatList(channel);
         }
@@ -412,7 +412,7 @@ export class TwitchService {
     }
 
     private partEventHandler(channel: string, username: string, self: boolean) {
-        Logger.info(LogType.Twitch, `PART:: ${username}`);
+        Logger.debug(LogType.Twitch, `PART:: ${username}`);
     }
 
     private pingEventHandler() {
@@ -459,10 +459,12 @@ export class TwitchService {
         methods: tmi.SubMethods,
         userstate: tmi.SubGiftUserstate
     ) {
-        this.eventLogService.addTwitchGiftSub(username, { channel, streakMonths, recipient, methods, userstate });
+        // userstate.login should contain the plain (non international) username.
+        const actualUser = userstate.login ?? username;
+        this.eventLogService.addTwitchGiftSub(actualUser, { channel, streakMonths, recipient, methods, userstate });
 
         if (this.giftSubCallback) {
-            this.giftSubCallback(username, recipient, userstate["msg-param-gift-months"], methods.plan);
+            this.giftSubCallback(actualUser, recipient, userstate["msg-param-gift-months"], methods.plan);
         }
     }
 

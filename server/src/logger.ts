@@ -11,6 +11,7 @@ enum LogType {
     Command = "Command",
     Twitch = "Twitch",
     TwitchEvents = "TwitchEvents",
+    TwitchPubSub = "TwitchPubSub",
     Cache = "Cache",
     Database = "Database",
     OAuth = "OAuth",
@@ -210,7 +211,7 @@ export class Logger {
                         return `${info.timestamp} :: ${info.label}/${info.level} :: ${info.message} ${info.meta ? " :::: " + JSON.stringify(info.meta) : ""}`;
                     })
                 ),
-            })
+            }),
         ];
 
         if (Config.log.logfile) {
@@ -223,7 +224,8 @@ export class Logger {
                     maxSize: "10m",
                     level: Config.log.level,
                     format: fileFormat,
-            }));
+                })
+            );
         }
 
         return options;

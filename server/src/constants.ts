@@ -14,6 +14,8 @@ export default class Constants {
     public static readonly TwitchEventSubEndpoint = "https://api.twitch.tv/helix/eventsub/subscriptions";
     public static readonly TwitchUri = "https://www.twitch.tv";
 
+    public static readonly TwitchPubSubUrl = "wss://pubsub-edge.twitch.tv";
+
     // Streamlabs
     public static readonly StreamlabsAuthUrl = "https://streamlabs.com/api/v1.0/authorize";
     public static readonly StreamlabsTokenUrl = "https://streamlabs.com/api/v1.0/token";

@@ -22,6 +22,7 @@ import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
 import { IUser } from "./models";
+import TwitchPubSubService from "./services/twitchPubSubService";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -41,6 +42,7 @@ class BotServer extends Server {
 
         // Force call constructor before they're used by anything else. Probably a better way to do this...
         this.socket = BotContainer.get<WebsocketService>(WebsocketService);
+
         this.commands = BotContainer.get<CommandService>(CommandService);
         this.taxService = BotContainer.get<TaxService>(TaxService);
 
@@ -59,6 +61,9 @@ class BotServer extends Server {
 
             const twitchEventService = BotContainer.get<TwitchEventService>(TwitchEventService);
             twitchEventService.startup();
+
+            const twitchPubSub = BotContainer.get<TwitchPubSubService>(TwitchPubSubService);
+            twitchPubSub.connect();
         }
     }
 

@@ -21,7 +21,7 @@ export enum StreamlabsEvent {
 
 export enum SubType {
     Sub = "sub",
-    Resub = "resub"
+    Resub = "resub",
 }
 
 export enum SubscriptionPlan {
@@ -29,7 +29,7 @@ export enum SubscriptionPlan {
     Prime = "1",
     Tier1 = "1000",
     Tier2 = "2000",
-    Tier3 = "3000"
+    Tier3 = "3000",
 }
 
 interface IStreamlabsSocketMessage {
@@ -55,45 +55,47 @@ export interface IDonationMessage {
 }
 
 export interface ISubscriptionMessage {
-    name: string,
-    months: number,
-    message: string,
-    emotes: any,
-    sub_plan: SubscriptionPlan,
-    sub_type: SubType,
-    _id: string
+    name: string;
+    months: number;
+    message: string;
+    emotes: any;
+    sub_plan: SubscriptionPlan;
+    sub_type: SubType;
+    _id: string;
 }
 
 export interface IResubscriptionMessage {
-    amount: number,
-    name: string,
-    months: number,
-    message: string,
-    emotes: any,
-    sub_plan: SubscriptionPlan,
-    streak_months: number,
-    _id: string
+    amount: number;
+    name: string;
+    months: number;
+    message: string;
+    emotes: any;
+    sub_plan: SubscriptionPlan;
+    streak_months: number;
+    _id: string;
 }
 
 export interface IBitsMessage {
-    amount: number,
-    name: string,
-    message: string,
-    emotes: any,
-    _id: string
+    amount: number;
+    name: string;
+    message: string;
+    emotes: any;
+    _id: string;
 }
 
 @injectable()
 export class StreamlabsService {
     private websocket!: SocketIOClient.Socket;
-    constructor(@inject(UserService) private users: UserService,
-                @inject(RewardService) private rewards: RewardService,
-                @inject(EventLogService) private eventLogService: EventLogService,
-                @inject(DonationsRepository) private donations: DonationsRepository,) {
+    constructor(
+        @inject(UserService) private users: UserService,
+        @inject(RewardService) private rewards: RewardService,
+        @inject(EventLogService) private eventLogService: EventLogService,
+        @inject(DonationsRepository) private donations: DonationsRepository
+    ) {
         // Empty
     }
 
-   public async connectOnStartup(username: string): Promise<void> {
+    public async connectOnStartup(username: string): Promise<void> {
         if (!username) {
             return;
         }
@@ -144,11 +146,11 @@ export class StreamlabsService {
     }
 
     private onPing(): void {
-        Logger.info(LogType.Streamlabs, "Ping received");
+        Logger.debug(LogType.Streamlabs, "Ping received");
     }
 
     private onPong(): void {
-        Logger.info(LogType.Streamlabs, "Pong Received");
+        Logger.debug(LogType.Streamlabs, "Pong Received");
     }
 
     private onMessage(message: IStreamlabsSocketMessage): void {
@@ -200,7 +202,7 @@ export class StreamlabsService {
 
             const subMessage: ISubscriptionMessage = {
                 ...sub,
-                sub_type: SubType.Resub
+                sub_type: SubType.Resub,
             };
 
             this.rewards.processSub(subMessage);
@@ -222,7 +224,7 @@ export class StreamlabsService {
 
         for (const donation of messages) {
             this.eventLogService.addStreamlabsEventReceived(donation.from, EventLogType.Donation, donation);
-            this.donations.add({username: donation.name , date: new Date() , message: donation.message, amount: donation.amount, type: "Streamlabs" });
+            this.donations.add({ username: donation.name, date: new Date(), message: donation.message, amount: donation.amount, type: "Streamlabs" });
 
             this.rewards.processDonation(donation);
         }

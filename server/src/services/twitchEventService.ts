@@ -120,17 +120,11 @@ export default class TwitchEventService {
         Logger.info(LogType.TwitchEvents, `Calling event callback for ${notification.subscription.type}`, notification);
         Logger.info(
             LogType.TwitchEvents,
-            `There are currently ${Object.keys(this.eventCallbacks).length} callbacks for the following types: ${Object.keys(this.eventCallbacks).join(
-                " - "
-            )}`
+            `There are currently ${Object.keys(this.eventCallbacks).length} callbacks for the following types: ${Object.keys(this.eventCallbacks).join(" - ")}`
         );
         this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
 
         switch (notification.subscription.type) {
-            case EventSub.EventTypes.StreamOnline:
-                const dateTimeOnline = new Date();
-                await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
-                break;
         }
     }
 
@@ -193,11 +187,19 @@ export default class TwitchEventService {
 
     private channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): void {
         Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
+
+        const dateTimeOnline = new Date();
+        this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
+
         this.discord.sendStreamOnline();
     }
 
     private channelOfflineEvent(notificationEvent: EventSub.IStreamOfflineEvent): void {
         Logger.info(LogType.Twitch, "Channel Offline", notificationEvent);
+
+        const dateTimeOffline = new Date();
+        this.streamActivityRepository.add(EventTypes.StreamOffline, dateTimeOffline);
+
         this.discord.sendStreamOffline();
     }
 
