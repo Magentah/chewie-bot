@@ -1,14 +1,16 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { ISong, IUser, UserLevels } from "../models";
+import { EventLogType, ISong } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SongService } from "../services";
+import { EventLogsRepository } from "../database";
 
 @injectable()
 class SongController {
-    constructor(@inject(SongService) private songService: SongService) {
+    constructor(@inject(SongService) private songService: SongService,
+                @inject(EventLogsRepository) private eventLogsRepository: EventLogsRepository) {
         Logger.info(
             LogType.ServerInfo,
             `SongController constructor. SongService exists: ${this.songService !== undefined}`
@@ -24,6 +26,25 @@ class SongController {
         const songs = this.songService.getSongQueue();
         res.status(StatusCodes.OK);
         res.send(songs);
+    }
+
+    /**
+     * Get the list of played song requests.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public async getSongHistory(req: Request, res: Response): Promise<void> {
+        const events = await this.eventLogsRepository.getLast(EventLogType.SongPlayed, 10);
+        const resultSongs = [];
+        for (const event of events) {
+            const eventData = JSON.parse(event.data);
+            const song = eventData.song as ISong;
+            if (song) {
+                resultSongs.push(song);
+            }
+        }
+        res.status(StatusCodes.OK);
+        res.send(resultSongs);
     }
 
     /**
@@ -85,6 +106,20 @@ class SongController {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
             this.songService.removeSong(song.id);
+        });
+
+        res.sendStatus(StatusCodes.OK);
+    }
+
+    /**
+     * Remove a song from the queue and adds it to the history.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public completeSong(req: Request, res: Response): void {
+        const songIds = Array.from<ISong>(req.body.songs);
+        songIds.forEach((song) => {
+            this.songService.songPlayed(song.id);
         });
 
         res.sendStatus(StatusCodes.OK);

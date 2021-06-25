@@ -11,9 +11,10 @@ export class EventLogsRepository {
         // Empty
     }
 
-    public async get(type: EventLogType): Promise<IEventLog[]> {
+    public async getLast(type: EventLogType, count: number | undefined): Promise<IEventLog[]> {
         const databaseService = await this.databaseProvider();
-        const eventLogs: IEventLog[] = await databaseService.getQueryBuilder(DatabaseTables.EventLogs).select().where("type", "=", type);
+        const query = databaseService.getQueryBuilder(DatabaseTables.EventLogs).select().where("type", "=", type).orderBy("time", "desc");
+        const eventLogs: IEventLog[] = await (count ? query.limit(count) : query);
         return eventLogs;
     }
 
