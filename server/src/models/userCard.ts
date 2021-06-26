@@ -14,5 +14,13 @@ export default interface IUserCard {
     setName?: string;
     baseCardName?: string;
     rarity: CardRarity;
+    isUpgrade: boolean;
     creationDate: Date
+}
+
+export interface IUserCardOnStackInfo extends IUserCard {
+    cardCount: number;
+    upgradedName?: string;
+    upgradedImagId?: string;
+    upgradedMimeType?: string;
 }

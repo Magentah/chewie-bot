@@ -9,6 +9,7 @@ import fs = require("fs");
 import path = require("path");
 import { Guid } from "guid-typescript";
 import CardService from "../services/cardService";
+import { IUserCardOnStackInfo } from "../models/userCard";
 
 @injectable()
 class CardlistController {
@@ -47,7 +48,7 @@ class CardlistController {
         }
 
         const totalCardCount = await this.cardRepository.getCount();
-        const cards = (await this.cardRepository.getCardStack(user)).map(x => this.addUrl(x));
+        const cards = (await this.cardRepository.getCardStack(user)).map(x => this.addCardOnStackUrl(x));
         res.status(StatusCodes.OK);
         res.send({ count: totalCardCount, cards });
     }
@@ -93,7 +94,8 @@ class CardlistController {
                 name: card.name,
                 setName: card.setName,
                 baseCardName: card.baseCardName,
-                rarity: card.rarity
+                rarity: card.rarity,
+                isUpgrade: card.isUpgrade
             });
             res.status(StatusCodes.OK);
             res.send(card);
@@ -131,7 +133,8 @@ class CardlistController {
                 baseCardName: card.baseCardName,
                 rarity: card.rarity,
                 creationDate: new Date(),
-                imageId: Guid.create().toString()
+                imageId: Guid.create().toString(),
+                isUpgrade: card.isUpgrade
             });
         }
 
@@ -201,7 +204,8 @@ class CardlistController {
                 baseCardName: newCard.baseCardName,
                 rarity: newCard.rarity,
                 creationDate: new Date(),
-                imageId: Guid.create().toString()
+                imageId: Guid.create().toString(),
+                isUpgrade: newCard.isUpgrade
             });
             res.status(StatusCodes.OK);
             res.send(result);
@@ -250,6 +254,15 @@ class CardlistController {
 
     private addUrl(x: IUserCard): any {
         return {...x, url: `/img/${x.imageId}.${this.cardRepository.getFileExt(x.mimetype ?? "")}` };
+    }
+
+    private addCardOnStackUrl(x: IUserCardOnStackInfo): any {
+        return {
+            ...x, 
+            url: x.upgradedImagId ? 
+                `/img/${x.upgradedImagId}.${this.cardRepository.getFileExt(x.upgradedMimeType ?? "")}` :
+                `/img/${x.imageId}.${this.cardRepository.getFileExt(x.mimetype ?? "")}`
+        };
     }
 }
 

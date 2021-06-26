@@ -2,6 +2,7 @@ import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 import { AchievementType, CardRarity, IUser, IUserCard } from "../models";
 import EventAggregator from "../services/eventAggregator";
+import { IUserCardOnStackInfo } from "../models/userCard";
 
 @injectable()
 export default class CardsRepository {
@@ -18,7 +19,7 @@ export default class CardsRepository {
 
     public async getCount(): Promise<number> {
         const databaseService = await this.databaseProvider();
-        return (await databaseService.getQueryBuilder(DatabaseTables.Cards).count("id AS cnt").first()).cnt;
+        return (await databaseService.getQueryBuilder(DatabaseTables.Cards).where("isUpgrade", false).count("id AS cnt").first()).cnt;
     }
 
     public async get(card: IUserCard): Promise<IUserCard | undefined> {
@@ -65,17 +66,20 @@ export default class CardsRepository {
         await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ id: stackId }).first().update( { deleted: false });
     }
 
-    public async getCardStack(user: IUser): Promise<IUserCard[]> {
+    public async getCardStack(user: IUser): Promise<IUserCardOnStackInfo[]> {
         const databaseService = await this.databaseProvider();
         const cards = (await databaseService.getQueryBuilder(DatabaseTables.CardStack).select()
-            .join(DatabaseTables.Cards, "userCards.id", "userCardStack.cardId")
+            .join(DatabaseTables.Cards, "userCardStack.cardId", "userCards.id")
+            .leftJoin(DatabaseTables.CardUpgrades, "userCardStack.cardId", "userCardUpgrades.upgradedCardId")
+            .leftJoin(`${DatabaseTables.Cards} AS upgradeCards`, "userCardUpgrades.upgradeCardId", "upgradeCards.id")
             .groupBy("userCards.id")
-            .where({ userId: user.id, deleted: false })
+            .where({ "userCardStack.userId": user.id, deleted: false })
             .orderBy("userCards.name")
             .select([
                 "userCards.*",
+                "upgradeCards.name AS upgradedName", "upgradeCards.imageId AS upgradedImagId", "upgradeCards.mimetype AS upgradedMimeType",
                 databaseService.raw("COUNT(usercards.id) AS cardCount"),
-            ])) as IUserCard[];
+            ])) as IUserCardOnStackInfo[];
         return cards;
     }
 

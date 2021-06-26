@@ -23,6 +23,7 @@ export enum DatabaseTables {
     Messages = "messages",
     Cards = "userCards",
     CardStack = "userCardStack",
+    CardUpgrades = "userCardUpgrades",
     UserTaxStreak = "userTaxStreak",
     UserTaxHistory = "userTaxHistory",
     ChannelPointRewards = "channelPointRewards",
@@ -102,6 +103,7 @@ export class DatabaseService {
                 await this.createTwitchProfileTable();
                 await this.createUserCardsTable();
                 await this.createUserCardStackTable();
+                await this.createUserCardUpgradesTable();
                 await this.createUserTaxStreakTable();
                 await this.createUserTaxHistoryTable();
                 await this.createChannelPointRewardsTable();
@@ -322,6 +324,7 @@ export class DatabaseService {
             table.string("setName");
             table.string("baseCardName");
             table.integer("rarity").notNullable();
+            table.boolean("isUpgrade").defaultTo(false).notNullable();
             table.dateTime("creationDate").notNullable();
         });
     }
@@ -332,9 +335,23 @@ export class DatabaseService {
             table.integer("userId").notNullable();
             table.foreign("userId").references(`id`).inTable(DatabaseTables.Users);
             table.integer("cardId").notNullable();
-            table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards);
+            table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
             table.dateTime("redemptionDate").notNullable();
             table.boolean("deleted").notNullable().defaultTo(false);
+        });
+    }
+
+    private async createUserCardUpgradesTable(): Promise<void> {
+        return this.createTable(DatabaseTables.CardUpgrades, (table) => {
+            table.integer("id").primary().notNullable().unique();
+            table.integer("userId").notNullable();
+            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users);
+            table.integer("upgradedCardId").notNullable();
+            table.foreign("upgradedCardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
+            table.integer("upgradeCardId").notNullable();
+            table.foreign("upgradeCardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
+            table.dateTime("dateUpgraded").notNullable();
+            table.unique(["userId", "upgradedCardId", "upgradeCardId"]);
         });
     }
 
@@ -413,7 +430,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.UserAchievements, (table) => {
             table.increments("id").primary().notNullable().unique();
             table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users);
-            table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements);
+            table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements).onDelete("CASCADE");
             table.dateTime("date").notNullable();
             table.dateTime("expiredDate");
             // Achievements can only be granted once, unless seasonal, then they need to have different
