@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem } from "@material-ui/core";
+import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import { DropzoneArea, DropzoneDialog } from "material-ui-dropzone";
 import { AddToListState } from "../common/addToListState";
@@ -72,6 +72,7 @@ const UserCardList: React.FC<any> = (props: any) => {
     const [cardSetName, setCardSetName] = useState<string>("");
     const [cardBaseCardName, setCardBaseCardName] = useState<string>("");
     const [cardRarity, setCardRarity] = useState<number>(0);
+    const [cardUpgrade, setCardUpgrade] = useState<boolean>(false);
     const [cardFile, setCardFile] = useState<File>();
 
     const classes = useStyles();
@@ -90,7 +91,7 @@ const UserCardList: React.FC<any> = (props: any) => {
         try {
             setCardListState({state: "progress"});
 
-            const newData = { name: cardName, setName: cardSetName, rarity: cardRarity, baseCardName: cardBaseCardName } as RowData;
+            const newData = { name: cardName, setName: cardSetName, rarity: cardRarity, baseCardName: cardBaseCardName, isUpgrade: cardUpgrade } as RowData;
 
             const formData = new FormData();
             formData.append("card", JSON.stringify(newData));
@@ -109,6 +110,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                     setCardSetName("");
                     setCardBaseCardName("");
                     setCardRarity(0);
+                    setCardUpgrade(false);
                     setCardFile(undefined);
                 } else {
                     setCardListState({
@@ -167,19 +169,32 @@ const UserCardList: React.FC<any> = (props: any) => {
                                     )}
                                 />
                             </Grid>
-                            <Grid item>
-                                <FormControl fullWidth style={{ marginTop: 15 }}>
-                                    <InputLabel>Rarity</InputLabel>
-                                    <Select
-                                        value={cardRarity}
-                                        onChange={(event: React.ChangeEvent<{ name?: string | undefined; value: unknown; }>) => setCardRarity(event.target.value as number ?? 0)}>
-                                        <MenuItem value={0}>Common</MenuItem>
-                                        <MenuItem value={1}>Uncommon</MenuItem>
-                                        <MenuItem value={2}>Rare</MenuItem>
-                                        <MenuItem value={3}>Mythical</MenuItem>
-                                        <MenuItem value={4}>Legendary</MenuItem>
-                                    </Select>
-                                </FormControl>
+                            <Grid item container alignItems="center" direction="row">
+                                <Grid item xs>
+                                    <FormControl fullWidth style={{ marginTop: 15 }}>
+                                        <InputLabel>Rarity</InputLabel>
+                                        <Select
+                                            value={cardRarity}
+                                            onChange={(event: React.ChangeEvent<{ name?: string | undefined; value: unknown; }>) => setCardRarity(event.target.value as number ?? 0)}>
+                                            <MenuItem value={0}>Common</MenuItem>
+                                            <MenuItem value={1}>Uncommon</MenuItem>
+                                            <MenuItem value={2}>Rare</MenuItem>
+                                            <MenuItem value={3}>Mythical</MenuItem>
+                                            <MenuItem value={4}>Legendary</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs>
+                                    <FormControlLabel style={{marginTop: "2em", marginLeft: "0.5em"}}
+                                        control={
+                                        <Checkbox
+                                            checked={cardUpgrade}
+                                            onChange={(e) => setCardUpgrade(e.target.checked)}
+                                            name="cards-isugprade"
+                                        />}
+                                        label="Upgrades an existing card"
+                                    />
+                                </Grid>
                             </Grid>
                             <Grid item>
                                 <Button
@@ -231,7 +246,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 5,
+                    actionsColumnIndex: 6,
                     showTitle: false,
                     addRowPosition: "first",
                     tableLayout: "auto",

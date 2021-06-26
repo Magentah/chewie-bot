@@ -148,10 +148,13 @@ export default class CardsRepository {
 
         // Start with highest value and try finding cards.
         // Cards may not exist for all rarities, so we need to try multiple times possibly.
+        // Exclude all card upgrades, since these can only be retrieved once.
         for (const rarity of rarities) {
             const card = await databaseService
                 .getQueryBuilder(DatabaseTables.Cards)
                 .where({rarity: rarity.rarity})
+                .whereNotExists(databaseService.getQueryBuilder(DatabaseTables.CardUpgrades)
+                    .select("id").from(DatabaseTables.CardUpgrades).where({ userId: user.id }).andWhereRaw("userCards.id = userCardUpgrades.upgradeCardId"))
                 .first()
                 .orderByRaw("RANDOM()") as IUserCard;
             if (card) {
@@ -160,6 +163,15 @@ export default class CardsRepository {
         }
 
         return undefined;
+    }
+
+    public async saveCardUpgrade(user: IUser, upgradedCard: IUserCard, upgrade: IUserCard): Promise<void> {
+        if (upgradedCard.id && user.id) {
+            const databaseService = await this.databaseProvider();
+            await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).insert({
+                userId: user.id, upgradedCardId: upgradedCard.id, upgradeCardId: upgrade.id, dateUpgraded: new Date()
+            });
+        }
     }
 
     public async saveCardRedemption(user: IUser, card: IUserCard): Promise<void> {
