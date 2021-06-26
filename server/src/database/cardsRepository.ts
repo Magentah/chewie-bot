@@ -95,10 +95,18 @@ export default class CardsRepository {
     public async addOrUpdate(card: IUserCard): Promise<IUserCard> {
         const existingMessage = await this.get(card);
         if (!existingMessage) {
-            const databaseService = await this.databaseProvider();
-            const result = await databaseService.getQueryBuilder(DatabaseTables.Cards).insert(card);
-            card.id = result[0];
-            return card;
+            try {
+                const databaseService = await this.databaseProvider();
+                const result = await databaseService.getQueryBuilder(DatabaseTables.Cards).insert(card);
+                card.id = result[0];
+                return card;
+            } catch (err) {
+                if (err.code === "SQLITE_CONSTRAINT") {
+                    throw new Error("Card with same name already exists.");
+                }
+
+                throw err;
+            }
         } else {
             const databaseService = await this.databaseProvider();
             await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ id: card.id }).update(card);

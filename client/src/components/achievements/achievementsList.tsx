@@ -119,26 +119,22 @@ const AchievementsList: React.FC<any> = (props: any) => {
             axios.post("/api/achievements/upload", formData, {
                 headers: {
                   "Content-Type": "multipart/form-data"
-                },
-                validateStatus(status) { return true; }
-            }).then((result) => {
-                if (result && result.status === 200) {
-                    const newList = [...achievementlist, result.data];
-                    setAchievementListState({state: "success"});
-                    setAchievementlist(newList);
-                    setAchievementType(0);
-                    setAchievementAmount(1);
-                    setAchievementMsg("");
-                    setAchievementName("");
-                    setAchievementSeasonal(false);
-                    setAchievementFile(undefined);
-                } else {
-                    setAchievementListState({
-                        state: "failed",
-                        message: result.data.error.message
-                    });
                 }
-            });
+            }).then((result) => {
+                const newList = [...achievementlist, result.data];
+                setAchievementListState({state: "success"});
+                setAchievementlist(newList);
+                setAchievementType(0);
+                setAchievementAmount(1);
+                setAchievementMsg("");
+                setAchievementName("");
+                setAchievementSeasonal(false);
+                setAchievementFile(undefined);
+            }).catch(error => {
+                setAchievementListState({
+                    state: "failed",
+                    message: error.response.data.error.message
+            })});
         } catch (error) {
             setAchievementListState({
                 state: "failed",

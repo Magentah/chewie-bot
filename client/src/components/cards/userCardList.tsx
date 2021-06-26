@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox } from "@material-ui/core";
+import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
+import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Snackbar } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import { DropzoneArea, DropzoneDialog } from "material-ui-dropzone";
 import { AddToListState } from "../common/addToListState";
@@ -64,6 +65,10 @@ const ImageCell: React.FC<{value: RowData}> = ({value}) => {
         </Grid>;
 }
 
+function Alert(props: AlertProps) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
 const UserCardList: React.FC<any> = (props: any) => {
     const [cardlist, setCardlist] = useState([] as RowData[]);
     const [cardListState, setCardListState] = useState<AddToListState>();
@@ -99,32 +104,37 @@ const UserCardList: React.FC<any> = (props: any) => {
             axios.post("/api/cards/upload", formData, {
                 headers: {
                   "Content-Type": "multipart/form-data"
-                },
-                validateStatus(status) { return true; }
-            }).then((result) => {
-                if (result && result.status === 200) {
-                    const newList = [...cardlist, result.data];
-                    setCardListState({state: "success"});
-                    setCardlist(newList);
-                    setCardName("");
-                    setCardSetName("");
-                    setCardBaseCardName("");
-                    setCardRarity(0);
-                    setCardUpgrade(false);
-                    setCardFile(undefined);
-                } else {
-                    setCardListState({
-                        state: "failed",
-                        message: result.data.error.message
-                    });
                 }
-            });
+            }).then((result) => {
+                const newList = [...cardlist, result.data];
+                setCardListState({state: "success"});
+                setCardlist(newList);
+                setCardName("");
+                setCardSetName("");
+                setCardBaseCardName("");
+                setCardRarity(0);
+                setCardUpgrade(false);
+                setCardFile(undefined);
+            }).catch(error => {
+                setCardListState({
+                    state: "failed",
+                    message: error.response.data.error.message
+                })});
         } catch (error) {
             setCardListState({
                 state: "failed",
                 message: error.message
             });
         }
+    };
+
+    const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        setCardListState({
+            state: undefined
+        });
     };
 
     const addForm = <Box mb={2}>
@@ -216,7 +226,14 @@ const UserCardList: React.FC<any> = (props: any) => {
                         </Grid>
                     </Grid>
                 </form>
-            </Box></Card>
+            </Box>
+            {cardListState?.state === "failed" ?
+            <Snackbar open={cardListState?.state === "failed"} autoHideDuration={8000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="error">
+                    Card cannot be added: {cardListState.message}
+                </Alert>
+            </Snackbar> : undefined}
+            </Card>
         </Box>;
 
     return <div>

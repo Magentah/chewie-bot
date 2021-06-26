@@ -125,19 +125,6 @@ class CardlistController {
             return;
         }
 
-        let cardData = await this.cardRepository.get(card);
-        if (!cardData) {
-            cardData = await this.cardRepository.addOrUpdate({
-                name: card.name,
-                setName: card.setName,
-                baseCardName: card.baseCardName,
-                rarity: card.rarity,
-                creationDate: new Date(),
-                imageId: Guid.create().toString(),
-                isUpgrade: card.isUpgrade
-            });
-        }
-
         const fileExt = this.cardRepository.getFileExt(req.files.image.mimetype);
         if (!fileExt) {
             res.status(StatusCodes.BAD_REQUEST);
@@ -146,6 +133,19 @@ class CardlistController {
         }
 
         try {
+            let cardData = await this.cardRepository.get(card);
+            if (!cardData) {
+                cardData = await this.cardRepository.addOrUpdate({
+                    name: card.name,
+                    setName: card.setName,
+                    baseCardName: card.baseCardName,
+                    rarity: card.rarity,
+                    creationDate: new Date(),
+                    imageId: Guid.create().toString(),
+                    isUpgrade: card.isUpgrade
+                });
+            }
+
             if (req.files?.image) {
                 const newCard = {...cardData, mimetype: req.files.image.mimetype};
                 await this.cardRepository.addOrUpdate(newCard);
@@ -177,8 +177,7 @@ class CardlistController {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
                 APIHelper.error(
-                    StatusCodes.INTERNAL_SERVER_ERROR,
-                    "There was an error when attempting to add the card."
+                    StatusCodes.INTERNAL_SERVER_ERROR, err.message
                 )
             );
         }
