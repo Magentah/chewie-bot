@@ -131,7 +131,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                     <Button onClick={() => handleCloseReset(false)} color="primary">OK</Button>
                 </DialogActions>}
             </Dialog>
-            <Grid xs>
+            <Grid>
                 <Box padding={3}>
                     <Grid item>
                         <Grid item container>
