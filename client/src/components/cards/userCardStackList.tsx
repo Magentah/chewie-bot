@@ -176,9 +176,11 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                     </Box>
                                 </Grid>
                                 <Grid item>
+                                    {tile.upgradedName ?
                                     <Sparkles>
                                         <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
-                                    </Sparkles>
+                                    </Sparkles> :
+                                    <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />}
                                 </Grid>
                             </Grid></Box>
                             ))}
