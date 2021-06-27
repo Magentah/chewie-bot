@@ -8,6 +8,7 @@ const songRouter: express.Router = express.Router();
 const songController: SongController = BotContainer.get(SongController);
 
 songRouter.get("/api/songs", (res, req) => songController.getSongRequests(res, req));
+songRouter.get("/api/playedsongs", (res, req) => songController.getSongHistory(res, req));
 songRouter
     .route("/api/songs/user/:username")
     .get((res, req) => songController.getSongsForUser(res, req))
@@ -15,5 +16,6 @@ songRouter
 
 songRouter.post("/api/songs/delete", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Moderator), (res, req) => songController.removeSong(res, req));
 songRouter.post("/api/songs/movetotop", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Moderator), (res, req) => songController.moveSongToTop(res, req));
+songRouter.post("/api/songs/complete", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Moderator), (res, req) => songController.completeSong(res, req));
 
 export default songRouter;

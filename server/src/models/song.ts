@@ -14,7 +14,6 @@ export interface ISong {
         viewerStatus: string;
     };
     requestSource: RequestSource;
-    beenPlayed: boolean;
     source: SongSource;
     sourceId: string;
     sourceUrl: string;

@@ -224,17 +224,17 @@ export class SongService {
                 })[0] || undefined;
             if (songToChange) {
                 const songIndex = this.songQueue.indexOf(songToChange);
-                this.songQueue[songIndex].beenPlayed = true;
-                this.eventLogService.addSongPlayed(this.songQueue[songIndex].requestedBy, {
+                const songData = this.songQueue[songIndex];
+                this.songQueue.splice(songIndex, 1);
+
+                this.eventLogService.addSongPlayed(songData.requestedBy, {
                     message: "Song has been played.",
-                    song: {
-                        title: this.songQueue[songIndex].details.title,
-                    },
+                    song: songData,
                 });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
-                    data: this.songQueue[songIndex],
+                    data: songData,
                 });
             }
         } else if (typeof song === "object" && song.type === "isong") {
@@ -244,12 +244,11 @@ export class SongService {
                 })[0] || undefined;
             if (songData) {
                 const songIndex = this.songQueue.indexOf(songData);
-                this.songQueue[songIndex].beenPlayed = true;
+                this.songQueue.splice(songIndex, 1);
+
                 this.eventLogService.addSongPlayed(song.requestedBy, {
                     message: "Song has been played.",
-                    song: {
-                        title: song.details.title,
-                    },
+                    song,
                 });
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
