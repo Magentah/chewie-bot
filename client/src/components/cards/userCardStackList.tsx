@@ -5,6 +5,7 @@ import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent
 import { Image } from "react-bootstrap";
 import * as Cookie from "js-cookie";
 import useSetting from "../../hooks/setting";
+import Sparkles from "../common/sparkle";
 
 const useStyles = makeStyles((theme) => ({
     cardsCountBox: {
@@ -165,7 +166,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                             </Grid>
                         </Box> :
                         <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
-                            {cardlist.map((tile) => (
+                            {cardlist.map((tile: RowData) => (
                             <Box m={1}><Grid key={tile.name}>
                                 <Grid item>
                                     <Box display="flex" justifyContent="center">
@@ -175,7 +176,9 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                     </Box>
                                 </Grid>
                                 <Grid item>
-                                    <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
+                                    <Sparkles>
+                                        <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
+                                    </Sparkles>
                                 </Grid>
                             </Grid></Box>
                             ))}
