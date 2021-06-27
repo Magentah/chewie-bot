@@ -45,7 +45,19 @@ export default class CardService {
         }
 
         if (card) {
-            await this.cardsRepository.saveCardRedemption(user, card);
+            let cardToSave = card;
+
+            // If user gets an upgrade for an existing card, user will
+            // get the regular card + the upgrade.
+            if (card.isUpgrade && card.baseCardName) {
+                const baseCard = await this.cardsRepository.getByName(card.baseCardName);
+                if (baseCard) {
+                    await this.cardsRepository.saveCardUpgrade(user, baseCard, card);
+                    cardToSave = baseCard;
+                }
+            }
+
+            await this.cardsRepository.saveCardRedemption(user, cardToSave);
             await this.userService.changeUserPoints(user, -cost, PointLogType.RedeemCard);
             return card;
         }

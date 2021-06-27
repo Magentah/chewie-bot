@@ -1,12 +1,5 @@
 import axios from "axios";
 
-axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        //throw error;
-    }
-);
-
 export interface IBotSettings {
     username: string;
     oauth: string;

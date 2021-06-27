@@ -28,3 +28,9 @@ Lang.register("cards.trading.norunningtrade", "$1, there is no trade in progress
 Lang.register("cards.trading.noselftrading", "$1, you cannot trade with yourself.");
 Lang.register("cards.trading.wronguser", "$1, this trade is not directed at you.");
 Lang.register("cards.trading.notowningcard", "$1, you do not have the card \"$2\".");
+
+Lang.register("cards.redeemupgrade.missingargument", "$1, you did not specify a card.");
+Lang.register("cards.redeemupgrade.notenoughcards", "$1, you do not have enough cards.");
+Lang.register("cards.redeemupgrade.upgraded", "$1 upgraded \"$2\" by redeeming $3 cards.");
+Lang.register("cards.redeemupgrade.noupgrade", "$1, this card cannot be upgraded.");
+Lang.register("cards.redeemupgrade.alreadyupgraded", "$1, this card has already been upgraded.");

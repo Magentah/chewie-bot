@@ -36,6 +36,7 @@ export { default as RedeemCardCommand } from "./cards/redeemCardCommand";
 export { default as OfferCommand } from "./cards/offerCommand";
 export { default as AcceptOfferCommand } from "./cards/acceptOfferCommand";
 export { default as RecycleCardCommand } from "./cards/recycleCommand";
+export { default as RedeemUpgradeCommand } from "./cards/redeemUpgradeCommand";
 
 // Tax
 export { default as TaxboardCommand } from "./tax/taxboardCommand";
