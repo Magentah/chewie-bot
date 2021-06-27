@@ -23,7 +23,7 @@ export class TaxboardCommand extends Command {
             let result = "Top taxpayers: ";
             let counter = 1;
             const numFormat = new Intl.NumberFormat();
-            const taxPayers = await this.taxRepository.getTopTaxpayers(taxChannelReward.id, userCount);
+            const taxPayers = await this.taxRepository.getTopTaxpayers(taxChannelReward.twitchRewardId, userCount);
 
             if (taxPayers.length > 0) {
                 for (const topUser of taxPayers) {

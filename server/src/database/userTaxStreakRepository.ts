@@ -17,7 +17,7 @@ export default class UserTaxStreakRepository {
 
     public async get(userId: number): Promise<IDBUserTaxStreak | undefined> {
         const databaseService = await this.databaseProvider();
-        const returnRewardEvent: IDBUserTaxStreak = await databaseService.getQueryBuilder(DatabaseTables.UserTaxStreak).select("*").where("userId", userId);
+        const returnRewardEvent: IDBUserTaxStreak = await databaseService.getQueryBuilder(DatabaseTables.UserTaxStreak).select("*").where("userId", userId).first();
         return returnRewardEvent;
     }
 
