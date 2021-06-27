@@ -54,14 +54,14 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
-    public async getTopTaxpayers(rewardId: number, limit: number): Promise<{ userId: number, username: string, taxCount: number }[]> {
+    public async getTopTaxpayers(twitchRewardId: string, limit: number): Promise<{ userId: number, username: string, taxCount: number }[]> {
         const databaseService = await this.databaseProvider();
 
         const users = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory)
             .join(DatabaseTables.Users, "userTaxHistory.userId", "users.id")
             .groupBy("userTaxHistory.userId")
             .orderBy("taxCount", "desc")
-            .where("channelPointRewardTwitchId", rewardId)
+            .where("channelPointRewardTwitchId", twitchRewardId)
             .limit(limit)
             .select([
                 "userTaxHistory.userId",

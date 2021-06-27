@@ -18,6 +18,7 @@ export enum BotSettings {
     CardRedeemCost = "card-redeem-cost",
     CardRedeemPerWeek = "card-redeem-perweek",
     CardRecyclePoints = "card-recycle-points",
+    CardsRequiredForUpgrade = "card-count-upgrade",
     Timezone = "timezone",
     SeasonEnd = "season-end",
     DailyTaxBitAmount = "daily-tax-bits",
@@ -46,6 +47,7 @@ export default class BotSettingsService {
         [BotSettings.SeasonEnd]: "",
         [BotSettings.DailyTaxBitAmount]: 0,
         [BotSettings.SongDonationLink]: "",
+        [BotSettings.CardsRequiredForUpgrade]: 100,
     };
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {

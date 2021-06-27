@@ -2,6 +2,7 @@ import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 import { AchievementType, CardRarity, IUser, IUserCard } from "../models";
 import EventAggregator from "../services/eventAggregator";
+import { IUserCardOnStackInfo } from "../models/userCard";
 
 @injectable()
 export default class CardsRepository {
@@ -18,7 +19,7 @@ export default class CardsRepository {
 
     public async getCount(): Promise<number> {
         const databaseService = await this.databaseProvider();
-        return (await databaseService.getQueryBuilder(DatabaseTables.Cards).count("id AS cnt").first()).cnt;
+        return (await databaseService.getQueryBuilder(DatabaseTables.Cards).where("isUpgrade", false).count("id AS cnt").first()).cnt;
     }
 
     public async get(card: IUserCard): Promise<IUserCard | undefined> {
@@ -41,6 +42,22 @@ export default class CardsRepository {
         return cards as IUserCard;
     }
 
+    public async getUpgradeCard(card: IUserCard): Promise<IUserCard | undefined> {
+        const databaseService = await this.databaseProvider();
+        const cards = await databaseService.getQueryBuilder(DatabaseTables.Cards).where("baseCardName", "LIKE", card.name).andWhere("isUpgrade", true).first();
+        return cards as IUserCard;
+    }
+
+    public async getCountByCard(user: IUser, card: IUserCard): Promise<number> {
+        const databaseService = await this.databaseProvider();        
+        return (await databaseService.getQueryBuilder(DatabaseTables.CardStack).where("cardId", card.id).andWhere("userId", user.id).count("id AS cnt").first()).cnt;
+    }
+
+    public async hasUpgrade(user: IUser, card: IUserCard): Promise<boolean> {
+        const databaseService = await this.databaseProvider();        
+        return (await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).where("upgradeCardId", card.id).andWhere("userId", user.id).count("id AS cnt").first()).cnt > 0;
+    }
+
     public async takeCardFromStack(user: IUser, cardName: string): Promise<number | undefined> {
         if (!cardName) {
             return undefined;
@@ -60,22 +77,33 @@ export default class CardsRepository {
         return undefined;
     }
 
+    public async takeCardsFromStack(user: IUser, card: IUserCard, count: number): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const query = databaseService.getQueryBuilder(DatabaseTables.CardStack);
+        return await query.where("id", "in", 
+            databaseService.getQueryBuilder(DatabaseTables.CardStack).from(DatabaseTables.CardStack).where({ userId: user.id, cardId: card.id, deleted: false }).select("id").limit(count)
+        ).update({ deleted: true });
+    }
+
     public async returnCardToStack(user: IUser, stackId: number) {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ id: stackId }).first().update( { deleted: false });
     }
 
-    public async getCardStack(user: IUser): Promise<IUserCard[]> {
+    public async getCardStack(user: IUser): Promise<IUserCardOnStackInfo[]> {
         const databaseService = await this.databaseProvider();
         const cards = (await databaseService.getQueryBuilder(DatabaseTables.CardStack).select()
-            .join(DatabaseTables.Cards, "userCards.id", "userCardStack.cardId")
+            .join(DatabaseTables.Cards, "userCardStack.cardId", "userCards.id")
+            .leftJoin(DatabaseTables.CardUpgrades, "userCardStack.cardId", "userCardUpgrades.upgradedCardId")
+            .leftJoin(`${DatabaseTables.Cards} AS upgradeCards`, "userCardUpgrades.upgradeCardId", "upgradeCards.id")
             .groupBy("userCards.id")
-            .where({ userId: user.id, deleted: false })
+            .where({ "userCardStack.userId": user.id, deleted: false })
             .orderBy("userCards.name")
             .select([
                 "userCards.*",
+                "upgradeCards.name AS upgradedName", "upgradeCards.imageId AS upgradedImagId", "upgradeCards.mimetype AS upgradedMimeType",
                 databaseService.raw("COUNT(usercards.id) AS cardCount"),
-            ])) as IUserCard[];
+            ])) as IUserCardOnStackInfo[];
         return cards;
     }
 
@@ -91,10 +119,18 @@ export default class CardsRepository {
     public async addOrUpdate(card: IUserCard): Promise<IUserCard> {
         const existingMessage = await this.get(card);
         if (!existingMessage) {
-            const databaseService = await this.databaseProvider();
-            const result = await databaseService.getQueryBuilder(DatabaseTables.Cards).insert(card);
-            card.id = result[0];
-            return card;
+            try {
+                const databaseService = await this.databaseProvider();
+                const result = await databaseService.getQueryBuilder(DatabaseTables.Cards).insert(card);
+                card.id = result[0];
+                return card;
+            } catch (err) {
+                if (err.code === "SQLITE_CONSTRAINT") {
+                    throw new Error("Card with same name already exists.");
+                }
+
+                throw err;
+            }
         } else {
             const databaseService = await this.databaseProvider();
             await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ id: card.id }).update(card);
@@ -144,10 +180,13 @@ export default class CardsRepository {
 
         // Start with highest value and try finding cards.
         // Cards may not exist for all rarities, so we need to try multiple times possibly.
+        // Exclude all card upgrades, since these can only be retrieved once.
         for (const rarity of rarities) {
             const card = await databaseService
                 .getQueryBuilder(DatabaseTables.Cards)
                 .where({rarity: rarity.rarity})
+                .whereNotExists(databaseService.getQueryBuilder(DatabaseTables.CardUpgrades)
+                    .select("id").from(DatabaseTables.CardUpgrades).where({ userId: user.id }).andWhereRaw("userCards.id = userCardUpgrades.upgradeCardId"))
                 .first()
                 .orderByRaw("RANDOM()") as IUserCard;
             if (card) {
@@ -156,6 +195,15 @@ export default class CardsRepository {
         }
 
         return undefined;
+    }
+
+    public async saveCardUpgrade(user: IUser, upgradedCard: IUserCard, upgrade: IUserCard): Promise<void> {
+        if (upgradedCard.id && user.id) {
+            const databaseService = await this.databaseProvider();
+            await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).insert({
+                userId: user.id, upgradedCardId: upgradedCard.id, upgradeCardId: upgrade.id, dateUpgraded: new Date()
+            });
+        }
     }
 
     public async saveCardRedemption(user: IUser, card: IUserCard): Promise<void> {

@@ -48,7 +48,12 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string, cardCount: number };
+type RowData = {
+    // Base card info
+    id?: number, name: string, setName: string, rarity: number, imageId: string, url: string,
+    // Additional information for cards on the stack
+    cardCount: number, upgradedName: string, upgradedImagId: string, upgradedMimeType: string
+};
 
 const UserCardStackList: React.FC<any> = (props: any) => {
     const [cardlist, setCardlist] = useState([] as RowData[]);
@@ -126,7 +131,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                     <Button onClick={() => handleCloseReset(false)} color="primary">OK</Button>
                 </DialogActions>}
             </Dialog>
-            <Grid xs>
+            <Grid>
                 <Box padding={3}>
                     <Grid item>
                         <Grid item container>

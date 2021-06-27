@@ -29,6 +29,7 @@ class SettingsController {
         [BotSettings.SeasonEnd]: { title: "Season end date", readonly: false },
         [BotSettings.DailyTaxBitAmount]: { title: "Amount of bits considered as daily tax", readonly: false },
         [BotSettings.SongDonationLink]: { title: "URL for donations on song queue page", readonly: false },
+        [BotSettings.CardsRequiredForUpgrade]: { title: "Number of cards required for redeeming an upgrade", readonly: false },
     };
 
     constructor(

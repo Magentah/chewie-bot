@@ -105,6 +105,8 @@ export default class TaxService {
                     if (taxEvent.id) {
                         await this.userTaxStreakRepository.updateStreak(taxEvent.userId, taxEvent.id, currentStreakData.currentStreak + 1, longestStreak);
                     }
+                } else if (taxEvent.id) {
+                    await this.userTaxStreakRepository.add(taxEvent.userId, taxEvent.id);
                 }
             });
         } else {
