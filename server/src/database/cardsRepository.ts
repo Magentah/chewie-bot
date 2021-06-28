@@ -94,7 +94,10 @@ export default class CardsRepository {
         const databaseService = await this.databaseProvider();
         const cards = (await databaseService.getQueryBuilder(DatabaseTables.CardStack).select()
             .join(DatabaseTables.Cards, "userCardStack.cardId", "userCards.id")
-            .leftJoin(DatabaseTables.CardUpgrades, "userCardStack.cardId", "userCardUpgrades.upgradedCardId")
+            .leftJoin(DatabaseTables.CardUpgrades, (x) => {
+                x.on("userCardStack.cardId", "userCardUpgrades.upgradedCardId")
+                .andOn("userCardStack.userId", "userCardUpgrades.userId")
+            })
             .leftJoin(`${DatabaseTables.Cards} AS upgradeCards`, "userCardUpgrades.upgradeCardId", "upgradeCards.id")
             .groupBy("userCards.id")
             .where({ "userCardStack.userId": user.id, deleted: false })
