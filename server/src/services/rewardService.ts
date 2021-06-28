@@ -165,7 +165,9 @@ export default class RewardService {
             }
             await this.userService.changeUserPoints(user, totalPoints, logType);
         } else {
-            await this.userService.changeUserPoints(user, pointsPerSub * months, logType);
+            // Consider gift sub to someone who was subbed before. Doesn't count
+            // as resub and then "months" is total months subbed, don't use.
+            await this.userService.changeUserPoints(user, pointsPerSub, logType);
         }
     }
 
