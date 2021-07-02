@@ -189,7 +189,7 @@ class BotServer extends Server {
             (req: express.Request, res: express.Response, next: express.NextFunction) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
             async (req: express.Request, res: express.Response) => {
                 const user = req.user as IUser;
-                if (user && user.dropboxAccessToken) {
+                if (user) {
                     const databaseService = BotContainer.get<DatabaseService>(DatabaseService);
                     const dropboxService = BotContainer.get<DropboxService>(DropboxService);
 
@@ -197,7 +197,7 @@ class BotServer extends Server {
                     if (databaseFilename) {
                         await dropboxService.uploadFile("db/backups", databaseFilename);
                     }
-                    res.sendStatus(StatusCodes.OK);
+                    res.sendStatus(StatusCodes.ACCEPTED);
                 } else {
                     res.sendStatus(StatusCodes.UNAUTHORIZED);
                 }
