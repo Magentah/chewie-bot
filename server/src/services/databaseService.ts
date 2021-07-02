@@ -535,14 +535,22 @@ export class DatabaseService {
     }
 
     public async createBackup(callback?: (error: any, stderr: any, stdout: any) => Promise<void>): Promise<string | undefined> {
-        Logger.info(LogType.Backup, "Backing up database.");
-        if (Config.database.client === "sqlite3") {
-            const now = moment();
-            const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup`;
-            exec("mkdir db/backups");
-            exec(`sqlite3 ${Config.database.connection.name} .dump > 'db/backups/${filename}'`, callback);
-            return filename;
-        }
+        return new Promise<string | undefined>(async (resolve, reject) => {
+            Logger.info(LogType.Backup, "Backing up database.");
+            if (Config.database.client === "sqlite3") {
+                const now = moment();
+                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup`;
+                exec("mkdir db/backups");
+                exec(`sqlite3 ${Config.database.connection.name} .dump > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
+                    if (callback) {
+                        callback(err, stderr, stdout);
+                    }
+                    resolve(filename);
+                });
+            } else {
+                resolve(undefined);
+            }
+        });
     }
 }
 
