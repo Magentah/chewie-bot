@@ -196,8 +196,10 @@ class BotServer extends Server {
                     const databaseFilename = await databaseService.createBackup();
                     if (databaseFilename) {
                         await dropboxService.uploadFile("db/backups", databaseFilename);
+                        res.sendStatus(StatusCodes.ACCEPTED);
+                    } else {
+                        res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
                     }
-                    res.sendStatus(StatusCodes.ACCEPTED);
                 } else {
                     res.sendStatus(StatusCodes.UNAUTHORIZED);
                 }
