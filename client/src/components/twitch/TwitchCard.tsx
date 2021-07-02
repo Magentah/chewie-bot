@@ -166,11 +166,16 @@ const TwitchCard: React.FC<any> = (props: any) => {
     };
 
     const createBackup = async () => {
-        const result = await axios.get("api/dropbox/backup");
-        if (result.status === 202) {
-            setBackupStatusMessage("Backup successfully created.");
-            setBackupStatusOpen(true);
-        } else {
+        try {
+            const result = await axios.get("/api/dropbox/backup");
+            if (result.status === 202) {
+                setBackupStatusMessage("Backup successfully created.");
+                setBackupStatusOpen(true);
+            } else {
+                setBackupStatusMessage("Backup failed. Contact a developer in Discord.");
+                setBackupStatusOpen(true);
+            }
+        } catch (err: any) {
             setBackupStatusMessage("Backup failed. Contact a developer in Discord.");
             setBackupStatusOpen(true);
         }
