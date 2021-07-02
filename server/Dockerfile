@@ -31,7 +31,8 @@ WORKDIR /usr/src/chewiebot/server/
 RUN mkdir -p images
 RUN mkdir -p db
 
-#RUN chown -R node:node .
+RUN chown -R node:node ./db
+RUN chown -R node:node ./images
 
 EXPOSE 8080
 
