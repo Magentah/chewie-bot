@@ -160,9 +160,16 @@ export function setupPassport(): void {
                         const user = await BotContainer.get(UserService).getUser(sessionUser.username);
                         if (user) {
                             user.dropboxAccessToken = accessToken;
+                            user.dropboxRefreshToken = refreshToken;
                             await BotContainer.get(UserService).updateUser(user);
                         }
                     }
+                    const account = {
+                        accessToken,
+                        refreshToken,
+                        user: sessionUser.username,
+                    };
+                    return done(undefined, account);
                 }
             )
         );
@@ -179,23 +186,27 @@ authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { fa
     }
     res.redirect("/");
 });
-authRouter.get("/api/auth/twitch/disconnect", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), async (req, res) => {
-    const sessionUser = req.user as IUser;
-    if (sessionUser) {
-        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
-        if (user?.accessToken || user?.refreshToken) {
-            user.accessToken = "";
-            user.refreshToken = "";
-            await BotContainer.get(UserService).updateUser(user);
-            await BotContainer.get(TwitchService).disconnect();
-            req.logout();
-        }
+authRouter.get(
+    "/api/auth/twitch/disconnect",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
+    async (req, res) => {
+        const sessionUser = req.user as IUser;
+        if (sessionUser) {
+            const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+            if (user?.accessToken || user?.refreshToken) {
+                user.accessToken = "";
+                user.refreshToken = "";
+                await BotContainer.get(UserService).updateUser(user);
+                await BotContainer.get(TwitchService).disconnect();
+                req.logout();
+            }
 
-        res.sendStatus(StatusCodes.OK);
-    } else {
-        res.status(StatusCodes.OK).send(false);
+            res.sendStatus(StatusCodes.OK);
+        } else {
+            res.status(StatusCodes.OK).send(false);
+        }
     }
-});
+);
 
 authRouter.get("/api/auth/streamlabs", passport.authorize("streamlabs"));
 authRouter.get("/api/auth/streamlabs/callback", passport.authorize("streamlabs", { failureRedirect: "/" }), async (req, res) => {
@@ -209,26 +220,30 @@ authRouter.get("/api/auth/streamlabs/callback", passport.authorize("streamlabs",
     // BotContainer.get(StreamlabsService).startSocketConnect(req.account.socketToken);
     res.redirect("/");
 });
-authRouter.get("/api/auth/streamlabs/disconnect", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster), async (req, res) => {
-    const sessionUser = req.user as IUser;
-    if (sessionUser) {
-        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
-        if (user?.streamlabsSocketToken || user?.streamlabsToken) {
-            user.streamlabsRefresh = "";
-            user.streamlabsToken = "";
-            user.streamlabsSocketToken = "";
-            await BotContainer.get(UserService).updateUser(user);
-            BotContainer.get(StreamlabsService).disconnect();
-            req.login(user as Express.User, (err: any) => {
-                Logger.info(LogType.Streamlabs, "Updated session user");
-            });
-        }
+authRouter.get(
+    "/api/auth/streamlabs/disconnect",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
+    async (req, res) => {
+        const sessionUser = req.user as IUser;
+        if (sessionUser) {
+            const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+            if (user?.streamlabsSocketToken || user?.streamlabsToken) {
+                user.streamlabsRefresh = "";
+                user.streamlabsToken = "";
+                user.streamlabsSocketToken = "";
+                await BotContainer.get(UserService).updateUser(user);
+                BotContainer.get(StreamlabsService).disconnect();
+                req.login(user as Express.User, (err: any) => {
+                    Logger.info(LogType.Streamlabs, "Updated session user");
+                });
+            }
 
-        res.sendStatus(StatusCodes.OK);
-    } else {
-        res.status(StatusCodes.OK).send(false);
+            res.sendStatus(StatusCodes.OK);
+        } else {
+            res.status(StatusCodes.OK).send(false);
+        }
     }
-});
+);
 
 authRouter.get("/api/auth/spotify", passport.authorize("spotify"));
 authRouter.get("/api/auth/spotify/hasconfig", async (req, res) => {
@@ -286,7 +301,29 @@ authRouter.get("/api/auth/spotify/callback", passport.authorize("spotify", { fai
 
 authRouter.get("/api/auth/dropbox", passport.authorize("dropbox"));
 authRouter.get("/api/auth/dropbox/redirect", passport.authorize("dropbox", { failureRedirect: "/" }), async (req, res) => {
+    const user = req.user as IUser;
+    if (user && req.account) {
+        user.dropboxAccessToken = req.account.accessToken;
+        user.dropboxRefreshToken = req.account.refreshToken;
+    }
     res.redirect("/");
+});
+authRouter.get("/api/auth/dropbox/disconnect", async (req, res) => {
+    const sessionUser = req.user as IUser;
+    if (sessionUser) {
+        const user = await BotContainer.get(UserService).getUser(sessionUser.username);
+        if (user?.dropboxAccessToken) {
+            user.dropboxAccessToken = "";
+            user.dropboxRefreshToken = "";
+            await BotContainer.get(UserService).updateUser(user);
+            req.login(user as Express.User, (err: any) => {
+                Logger.info(LogType.Backup, "Updated session user for Dropbox backups");
+            });
+            res.sendStatus(StatusCodes.OK);
+        } else {
+            res.sendStatus(StatusCodes.OK).send(false);
+        }
+    }
 });
 
 export default authRouter;
