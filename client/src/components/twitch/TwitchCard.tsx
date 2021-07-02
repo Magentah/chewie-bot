@@ -9,6 +9,7 @@ import {
     Divider,
     TextField,
     Snackbar,
+    SnackbarContent,
     FormControl,
     InputLabel,
     InputAdornment,
@@ -26,6 +27,7 @@ import AuthService from "../../services/authService";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import useUser from "../../hooks/user";
 import MaterialTable from "material-table";
+import { blue } from "@material-ui/core/colors";
 
 const useStyles = makeStyles((theme) => ({
     title: {
@@ -81,6 +83,19 @@ const useStyles = makeStyles((theme) => ({
             backgroundColor: "#0d2481",
         },
     },
+    createBackupButton: {
+        color: theme.palette.getContrastText(blue[700]),
+        backgroundColor: blue[700],
+        "&:hover": {
+            backgroundColor: blue[900],
+        },
+        marginRight: "12px",
+    },
+
+    backupStatusAlert: {
+        color: theme.palette.getContrastText(blue[900]),
+        backgroundColor: blue[900],
+    },
 }));
 
 function Alert(props: AlertProps) {
@@ -98,6 +113,8 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const [saveFailed, setSaveFailed] = useState(false);
     const [showBotOAuth, setShowBotOAuth] = useState(false);
     const [settings, setSettings] = useState([] as SettingData[]);
+    const [backupStatusOpen, setBackupStatusOpen] = useState(false);
+    const [backupStatusMessage, setBackupStatusMessage] = useState("");
 
     useEffect(loadUser, []);
 
@@ -148,98 +165,142 @@ const TwitchCard: React.FC<any> = (props: any) => {
         event.preventDefault();
     };
 
+    const createBackup = async () => {
+        const result = await axios.get("api/dropbox/backup");
+        if (result.status === 202) {
+            setBackupStatusMessage("Backup successfully created.");
+            setBackupStatusOpen(true);
+        } else {
+            setBackupStatusMessage("Backup failed. Contact a developer in Discord.");
+            setBackupStatusOpen(true);
+        }
+    };
+
+    const handleBackupStatusClose = async (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === "clickaway") {
+            return;
+        }
+
+        setBackupStatusOpen(false);
+    };
+
+    const backupButton = (
+        <Button className={classes.createBackupButton} onClick={createBackup} variant="contained">
+            <Typography variant="caption">Create a database backup</Typography>
+        </Button>
+    );
+
+    const backupStatus = (
+        <Snackbar open={backupStatusOpen} autoHideDuration={2000} onClose={handleBackupStatusClose} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
+            <SnackbarContent className={classes.backupStatusAlert} message={backupStatusMessage} />
+        </Snackbar>
+    );
+
     return (
         <Card>
+            {backupStatus}
             <CardContent>
                 <Grid container>
-                    <Grid item xs={12}>
-                        <Typography className={classes.title} color="textSecondary" gutterBottom>
-                            Authorizations
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Grid item>
-                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group">
-                                <Button className={classes.twitchButton} disabled style={{ width: "17em" }}>
-                                    <Image
-                                        src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
-                                        style={{ width: "24px", margin: "1px 8px 2px 0px" }}
-                                    />
-                                    <span style={{ color: "white" }}>Broadcaster permissions</span>
-                                </Button>
-                                <Button style={{ color: "white" }} className={classes.twitchButton} disabled>
-                                    <Check />
-                                </Button>
-                                <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">
-                                    Connect
-                                </Button>
-                                <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
-                            </ButtonGroup>
+                    <Grid item xs={6}>
+                        <Grid item xs={12}>
+                            <Typography className={classes.title} color="textSecondary" gutterBottom>
+                                Authorizations
+                            </Typography>
                         </Grid>
+                        <Grid item xs={12}>
+                            <Grid item>
+                                <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group">
+                                    <Button className={classes.twitchButton} disabled style={{ width: "17em" }}>
+                                        <Image
+                                            src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
+                                            style={{ width: "24px", margin: "1px 8px 2px 0px" }}
+                                        />
+                                        <span style={{ color: "white" }}>Broadcaster permissions</span>
+                                    </Button>
+                                    <Button style={{ color: "white" }} className={classes.twitchButton} disabled>
+                                        <Check />
+                                    </Button>
+                                    <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">
+                                        Connect
+                                    </Button>
+                                    <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
+                                </ButtonGroup>
+                            </Grid>
 
-                        <Grid item>
-                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
-                                <Button className={classes.streamlabsButton} disabled style={{ width: "17em" }}>
-                                    <Image className={classes.streamlabsImage} src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg" />
-                                </Button>
+                            <Grid item>
+                                <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                    <Button className={classes.streamlabsButton} disabled style={{ width: "17em" }}>
+                                        <Image className={classes.streamlabsImage} src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg" />
+                                    </Button>
 
-                                <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>
-                                    {user.streamlabsSocketToken ? <Check /> : <Clear />}
-                                </Button>
-                                <Button style={{ color: "white" }} href="/api/auth/streamlabs">
-                                    Connect
-                                </Button>
-                                <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>
-                                    Disconnect
-                                </Button>
-                            </ButtonGroup>
-                        </Grid>
+                                    <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>
+                                        {user.streamlabsSocketToken ? <Check /> : <Clear />}
+                                    </Button>
+                                    <Button style={{ color: "white" }} href="/api/auth/streamlabs">
+                                        Connect
+                                    </Button>
+                                    <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>
+                                        Disconnect
+                                    </Button>
+                                </ButtonGroup>
+                            </Grid>
 
-                        <Grid item>
-                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
-                                <Button className={classes.spotifyButton} disabled style={{ width: "17em" }}>
-                                    <Image src={"/assets/Spotify_Icon_RGB_Black.png"} style={{ width: "30px", margin: "1px 6px 2px 0px" }} />
-                                    <Typography style={{ color: "black" }} component="span">
-                                        Spotify
-                                    </Typography>
-                                </Button>
+                            <Grid item>
+                                <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                    <Button className={classes.spotifyButton} disabled style={{ width: "17em" }}>
+                                        <Image src={"/assets/Spotify_Icon_RGB_Black.png"} style={{ width: "30px", margin: "1px 6px 2px 0px" }} />
+                                        <Typography style={{ color: "black" }} component="span">
+                                            Spotify
+                                        </Typography>
+                                    </Button>
 
-                                <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>
-                                    {user.spotifyRefresh ? <Check /> : <Clear />}
-                                </Button>
-                                <Button style={{ color: "white" }} href="/api/auth/spotify">
-                                    Connect
-                                </Button>
-                                <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>
-                                    Disconnect
-                                </Button>
-                            </ButtonGroup>
-                        </Grid>
+                                    <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>
+                                        {user.spotifyRefresh ? <Check /> : <Clear />}
+                                    </Button>
+                                    <Button style={{ color: "white" }} href="/api/auth/spotify">
+                                        Connect
+                                    </Button>
+                                    <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>
+                                        Disconnect
+                                    </Button>
+                                </ButtonGroup>
+                            </Grid>
 
-                        <Grid item>
-                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
-                                <Button className={classes.dropboxButton} disabled style={{ width: "17em" }}>
-                                    <Image
-                                        src="https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-ios@2x.png"
-                                        style={{ width: "30px", margin: "1px 6px 2px 0px" }}
-                                    />
-                                    <Typography style={{ color: "white" }} component="span">
-                                        Dropbox
-                                    </Typography>
-                                </Button>
+                            <Grid item>
+                                <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                    <Button className={classes.dropboxButton} disabled style={{ width: "17em" }}>
+                                        <Image
+                                            src="https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-ios@2x.png"
+                                            style={{ width: "30px", margin: "1px 6px 2px 0px" }}
+                                        />
+                                        <Typography style={{ color: "white" }} component="span">
+                                            Dropbox
+                                        </Typography>
+                                    </Button>
 
-                                <Button style={{ color: "white" }} className={classes.dropboxButton} disabled>
-                                    {user.dropboxAccessToken ? <Check /> : <Clear />}
-                                </Button>
-                                <Button style={{ color: "white" }} href="/api/auth/dropbox">
-                                    Connect
-                                </Button>
-                                <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!user.dropboxAccessToken}>
-                                    Disconnect
-                                </Button>
-                            </ButtonGroup>
+                                    <Button style={{ color: "white" }} className={classes.dropboxButton} disabled>
+                                        {user.dropboxAccessToken ? <Check /> : <Clear />}
+                                    </Button>
+                                    <Button style={{ color: "white" }} href="/api/auth/dropbox">
+                                        Connect
+                                    </Button>
+                                    <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!user.dropboxAccessToken}>
+                                        Disconnect
+                                    </Button>
+                                </ButtonGroup>
+                            </Grid>
                         </Grid>
                         {/*  */}
+                    </Grid>
+                    <Grid item xs={6}>
+                        <Grid item xs={12}>
+                            <Typography className={classes.title} color="textSecondary" gutterBottom>
+                                Backup
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={12}>
+                            {backupButton}
+                        </Grid>
                     </Grid>
                 </Grid>
             </CardContent>
