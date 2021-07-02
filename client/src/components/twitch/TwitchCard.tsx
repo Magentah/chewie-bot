@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
         },
         "&:disabled": {
             backgroundColor: "#9147ff",
-        }
+        },
     },
     streamlabsButton: {
         backgroundColor: "#80f5d2",
@@ -55,7 +55,7 @@ const useStyles = makeStyles((theme) => ({
         },
         "&:disabled": {
             backgroundColor: "#80f5d2",
-        }
+        },
     },
     streamlabsImage: {
         width: "130px",
@@ -69,15 +69,25 @@ const useStyles = makeStyles((theme) => ({
         },
         "&:disabled": {
             backgroundColor: "#1ED760",
-        }
-    }
+        },
+    },
+    dropboxButton: {
+        backgroundColor: "#0d2481",
+        textTransform: "none",
+        "&:hover, &:focus": {
+            backgroundColor: darken("#0d2481", 0.25),
+        },
+        "&:disabled": {
+            backgroundColor: "#0d2481",
+        },
+    },
 }));
 
 function Alert(props: AlertProps) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-type SettingData = { key: string, value: string, description: string, readonly: boolean };
+type SettingData = { key: string; value: string; description: string; readonly: boolean };
 
 const TwitchCard: React.FC<any> = (props: any) => {
     const classes = useStyles();
@@ -157,8 +167,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     />
                                     <span style={{ color: "white" }}>Broadcaster permissions</span>
                                 </Button>
-                                <Button style={{ color: "white" }} className={classes.twitchButton} disabled><Check /></Button>
-                                <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">Connect</Button>
+                                <Button style={{ color: "white" }} className={classes.twitchButton} disabled>
+                                    <Check />
+                                </Button>
+                                <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">
+                                    Connect
+                                </Button>
                                 <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
                             </ButtonGroup>
                         </Grid>
@@ -166,33 +180,66 @@ const TwitchCard: React.FC<any> = (props: any) => {
                         <Grid item>
                             <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
                                 <Button className={classes.streamlabsButton} disabled style={{ width: "17em" }}>
-                                    <Image
-                                        className={classes.streamlabsImage}
-                                        src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg"
-                                    />
+                                    <Image className={classes.streamlabsImage} src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg" />
                                 </Button>
 
-                                <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>{user.streamlabsSocketToken ? <Check /> : <Clear />}</Button>
-                                <Button style={{ color: "white" }} href="/api/auth/streamlabs">Connect</Button>
-                                <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>Disconnect</Button>
+                                <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>
+                                    {user.streamlabsSocketToken ? <Check /> : <Clear />}
+                                </Button>
+                                <Button style={{ color: "white" }} href="/api/auth/streamlabs">
+                                    Connect
+                                </Button>
+                                <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>
+                                    Disconnect
+                                </Button>
                             </ButtonGroup>
                         </Grid>
 
                         <Grid item>
                             <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
                                 <Button className={classes.spotifyButton} disabled style={{ width: "17em" }}>
-                                    <Image
-                                        src={"/assets/Spotify_Icon_RGB_Black.png"}
-                                        style={{ width: "30px", margin: "1px 6px 2px 0px" }}
-                                    />
-                                    <Typography style={{ color: "black" }} component="span">Spotify</Typography>
+                                    <Image src={"/assets/Spotify_Icon_RGB_Black.png"} style={{ width: "30px", margin: "1px 6px 2px 0px" }} />
+                                    <Typography style={{ color: "black" }} component="span">
+                                        Spotify
+                                    </Typography>
                                 </Button>
 
-                                <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>{user.spotifyRefresh ? <Check /> : <Clear />}</Button>
-                                <Button style={{ color: "white" }} href="/api/auth/spotify">Connect</Button>
-                                <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>Disconnect</Button>
+                                <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>
+                                    {user.spotifyRefresh ? <Check /> : <Clear />}
+                                </Button>
+                                <Button style={{ color: "white" }} href="/api/auth/spotify">
+                                    Connect
+                                </Button>
+                                <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>
+                                    Disconnect
+                                </Button>
                             </ButtonGroup>
                         </Grid>
+
+                        <Grid item>
+                            <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                <Button className={classes.dropboxButton} disabled style={{ width: "17em" }}>
+                                    <Image
+                                        src="https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-ios@2x.png"
+                                        style={{ width: "30px", margin: "1px 6px 2px 0px" }}
+                                    />
+                                    <Typography style={{ color: "white" }} component="span">
+                                        Dropbox
+                                    </Typography>
+                                </Button>
+
+                                <Button style={{ color: "white" }} className={classes.dropboxButton} disabled>
+                                    {user.dropboxAccessToken ? <Check /> : <Clear />}
+                                </Button>
+                                <Button style={{ color: "white" }} href="/api/auth/dropbox">
+                                    Connect
+                                </Button>
+                                <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!user.dropboxAccessToken}>
+                                    Disconnect
+                                </Button>
+                            </ButtonGroup>
+                        </Grid>
+                        {/*  */}
                     </Grid>
                 </Grid>
             </CardContent>
@@ -207,8 +254,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     <Grid item xs={12} container spacing={1}>
                         <Grid item>
                             <Typography>
-                                To use your own Twitch.tv account for the bot account, please enter your bot account
-                                username and OAuth token here.
+                                To use your own Twitch.tv account for the bot account, please enter your bot account username and OAuth token here.
                             </Typography>
                         </Grid>
                         <Grid item>
@@ -291,24 +337,24 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     </Grid>
                     <Grid item>
                         <MaterialTable
-                            columns = {[
+                            columns={[
                                 { title: "Name", field: "description", defaultSort: "asc" },
-                                { title: "Value", field: "value" }
+                                { title: "Value", field: "value" },
                             ]}
-                            options = {{
+                            options={{
                                 paging: false,
                                 showTitle: false,
-                                actionsColumnIndex: 2
+                                actionsColumnIndex: 2,
                             }}
-                            data = {settings}
+                            data={settings}
                             components={{
-                                Container: p => <Paper {...p} elevation={0}/>
+                                Container: (p) => <Paper {...p} elevation={0} />,
                             }}
-                            editable = {
-                                {
-                                    isEditable: rowData => true,
-                                    isDeletable: rowData => false,
-                                    onRowUpdate: (newData, oldData) => axios.post("/api/settings", newData).then((result) => {
+                            editable={{
+                                isEditable: (rowData) => true,
+                                isDeletable: (rowData) => false,
+                                onRowUpdate: (newData, oldData) =>
+                                    axios.post("/api/settings", newData).then((result) => {
                                         if (result.status === 200) {
                                             const newSettings = [...settings];
                                             // @ts-ignore
@@ -316,9 +362,8 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                             newSettings[index] = newData;
                                             setSettings(newSettings);
                                         }
-                                    })
-                                }
-                            }
+                                    }),
+                            }}
                         />
                     </Grid>
                 </Grid>
