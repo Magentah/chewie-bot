@@ -12,7 +12,7 @@ export class DropboxService {
         //Empty
     }
 
-    public async UploadFile(path: string, name: string): Promise<void> {
+    public async uploadFile(path: string, name: string): Promise<void> {
         try {
             const file = fs.readFileSync(`${path}/${name}`);
             if (file && file.length > 0) {

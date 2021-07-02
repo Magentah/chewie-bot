@@ -8,12 +8,21 @@ import * as expressSession from "express-session";
 import * as passport from "passport";
 import * as path from "path";
 import * as redis from "redis";
-import { CryptoHelper } from "./helpers";
+import { APIHelper, CryptoHelper } from "./helpers";
 import { Logger, LogType } from "./logger";
 import * as Routers from "./routes";
 import { setupPassport } from "./routes/authRouter";
 import { UserCookie } from "./middleware";
-import { CommandService, StreamlabsService, TwitchService, WebsocketService, TwitchEventService, TaxService, AchievementService } from "./services";
+import {
+    CommandService,
+    StreamlabsService,
+    TwitchService,
+    WebsocketService,
+    TwitchEventService,
+    TaxService,
+    AchievementService,
+    DatabaseService,
+} from "./services";
 import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
 import TwitchHelper from "./helpers/twitchHelper";
@@ -21,8 +30,9 @@ import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
-import { IUser } from "./models";
+import { IUser, UserLevels } from "./models";
 import TwitchPubSubService from "./services/twitchPubSubService";
+import DropboxService from "./services/dropboxService";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -173,6 +183,28 @@ class BotServer extends Server {
 
             return res.sendStatus(404);
         });
+
+        this.app.get(
+            "/api/dropbox/backup",
+            (req: express.Request, res: express.Response, next: express.NextFunction) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+            async (req: express.Request, res: express.Response) => {
+                const user = req.user as IUser;
+                if (user) {
+                    const databaseService = BotContainer.get<DatabaseService>(DatabaseService);
+                    const dropboxService = BotContainer.get<DropboxService>(DropboxService);
+
+                    const databaseFilename = await databaseService.createBackup();
+                    if (databaseFilename) {
+                        await dropboxService.uploadFile("db/backups", databaseFilename);
+                        res.sendStatus(StatusCodes.ACCEPTED);
+                    } else {
+                        res.sendStatus(StatusCodes.INTERNAL_SERVER_ERROR);
+                    }
+                } else {
+                    res.sendStatus(StatusCodes.UNAUTHORIZED);
+                }
+            }
+        );
 
         // Test Routes
         this.app.get("/api/protected", (req, res) => {
