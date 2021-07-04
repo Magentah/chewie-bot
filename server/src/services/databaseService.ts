@@ -1,9 +1,12 @@
+import { EXPECTATION_FAILED } from "http-status-codes";
 import { injectable } from "inversify";
 import { Knex, knex } from "knex";
+import moment = require("moment");
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
 import { IUser } from "../models";
 import { BotSettings } from "./botSettingsService";
+import { exec } from "child_process";
 
 export enum DatabaseTables {
     Users = "users",
@@ -30,7 +33,7 @@ export enum DatabaseTables {
     ChannelPointRewardHistory = "channelPointRewardHistory",
     StreamActivity = "streamActivity",
     Achievements = "achievements",
-    UserAchievements = "userAchievements"
+    UserAchievements = "userAchievements",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -529,6 +532,25 @@ export class DatabaseService {
 
     public raw(value: string): any {
         return this.db.raw(value);
+    }
+
+    public async createBackup(callback?: (error: any, stderr: any, stdout: any) => Promise<void>): Promise<string | undefined> {
+        return new Promise<string | undefined>(async (resolve, reject) => {
+            Logger.info(LogType.Backup, "Backing up database.");
+            if (Config.database.client === "sqlite3") {
+                const now = moment();
+                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup`;
+                exec("mkdir db/backups");
+                exec(`sqlite3 ${Config.database.connection.name} .dump > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
+                    if (callback) {
+                        callback(err, stderr, stdout);
+                    }
+                    resolve(filename);
+                });
+            } else {
+                resolve(undefined);
+            }
+        });
     }
 }
 
