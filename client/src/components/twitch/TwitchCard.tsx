@@ -175,7 +175,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                 setBackupStatusMessage("Backup failed. Contact a developer in Discord.");
                 setBackupStatusOpen(true);
             }
-        } catch (err: any) {
+        } catch (err) {
             setBackupStatusMessage("Backup failed. Contact a developer in Discord.");
             setBackupStatusOpen(true);
         }
