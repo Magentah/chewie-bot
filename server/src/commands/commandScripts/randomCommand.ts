@@ -11,13 +11,14 @@ export default class RandomCommand extends Command {
         this.songlist = BotContainer.get(SonglistRepository);
     }
 
-    public async executeInternal(channel: string, user: IUser, genre: string): Promise<void> {
-        const song = await this.songlist.getRandom(genre);
+    public async executeInternal(channel: string, user: IUser, ...args: string[]): Promise<void> {
+        const searchSubject = args.join(" ");
+        const song = await this.songlist.getRandom(searchSubject);
 
         if (song) {
             this.twitchService.sendMessage(channel, `Song for ${user.username}: ${song.album} - ${song.title}`);
         } else {
-            this.twitchService.sendMessage(channel, `Nothing found in songlist for "${genre}".`);
+            this.twitchService.sendMessage(channel, `Nothing found in songlist for "${searchSubject}".`);
         }
     }
 }
