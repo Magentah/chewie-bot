@@ -34,12 +34,14 @@ export class VipCommand extends Command {
         let lastReqInfo = "";
         const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
         const dateFormatWithWeek = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
+        const dateFormatWeekday = new Intl.DateTimeFormat("en", { weekday: "long" });
 
         if (userToCheck.vipExpiry) {
-            if (new Date(userToCheck.vipExpiry) < todayDate) {
-                vipInfo += `Expired on: ${dateFormat.format(new Date(userToCheck.vipExpiry))}.`;
+            const expiryDate = new Date(userToCheck.vipExpiry);
+            if (expiryDate < todayDate) {
+                vipInfo += `Expired on: ${dateFormat.format(expiryDate)}.`;
             } else {
-                vipInfo += `Can be used until: ${dateFormat.format(new Date(userToCheck.vipExpiry))}.`;
+                vipInfo += `Can be used until: ${dateFormat.format(expiryDate)} (renews each ${dateFormatWeekday.format(expiryDate)}).`;
             }
         }
 
