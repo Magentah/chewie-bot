@@ -1,4 +1,4 @@
-import { Card, Typography, Grid, Avatar, Box, CardContent, createStyles, makeStyles, Theme, TableContainer, Table, TableHead, TableRow, TableCell, TableBody } from "@material-ui/core";
+import { Card, Typography, Grid, Avatar, Box, CardContent, createStyles, makeStyles, Theme, TableContainer, Table, TableRow, TableCell, TableBody } from "@material-ui/core";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import * as Cookie from "js-cookie";
@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme: Theme) =>
       height: theme.spacing(10),
     },
     table: {
-        maxWidth: 350,
+        maxWidth: 380,
     },
   }),
 );
@@ -27,15 +27,6 @@ const UserProfileView: React.FC<any> = (props: any) => {
     const [fullUserProfile, setFullUserProfile] = useState<UserProfile>();
 
     const classes = useStyles();
-    const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
-
-    const tryFormat = (date: any) => {
-        try {
-            return dateFormat.format(new Date(date));
-        } catch {
-            return "-";
-        }
-    }
 
     useEffect(() => {
         if (userProfile) {
@@ -50,6 +41,16 @@ const UserProfileView: React.FC<any> = (props: any) => {
     let userProfileContent;
 
     if (fullUserProfile) {
+        const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short", timeZone: fullUserProfile.timezone });
+
+        const tryFormat = (date: any) => {
+            try {
+                return dateFormat.format(new Date(date));
+            } catch {
+                return "-";
+            }
+        }
+
         let vipDataTable;
         let vipLogTable;
         if (fullUserProfile.user.vipExpiry || fullUserProfile.user.vipPermanentRequests) {
@@ -58,7 +59,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
                     <TableBody>
                         <TableRow>
                             <TableCell component="th" scope="row">VIP expiry:</TableCell>
-                            <TableCell align="right">{tryFormat(fullUserProfile.user.vipExpiry)}</TableCell>
+                            <TableCell align="right">{tryFormat(fullUserProfile.user.vipExpiry)} {fullUserProfile.timezone}</TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell component="th" scope="row">VIP permanent requests:</TableCell>
@@ -66,7 +67,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
                         </TableRow>
                         <TableRow>
                             <TableCell component="th" scope="row">Last song request:</TableCell>
-                            <TableCell align="right">{tryFormat(fullUserProfile.user.vipLastRequest)}</TableCell>
+                            <TableCell align="right">{tryFormat(fullUserProfile.user.vipLastRequest)} {fullUserProfile.timezone}</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
