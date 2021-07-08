@@ -60,22 +60,24 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     </Grid>) : undefined;
 
     return (
-        <Grid container direction="row" justify="flex-start">
+        <Grid container direction="row" justify="flex-start" wrap="nowrap">
             <Grid item>
                 <a href={props.value.previewData.linkUrl} target="_blank">
                     <Image style={{ maxHeight: "100px" }} src={props.value.previewData.previewUrl} thumbnail />
                 </a>
             </Grid>
-            <Grid item>
+            <Grid item xs>
                 <Grid container style={{ marginLeft: "1em" }}>
                     <Grid>
                         <Grid item xs={12}>
-                            <Typography component="div">
-                                {props.value?.details.title}
+                            <Typography>
+                                <Link href={props.value.previewData.linkUrl} target="_blank">
+                                    {props.value?.details.title}
+                                </Link>
                             </Typography>
                         </Grid>
                         <Grid>
-                            <Typography component="div">
+                            <Typography>
                                 <Box fontStyle="italic" fontSize={14}>
                                     Length: {duration}{" "}
                                 </Box>
