@@ -4,4 +4,5 @@ export default interface ITextCommand {
     message: string;
     minimumModLevel?: number;
     useCount: number;
+    useCooldown: boolean;
 }

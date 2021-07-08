@@ -10,6 +10,8 @@ import { BotSettings } from "../../services/botSettingsService";
 // command service directly call the twitchservice.sendmessage with the text command.
 // This is only supposed to be used by the bot for internal use.
 export class TextCommand extends Command {
+    private readonly cooldowns: { [name: string] : Date; } = {};
+
     private commands: TextCommandsRepository;
     private settingsService: BotSettingsService;
     private streamActivityRepository: StreamActivityRepository;
@@ -23,7 +25,21 @@ export class TextCommand extends Command {
         this.streamActivityRepository = BotContainer.get(StreamActivityRepository);
     }
 
-    public async execute(channel: string, user: IUser, commandName: string, ...args: any[]): Promise<void> {
+    public async execute(channel: string, user: IUser, commandName: string, useCooldown: boolean, ...args: any[]): Promise<void> {
+        // Skip command if still in cooldown.
+        if (useCooldown) {
+            const cooldown = parseInt(await this.settingsService.getValue(BotSettings.CommandCooldownInSeconds), 10);
+            if (cooldown) {
+                const now = new Date();
+                if (this.cooldowns[commandName] && now < this.cooldowns[commandName]) {
+                    return;
+                } else {
+                    now.setSeconds(now.getSeconds() + cooldown);
+                    this.cooldowns[commandName] = now;
+                }
+            }
+        }
+
         let message = args[0] as string;
 
         for (let i = 1; i < args.length; i++) {

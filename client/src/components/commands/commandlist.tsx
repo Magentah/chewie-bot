@@ -12,7 +12,7 @@ enum CommandType {
     System
 }
 
-type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number, useCount: number };
+type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number, useCount: number, useCooldown: boolean };
 
 const CommandNameCell: React.FC<any> = (value: RowData) => {
     let icon = <Settings />;
@@ -61,14 +61,19 @@ const CommandList: React.FC<any> = (props: any) => {
                     },
                     { title: "Content", field: "content", filtering: false },
                     { title: "Use count", field: "useCount", filtering: false, type: "numeric" },
-                    { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
+                    {
+                        title: "Has cooldown", field: "useCooldown", filtering: true, type: "boolean",
+                        editable: (columnDef: any, rowData: RowData) => rowData?.type === CommandType.Text
+                    },
+                    { title: "Type", field: "type", editable: "onAdd", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
                     { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 5,
+                    actionsColumnIndex: 6,
                     showTitle: false,
-                    filtering: true
+                    filtering: true,
+                    addRowPosition: "first"
                 }}
                 data = {commandlist}
                 editable = {(user.userLevelKey < UserLevels.Moderator) ? undefined :

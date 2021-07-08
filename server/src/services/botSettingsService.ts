@@ -23,6 +23,7 @@ export enum BotSettings {
     SeasonEnd = "season-end",
     DailyTaxBitAmount = "daily-tax-bits",
     SongDonationLink = "song-donation-link",
+    CommandCooldownInSeconds = "command-timeout",
 }
 
 @injectable()
@@ -48,6 +49,7 @@ export default class BotSettingsService {
         [BotSettings.DailyTaxBitAmount]: 0,
         [BotSettings.SongDonationLink]: "",
         [BotSettings.CardsRequiredForUpgrade]: 100,
+        [BotSettings.CommandCooldownInSeconds]: 10,
     };
 
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {

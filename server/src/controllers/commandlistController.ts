@@ -32,7 +32,8 @@ class CommandlistController {
                 content: command.message,
                 type: CommandType.Text,
                 minUserLevel: UserLevels.Viewer,
-                useCount: command.useCount
+                useCount: command.useCount,
+                useCooldown: command.useCooldown
             });
         }
 
@@ -43,6 +44,7 @@ class CommandlistController {
                 content: "!" + alias.commandName + (alias.commandArguments ? " " + alias.commandArguments : ""),
                 type: CommandType.Alias,
                 minUserLevel: UserLevels.Viewer,
+                useCooldown: false
             });
         }
 
@@ -52,6 +54,7 @@ class CommandlistController {
                 content: "",
                 type: CommandType.System,
                 minUserLevel: this.commandList.get(name)?.getMinimumUserLevel(),
+                useCooldown: false
             });
         }
 
@@ -107,6 +110,7 @@ class CommandlistController {
                         txtCommand.commandName = commandInfo.commandName;
                         txtCommand.message = commandInfo.content;
                         txtCommand.useCount = commandInfo.useCount ?? 0;
+                        txtCommand.useCooldown = commandInfo.useCooldown ?? true;
                         await this.textCommandsRepository.update(txtCommand);
                     }
 
