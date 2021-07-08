@@ -77,25 +77,19 @@ export default class RewardService {
             return;
         }
 
-        // For initial subs, "months" should always be 1.
-        // Unless when gifted, because multi-month gifts are possible.
-        // For re-subs, months should be the total number of months so far.
-        // For points, we can this always use "months".
-        this.addSubUserPoints(user, sub.months, PointLogType.Sub, sub.sub_type === SubType.Resub, sub.sub_plan);
+        // sub.months is always total months subbed ever. Use this number for giving anniversary bonus.
+        // Other than that, this event will be called for each individual sub month.
+        this.addSubUserPoints(user, sub.months, sub.sub_type === SubType.Resub ? PointLogType.Resub : PointLogType.Sub, sub.sub_plan, false);
 
         if (sub.sub_plan === SubscriptionPlan.Tier3) {
-            if (sub.sub_type === SubType.Resub) {
-                this.userService.addVipGoldWeeks(user, 2, "T3 Resub");
-            } else {
-                this.userService.addVipGoldWeeks(user, 2 * sub.months, "T3 sub");
-            }
+            this.userService.addVipGoldWeeks(user, 2, "T3 Resub");
         }
     }
 
     public async processGiftSub(username: string, giftedMonths: number, plan: string | undefined) {
         const giftingUser = await this.getUserForEvent(username);
         if (giftingUser) {
-            this.addSubUserPoints(giftingUser, giftedMonths, PointLogType.GiftSubGiver, false, plan as SubscriptionPlan);
+            this.addSubUserPoints(giftingUser, giftedMonths, PointLogType.GiftSubGiver, plan as SubscriptionPlan, true);
 
             if (plan === SubscriptionPlan.Tier3) {
                 // Both gifter and receiver gets half the amount of VIP gold.
@@ -140,7 +134,7 @@ export default class RewardService {
         }
     }
 
-    private async addSubUserPoints(user: IUser, months: number, logType: PointLogType, isResub: boolean, plan: SubscriptionPlan) {
+    private async addSubUserPoints(user: IUser, totalMonthsSubbed: number, logType: PointLogType, plan: SubscriptionPlan, isSubGifter: boolean) {
         let pointsPerSub;
         switch (plan) {
             case SubscriptionPlan.Tier2:
@@ -156,18 +150,18 @@ export default class RewardService {
                 break;
         }
 
-        if (isResub) {
+        if (isSubGifter) {
+            // Gifter gets points for each month gifted in a multi month gift sub.
+            await this.userService.changeUserPoints(user, pointsPerSub * totalMonthsSubbed, logType);
+        } else {
+            // Subscribers (even when gifted) get points for each sub and additional anniversary bonus.
             let totalPoints = pointsPerSub;
             // Consider anniversary
-            if (months % 12 === 0) {
+            if (totalMonthsSubbed % 12 === 0) {
                 const pointsPerYear = parseInt(await this.settings.getValue(BotSettings.SubPointsPerYear), 10);
-                totalPoints += (months / 12) * pointsPerYear;
+                totalPoints += (totalMonthsSubbed / 12) * pointsPerYear;
             }
             await this.userService.changeUserPoints(user, totalPoints, logType);
-        } else {
-            // Consider gift sub to someone who was subbed before. Doesn't count
-            // as resub and then "months" is total months subbed, don't use.
-            await this.userService.changeUserPoints(user, pointsPerSub, logType);
         }
     }
 

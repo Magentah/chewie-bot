@@ -20,7 +20,7 @@ class DonationlistController {
      */
     public async getDonationlist(req: Request, res: Response): Promise<void> {
         const donationlist = (await this.donationlistService.getAll()).map(x =>
-            ({ username: x.username, amount: x.amount, message: x.message, date: new Date(x.date).toDateString() })
+            ({ username: x.username, amount: x.amount, message: x.message, date: new Date(new Date(x.date).toDateString()) })
         );
         res.status(StatusCodes.OK);
         res.send(donationlist);
