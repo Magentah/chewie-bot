@@ -251,6 +251,7 @@ class UserlistController {
         const userProfile = {
             user: userData,
             pointsRank: rank,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             goldLogs
         };
 
