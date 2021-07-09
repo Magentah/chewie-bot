@@ -63,6 +63,69 @@ class CommandlistController {
     }
 
     /**
+     * Adds a command.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public async addCommand(req: Request, res: Response): Promise<void> {
+        const commandInfo = req.body as ICommandInfo;
+        if (!commandInfo) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a command object."));
+            return;
+        }
+
+        try {
+            switch (commandInfo.type) {
+                case CommandType.Alias:
+                    let commandContent = commandInfo.content;
+                    if (commandContent.startsWith("!")) {
+                        commandContent = commandContent.substr(1);
+                    }
+
+                    let commandName = "";
+                    let commandArguments: string[] = [];
+
+                    // Split list of command arguments to array if any
+                    const argsSeparator = commandContent.indexOf(" ");
+                    if (argsSeparator > 0) {
+                        commandName = commandContent.substr(0, argsSeparator);
+                        commandArguments = commandContent.substr(argsSeparator + 1).split(" ");
+                    } else {
+                        commandName = commandContent;
+                    }
+
+                    const alias = commandInfo.commandName;
+
+                    await this.commandAliasRepository.add({ alias, commandName, commandArguments });
+
+                    res.status(StatusCodes.OK);
+                    res.send(commandInfo);
+                    break;
+
+                case CommandType.Text:
+                    await this.textCommandsRepository.add({
+                        commandName: commandInfo.commandName,
+                        message: commandInfo.content,
+                        useCount: commandInfo.useCount ?? 0,
+                        useCooldown: commandInfo.useCooldown ?? true
+                    });
+
+                    res.status(StatusCodes.OK);
+                    res.send(commandInfo);
+                    break;
+
+                case CommandType.System:
+                    Logger.err(LogType.Command, "System commands cannot be added.");
+                    return;
+            }
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to add the command."));
+        }
+    }
+
+    /**
      * Updates a command.
      * @param req Express HTTP Request
      * @param res Express HTTP Response

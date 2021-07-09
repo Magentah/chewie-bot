@@ -80,6 +80,12 @@ const CommandList: React.FC<any> = (props: any) => {
                     {
                         isEditable: rowData => rowData.type !== CommandType.System,
                         isDeletable: rowData => rowData.type !== CommandType.System,
+                        onRowAdd: (newData) => axios.post("/api/commandlist/add", newData).then((result) => {
+                            if (result.status === 200) {
+                                const newList = [...commandlist, newData];
+                                setCommandlist(newList);
+                            }
+                        }),
                         onRowUpdate: (newData, oldData) => axios.post("/api/commandlist", newData).then((result) => {
                             if (result.status === 200) {
                                 const newList = [...commandlist];
