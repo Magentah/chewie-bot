@@ -29,6 +29,8 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         { level: 5, bankname: GameMessageType.BankNameLevel5, winChance: 25, payoutMultiplier: 4, minUsers: 20 },
     ];
 
+    private readonly startingUser: EventParticipant;
+
     constructor(
         @inject(TwitchService) twitchService: TwitchService,
         @inject(UserService) userService: UserService,
@@ -39,12 +41,12 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         wager: number
     ) {
         super(twitchService, userService, BankheistParticipationPeriod, BankheistCooldownPeriod, PointLogType.Bankheist);
-
-        this.addParticipant(new EventParticipant(initiatingUser, wager));
+        this.startingUser = new EventParticipant(initiatingUser, wager);
     }
 
     public start() {
         Logger.info(LogType.Command, `Bankheist initiated`);
+        this.addParticipant(this.startingUser);
         this.sendMessage(Lang.get("bankheist.start", this.participants[0].user.username));
     }
 
