@@ -22,7 +22,7 @@ export class WebsocketService {
         if (Config.websockets?.certificatePath && Config.websockets?.keyPath) {
             secureServer = https.createServer({
                 cert: fs.readFileSync(Config.websockets.certificatePath),
-                key: fs.readFileSync(Config.websockets.keyPath),
+                key: fs.readFileSync(Config.websockets.keyPath)
             });
         }
 
@@ -31,7 +31,7 @@ export class WebsocketService {
                 perMessageDeflate: false,
                 server: secureServer
             });
-        } else{
+        } else {
             this.server = new WebSocket.Server({
                 port: 8001,
                 perMessageDeflate: false
