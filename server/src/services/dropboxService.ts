@@ -28,6 +28,7 @@ export class DropboxService {
                             "Content-Type": "application/octet-stream",
                             "Dropbox-API-Arg": JSON.stringify(dropboxApiArgs),
                         },
+                        maxBodyLength: 150000000    // 150Mb limit.
                     };
 
                     let data: WritableStream;
