@@ -41,7 +41,9 @@ export class VipCommand extends Command {
             if (expiryDate < todayDate) {
                 vipInfo += `Expired on: ${dateFormat.format(expiryDate)}.`;
             } else {
-                vipInfo += `Can be used until: ${dateFormat.format(expiryDate)} (renews each ${dateFormatWeekday.format(expiryDate)}).`;
+                const renewDate = new Date(expiryDate);
+                renewDate.setDate(renewDate.getDate() + 1);
+                vipInfo += `Can be used until: ${dateFormat.format(expiryDate)} (renews each ${dateFormatWeekday.format(renewDate)}).`;
             }
         }
 
