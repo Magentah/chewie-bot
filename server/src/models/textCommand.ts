@@ -2,7 +2,7 @@ export default interface ITextCommand {
     id?: number;
     commandName: string;
     message: string;
-    minimumModLevel?: number;
+    minimumUserLevelKey?: number;
     useCount: number;
     useCooldown: boolean;
 }

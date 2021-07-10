@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { ICommandInfo, UserLevels } from "../models";
+import { ICommandAlias, ICommandInfo, ITextCommand, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { CommandAliasesRepository, TextCommandsRepository } from "../database";
@@ -26,26 +26,11 @@ class CommandlistController {
     public async getCommandlist(req: Request, res: Response): Promise<void> {
         const resultList: ICommandInfo[] = [];
         for (const command of await this.textCommandsRepository.getList()) {
-            resultList.push({
-                id: command.id,
-                commandName: command.commandName,
-                content: command.message,
-                type: CommandType.Text,
-                minUserLevel: UserLevels.Viewer,
-                useCount: command.useCount,
-                useCooldown: command.useCooldown
-            });
+            resultList.push(this.mapTextCommand(command));
         }
 
         for (const alias of await this.commandAliasRepository.getList()) {
-            resultList.push({
-                id: alias.id,
-                commandName: alias.alias,
-                content: "!" + alias.commandName + (alias.commandArguments ? " " + alias.commandArguments : ""),
-                type: CommandType.Alias,
-                minUserLevel: UserLevels.Viewer,
-                useCooldown: false
-            });
+            resultList.push(this.mapAliasCommand(alias));
         }
 
         for (const name of this.commandList.keys()) {
@@ -98,9 +83,10 @@ class CommandlistController {
                     const alias = commandInfo.commandName;
 
                     await this.commandAliasRepository.add({ alias, commandName, commandArguments });
+                    const resultAlias = await this.commandAliasRepository.get(alias);
 
                     res.status(StatusCodes.OK);
-                    res.send(commandInfo);
+                    res.send(this.mapAliasCommand(resultAlias));
                     break;
 
                 case CommandType.Text:
@@ -111,12 +97,13 @@ class CommandlistController {
                         useCooldown: commandInfo.useCooldown ?? true
                     });
 
+                    const resultTextCmd = await this.textCommandsRepository.get(commandInfo.commandName);
                     res.status(StatusCodes.OK);
-                    res.send(commandInfo);
+                    res.send(this.mapTextCommand(resultTextCmd));
                     break;
 
                 case CommandType.System:
-                    Logger.err(LogType.Command, "System commands cannot be added.");
+                    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
                     return;
             }
         } catch (err) {
@@ -182,7 +169,7 @@ class CommandlistController {
                     break;
 
                 case CommandType.System:
-                    Logger.err(LogType.Command, "System commands cannot be edited.");
+                    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
                     return;
             }
         } catch (err) {
@@ -223,6 +210,29 @@ class CommandlistController {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to delete the command."));
         }
+    }
+
+    private mapAliasCommand(alias: ICommandAlias): ICommandInfo {
+        return {
+            id: alias.id,
+            commandName: alias.alias,
+            content: "!" + alias.commandName + (alias.commandArguments ? " " + alias.commandArguments : ""),
+            type: CommandType.Alias,
+            minUserLevel: UserLevels.Viewer,
+            useCooldown: false
+        };
+    }
+
+    private mapTextCommand(command: ITextCommand): ICommandInfo {
+        return {
+            id: command.id,
+            commandName: command.commandName,
+            content: command.message,
+            type: CommandType.Text,
+            minUserLevel: UserLevels.Viewer,
+            useCount: command.useCount,
+            useCooldown: command.useCooldown
+        };
     }
 }
 
