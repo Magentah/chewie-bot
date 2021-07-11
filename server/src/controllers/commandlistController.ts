@@ -7,6 +7,7 @@ import { Logger, LogType } from "../logger";
 import { CommandAliasesRepository, TextCommandsRepository } from "../database";
 import { CommandType } from "../models/commandInfo";
 import { Command } from "../commands/command";
+import { addClassOptionsToClassMetadata } from "@overnightjs/core";
 
 @injectable()
 class CommandlistController {
@@ -52,6 +53,7 @@ class CommandlistController {
                 content: "",
                 type: CommandType.System,
                 minUserLevel: this.commandList.get(name)?.getMinimumUserLevel(),
+                description: this.commandList.get(name)?.getDescription()
             });
         }
 
