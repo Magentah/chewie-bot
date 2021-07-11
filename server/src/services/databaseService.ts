@@ -1,4 +1,3 @@
-import { EXPECTATION_FAILED } from "http-status-codes";
 import { injectable } from "inversify";
 import { Knex, knex } from "knex";
 import moment = require("moment");
@@ -138,7 +137,10 @@ export class DatabaseService {
     private async waitForSetup(): Promise<void> {
         return new Promise<void>((resolve) => {
             if (this.inSetup) {
-                setTimeout(this.waitForSetup, 100);
+                setTimeout(async () => {
+                    await this.waitForSetup();
+                    resolve();
+                }, 100);
             } else {
                 resolve();
             }
