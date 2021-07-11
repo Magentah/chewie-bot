@@ -18,19 +18,25 @@ export class WebsocketService {
     private heartbeat: NodeJS.Timeout;
 
     constructor(@inject(UserService) private userService: UserService) {
-        let server;
+        let secureServer;
         if (Config.websockets?.certificatePath && Config.websockets?.keyPath) {
-            server = https.createServer({
+            secureServer = https.createServer({
                 cert: fs.readFileSync(Config.websockets.certificatePath),
                 key: fs.readFileSync(Config.websockets.keyPath)
             });
         }
 
-        this.server = new WebSocket.Server({
-            port: 8001,
-            perMessageDeflate: false,
-            server
-        });
+        if (secureServer) {
+            this.server = new WebSocket.Server({
+                perMessageDeflate: false,
+                server: secureServer
+            });
+        } else {
+            this.server = new WebSocket.Server({
+                port: 8001,
+                perMessageDeflate: false
+            });
+        }
 
         this.server.on("connection", this.onServerConnection);
         this.server.on("close", this.onServerClose);
