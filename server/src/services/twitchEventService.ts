@@ -73,6 +73,10 @@ export default class TwitchEventService {
 
         // If there's any subscriptions that don't exist that we want, create them again.
         this.activeEventTypes.forEach(async (type) => {
+            if (!this.broadcasterUserId || this.broadcasterUserId === 0) {
+                return;
+            }
+
             if (!existingSubscriptionTypes.find((existingType) => type === existingType)) {
                 const data = this.getSubscriptionData(type, this.broadcasterUserId.toString());
                 const result = await this.createSubscription(data);
