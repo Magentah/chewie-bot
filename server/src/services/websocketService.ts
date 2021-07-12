@@ -14,39 +14,39 @@ interface IExWebSocket extends WebSocket {
 
 @injectable()
 export class WebsocketService {
-    private server: WebSocket.Server;
+    private secureServer?: https.Server;
+    private wss: WebSocket.Server;
     private heartbeat: NodeJS.Timeout;
 
     constructor(@inject(UserService) private userService: UserService) {
-        let secureServer;
         if (Config.websockets?.certificatePath && Config.websockets?.keyPath) {
-            secureServer = https.createServer({
+            this.secureServer = https.createServer({
                 cert: fs.readFileSync(Config.websockets.certificatePath),
-                key: fs.readFileSync(Config.websockets.keyPath)
+                key: fs.readFileSync(Config.websockets.keyPath),
             });
         }
 
-        if (secureServer) {
-            this.server = new WebSocket.Server({
+        if (this.secureServer) {
+            this.wss = new WebSocket.Server({
                 perMessageDeflate: false,
-                server: secureServer
+                server: this.secureServer,
             });
         } else {
-            this.server = new WebSocket.Server({
+            this.wss = new WebSocket.Server({
                 port: 8001,
                 perMessageDeflate: false
             });
         }
 
-        this.server.on("connection", this.onServerConnection);
-        this.server.on("close", this.onServerClose);
-        this.server.on("error", this.onServerError);
-        this.server.on("headers", this.onServerHeaders);
-        this.server.on("listening", this.onServerListening);
+        this.wss.on("connection", this.onServerConnection);
+        this.wss.on("close", this.onServerClose);
+        this.wss.on("error", this.onServerError);
+        this.wss.on("headers", this.onServerHeaders);
+        this.wss.on("listening", this.onServerListening);
 
         // Setup heartbeat function to check alive clients every 30 seconds and disconnect them.
         this.heartbeat = setInterval(() => {
-            this.server.clients.forEach((client: WebSocket) => {
+            this.wss.clients.forEach((client: WebSocket) => {
                 if ((client as IExWebSocket).isAlive === false) {
                     return client.terminate();
                 }
@@ -55,6 +55,8 @@ export class WebsocketService {
                 client.ping();
             });
         }, 30000);
+
+        this.secureServer?.listen(8001);
     }
 
     public async send(message: ISocketMessage): Promise<void> {
@@ -64,7 +66,7 @@ export class WebsocketService {
             message.user = await this.getUser(message.username);
         }
 
-        this.server.clients.forEach((client: WebSocket) => {
+        this.wss.clients.forEach((client: WebSocket) => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(message));
             } else {
