@@ -63,7 +63,6 @@ const CommandList: React.FC<any> = (props: any) => {
                     { title: "Use count", field: "useCount", filtering: false, type: "numeric" },
                     { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
                     { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) },
-                    { title: "Description", field: "description", filtering: false }
                 ]}
                 options = {{
                     paging: false,

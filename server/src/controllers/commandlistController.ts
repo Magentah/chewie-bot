@@ -50,10 +50,9 @@ class CommandlistController {
         for (const name of this.commandList.keys()) {
             resultList.push({
                 commandName: name,
-                content: "",
+                content: this.commandList.get(name)?.getDescription() as string,
                 type: CommandType.System,
                 minUserLevel: this.commandList.get(name)?.getMinimumUserLevel(),
-                description: this.commandList.get(name)?.getDescription()
             });
         }
 
