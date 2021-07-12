@@ -112,5 +112,5 @@ jobs:
             - name: Update Discord
               uses: fateyan/action-discord-notifier@v1.2.0
               with:
-                webhook: https://discordapp.com/api/webhooks/711433054459265155/3Lz78LNf0krugKMADcm4Ssp8JHANtb9lkRP_TLuIVNJhkTE1Cf1qn5tqTyo0CeFBI87q/github
+                webhook: ${{ secrets.discordWebhook }}
                 message-title: Server has been updated.
