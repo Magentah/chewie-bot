@@ -52,12 +52,20 @@ export default class BotSettingsService {
         [BotSettings.CommandCooldownInSeconds]: 10,
     };
 
+    private readonly settingCache: { [name: string] : any; } = {};
+
     constructor(@inject(BotSettingsRepository) private botSettings: BotSettingsRepository) {
         // Empty
     }
 
     public async getValue(key: BotSettings): Promise<string> {
-        return (await this.botSettings.get(key))?.value ?? this.getDefaultValue(key);
+        if (this.settingCache[key]) {
+            return this.settingCache[key];
+        }
+
+        const result = (await this.botSettings.get(key))?.value ?? this.getDefaultValue(key);
+        this.settingCache[key] = result;
+        return result;
     }
 
     public getDefaultValue(key: BotSettings): string | number | boolean {
@@ -69,9 +77,17 @@ export default class BotSettingsService {
     }
 
     public async addOrUpdateSettings(settings: IBotSettings): Promise<void> {
+        this.settingCache[settings.key] = settings.value;
         await this.botSettings.addOrUpdate(settings);
     }
+
     public async deleteSettings(settings: IBotSettings | string): Promise<void> {
+        if (typeof settings === "string") {
+            delete this.settingCache[settings];
+        } else {
+            delete this.settingCache[settings.key];
+        }
+
         await this.botSettings.delete(settings);
     }
 }
