@@ -38,6 +38,10 @@ export class TaxboardCommand extends Command {
             Logger.warn(LogType.Twitch, "!taxboard cannot be used because tax is not configured");
         }
     }
+
+    public getDescription(): string {
+        return `Displays the top tax payers (by amount paid). Usage: !taxboard <number>`;
+    }
 }
 
 export default TaxboardCommand;

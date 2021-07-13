@@ -104,6 +104,10 @@ export class TextCommand extends Command {
             return `${minutes} minutes`;
         }
     }
+    
+    public getDescription(): string {
+        return `Displays a message in chat.`;
+    }
 }
 
 export default TextCommand;

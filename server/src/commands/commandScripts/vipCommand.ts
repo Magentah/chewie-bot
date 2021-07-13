@@ -61,6 +61,10 @@ export class VipCommand extends Command {
             this.twitchService.sendMessage(channel, `${userToCheck.username}, you do not have VIP gold currently. ${lastReqInfo}`);
         }
     }
+
+    public getDescription(): string {
+        return `Outputs VIP status information for a user. Usage: !vip [<user>]`;
+    }
 }
 
 export default VipCommand;

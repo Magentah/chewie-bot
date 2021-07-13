@@ -60,4 +60,8 @@ export default class RenameUserCommand extends Command {
             { alias: "rename", commandName: "renameuser" }
         ];
     }
+
+    public getDescription(): string {
+        return `Renames a user in the database. To be used when user has changed the Twitch user name. Usage: !renameuser <oldname> <newname>`;
+    }
 }

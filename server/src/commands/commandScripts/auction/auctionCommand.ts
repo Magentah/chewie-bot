@@ -70,4 +70,8 @@ export default class AuctionCommand extends Command {
             }
         }
     }
+
+    public getDescription(): string {
+        return `Starts a new auction with a minimum bid (can be 0), an item and a maximum duration in minutes. Usage: !auction <minamount> "<item>" [<duration>] | !auction close`;
+    }
 }

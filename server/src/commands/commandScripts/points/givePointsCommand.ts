@@ -52,4 +52,8 @@ export default class GivePointsCommand extends Command {
             { alias: "givechoos", commandName: "givepoints" },
         ];
     }
+
+    public getDescription(): string {
+        return `Transfers the specified amount of points to the target user. Usage: !give <user> <amount>`;
+    }
 }

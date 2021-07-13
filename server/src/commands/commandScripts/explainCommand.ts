@@ -2,16 +2,18 @@ import { Command } from "../command";
 import { IUser } from "../../models";
 
 import { BotContainer } from "../../inversify.config";
-import { inject } from "inversify";
-import { CommandAliasesRepository } from "../../database";
+import { CommandAliasesRepository, TextCommandsRepository } from "../../database";
 
 export default class ExplainCommand extends Command {
     private commandAliasRepository: CommandAliasesRepository;
+    private textCommandsRepository: TextCommandsRepository;
+
     constructor() {
         super();
 
         this.description = "Gets the description of a command.";
         this.commandAliasRepository = BotContainer.get(CommandAliasesRepository);
+        this.textCommandsRepository = BotContainer.get(TextCommandsRepository);
     }
 
     public async executeInternal(channel: string, user: IUser, command: string): Promise<void> {
@@ -42,6 +44,12 @@ export default class ExplainCommand extends Command {
             }
         }
 
+        const textCommand = await this.textCommandsRepository.get(command);
+        if (textCommand) {
+            this.twitchService.sendMessage(channel, `${command}: Outputs \"${textCommand.message}\". Used ${textCommand.useCount} times. Has cooldown: ${textCommand.useCooldown ? "Yes" : "No"}`);
+            return;
+        }
+
         this.twitchService.sendMessage(channel, `${command} doesn't have a description.`);
     }
 
@@ -53,5 +61,9 @@ export default class ExplainCommand extends Command {
             return alias.commandName;
         }
         return undefined;
+    }
+
+    public getDescription(): string {
+        return `Outputs information about a command including its arguments (if any). Optional arguments in brackets. Usage: !explain <command>`;
     }
 }

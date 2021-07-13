@@ -39,4 +39,8 @@ export default class AddQuoteCommand extends Command {
             this.twitchService.sendMessage(channel, `This quote already exists.` );
         }
     }
+
+    public getDescription(): string {
+        return `Saves a quote to the database with author (the person who said it), text and date. Usage: !addquote <author> <text>`;
+    }
 }

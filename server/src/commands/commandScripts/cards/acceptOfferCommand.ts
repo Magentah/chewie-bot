@@ -36,4 +36,8 @@ export default class AcceptOfferCommand extends Command {
             { alias: "accepttrade", commandName: "acceptoffer" },
         ];
     }
+    
+    public getDescription(): string {
+        return `Complete an ongoing card trade.`;
+    }
 }

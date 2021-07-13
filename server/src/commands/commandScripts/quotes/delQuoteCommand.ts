@@ -27,4 +27,8 @@ export default class DelQuoteCommand extends Command {
             this.twitchService.sendMessage(channel, `There is no quote with id: #${id} to be deleted` );
         }
     }
+
+    public getDescription(): string {
+        return `Deletes a quote with the given ID from the database. Usage: !delquote <id>`;
+    }
 }

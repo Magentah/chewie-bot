@@ -45,4 +45,8 @@ export default class AddAliasCommand extends Command {
             await this.twitchService.sendMessage(channel, `!${newAlias} has been added!`);
         }
     }
+
+    public getDescription(): string {
+        return `Adds an alias (<name>) for an existing command (<command>) which can be called with an optional list of arguments. Usage: !addalias <name> <command> [<arguments>] `;
+    }
 }

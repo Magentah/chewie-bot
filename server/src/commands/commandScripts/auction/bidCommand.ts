@@ -46,4 +46,8 @@ export default class BidCommand extends Command {
         }
         this.twitchService.sendMessage(channel, Lang.get("auction.notinprogress"));
     }
+
+    public getDescription(): string {
+        return `Place bid in the current auction. Usage: !bid <amount>`;
+    }
 }

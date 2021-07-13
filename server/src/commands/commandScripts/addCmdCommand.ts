@@ -35,4 +35,8 @@ export default class AddCmdCommand extends Command {
             this.twitchService.sendMessage(channel, `The command !${commandName} already exists.` );
         }
     }
+
+    public getDescription(): string {
+        return `Adds a command that outputs the specified message. Usage: !addcmd <name> <message>`;
+    }
 }

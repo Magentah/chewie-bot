@@ -39,4 +39,8 @@ export default class RecycleCardCommand extends Command {
             { alias: "recycle", commandName: "recyclecard" },
         ];
     }
+
+    public getDescription(): string {
+        return `Disposes of the specified card and grants a certain amount of points in return. Usage: !recycle <card name>`;
+    }
 }

@@ -42,4 +42,8 @@ export default class AddPointsCommand extends Command {
             { alias: "addchews", commandName: "addpoints" },
         ];
     }
+
+    public getDescription(): string {
+        return `Adds the specified amount of points to the target user. Usage: !addpoints <user> <amount>`;
+    }
 }

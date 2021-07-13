@@ -41,4 +41,8 @@ export default class QuoteCommand extends Command {
             this.twitchService.sendMessage(channel, `#${quote.id} - "${quote.text}", ${quote.author} (${date})` );
         }
     }
+
+    public getDescription(): string {
+        return `Searches for a quote that contains the given term or ID. Usage: !quote <search>`;
+    }
 }

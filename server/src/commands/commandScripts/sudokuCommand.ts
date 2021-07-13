@@ -52,6 +52,10 @@ export class SudokuCommand extends Command {
             { alias: "harakiri", commandName: "sudoku" },
         ];
     }
+
+    public getDescription(): string {
+        return `Commit sudoku (get timed out). You probably noticed.`;
+    }
 }
 
 export default SudokuCommand;

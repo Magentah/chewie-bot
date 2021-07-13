@@ -58,4 +58,8 @@ export default class RedeemUpgradeCommand extends Command {
             await this.twitchService.sendMessage(channel, Lang.get("cards.redeemupgrade.upgraded", user.username, cardName, cardsNeeded));
         }
     }
+
+    public getDescription(): string {
+        return `If available, exchanges a certain number of a cards with an upgrade of that card. Usage: !redeemupgrade <card name>`;
+    }
 }
