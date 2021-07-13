@@ -6,6 +6,7 @@ export abstract class Command {
     protected isInternalCommand: boolean = false;
     protected minimumUserLevel: UserLevels = UserLevels.Viewer;
     protected twitchService: TwitchService;
+    protected description: string = "";
 
     constructor() {
         this.twitchService = BotContainer.get(TwitchService);
@@ -37,5 +38,9 @@ export abstract class Command {
 
     public shouldExecuteOnMessage(message: string): boolean {
         return false;
+    }
+
+    public getDescription(): string {
+        return this.description;
     }
 }
