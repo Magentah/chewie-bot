@@ -42,13 +42,14 @@ export class SongService {
         // https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1
 
         const song: ISong = {} as ISong;
+        const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
 
-        const id = this.youtubeService.parseYoutubeUrl(url);
+        const id = this.youtubeService.parseYoutubeUrl(fullurl);
         if (id) {
             song.source = SongSource.Youtube;
             song.sourceId = id;
         } else {
-            const sid = this.spotifyService.parseSpotifyUrl(url);
+            const sid = this.spotifyService.parseSpotifyUrl(fullurl);
             if (sid) {
                 song.source = SongSource.Spotify;
                 song.sourceId = sid;
@@ -59,7 +60,7 @@ export class SongService {
         }
 
         song.id = this.nextSongId++;
-        song.sourceUrl = url;
+        song.sourceUrl = fullurl;
         return song;
     }
 

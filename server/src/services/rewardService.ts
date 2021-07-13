@@ -193,8 +193,13 @@ export default class RewardService {
     }
 
     private getSongsForQueue(message: string): string[] {
-        const urlRegex: RegExp = /(https?:\/\/[^\s]+)/g;
-        return urlRegex.exec(message) ?? [];
+        const urlRegex: RegExp = /(https?:\/\/[^\s]+)/gi;
+        const result = urlRegex.exec(message);
+        if (!result) {
+            return /(www.+)/gi.exec(message) ?? [];
+        } else {
+            return result;
+        }
     }
 
     private async addSongsToQueue(donation: IDonationMessage) {
