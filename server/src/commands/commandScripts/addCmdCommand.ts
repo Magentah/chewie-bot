@@ -25,7 +25,8 @@ export default class AddCmdCommand extends Command {
             command = {
                 commandName,
                 message: args.join(" "),
-                useCount: 0
+                useCount: 0,
+                useCooldown: true
             };
 
             await this.textCommands.add(command);

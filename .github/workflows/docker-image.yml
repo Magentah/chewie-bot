@@ -109,3 +109,8 @@ jobs:
                       docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
                       docker volume rm chewiebot_web-root
                       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            - name: Update Discord
+              uses: fateyan/action-discord-notifier@v1.2.0
+              with:
+                webhook: ${{ secrets.discordWebhookUrl }}
+                message-title: Server has been updated.
