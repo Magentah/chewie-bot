@@ -12,7 +12,7 @@ enum CommandType {
     System
 }
 
-type RowData = { id: number, commandName: string, content: string, type: CommandType, minUserLevel: number, useCount: number };
+type RowData = { id?: number, commandName: string, content: string, type: CommandType, minUserLevel: number, useCount: number, useCooldown: boolean };
 
 const CommandNameCell: React.FC<any> = (value: RowData) => {
     let icon = <Settings />;
@@ -61,37 +61,55 @@ const CommandList: React.FC<any> = (props: any) => {
                     },
                     { title: "Content", field: "content", filtering: false },
                     { title: "Use count", field: "useCount", filtering: false, type: "numeric" },
-                    { title: "Type", field: "type", editable: "never", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"] },
+                    {
+                        title: "Has cooldown", field: "useCooldown", filtering: true, type: "boolean",
+                        editable: (columnDef: any, rowData: RowData) => rowData?.type === CommandType.Text
+                    },
+                    { title: "Type", field: "type", editable: "onAdd", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"], initialEditValue: 0 },
                     { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
                 ]}
                 options = {{
-                    paging: false,
-                    actionsColumnIndex: 5,
+                    paging: true,
+                    pageSize: 50,
+                    pageSizeOptions: [50, 100, 200],
+                    actionsColumnIndex: 6,
                     showTitle: false,
-                    filtering: true
+                    filtering: true,
+                    addRowPosition: "first"
                 }}
                 data = {commandlist}
                 editable = {(user.userLevelKey < UserLevels.Moderator) ? undefined :
                     {
                         isEditable: rowData => rowData.type !== CommandType.System,
                         isDeletable: rowData => rowData.type !== CommandType.System,
-                        onRowUpdate: (newData, oldData) => axios.post("/api/commandlist", newData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...commandlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
-                                newList[index] = newData;
+                        onRowAdd: (newData) => {
+                            const command: RowData = {
+                                commandName: newData.commandName,
+                                content: newData.content,
+                                // Material-table changes datatype to string after selecting from the dropdown for no apparent reason.
+                                type: parseInt(newData.type.toString(), 10),
+                                minUserLevel: 0,
+                                useCount: newData.useCount,
+                                useCooldown: true
+                            };
+                            return axios.post("/api/commandlist/add", command).then((result) => {
+                                const newList = [...commandlist, result.data as RowData];
                                 setCommandlist(newList);
-                            }
+                            })
+                        },
+                        onRowUpdate: (newData, oldData) => axios.post("/api/commandlist", newData).then((result) => {
+                            const newList = [...commandlist];
+                            // @ts-ignore
+                            const index = oldData?.tableData.id;
+                            newList[index] = newData;
+                            setCommandlist(newList);
                         }),
                         onRowDelete: oldData => axios.post("/api/commandlist/delete", oldData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...commandlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
-                                newList.splice(index, 1);
-                                setCommandlist(newList);
-                            }
+                            const newList = [...commandlist];
+                            // @ts-ignore
+                            const index = oldData?.tableData.id;
+                            newList.splice(index, 1);
+                            setCommandlist(newList);
                         })
                     }
                 }

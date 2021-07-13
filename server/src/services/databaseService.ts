@@ -237,6 +237,7 @@ export class DatabaseService {
             table.integer("minimumUserLevelKey").unsigned();
             table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
             table.integer("useCount").unsigned().notNullable().defaultTo(0);
+            table.boolean("useCooldown").notNullable().defaultTo(true);
         });
     }
 
