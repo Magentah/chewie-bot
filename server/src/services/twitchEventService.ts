@@ -55,7 +55,7 @@ export default class TwitchEventService {
     public async startup(): Promise<void> {
         if (this.broadcasterUserId === 0) {
             const broadcaster = await this.users.getBroadcaster();
-            if (broadcaster?.twitchUserProfile) {
+            if (broadcaster?.twitchUserProfile && broadcaster?.twitchUserProfile?.id) {
                 this.broadcasterUserId = broadcaster.twitchUserProfile.id;
             } else {
                 Logger.warn(LogType.TwitchEvents, "Broadcaster Twitch Profile does not exist. Cannot create subscriptions to EventSub.");
@@ -73,10 +73,6 @@ export default class TwitchEventService {
 
         // If there's any subscriptions that don't exist that we want, create them again.
         this.activeEventTypes.forEach(async (type) => {
-            if (!this.broadcasterUserId || this.broadcasterUserId === 0) {
-                return;
-            }
-
             if (!existingSubscriptionTypes.find((existingType) => type === existingType)) {
                 const data = this.getSubscriptionData(type, this.broadcasterUserId.toString());
                 const result = await this.createSubscription(data);
