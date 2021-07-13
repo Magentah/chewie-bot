@@ -15,7 +15,20 @@ export default class CheckLossesCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser, eventTypeArgument: string): Promise<void> {
         const eventType = eventTypeArgument.toLowerCase();
-        const stats = await this.pointsLog.getStats(user, eventType as PointLogType ? eventType as PointLogType : undefined);
+
+        // Display just games by default.
+        if (!eventType || eventType.startsWith("game")) {
+            const stats = await this.pointsLog.getGameStats(user);
+            this.outputGameResults(channel, user, stats, "in any game");
+            return;
+        }
+
+        let logType: PointLogType | undefined;
+        if (Object.values(PointLogType).includes(eventType as PointLogType)) {
+            logType = eventType as PointLogType;
+        }
+
+        const stats = await this.pointsLog.getStats(user, logType);
 
         switch (eventType) {
             case PointLogType.Bankheist:
@@ -31,7 +44,7 @@ export default class CheckLossesCommand extends Command {
                 this.outputGiveResults(channel, user, stats);
                 return;
             default:
-                this.outputResults(channel, user, stats, eventType ? eventType : "all events");
+                this.outputResults(channel, user, stats, logType ? logType : "all events");
                 return;
         }
     }

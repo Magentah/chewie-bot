@@ -26,6 +26,21 @@ export class PointLogsRepository {
         return { won, lost };
     }
 
+    public async getGameStats(user: IUser): Promise<{won: number, lost: number}> {
+        const databaseService = await this.databaseProvider();
+        const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
+            .where({userId: user.id}).whereIn("eventType", [PointLogType.Bankheist, PointLogType.Arena, PointLogType.Duel])
+            .andWhere("points", ">", 0).sum("points AS sum")
+            .first()).sum ?? 0;
+
+        const lost = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
+        .where({userId: user.id}).whereIn("eventType", [PointLogType.Bankheist, PointLogType.Arena, PointLogType.Duel])
+            .andWhere("points", "<", 0).sum("points AS sum")
+            .first()).sum ?? 0;
+
+        return { won, lost };
+    }
+
     public async getWinCount(user: IUser, type: PointLogType): Promise<number> {
         const databaseService = await this.databaseProvider();
         const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
