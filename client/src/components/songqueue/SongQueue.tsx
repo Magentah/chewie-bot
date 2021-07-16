@@ -130,6 +130,7 @@ interface Song {
     };
     requestSource: string;
     requestTime: number;
+    comments: string;
 }
 
 interface OwnRequest {
@@ -288,7 +289,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     };
 
     // Don't allow selecting songs for deletion without permission.
-    const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 4, tableLayout: "auto" };
+    const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto" };
     let tableActions: (Action<Song> | ((rowData: Song) => Action<Song>))[] = [];
     if (user.userLevelKey >= UserLevels.Moderator) {
         tableActions = [
@@ -414,17 +415,23 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                     field: "details.title",
                     render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
                     sorting: false,
-                    width: "70%"
+                    width: "60%"
+                },
+                {
+                    title: "Comments",
+                    field: "comments",
+                    render: rowData => <div style={{maxWidth: "20em"}}>{rowData.comments}</div>,
+                    width: "10%",
                 },
                 {
                      title: "Requested By",
                      field: "requestedBy",
                      align: "left",
                      sorting: false,
-                     width: "10%"
+                     width: "20%"
                 },
                 {
-                    title: "Request time",
+                    title: "Time",
                     field: "requestTime",
                     render: rowData => RequestTimeCell(rowData),
                     sorting: false,

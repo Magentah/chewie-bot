@@ -12,9 +12,11 @@ export class GoldSongCommand extends Command {
         this.songService = BotContainer.get(SongService);
     }
 
-    public async executeInternal(channel: string, user: IUser, url: string) {
+    public async executeInternal(channel: string, user: IUser, url: string, ...args: string[]) {
         try {
-            const song = await this.songService.addGoldSong(url, user);
+            const comments = args.join(" ");
+
+            const song = await this.songService.addGoldSong(url, user, comments);
             if (typeof song === "string") {
                 this.twitchService.sendMessage(channel, song);
             } else {

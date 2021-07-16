@@ -137,6 +137,8 @@ class BotServer extends Server {
                     httpOnly: true,
                     secure: false,
                     path: "/",
+                    // Keep session alive for two weeks
+                    maxAge: 14 * 24 * 60 * 60 * 1000
                 },
                 name: "chewiebot.sid",
                 store: new RedisStore({ client: redisClient as any }),

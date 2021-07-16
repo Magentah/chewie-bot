@@ -21,7 +21,8 @@ export interface ISong {
         previewUrl: string,
         linkUrl: string
     },
-    requestTime: number
+    requestTime: number,
+    comments: string
 }
 
 export enum SongSource {

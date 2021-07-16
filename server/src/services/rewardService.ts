@@ -41,7 +41,8 @@ export default class RewardService {
             const matches = this.getSongsForQueue(donation.message);
             for (const match of matches) {
                 try {
-                    await this.songService.addGoldSong(match, user);
+                    const comments = donation.message.replace(match, "");
+                    await this.songService.addGoldSong(match, user, comments);
 
                     // Only accept one song per donation.
                     break;
@@ -209,7 +210,8 @@ export default class RewardService {
             const matches = this.getSongsForQueue(donation.message);
             for (const match of matches) {
                 try {
-                    await this.songService.addSong(match, RequestSource.Donation, donation.from);
+                    const comments = donation.message.replace(match, "");
+                    await this.songService.addSong(match, RequestSource.Donation, donation.from, comments);
 
                     // Only accept one song per donation.
                     return;

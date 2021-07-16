@@ -76,7 +76,7 @@ class SongController {
         }
 
         try {
-            const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username);
+            const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username, "");
 
             if (song === undefined) {
                 res.status(StatusCodes.INTERNAL_SERVER_ERROR);

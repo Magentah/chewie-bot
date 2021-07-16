@@ -22,7 +22,7 @@ const CommandNameCell: React.FC<any> = (value: RowData) => {
         icon = <Launch />;
     }
 
-    return <Grid container alignItems="center" spacing={1}>
+    return <Grid container alignItems="center" spacing={1} wrap={"nowrap"}>
         <Grid item>
             {icon}
         </Grid>
@@ -63,7 +63,8 @@ const CommandList: React.FC<any> = (props: any) => {
                     { title: "Use count", field: "useCount", filtering: false, type: "numeric" },
                     {
                         title: "Has cooldown", field: "useCooldown", filtering: true, type: "boolean",
-                        editable: (columnDef: any, rowData: RowData) => rowData?.type === CommandType.Text
+                        editable: (columnDef: any, rowData: RowData) => rowData?.type === CommandType.Text,
+                        width: "10%"
                     },
                     { title: "Type", field: "type", editable: "onAdd", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"], initialEditValue: 0 },
                     { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
