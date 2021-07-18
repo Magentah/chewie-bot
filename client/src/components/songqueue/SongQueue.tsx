@@ -13,7 +13,7 @@ import WebsocketService, { SocketMessageType, ISocketMessage } from "../../servi
 import moment from "moment";
 import axios from "axios";
 import useUser, { UserLevels } from "../../hooks/user";
-import MaterialTable, { Action, Options } from "material-table";
+import MaterialTable, { Action, Column, Options } from "material-table";
 import useSetting from "../../hooks/setting";
 
 const useStyles = makeStyles((theme) => ({
@@ -403,47 +403,53 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             <Divider />
         </Box>
 
+    const queueColumns: Column<Song>[] = [
+        {
+            title: "Song Title",
+            field: "details.title",
+            render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
+            sorting: false,
+            width: "60%"
+        },
+        {
+            title: "Requested By",
+            field: "requestedBy",
+            align: "left",
+            sorting: false,
+            width: "20%"
+        },
+        {
+            title: "Time",
+            field: "requestTime",
+            render: rowData => RequestTimeCell(rowData),
+            sorting: false,
+            width: "10%"
+        },
+        {
+            title: "Requested With",
+            field: "requestSource",
+            sorting: false,
+            width: "10%"
+        }
+    ];
+
+    if (user.userLevelKey >= UserLevels.Moderator) {
+        queueColumns.splice(1, 0,
+        {
+            title: "Comments",
+            field: "comments",
+            render: rowData => <div style={{maxWidth: "20em"}}>{rowData.comments}</div>,
+            width: "10%",
+        });
+    }
+
     const elements = [];
 
     if (selectedTab === 0) {
         elements.push(ownSongQueue);
         elements.push(<MaterialTable
             title = "Song Queue"
-            columns = {[
-                {
-                    title: "Song Title",
-                    field: "details.title",
-                    render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
-                    sorting: false,
-                    width: "60%"
-                },
-                {
-                    title: "Comments",
-                    field: "comments",
-                    render: rowData => <div style={{maxWidth: "20em"}}>{rowData.comments}</div>,
-                    width: "10%",
-                },
-                {
-                     title: "Requested By",
-                     field: "requestedBy",
-                     align: "left",
-                     sorting: false,
-                     width: "20%"
-                },
-                {
-                    title: "Time",
-                    field: "requestTime",
-                    render: rowData => RequestTimeCell(rowData),
-                    sorting: false,
-                    width: "10%"
-                },
-                {
-                    title: "Requested With",
-                    field: "requestSource",
-                    sorting: false,
-                    width: "10%"
-                }
-            ]}
+            columns = {queueColumns}
             options = {tableOptions}
             data = {songs}
             components={{
