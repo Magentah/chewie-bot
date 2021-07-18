@@ -108,6 +108,7 @@ const RequestDateCell: React.FC<any> = (value: Song) => {
 };
 
 interface Song {
+    id: number,
     previewData: {
         previewUrl: string,
         linkUrl: string
@@ -172,19 +173,26 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const classes = useStyles();
 
     const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
+
+    // For comparisons, compare by internal ID since object equality is not ensured
+    // (song comments will be removed for regular users).
     const deleteSong = (song: Song) =>
         setSongs((state: Song[]) => {
-            const songIndex = state.indexOf(song);
-            return state.filter((_, i) => i !== songIndex);
+            return state.filter((s, i) => s.id !== song.id);
         });
 
     const moveSongToTop = (song: Song) =>
         setSongs((state: Song[]) => {
-            const songIndex = state.indexOf(song);
-            const newState = [...state];
-            newState.splice(songIndex, 1);
-            newState.splice(0, 0, song);
-            return newState;
+            for (let i = 0; i < state.length; i++) {
+                if (state[i].id === song.id) {
+                    const newState = [...state];
+                    newState.splice(i, 1);
+                    newState.splice(0, 0, song);
+                    return newState;
+                }
+            }
+
+            return state;
         });
 
     const updateHistory = () => {
@@ -202,6 +210,15 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const onSongPlayed = useCallback((message: ISocketMessage) => {
         updateHistory();
+        deleteSong(message.data);
+    }, []);
+
+    const onSongRemoved = useCallback((message: ISocketMessage) => {
+        deleteSong(message.data);
+    }, []);
+
+    const onSongMoved = useCallback((message: ISocketMessage) => {
+        moveSongToTop(message.data);
     }, []);
 
     useEffect(() => {
@@ -230,7 +247,9 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
         websocket.current.onMessage(SocketMessageType.SongAdded, onSongAdded);
         websocket.current.onMessage(SocketMessageType.SongPlayed, onSongPlayed);
-    }, [onSongAdded]);
+        websocket.current.onMessage(SocketMessageType.SongRemoved, onSongRemoved);
+        websocket.current.onMessage(SocketMessageType.SongMovedToTop, onSongMoved);
+    }, [onSongAdded, onSongPlayed, onSongRemoved, onSongMoved]);
 
     const onSongDeleted = (rowsDeleted: Song[]) => {
         axios.post("/api/songs/delete", { songs: rowsDeleted }).then(() => {
@@ -246,7 +265,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const onSongMovedToTop = (rowsMoved: Song[]) => {
         axios.post("/api/songs/movetotop", { songs: rowsMoved }).then(() => {
-                rowsMoved.forEach((song: Song) => moveSongToTop(song));
+            rowsMoved.forEach((song: Song) => moveSongToTop(song));
         });
     };
 
@@ -254,21 +273,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         try {
             setSongRequestState({state: "progress"});
 
-            const result = await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: "Bot UI" },
-                    { validateStatus: (status) => true });
-            if (result.status === 200) {
-                setSongRequestState({state: "success"});
-                setSongRequestUrl("");
-            } else {
-                setSongRequestState({
-                    state: "failed",
-                    message: result.data.error.message
-                });
-            }
+            await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: "Bot UI" });
+            setSongRequestState({state: "success"});
+            setSongRequestUrl("");
         } catch (error) {
             setSongRequestState({
                 state: "failed",
-                message: error.message
+                message: error.response.data.error.message
             });
         }
     };
