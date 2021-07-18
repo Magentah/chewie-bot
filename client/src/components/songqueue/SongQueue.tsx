@@ -77,10 +77,8 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
                             </Typography>
                         </Grid>
                         <Grid>
-                            <Typography>
-                                <Box fontStyle="italic" fontSize={14}>
-                                    Length: {duration}{" "}
-                                </Box>
+                            <Typography style={{ fontSize: 14, fontStyle: "italic" }}>
+                                Length: {duration}{" "}
                             </Typography>
                         </Grid>
                     </Grid>
@@ -366,7 +364,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     // Display only for known users, we can't indentify requests otherwise.
     const ownSongQueue = !user.username ? undefined :
-        <Box mb={1} mt={2}>
+        <Box mb={1} mt={2} key="own-queue">
             {(ownSongs.length === 0)
              ? (donationLinkUrl ?
                  <Typography>
@@ -448,6 +446,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     if (selectedTab === 0) {
         elements.push(ownSongQueue);
         elements.push(<MaterialTable
+            key="full-queue"
             title = "Song Queue"
             columns = {queueColumns}
             options = {tableOptions}
