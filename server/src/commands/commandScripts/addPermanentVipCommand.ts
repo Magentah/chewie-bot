@@ -41,6 +41,10 @@ export class AddPermanentVipCommand extends Command {
             { alias: "addpermavip", commandName: "addpermanentvip" },
         ];
     }
+
+    public getDescription(): string {
+        return `Adds a number of permanent VIP requests to a user. Also increases the VIP expiry by <amount> * one week. Usage: !addpermanentvip <user> <amount>`;
+    }
 }
 
 export default AddPermanentVipCommand;

@@ -37,6 +37,10 @@ export class TaxStreakCommand extends Command {
             Logger.warn(LogType.Twitch, "!taxstreak cannot be used because tax is not configured");
         }
     }
+
+    public getDescription(): string {
+        return `Displays the top tax payers (by longest streak paid). Usage: !taxstreak <number>`;
+    }
 }
 
 export default TaxStreakCommand;

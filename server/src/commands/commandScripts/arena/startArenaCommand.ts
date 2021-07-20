@@ -41,4 +41,8 @@ export default class StartArenaCommand extends Command {
             this.twitchService.sendMessage(channel, result);
         }
     }
+
+    public getDescription(): string {
+        return `Starts an arena with a certain entrance fee. Usage: !startarena <wager>`;
+    }
 }

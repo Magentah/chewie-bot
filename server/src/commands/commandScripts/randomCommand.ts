@@ -21,4 +21,8 @@ export default class RandomCommand extends Command {
             this.twitchService.sendMessage(channel, `Nothing found in songlist for "${searchSubject}".`);
         }
     }
+
+    public getDescription(): string {
+        return `Selects a random (of all / by genre / by search subject) song from the song list and puts it into chat. Usage: !random [<genre or search subject>]`;
+    }
 }

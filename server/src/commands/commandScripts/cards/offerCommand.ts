@@ -79,4 +79,8 @@ export default class OfferCommand extends Command {
             { alias: "trade", commandName: "offer" },
         ];
     }
+
+    public getDescription(): string {
+        return `Offers a card you own for trading. Usage: !offer <card> <wanted card or amount chews> [<target user>]`;
+    }
 }

@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { ICommandInfo, UserLevels } from "../models";
+import { ICommandAlias, ICommandInfo, ITextCommand, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { CommandAliasesRepository, TextCommandsRepository } from "../database";
 import { CommandType } from "../models/commandInfo";
 import { Command } from "../commands/command";
+import { addClassOptionsToClassMetadata } from "@overnightjs/core";
 
 @injectable()
 class CommandlistController {
@@ -26,37 +27,90 @@ class CommandlistController {
     public async getCommandlist(req: Request, res: Response): Promise<void> {
         const resultList: ICommandInfo[] = [];
         for (const command of await this.textCommandsRepository.getList()) {
-            resultList.push({
-                id: command.id,
-                commandName: command.commandName,
-                content: command.message,
-                type: CommandType.Text,
-                minUserLevel: UserLevels.Viewer,
-                useCount: command.useCount
-            });
+            resultList.push(this.mapTextCommand(command));
         }
 
         for (const alias of await this.commandAliasRepository.getList()) {
-            resultList.push({
-                id: alias.id,
-                commandName: alias.alias,
-                content: "!" + alias.commandName + (alias.commandArguments ? " " + alias.commandArguments : ""),
-                type: CommandType.Alias,
-                minUserLevel: UserLevels.Viewer,
-            });
+            resultList.push(this.mapAliasCommand(alias));
         }
 
         for (const name of this.commandList.keys()) {
             resultList.push({
                 commandName: name,
-                content: "",
+                content: this.commandList.get(name)?.getDescription() as string,
                 type: CommandType.System,
                 minUserLevel: this.commandList.get(name)?.getMinimumUserLevel(),
+                useCooldown: false
             });
         }
 
         res.status(StatusCodes.OK);
         res.send(resultList);
+    }
+
+    /**
+     * Adds a command.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public async addCommand(req: Request, res: Response): Promise<void> {
+        const commandInfo = req.body as ICommandInfo;
+        if (!commandInfo) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a command object."));
+            return;
+        }
+
+        try {
+            switch (commandInfo.type) {
+                case CommandType.Alias:
+                    let commandContent = commandInfo.content;
+                    if (commandContent.startsWith("!")) {
+                        commandContent = commandContent.substr(1);
+                    }
+
+                    let commandName = "";
+                    let commandArguments: string[] = [];
+
+                    // Split list of command arguments to array if any
+                    const argsSeparator = commandContent.indexOf(" ");
+                    if (argsSeparator > 0) {
+                        commandName = commandContent.substr(0, argsSeparator);
+                        commandArguments = commandContent.substr(argsSeparator + 1).split(" ");
+                    } else {
+                        commandName = commandContent;
+                    }
+
+                    const alias = commandInfo.commandName;
+
+                    await this.commandAliasRepository.add({ alias, commandName, commandArguments });
+                    const resultAlias = await this.commandAliasRepository.get(alias);
+
+                    res.status(StatusCodes.OK);
+                    res.send(this.mapAliasCommand(resultAlias));
+                    break;
+
+                case CommandType.Text:
+                    await this.textCommandsRepository.add({
+                        commandName: commandInfo.commandName,
+                        message: commandInfo.content,
+                        useCount: commandInfo.useCount ?? 0,
+                        useCooldown: commandInfo.useCooldown ?? true
+                    });
+
+                    const resultTextCmd = await this.textCommandsRepository.get(commandInfo.commandName);
+                    res.status(StatusCodes.OK);
+                    res.send(this.mapTextCommand(resultTextCmd));
+                    break;
+
+                case CommandType.System:
+                    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
+                    return;
+            }
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to add the command."));
+        }
     }
 
     /**
@@ -107,6 +161,7 @@ class CommandlistController {
                         txtCommand.commandName = commandInfo.commandName;
                         txtCommand.message = commandInfo.content;
                         txtCommand.useCount = commandInfo.useCount ?? 0;
+                        txtCommand.useCooldown = commandInfo.useCooldown ?? true;
                         await this.textCommandsRepository.update(txtCommand);
                     }
 
@@ -115,7 +170,7 @@ class CommandlistController {
                     break;
 
                 case CommandType.System:
-                    Logger.err(LogType.Command, "System commands cannot be edited.");
+                    res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
                     return;
             }
         } catch (err) {
@@ -156,6 +211,29 @@ class CommandlistController {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to delete the command."));
         }
+    }
+
+    private mapAliasCommand(alias: ICommandAlias): ICommandInfo {
+        return {
+            id: alias.id,
+            commandName: alias.alias,
+            content: "!" + alias.commandName + (alias.commandArguments ? " " + alias.commandArguments : ""),
+            type: CommandType.Alias,
+            minUserLevel: UserLevels.Viewer,
+            useCooldown: false
+        };
+    }
+
+    private mapTextCommand(command: ITextCommand): ICommandInfo {
+        return {
+            id: command.id,
+            commandName: command.commandName,
+            content: command.message,
+            type: CommandType.Text,
+            minUserLevel: UserLevels.Viewer,
+            useCount: command.useCount,
+            useCooldown: command.useCooldown
+        };
     }
 }
 

@@ -1,16 +1,17 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { EventLogType, ISong } from "../models";
+import { EventLogType, ISong, IUser, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
-import { SongService } from "../services";
+import { SongService, UserService } from "../services";
 import { EventLogsRepository } from "../database";
 
 @injectable()
 class SongController {
     constructor(@inject(SongService) private songService: SongService,
-                @inject(EventLogsRepository) private eventLogsRepository: EventLogsRepository) {
+                @inject(EventLogsRepository) private eventLogsRepository: EventLogsRepository,
+                @inject(UserService) private userService: UserService) {
         Logger.info(
             LogType.ServerInfo,
             `SongController constructor. SongService exists: ${this.songService !== undefined}`
@@ -22,10 +23,26 @@ class SongController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public getSongRequests(req: Request, res: Response): void {
+    public async getSongRequests(req: Request, res: Response): Promise<void> {
         const songs = this.songService.getSongQueue();
+
+        // Clear song comments if user is not moderator at least.
+        let clearComments = true;
+        const sessionUser = req.user as IUser;
+        if (sessionUser) {
+            const user = await this.userService.getUser(sessionUser.username);
+            if (user?.userLevelKey && user.userLevelKey >= UserLevels.Moderator) {
+                clearComments = false;
+            }
+        }
+
         res.status(StatusCodes.OK);
-        res.send(songs);
+
+        if (clearComments) {
+            res.send(songs.map(x => { return {...x, comments: ""} }));
+        } else {
+            res.send(songs);
+        }
     }
 
     /**
@@ -76,7 +93,7 @@ class SongController {
         }
 
         try {
-            const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username);
+            const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username, "");
 
             if (song === undefined) {
                 res.status(StatusCodes.INTERNAL_SERVER_ERROR);

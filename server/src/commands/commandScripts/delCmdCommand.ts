@@ -25,6 +25,10 @@ export class DelCmdCommand extends Command {
             await this.twitchService.sendMessage(channel, `!${commandName} has been removed!`);
         }
     }
+
+    public getDescription(): string {
+        return `Deletes a text command. Usage: !delcmd <name>`;
+    }
 }
 
 export default DelCmdCommand;

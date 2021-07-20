@@ -41,7 +41,8 @@ export default class RewardService {
             const matches = this.getSongsForQueue(donation.message);
             for (const match of matches) {
                 try {
-                    await this.songService.addGoldSong(match, user);
+                    const comments = donation.message.replace(match, "");
+                    await this.songService.addGoldSong(match, user, comments);
 
                     // Only accept one song per donation.
                     break;
@@ -193,8 +194,13 @@ export default class RewardService {
     }
 
     private getSongsForQueue(message: string): string[] {
-        const urlRegex: RegExp = /(https?:\/\/[^\s]+)/g;
-        return urlRegex.exec(message) ?? [];
+        const urlRegex: RegExp = /(https?:\/\/[^\s]+)/gi;
+        const result = urlRegex.exec(message);
+        if (!result) {
+            return /(www.+)/gi.exec(message) ?? [];
+        } else {
+            return result;
+        }
     }
 
     private async addSongsToQueue(donation: IDonationMessage) {
@@ -204,7 +210,8 @@ export default class RewardService {
             const matches = this.getSongsForQueue(donation.message);
             for (const match of matches) {
                 try {
-                    await this.songService.addSong(match, RequestSource.Donation, donation.from);
+                    const comments = donation.message.replace(match, "");
+                    await this.songService.addSong(match, RequestSource.Donation, donation.from, comments);
 
                     // Only accept one song per donation.
                     return;

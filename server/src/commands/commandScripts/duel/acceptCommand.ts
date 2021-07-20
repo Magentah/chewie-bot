@@ -55,4 +55,8 @@ export default class AcceptCommand extends Command {
             this.twitchService.sendMessage(channel, msg);
         }
     }
+
+    public getDescription(): string {
+        return `Participate in a duel.`;
+    }
 }

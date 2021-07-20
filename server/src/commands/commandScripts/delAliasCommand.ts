@@ -24,6 +24,10 @@ export class DelAliasCommand extends Command {
             await this.twitchService.sendMessage(channel, `!${alias} has been removed!`);
         }
     }
+
+    public getDescription(): string {
+        return `Deletes a command alias. Usage: !delalias <name>`;
+    }
 }
 
 export default DelAliasCommand;

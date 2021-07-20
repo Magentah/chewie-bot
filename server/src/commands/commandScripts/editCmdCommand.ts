@@ -29,4 +29,8 @@ export default class EditCmdCommand extends Command {
             this.twitchService.sendMessage(channel, `The command !${commandName} does not exist.` );
         }
     }
+
+    public getDescription(): string {
+        return `Edits a command that outputs the specified message. Usage: !editcmd <name> <message>`;
+    }
 }

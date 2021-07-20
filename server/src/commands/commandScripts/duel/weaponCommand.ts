@@ -64,4 +64,8 @@ export default class WeaponCommand extends Command {
             { alias: "scissors", commandArguments: [DuelWeapon.Scissors], commandName: "weapon" },
         ];
     }
+
+    public getDescription(): string {
+        return `Select your weapon in a duel. Usage: !rock | !paper | !scissors`;
+    }
 }

@@ -14,9 +14,10 @@ export class AddSongCommand extends Command {
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async executeInternal(channel: string, user: IUser, url: string, forUser: string) {
+    public async executeInternal(channel: string, user: IUser, url: string, forUser: string, ...args: string[]) {
         try {
-            const song = await this.songService.addSong(url, RequestSource.Chat, forUser ? forUser : user.username);
+            const comments = args.join(" ");
+            const song = await this.songService.addSong(url, RequestSource.Chat, forUser ? forUser : user.username, comments);
             if (song) {
                 this.twitchService.sendMessage(
                     channel,
@@ -29,6 +30,10 @@ export class AddSongCommand extends Command {
                 `${user.username}, the song could not be added to the queue (${err}).`
             );
         }
+    }
+
+    public getDescription(): string {
+        return `Adds a new song to the song queue. Usage: !addsong <url> [<for user>]`;
     }
 }
 

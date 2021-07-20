@@ -25,7 +25,8 @@ export default class AddCmdCommand extends Command {
             command = {
                 commandName,
                 message: args.join(" "),
-                useCount: 0
+                useCount: 0,
+                useCooldown: true
             };
 
             await this.textCommands.add(command);
@@ -33,5 +34,9 @@ export default class AddCmdCommand extends Command {
         } else {
             this.twitchService.sendMessage(channel, `The command !${commandName} already exists.` );
         }
+    }
+
+    public getDescription(): string {
+        return `Adds a command that outputs the specified message. Usage: !addcmd <name> <message>`;
     }
 }

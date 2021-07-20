@@ -12,9 +12,11 @@ export class GoldSongCommand extends Command {
         this.songService = BotContainer.get(SongService);
     }
 
-    public async executeInternal(channel: string, user: IUser, url: string) {
+    public async executeInternal(channel: string, user: IUser, url: string, ...args: string[]) {
         try {
-            const song = await this.songService.addGoldSong(url, user);
+            const comments = args.join(" ");
+
+            const song = await this.songService.addGoldSong(url, user, comments);
             if (typeof song === "string") {
                 this.twitchService.sendMessage(channel, song);
             } else {
@@ -29,6 +31,10 @@ export class GoldSongCommand extends Command {
                 `${user.username}, your song could not be added to the queue (${err}).`
             );
         }
+    }
+
+    public getDescription(): string {
+        return `Adds a song to the song queue if VIP gold status is active. Usage: !goldsong <url>`;
     }
 }
 
