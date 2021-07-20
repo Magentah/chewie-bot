@@ -115,8 +115,9 @@ export class SongService {
      * @param url The url of the song to add to the queue.
      * @param requestSource The source of the request (Donation, Bits, Subscription, Raffle).
      * @param username The username that is requesting the song to be added.
+     * @param comments Additional comments/instructions for the song
      */
-    public async addSong(url: string, requestSource: RequestSource, username: string): Promise<ISong> {
+    public async addSong(url: string, requestSource: RequestSource, username: string, comments: string): Promise<ISong> {
         try {
             let song = this.parseUrl(url);
 
@@ -134,6 +135,7 @@ export class SongService {
             song.requestedBy = username;
             song.requestSource = requestSource;
             song.requestTime = moment.now();
+            song.comments = comments;
 
             this.websocketService.send({
                 type: SocketMessageType.SongAdded,
@@ -176,7 +178,7 @@ export class SongService {
      * @param user User who requested
      * @returns Error message or result song
      */
-    public async addGoldSong(url: string, user: IUser): Promise<string|ISong> {
+    public async addGoldSong(url: string, user: IUser, comments: string): Promise<string|ISong> {
         // Check if user has gold status
         if (!user.vipExpiry && !user.vipPermanentRequests) {
             return `${user.username}, you need VIP gold status to request a song. Check !vipgold for details.`;
@@ -199,7 +201,7 @@ export class SongService {
             }
         }
 
-        const song = await this.addSong(url, RequestSource.GoldSong, user.username);
+        const song = await this.addSong(url, RequestSource.GoldSong, user.username, comments);
         user.vipLastRequest = todayDate;
 
         // Any gold song used will always reduce the amount of permanent requests left.

@@ -13,7 +13,7 @@ import WebsocketService, { SocketMessageType, ISocketMessage } from "../../servi
 import moment from "moment";
 import axios from "axios";
 import useUser, { UserLevels } from "../../hooks/user";
-import MaterialTable, { Action, Options } from "material-table";
+import MaterialTable, { Action, Column, Options } from "material-table";
 import useSetting from "../../hooks/setting";
 
 const useStyles = makeStyles((theme) => ({
@@ -77,10 +77,8 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
                             </Typography>
                         </Grid>
                         <Grid>
-                            <Typography>
-                                <Box fontStyle="italic" fontSize={14}>
-                                    Length: {duration}{" "}
-                                </Box>
+                            <Typography style={{ fontSize: 14, fontStyle: "italic" }}>
+                                Length: {duration}{" "}
                             </Typography>
                         </Grid>
                     </Grid>
@@ -110,6 +108,7 @@ const RequestDateCell: React.FC<any> = (value: Song) => {
 };
 
 interface Song {
+    id: number,
     previewData: {
         previewUrl: string,
         linkUrl: string
@@ -130,6 +129,7 @@ interface Song {
     };
     requestSource: string;
     requestTime: number;
+    comments: string;
 }
 
 interface OwnRequest {
@@ -173,19 +173,26 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const classes = useStyles();
 
     const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
+
+    // For comparisons, compare by internal ID since object equality is not ensured
+    // (song comments will be removed for regular users).
     const deleteSong = (song: Song) =>
         setSongs((state: Song[]) => {
-            const songIndex = state.indexOf(song);
-            return state.filter((_, i) => i !== songIndex);
+            return state.filter((s, i) => s.id !== song.id);
         });
 
     const moveSongToTop = (song: Song) =>
         setSongs((state: Song[]) => {
-            const songIndex = state.indexOf(song);
-            const newState = [...state];
-            newState.splice(songIndex, 1);
-            newState.splice(0, 0, song);
-            return newState;
+            for (let i = 0; i < state.length; i++) {
+                if (state[i].id === song.id) {
+                    const newState = [...state];
+                    newState.splice(i, 1);
+                    newState.splice(0, 0, song);
+                    return newState;
+                }
+            }
+
+            return state;
         });
 
     const updateHistory = () => {
@@ -203,6 +210,15 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const onSongPlayed = useCallback((message: ISocketMessage) => {
         updateHistory();
+        deleteSong(message.data);
+    }, []);
+
+    const onSongRemoved = useCallback((message: ISocketMessage) => {
+        deleteSong(message.data);
+    }, []);
+
+    const onSongMoved = useCallback((message: ISocketMessage) => {
+        moveSongToTop(message.data);
     }, []);
 
     useEffect(() => {
@@ -231,7 +247,9 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
         websocket.current.onMessage(SocketMessageType.SongAdded, onSongAdded);
         websocket.current.onMessage(SocketMessageType.SongPlayed, onSongPlayed);
-    }, [onSongAdded]);
+        websocket.current.onMessage(SocketMessageType.SongRemoved, onSongRemoved);
+        websocket.current.onMessage(SocketMessageType.SongMovedToTop, onSongMoved);
+    }, [onSongAdded, onSongPlayed, onSongRemoved, onSongMoved]);
 
     const onSongDeleted = (rowsDeleted: Song[]) => {
         axios.post("/api/songs/delete", { songs: rowsDeleted }).then(() => {
@@ -247,7 +265,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const onSongMovedToTop = (rowsMoved: Song[]) => {
         axios.post("/api/songs/movetotop", { songs: rowsMoved }).then(() => {
-                rowsMoved.forEach((song: Song) => moveSongToTop(song));
+            rowsMoved.forEach((song: Song) => moveSongToTop(song));
         });
     };
 
@@ -255,21 +273,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         try {
             setSongRequestState({state: "progress"});
 
-            const result = await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: "Bot UI" },
-                    { validateStatus: (status) => true });
-            if (result.status === 200) {
-                setSongRequestState({state: "success"});
-                setSongRequestUrl("");
-            } else {
-                setSongRequestState({
-                    state: "failed",
-                    message: result.data.error.message
-                });
-            }
+            await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: "Bot UI" });
+            setSongRequestState({state: "success"});
+            setSongRequestUrl("");
         } catch (error) {
             setSongRequestState({
                 state: "failed",
-                message: error.message
+                message: error.response.data.error.message
             });
         }
     };
@@ -288,7 +298,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     };
 
     // Don't allow selecting songs for deletion without permission.
-    const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 4, tableLayout: "auto" };
+    const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto" };
     let tableActions: (Action<Song> | ((rowData: Song) => Action<Song>))[] = [];
     if (user.userLevelKey >= UserLevels.Moderator) {
         tableActions = [
@@ -365,7 +375,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     // Display only for known users, we can't indentify requests otherwise.
     const ownSongQueue = !user.username ? undefined :
-        <Box mb={1} mt={2}>
+        <Box mb={1} mt={2} key="own-queue">
             {(ownSongs.length === 0)
              ? (donationLinkUrl ?
                  <Typography>
@@ -402,41 +412,54 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             <Divider />
         </Box>
 
+    const queueColumns: Column<Song>[] = [
+        {
+            title: "Song Title",
+            field: "details.title",
+            render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
+            sorting: false,
+            width: "60%"
+        },
+        {
+            title: "Requested By",
+            field: "requestedBy",
+            align: "left",
+            sorting: false,
+            width: "20%"
+        },
+        {
+            title: "Time",
+            field: "requestTime",
+            render: rowData => RequestTimeCell(rowData),
+            sorting: false,
+            width: "10%"
+        },
+        {
+            title: "Requested With",
+            field: "requestSource",
+            sorting: false,
+            width: "10%"
+        }
+    ];
+
+    if (user.userLevelKey >= UserLevels.Moderator) {
+        queueColumns.splice(1, 0,
+        {
+            title: "Comments",
+            field: "comments",
+            render: rowData => <div style={{maxWidth: "20em"}}>{rowData.comments}</div>,
+            width: "10%",
+        });
+    }
+
     const elements = [];
 
     if (selectedTab === 0) {
         elements.push(ownSongQueue);
         elements.push(<MaterialTable
+            key="full-queue"
             title = "Song Queue"
-            columns = {[
-                {
-                    title: "Song Title",
-                    field: "details.title",
-                    render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
-                    sorting: false,
-                    width: "70%"
-                },
-                {
-                     title: "Requested By",
-                     field: "requestedBy",
-                     align: "left",
-                     sorting: false,
-                     width: "10%"
-                },
-                {
-                    title: "Request time",
-                    field: "requestTime",
-                    render: rowData => RequestTimeCell(rowData),
-                    sorting: false,
-                    width: "10%"
-                },
-                {
-                    title: "Requested With",
-                    field: "requestSource",
-                    sorting: false,
-                    width: "10%"
-                }
-            ]}
+            columns = {queueColumns}
             options = {tableOptions}
             data = {songs}
             components={{
