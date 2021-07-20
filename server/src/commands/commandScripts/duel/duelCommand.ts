@@ -87,4 +87,8 @@ export default class DuelCommand extends Command {
             this.twitchService.sendMessage(channel, eventResult);
         }
     }
+
+    public getDescription(): string {
+        return `Starts duel against a specific user. Targeted user needs to use !accept for the duel to start. Usage: !duel <username> <wager> | !duel <wager>`;
+    }
 }

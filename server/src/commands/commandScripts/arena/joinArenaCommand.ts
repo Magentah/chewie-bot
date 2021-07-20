@@ -43,4 +43,8 @@ export default class JoinArenaCommand extends Command {
 
         this.twitchService.sendMessage(channel, Lang.get("arena.notinprogress", user.username));
     }
+
+    public getDescription(): string {
+        return `Join an arena event with the determined entrance fee.`;
+    }
 }

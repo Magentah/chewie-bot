@@ -60,6 +60,10 @@ export class BankheistCommand extends Command {
             this.twitchService.sendMessage(channel, eventResult);
         }
     }
+
+    public getDescription(): string {
+        return `Starts or joins a bankheist with a certain amount of chews as wager. Usage: !bankheist <amount>`;
+    }
 }
 
 export default BankheistCommand;

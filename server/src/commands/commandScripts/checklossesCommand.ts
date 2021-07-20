@@ -83,4 +83,8 @@ export default class CheckLossesCommand extends Command {
             { alias: "checkwins", commandName: "checklosses" }
         ];
     }
+
+    public getDescription(): string {
+        return `Outputs information for the current user about how many points have been lost/won/total for a specific event type. Usage: !checklosses [<event>]`;
+    }
 }

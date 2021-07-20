@@ -12,6 +12,10 @@ export class TestCommand extends Command {
     public executeInternal(channel: string, user: IUser): void {
         this.twitchService.sendMessage(channel, "Test message from a command!");
     }
+
+    public getDescription(): string {
+        return `Test the commmand system.`;
+    }
 }
 
 export default TestCommand;

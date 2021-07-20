@@ -24,4 +24,8 @@ export default class RedeemCardCommand extends Command {
             await this.twitchService.sendMessage(channel, Lang.get("cards.cardredeemed", user.username, result.name));
         }
     }
+
+    public getDescription(): string {
+        return `Redeems a random card for a certain amount of points.`;
+    }
 }

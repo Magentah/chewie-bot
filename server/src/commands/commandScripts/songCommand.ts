@@ -24,6 +24,10 @@ export class SongCommand extends Command {
     public getAliases(): ICommandAlias[] {
         return [{ alias: "currentsong", commandName: "song" }];
     }
+
+    public getDescription(): string {
+        return `Outputs the first song in the song queue and its requester in chat.`;
+    }
 }
 
 export default SongCommand;

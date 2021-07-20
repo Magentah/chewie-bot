@@ -30,6 +30,10 @@ export class GoldSongCommand extends Command {
             );
         }
     }
+
+    public getDescription(): string {
+        return `Adds a song to the song queue if VIP gold status is active. Usage: !goldsong <url>`;
+    }
 }
 
 export default GoldSongCommand;

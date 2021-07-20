@@ -65,4 +65,8 @@ export default class RedeemCommand extends Command {
             { alias: "redeemcomfy", commandName: "redeem", commandArguments: [this.VariationComfy, "chewieMmm", this.comfyUrl] },
         ];
     }
+
+    public getDescription(): string {
+        return `Triggers an animation in return for points. Usage: !redeemclap | !redeemcatjam | !redeemcomfy`;
+    }
 }

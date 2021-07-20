@@ -31,4 +31,8 @@ export default class PointsCommand extends Command {
     public getAliases(): ICommandAlias[] {
         return [{ alias: "chews", commandName: "points" }];
     }
+
+    public getDescription(): string {
+        return `Displays the amount of points you have. Usage: !points [<user>]`;
+    }
 }
