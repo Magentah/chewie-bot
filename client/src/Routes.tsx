@@ -118,21 +118,21 @@ const DashboardRoutes: Route[] = [
         name: "Messages",
         icon: Message,
         component: MessageList,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/usercards",
         name: "Cards",
         icon: "contact_page",
         component: UserCardList,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/achievements",
         name: "Achievements",
         icon: "military_tech",
         component: AchievementsList,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/users",
@@ -160,7 +160,7 @@ const DashboardRoutes: Route[] = [
         name: "Bot Settings",
         icon: Build,
         component: TwitchCard,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     }
 ];
 

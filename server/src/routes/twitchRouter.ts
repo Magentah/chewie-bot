@@ -12,23 +12,23 @@ const pointRewardController: ChannelPointRewardController = BotContainer.get(Cha
 twitchRouter.get("/api/twitch/status", (req, res) => twitchController.getStatus(req, res));
 twitchRouter.get(
     "/api/twitch/connect",
-    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin),
     (req, res) => twitchController.connect(req, res)
 );
 twitchRouter.get(
     "/api/twitch/disconnect",
-    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin),
     (req, res) => twitchController.disconnect(req, res)
 );
 
 twitchRouter.get(
     "/api/twitch/botsettings",
-    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin),
     (req, res) => twitchController.getBotSettings(req, res)
 );
 twitchRouter.post(
     "/api/twitch/botSettings",
-    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Broadcaster),
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin),
     (req, res) => twitchController.saveBotSettings(req, res)
 );
 

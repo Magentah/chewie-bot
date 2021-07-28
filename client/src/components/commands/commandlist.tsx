@@ -79,7 +79,7 @@ const CommandList: React.FC<any> = (props: any) => {
                     addRowPosition: "first"
                 }}
                 data = {commandlist}
-                editable = {(user.userLevelKey < UserLevels.Moderator) ? undefined :
+                editable = {(user.userLevel < UserLevels.Moderator) ? undefined :
                     {
                         isEditable: rowData => rowData.type !== CommandType.System,
                         isDeletable: rowData => rowData.type !== CommandType.System,

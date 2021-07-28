@@ -13,13 +13,10 @@ export class UsersRepository {
     private makeUserQuery(databaseService: DatabaseService) {
         return databaseService
             .getQueryBuilder(DatabaseTables.Users)
-            .join(DatabaseTables.UserLevels, "userLevels.id", "users.userLevelKey")
             .join(DatabaseTables.VIPLevels, "vipLevels.id", "users.vipLevelKey")
             .leftJoin(DatabaseTables.TwitchUserProfile, "twitchUserProfile.id", "users.twitchProfileKey")
             .select([
                 "vipLevels.name as vipLevel",
-                "userLevels.name as userLevel",
-                "userLevels.rank as rank",
                 "twitchUserProfile.id as profileId",
                 "twitchUserProfile.displayName as profileDisplayName",
                 "twitchUserProfile.profileImageUrl as profileImageUrl",
@@ -213,7 +210,6 @@ export class UsersRepository {
         const userData = this.encryptUser(user);
 
         // encryptUser() will return a copy of the object so we can safely delete here
-        delete userData.userLevel;
         delete userData.vipLevel;
         delete userData.twitchUserProfile;
 
@@ -234,7 +230,6 @@ export class UsersRepository {
         const userData = this.mapUserToDetailsUserData(user);
 
         // mapUserToDetailsUserData() will return a copy of the object so we can safely delete here
-        delete userData.userLevel;
         delete userData.vipLevel;
         delete userData.twitchUserProfile;
 
@@ -259,7 +254,6 @@ export class UsersRepository {
             vipLevel: userData.vipLevel,
             vipLevelKey: userData.vipLevelKey,
             userLevel: userData.userLevel,
-            userLevelKey: userData.userLevelKey,
             points: userData.points,
             hasLogin: userData.hasLogin,
             vipPermanentRequests: userData.vipPermanentRequests
@@ -290,12 +284,7 @@ export class UsersRepository {
             username: "",
             points: 0,
             hasLogin: false,
-            userLevelKey: UserLevels.Viewer,
-            userLevel: {
-                id: UserLevels.Viewer,
-                name: "",
-                rank: 0,
-            },
+            userLevel: UserLevels.Viewer,
             twitchUserProfile: {
                 id: 0,
                 displayName: "Anonymous",
@@ -339,12 +328,11 @@ export class UsersRepository {
             streamlabsToken: userResult.streamlabsToken,
             streamlabsSocketToken: userResult.streamlabsSocketToken,
             twitchProfileKey: userResult.twitchProfileKey,
-            userLevel: { id: userResult.userLevelKey, name: userResult.userLevel, rank: userResult.rank },
             vipLevel: userResult.vipLevel,
             vipExpiry: userResult.vipExpiry ? new Date(userResult.vipExpiry) : undefined,
             vipLastRequest: userResult.vipLastRequest ? new Date(userResult.vipLastRequest) : undefined,
             vipPermanentRequests: userResult.vipPermanentRequests ?? 0,
-            userLevelKey: userResult.userLevelKey,
+            userLevel: userResult.userLevel,
             vipLevelKey: userResult.vipLevelKey,
             dropboxAccessToken: userResult.dropboxAccessToken,
             dropboxRefreshToken: userResult.dropboxRefreshToken,

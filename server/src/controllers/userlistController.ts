@@ -4,14 +4,22 @@ import { inject, injectable } from "inversify";
 import { EventLogType, IEventLog, IUser, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
-import { EventLogsRepository, UserLevelsRepository, UsersRepository } from "../database";
+import { EventLogsRepository, UsersRepository } from "../database";
 import { UserService } from "../services/userService";
 
 @injectable()
 class UserlistController {
+    private readonly userLevels = {
+        [UserLevels.Viewer]: "Viewer",
+        [UserLevels.Subscriber]: "Subscriber",
+        [UserLevels.Moderator]: "Moderator",
+        [UserLevels.Bot]: "Bot",
+        [UserLevels.Admin]: "ViewAdminer",
+        [UserLevels.Broadcaster]: "Broadcaster",
+    };
+
     constructor(@inject(UsersRepository) private userRepository: UsersRepository,
                 @inject(UserService) private userService: UserService,
-                @inject(UserLevelsRepository) private userLevels: UserLevelsRepository,
                 @inject(EventLogsRepository) private eventLogs: EventLogsRepository) {
         Logger.info(
             LogType.ServerInfo,
@@ -61,7 +69,7 @@ class UserlistController {
      * @param res Express HTTP Response
      */
     public async getUserLevels(req: Request, res: Response): Promise<void> {
-        const userLevels = await this.userLevels.getList();
+        const userLevels = Object.entries(this.userLevels).map(([key, value]) => { return { rank: key, name: value} });
         res.status(StatusCodes.OK);
         res.send(userLevels);
     }
@@ -86,11 +94,10 @@ class UserlistController {
             }
 
             // Demoting or promoting a broadcaster user can only be done by the broadcaster.
-            if (existingUser.userLevelKey !== newUser.userLevelKey) {
+            if (existingUser.userLevel !== newUser.userLevel) {
                 const sessionUser = req.user as IUser;
-                if (sessionUser.userLevel?.rank !== UserLevels.Broadcaster) {
-                    const newUserLevel = await this.userLevels.getById(newUser.userLevelKey ?? 0);
-                    if (existingUser.userLevel?.rank === UserLevels.Broadcaster || newUserLevel.rank === UserLevels.Broadcaster) {
+                if (sessionUser.userLevel !== UserLevels.Broadcaster) {
+                    if (existingUser.userLevel === UserLevels.Broadcaster || newUser.userLevel === UserLevels.Broadcaster) {
                         res.status(StatusCodes.BAD_REQUEST);
                         res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Broadcaster permissions required to change \"broadcaster\" user level."));
                         return;
@@ -249,7 +256,7 @@ class UserlistController {
         const rank = await this.userRepository.getPointsRank(user);
 
         const userProfile = {
-            user: userData,
+            user: {...userData, userLevelName: this.userLevels[userData.userLevel]},
             pointsRank: rank,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             goldLogs

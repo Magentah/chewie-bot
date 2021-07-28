@@ -213,7 +213,7 @@ const UserList: React.FC<any> = (props: any) => {
             <MaterialTable
                 columns = {[
                     { title: "User name", field: "username" },
-                    { title: "User level", field: "userLevelKey", lookup: Object.fromEntries(userLevels.map(e => [e.id, e.name])) },
+                    { title: "User level", field: "userLevel", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) },
                     {
                         title: "VIP status",
                         field: "vipExpiry",
@@ -229,7 +229,7 @@ const UserList: React.FC<any> = (props: any) => {
                     pageSize: userlist?.length > 10 ? 50 : 10,
                     pageSizeOptions: [10, 50, 100, 200]
                 }}
-                actions={user.userLevelKey < UserLevels.Broadcaster ? undefined : [
+                actions={user.userLevel < UserLevels.Broadcaster ? undefined : [
                     {
                         icon: Star,
                         tooltip: "Add VIP gold",

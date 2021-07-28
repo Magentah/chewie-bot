@@ -86,7 +86,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
                 <Grid item>
                     <Grid>
                         <Box ml={1}>
-                            <Typography variant="h6">{userProfile.twitchUserProfile.displayName} ({fullUserProfile.user.userLevel.name})</Typography>
+                            <Typography variant="h6">{userProfile.twitchUserProfile.displayName} ({fullUserProfile.user.userLevelName})</Typography>
                         </Box>
                     </Grid>
                     <Grid>

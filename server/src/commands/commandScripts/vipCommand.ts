@@ -18,7 +18,7 @@ export class VipCommand extends Command {
 
         if (targetUserName) {
             // Allow mods to see the status of any user.
-            if (user.userLevel && user.userLevel.rank >= UserLevels.Moderator) {
+            if (user.userLevel && user.userLevel >= UserLevels.Moderator) {
                 const targetUser = await this.userService.getUser(targetUserName);
                 if (targetUser) {
                     userToCheck = targetUser;

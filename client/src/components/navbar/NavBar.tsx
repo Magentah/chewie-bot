@@ -81,7 +81,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         });
     }, []);
 
-    const connectBotButton = (user.userLevelKey < UserLevels.Broadcaster) ? undefined :
+    const connectBotButton = (user.userLevel < UserLevels.Admin) ? undefined :
         <Button className={botConnected ? classes.connectedButton: classes.disconnectedButton} onClick={connectBot} variant="contained">
             <Typography variant="caption">
                 {botConnected ? "Bot is connected" : "Bot is not connected"}

@@ -300,7 +300,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     // Don't allow selecting songs for deletion without permission.
     const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto" };
     let tableActions: (Action<Song> | ((rowData: Song) => Action<Song>))[] = [];
-    if (user.userLevelKey >= UserLevels.Moderator) {
+    if (user.userLevel >= UserLevels.Moderator) {
         tableActions = [
             rowData => ({
                 icon: VerticalAlignTopIcon,
@@ -333,7 +333,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     }
 
-    const addSongrequestsForm = (user.userLevelKey >= UserLevels.Moderator)
+    const addSongrequestsForm = (user.userLevel >= UserLevels.Moderator)
         ? <Grid item xs={12}>
             <form onSubmit={submitSongRequest}>
                 <Grid container spacing={2} justify="flex-start">
@@ -442,7 +442,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     ];
 
-    if (user.userLevelKey >= UserLevels.Moderator) {
+    if (user.userLevel >= UserLevels.Moderator) {
         queueColumns.splice(1, 0,
         {
             title: "Comments",

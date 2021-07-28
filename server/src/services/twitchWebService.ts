@@ -208,10 +208,10 @@ export class TwitchWebService {
      *
      * @param users (optional) - name of users that wants to validate for moderators
      */
-    public async fetchModerators(users?: string[]): Promise<ITwitchUser[]> {
+    public async fetchModerators(users?: string[]): Promise<ITwitchUser[] | undefined> {
         const executor = await this.getBroadcasterExecutor();
         if (!executor) {
-            return [] as ITwitchUser[];
+            return undefined;
         }
 
         let getModeratorsUrl = `${this.getModeratorsUrl}?broadcaster_id=${executor.broadcasterId}`;
@@ -234,7 +234,7 @@ export class TwitchWebService {
         const parsedResponse = this.parseResponse("FetchModerators", response);
         if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
             Logger.err(LogType.Twitch, "Failed to get moderators list.");
-            return [];
+            return undefined;
         }
 
         const moderators: ITwitchUser[] = parsedResponse.data;
@@ -248,10 +248,10 @@ export class TwitchWebService {
      *
      * @param users (optional) - name of users that wants to validate for moderators
      */
-    public async fetchSubscribers(users?: string[]): Promise<ITwitchSubscription[]> {
+    public async fetchSubscribers(users?: string[]): Promise<ITwitchSubscription[] | undefined> {
         const executor = await this.getBroadcasterExecutor();
         if (!executor) {
-            return [] as ITwitchSubscription[];
+            return undefined;
         }
 
         let getSubsUrl = `${this.getSubscribersUrl}?broadcaster_id=${executor.broadcasterId}`;
@@ -273,7 +273,7 @@ export class TwitchWebService {
         const parsedResponse = this.parseResponse("FetchSubscribers", response);
         if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
             Logger.err(LogType.Twitch, "Failed to get Subscribers list.");
-            return [];
+            return undefined;
         }
 
         const subscriptions: ITwitchSubscription[] = response.data.data;

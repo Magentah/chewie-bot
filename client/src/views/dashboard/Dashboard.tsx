@@ -51,12 +51,12 @@ const Dashboard: React.FC<{}> = (props) => {
 
     const renderRoute = () => {
         // Show loading text until user permissions are confirmed.
-        if (user.userLevelKey === UserLevels.None) {
+        if (user.userLevel === UserLevels.None) {
             return <Typography>Loading...</Typography>;
         }
 
         const routeJsx = DashboardRoutes.map((route: RouteType) => (
-             (user.userLevelKey >= route.minUserLevel) ?
+             (user.userLevel >= route.minUserLevel) ?
                 <Route exact path={route.path} key={route.name}>
                     <route.component />
                 </Route>

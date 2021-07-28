@@ -169,7 +169,7 @@ const SongList: React.FC<any> = (props: any) => {
         </Accordion>
     </Box>);
 
-    const addForm = (user.userLevelKey < UserLevels.Moderator) ? undefined :
+    const addForm = (user.userLevel < UserLevels.Moderator) ? undefined :
         <Box mb={2}>
             <Card><Box py={1} px={2}>
                 <form onSubmit={submitSongList}>
@@ -289,7 +289,7 @@ const SongList: React.FC<any> = (props: any) => {
                         icon: "attribution",
                         iconProps: rowData.attributedUserId ? { color: "primary" } : undefined,
                         tooltip: "Attribute to user",
-                        hidden: user.userLevelKey < UserLevels.Moderator,
+                        hidden: user.userLevel < UserLevels.Moderator,
                         onClick: (event, r) => {
                           if ((r as RowData).title !== undefined) {
                             openAttributionPopup(event.currentTarget, r as RowData);
@@ -298,7 +298,7 @@ const SongList: React.FC<any> = (props: any) => {
                     })
                 ]}
                 data = {songlist}
-                editable = {(user.userLevelKey < UserLevels.Moderator) ? undefined :
+                editable = {(user.userLevel < UserLevels.Moderator) ? undefined :
                     {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,

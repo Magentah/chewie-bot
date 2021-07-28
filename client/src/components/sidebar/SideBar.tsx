@@ -43,14 +43,14 @@ const SideBar: React.FC<any> = (props: any) => {
     };
     const renderRoutes = (routes: Route[]) => {
         const listItems = routes.map((r: Route, i: number) => {
-            if (user.userLevelKey < r.minUserLevel || r.hideInSidebar === true) {
+            if (user.userLevel < r.minUserLevel || r.hideInSidebar === true) {
                 return null;
             }
 
             return (
                 <React.Fragment key={r.name}>
                     <Divider />
-                    {r.makeDivider ? r.makeDivider(user.userLevelKey) : undefined}
+                    {r.makeDivider ? r.makeDivider(user.userLevel) : undefined}
                     <ListItem button selected={r.path === location.pathname} onClick={() => reroute(r.path)}>
                         {r.icon && (
                             <ListItemIcon>

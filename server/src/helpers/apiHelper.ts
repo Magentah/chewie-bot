@@ -22,7 +22,7 @@ export default class APIHelper {
         }
         else {
             const user = await BotContainer.get(UserService).getUser(sessionUser.username);
-            if (user?.userLevelKey === undefined || user.userLevelKey < minLevel) {
+            if (user?.userLevel === undefined || user.userLevel < minLevel) {
                 res.status(StatusCodes.FORBIDDEN);
                 res.send(APIHelper.error(StatusCodes.FORBIDDEN, "Insufficient permissions"));
             } else {

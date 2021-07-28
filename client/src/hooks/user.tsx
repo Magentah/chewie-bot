@@ -7,6 +7,7 @@ export enum UserLevels {
     Subscriber,
     Moderator,
     Bot,
+    Admin,
     Broadcaster,
 }
 
@@ -18,7 +19,7 @@ const useUser = () => {
     const defaultUser: any = {
         streamlabsToken: undefined,
         username: "",
-        userLevelKey: UserLevels.None
+        userLevel: UserLevels.None
     };
 
     const [user, setUser] = useState(defaultUser);

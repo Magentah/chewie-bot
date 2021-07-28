@@ -15,7 +15,7 @@ export default class PointsCommand extends Command {
     public async executeInternal(channel: string, user: IUser, targetUserName: string): Promise<void> {
         if (targetUserName) {
             // Allow mods to see the status of any user.
-            if (user.userLevel && user.userLevel.rank >= UserLevels.Moderator) {
+            if (user.userLevel && user.userLevel >= UserLevels.Moderator) {
                 const targetUser = await this.userService.getUser(targetUserName);
                 if (targetUser) {
                     this.twitchService.sendMessage(channel, Lang.get("points.status", targetUser.username, targetUser.points));

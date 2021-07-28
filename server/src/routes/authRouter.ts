@@ -44,7 +44,7 @@ function MakeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strat
             const newUser: IUser = {
                 username: profile.username,
                 twitchProfileKey: twitchProfile.id,
-                userLevelKey: 1,
+                userLevel: UserLevels.Viewer,
                 vipLevelKey: 1,
                 points: 0,
                 hasLogin: false,

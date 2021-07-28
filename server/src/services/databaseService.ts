@@ -3,13 +3,12 @@ import { Knex, knex } from "knex";
 import moment = require("moment");
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
-import { IUser } from "../models";
+import { IUser, UserLevels } from "../models";
 import { BotSettings } from "./botSettingsService";
 import { exec } from "child_process";
 
 export enum DatabaseTables {
     Users = "users",
-    UserLevels = "userLevels",
     TextCommands = "textCommands",
     Quotes = "quotes",
     Donations = "donations",
@@ -89,7 +88,6 @@ export class DatabaseService {
             if (!this.isInit && !this.inSetup) {
                 this.inSetup = true;
                 Logger.info(LogType.Database, "Creating database tables");
-                await this.createUserLevelTable();
                 await this.createVIPLevelTable();
                 await this.createUserTable();
                 await this.createDonationsTable();
@@ -177,14 +175,6 @@ export class DatabaseService {
         });
     }
 
-    private async createUserLevelTable(): Promise<void> {
-        return this.createTable(DatabaseTables.UserLevels, (table) => {
-            table.increments("id").primary().notNullable();
-            table.string("name").notNullable().unique();
-            table.integer("rank").notNullable();
-        });
-    }
-
     private async createVIPLevelTable(): Promise<void> {
         return this.createTable(DatabaseTables.VIPLevels, (table) => {
             table.increments("id").primary().notNullable();
@@ -198,8 +188,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.integer("vipLevelKey").unsigned();
             table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
-            table.integer("userLevelKey").unsigned();
-            table.foreign("userLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
+            table.integer("userLevel").unsigned().notNullable().defaultTo(UserLevels.Viewer);
             table.string("username").notNullable().unique();
             table.string("refreshToken");
             table.string("accessToken");
@@ -234,8 +223,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("commandName").unique().notNullable();
             table.string("message").notNullable();
-            table.integer("minimumUserLevelKey").unsigned();
-            table.foreign("minimumUserLevelKey").references(`id`).inTable(DatabaseTables.UserLevels);
+            table.integer("minimumUserLevel").unsigned();
             table.integer("useCount").unsigned().notNullable().defaultTo(0);
             table.boolean("useCooldown").notNullable().defaultTo(true);
         });
@@ -451,20 +439,6 @@ export class DatabaseService {
      */
     private async populateDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            const userLevelsAdded = await this.db(DatabaseTables.UserLevels).select();
-            if (userLevelsAdded.length === 0) {
-                const userLevels = [
-                    { name: "Viewer", rank: 1 },
-                    { name: "Subscriber", rank: 2 },
-                    { name: "Moderator", rank: 3 },
-                    { name: "Bot", rank: 4 },
-                    { name: "Broadcaster", rank: 5 },
-                ];
-                await this.db(DatabaseTables.UserLevels).insert(userLevels);
-                Logger.debug(LogType.Database, `${DatabaseTables.UserLevels} populated with initial data.`);
-            } else {
-                Logger.debug(LogType.Database, `${DatabaseTables.UserLevels} already has data.`);
-            }
             const vipLevelsAdded = await this.db(DatabaseTables.VIPLevels).select();
             if (vipLevelsAdded.length === 0) {
                 const vipLevels = [
@@ -491,7 +465,7 @@ export class DatabaseService {
             if (!(await this.db(DatabaseTables.Users).first().where("username", "like", broadcasterUsername))) {
                 const user: IUser = {
                     username: broadcasterUsername,
-                    userLevelKey: 5,
+                    userLevel: UserLevels.Broadcaster,
                     vipLevelKey: 1,
                     points: 0,
                     hasLogin: true,
