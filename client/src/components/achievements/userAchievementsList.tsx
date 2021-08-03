@@ -77,7 +77,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                         <Box flexWrap="wrap" display="flex" className={classes.achievementsGrid}>
                             {groupedResult[group].map((tile: RowData) => (
                             <Box m={1} width={140}>
-                                <Grid container direction="column" alignItems="center">
+                                <Grid container direction="column" alignItems="center" style={{opacity: tile.date ?  1 : 0.2}}>
                                     <Grid item>
                                         <Image title={tile.name} height={100} src={tile.url} alt={""} />
                                     </Grid>
