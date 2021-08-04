@@ -119,6 +119,15 @@ export default class CardsRepository {
         return count;
     }
 
+    public async getUniqueUpgradesCount(user: IUser): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades)
+            .countDistinct("id as cnt")
+            .where({ userId: user.id })
+            .first()).cnt;
+        return count;
+    }
+
     public async addOrUpdate(card: IUserCard): Promise<IUserCard> {
         const existingMessage = await this.get(card);
         if (!existingMessage) {
@@ -206,6 +215,9 @@ export default class CardsRepository {
             await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).insert({
                 userId: user.id, upgradedCardId: upgradedCard.id, upgradeCardId: upgrade.id, dateUpgraded: new Date()
             });
+
+            const count = await this.getUniqueUpgradesCount(user);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.UniqueCardUpgrades, count });
         }
     }
 

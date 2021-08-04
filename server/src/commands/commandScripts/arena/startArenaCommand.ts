@@ -1,10 +1,11 @@
 import { Command } from "../../command";
-import { UserService } from "../../../services";
+import { EventAggregator, UserService } from "../../../services";
 import { IUser, UserLevels } from "../../../models";
 import { EventService } from "../../../services/eventService";
 import ArenaEvent from "../../../events/arenaEvent";
 import { BotContainer } from "../../../inversify.config";
 import { Lang } from "../../../lang";
+import PointLogsRepository from "../../../database/pointLogsRepository";
 
 /**
  * Command for starting an arena.
@@ -13,12 +14,16 @@ import { Lang } from "../../../lang";
 export default class StartArenaCommand extends Command {
     private eventService: EventService;
     private userService: UserService;
+    private pointLogsRepository: PointLogsRepository;
+    private eventAggregator: EventAggregator;
 
     constructor() {
         super();
 
         this.eventService = BotContainer.get(EventService);
         this.userService = BotContainer.get(UserService);
+        this.eventAggregator = BotContainer.get(EventAggregator);
+        this.pointLogsRepository = BotContainer.get(PointLogsRepository);
 
         this.minimumUserLevel = UserLevels.Moderator;
     }
@@ -29,7 +34,7 @@ export default class StartArenaCommand extends Command {
             return;
         }
 
-        const arena = new ArenaEvent(this.twitchService, this.userService, this.eventService, user, wager);
+        const arena = new ArenaEvent(this.twitchService, this.userService, this.eventService, this.pointLogsRepository, this.eventAggregator, user, wager);
         arena.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         function isEvent(event: string | ArenaEvent): event is ArenaEvent {

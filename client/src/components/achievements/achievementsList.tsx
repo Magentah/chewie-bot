@@ -88,7 +88,9 @@ const AchievementsList: React.FC<any> = (props: any) => {
         7: "Duels won",
         8: "Total points won in Bankheist",
         9: "Total points lost in Bankheist",
-        10: "Daily Taxes paid (Bits)"
+        10: "Daily Taxes paid (Bits)",
+        11: "Arenas won",
+        12: "Unique cards upgraded",
     };
 
     useEffect(() => {

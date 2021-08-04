@@ -1,11 +1,12 @@
-import { EventService, UserService, TwitchService } from "../services";
-import { IUser } from "../models";
+import { EventService, UserService, TwitchService, EventAggregator } from "../services";
+import { AchievementType, IUser } from "../models";
 import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
 import { Lang } from "../lang";
 import { PointLogType } from "../models/pointLog";
+import PointLogsRepository from "../database/pointLogsRepository";
 
 /**
  * Detailed description of an arena (tournament) event: http://wiki.deepbot.tv/arena
@@ -27,6 +28,8 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         @inject(TwitchService) twitchService: TwitchService,
         @inject(UserService) userService: UserService,
         @inject(EventService) private eventService: EventService,
+        @inject(PointLogsRepository) private pointLogsRepository: PointLogsRepository,
+        @inject(EventAggregator) private eventAggregator: EventAggregator,
         initiatingUser: IUser,
         wager: number
     ) {
@@ -100,6 +103,9 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         // though because an odd number of participants can join and also eg. 6 participants which cannot be properly matched.
         // In the end this is all a bit fake but it shouldn't really matter.
         const numberOfWinsNeeded = Math.floor(Math.log(this.participants.length) / Math.log(2));
+
+        const arenasWon = await this.pointLogsRepository.getWinCount(winners[0].user, PointLogType.Arena);
+        this.eventAggregator.publishAchievement({user: winners[0].user, type: AchievementType.ArenaWon, count: arenasWon });
 
         this.sendMessage(
             Lang.get("arena.result3rd", numberOfWinsNeeded - 1, winners[2].points, winners[2].user.username)

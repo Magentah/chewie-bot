@@ -19,6 +19,7 @@ class AchievementsController {
         [AchievementType.Points]: "achievements.group.points",
         [AchievementType.Songlist]: "achievements.group.songlist",
         [AchievementType.UniqueCards]: "achievements.group.uniquecards",
+        [AchievementType.UniqueCardUpgrades]: "achievements.group.uniquecardupgrades",
         [AchievementType.Sudoku]: "achievements.group.sudoku",
         [AchievementType.AnimationRedeems]: "achievements.group.animationredeems",
         [AchievementType.DailyTaxesPaid]: "achievements.group.dailytaxespaid",
@@ -26,20 +27,23 @@ class AchievementsController {
         [AchievementType.BankheistPointsWon]: "achievements.group.bankheistpointswon",
         [AchievementType.BankheistPointsLost]: "achievements.group.bankheistpointslost",
         [AchievementType.DailyBitTaxesPaid]: "achievements.group.dailybittaxespaid",
+        [AchievementType.ArenaWon]: "achievements.group.arenaswon",
     };
 
     private readonly AchievementOrder = {
-        [AchievementType.SongRequests]: 4,
         [AchievementType.Points]: 1,
-        [AchievementType.Songlist]: 5,
         [AchievementType.UniqueCards]: 2,
-        [AchievementType.Sudoku]: 3,
-        [AchievementType.AnimationRedeems]: 6,
-        [AchievementType.DailyTaxesPaid]: 7,
-        [AchievementType.DailyBitTaxesPaid]: 8,
-        [AchievementType.DuelsWon]: 9,
-        [AchievementType.BankheistPointsWon]: 10,
-        [AchievementType.BankheistPointsLost]: 10,
+        [AchievementType.UniqueCardUpgrades]: 3,
+        [AchievementType.Sudoku]: 4,
+        [AchievementType.SongRequests]: 5,
+        [AchievementType.Songlist]: 6,
+        [AchievementType.AnimationRedeems]: 7,
+        [AchievementType.DailyTaxesPaid]: 8,
+        [AchievementType.DailyBitTaxesPaid]: 9,
+        [AchievementType.DuelsWon]: 10,
+        [AchievementType.BankheistPointsWon]: 11,
+        [AchievementType.BankheistPointsLost]: 11,
+        [AchievementType.ArenaWon]: 12,
     };
 
     constructor(@inject(AchievementsRepository) private achievementsRepository: AchievementsRepository) {
