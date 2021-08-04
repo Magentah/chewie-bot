@@ -23,7 +23,7 @@ class AchievementsController {
         [AchievementType.AnimationRedeems]: "achievements.group.animationredeems",
         [AchievementType.DailyTaxesPaid]: "achievements.group.dailytaxespaid",
         [AchievementType.DuelsWon]: "achievements.group.duelswon",
-        [AchievementType.BackheistPointsWon]: "achievements.group.backheistpointswon",
+        [AchievementType.BankheistPointsWon]: "achievements.group.bankheistpointswon",
         [AchievementType.BankheistPointsLost]: "achievements.group.bankheistpointslost",
         [AchievementType.DailyBitTaxesPaid]: "achievements.group.dailybittaxespaid",
     };
