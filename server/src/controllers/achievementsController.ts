@@ -28,6 +28,20 @@ class AchievementsController {
         [AchievementType.DailyBitTaxesPaid]: "achievements.group.dailybittaxespaid",
     };
 
+    private readonly AchievementOrder = {
+        [AchievementType.SongRequests]: 4,
+        [AchievementType.Points]: 1,
+        [AchievementType.Songlist]: 5,
+        [AchievementType.UniqueCards]: 2,
+        [AchievementType.Sudoku]: 3,
+        [AchievementType.AnimationRedeems]: 6,
+        [AchievementType.DailyTaxesPaid]: 7,
+        [AchievementType.DailyBitTaxesPaid]: 8,
+        [AchievementType.DuelsWon]: 9,
+        [AchievementType.BankheistPointsWon]: 10,
+        [AchievementType.BankheistPointsLost]: 10,
+    };
+
     constructor(@inject(AchievementsRepository) private achievementsRepository: AchievementsRepository) {
         Logger.info(
             LogType.ServerInfo,
@@ -60,6 +74,7 @@ class AchievementsController {
         }
 
         const achievements = await this.achievementsRepository.getUserAchievements(user)
+        achievements.sort((x, y) => this.AchievementOrder[x.type] - this.AchievementOrder[y.type]);
 
         const resultAchievements = [];
         for (const achievement of achievements) {
