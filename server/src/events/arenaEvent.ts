@@ -5,7 +5,7 @@ import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
 import { Lang } from "../lang";
-import { PointLogType } from "../models/pointLog";
+import { PointLogReason, PointLogType } from "../models/pointLog";
 import PointLogsRepository from "../database/pointLogsRepository";
 
 /**
@@ -84,7 +84,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         const winners = [];
         while (winners.length < 3) {
             const winIndex = Math.floor(Math.random() * Math.floor(fighters.length));
-            winners.push({ user: fighters[winIndex], points: 0 });
+            winners.push({ user: fighters[winIndex], points: 0, reason: PointLogReason.None });
             // Prevent participant from getting more than once place
             fighters.splice(winIndex, 1);
         }
@@ -92,11 +92,14 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         // Payoffs are 60% for 1st place, 25% for 2nd place, and 15% for 3rd place.
         const totalPoints = this.participants.map((x) => x.points).reduce((x, y) => x + y);
         winners[0].points = Math.floor(totalPoints * 0.6);
+        winners[0].reason = PointLogReason.FirstPlace;
         winners[1].points = Math.floor(totalPoints * 0.25);
+        winners[1].reason = PointLogReason.SecondPlace;
         winners[2].points = Math.max(0, totalPoints - winners[1].points - winners[0].points);
+        winners[2].reason = PointLogReason.ThirdPlace;
 
         for (const winner of winners) {
-            this.userService.changeUserPoints(winner.user, winner.points, this.pointLogType);
+            this.userService.changeUserPoints(winner.user, winner.points, this.pointLogType, winner.reason);
         }
 
         // Number of wins needed to be first place should be log2(n). This is only an approximation
@@ -104,7 +107,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         // In the end this is all a bit fake but it shouldn't really matter.
         const numberOfWinsNeeded = Math.floor(Math.log(this.participants.length) / Math.log(2));
 
-        const arenasWon = await this.pointLogsRepository.getWinCount(winners[0].user, PointLogType.Arena);
+        const arenasWon = await this.pointLogsRepository.getWinCount(winners[0].user, PointLogType.Arena, PointLogReason.FirstPlace);
         this.eventAggregator.publishAchievement({user: winners[0].user, type: AchievementType.ArenaWon, count: arenasWon });
 
         this.sendMessage(
@@ -120,7 +123,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
 
     private async refundPoints() {
         for (const user of this.participants) {
-            await this.userService.changeUserPoints(user.user, user.points, this.pointLogType);
+            await this.userService.changeUserPoints(user.user, user.points, this.pointLogType, PointLogReason.Refund);
         }
     }
 

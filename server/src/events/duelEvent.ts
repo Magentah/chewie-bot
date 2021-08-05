@@ -7,7 +7,7 @@ import { DuelEventParticipant } from "./duelEventParticipant";
 import { DuelWeapon } from "./duelWeapon";
 import { inject } from "inversify";
 import { Lang } from "../lang";
-import { PointLogType } from "../models/pointLog";
+import { PointLogReason, PointLogType } from "../models/pointLog";
 import PointLogsRepository from "../database/pointLogsRepository";
 
 /**
@@ -145,7 +145,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             this.userService.changeUsersPoints(
                 this.participants.map((x) => x.user),
                 -this.wager,
-                this.pointLogType
+                this.pointLogType,
+                PointLogReason.None
             );
 
             this.waitForWeaponChoice();
@@ -180,7 +181,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         this.userService.changeUsersPoints(
             this.participants.map((x) => x.user),
             this.wager,
-            this.pointLogType
+            this.pointLogType,
+            PointLogReason.Refund
         );
     }
 
@@ -225,7 +227,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             this.userService.changeUsersPoints(
                 this.participants.map((x) => x.user),
                 this.wager - chewsLost,
-                this.pointLogType
+                this.pointLogType,
+                PointLogReason.Draw
             );
         } else {
             // Determine the winner and display text based on the winner's weapon.
@@ -258,8 +261,8 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
                 pointsWon: this.wager,
             });
 
-            await this.userService.changeUserPoints(winner.user, this.wager * 2, this.pointLogType);
-            const duelsWon = await this.pointLogsRepository.getWinCount(winner.user, PointLogType.Duel);
+            await this.userService.changeUserPoints(winner.user, this.wager * 2, this.pointLogType, PointLogReason.Win);
+            const duelsWon = await this.pointLogsRepository.getWinCount(winner.user, PointLogType.Duel, PointLogReason.Win);
             this.eventAggregator.publishAchievement({user: winner.user, type: AchievementType.DuelsWon, count: duelsWon });
 
             switch (winner.weapon) {
