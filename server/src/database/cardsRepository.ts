@@ -49,12 +49,12 @@ export default class CardsRepository {
     }
 
     public async getCountByCard(user: IUser, card: IUserCard): Promise<number> {
-        const databaseService = await this.databaseProvider();        
+        const databaseService = await this.databaseProvider();
         return (await databaseService.getQueryBuilder(DatabaseTables.CardStack).where("cardId", card.id).andWhere("userId", user.id).count("id AS cnt").first()).cnt;
     }
 
     public async hasUpgrade(user: IUser, card: IUserCard): Promise<boolean> {
-        const databaseService = await this.databaseProvider();        
+        const databaseService = await this.databaseProvider();
         return (await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).where("upgradeCardId", card.id).andWhere("userId", user.id).count("id AS cnt").first()).cnt > 0;
     }
 
@@ -80,7 +80,7 @@ export default class CardsRepository {
     public async takeCardsFromStack(user: IUser, card: IUserCard, count: number): Promise<number> {
         const databaseService = await this.databaseProvider();
         const query = databaseService.getQueryBuilder(DatabaseTables.CardStack);
-        return await query.where("id", "in", 
+        return await query.where("id", "in",
             databaseService.getQueryBuilder(DatabaseTables.CardStack).from(DatabaseTables.CardStack).where({ userId: user.id, cardId: card.id, deleted: false }).select("id").limit(count)
         ).update({ deleted: true });
     }
