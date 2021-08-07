@@ -19,7 +19,7 @@ export default class CardsRepository {
 
     public async getCount(): Promise<number> {
         const databaseService = await this.databaseProvider();
-        return (await databaseService.getQueryBuilder(DatabaseTables.Cards).where("isUpgrade", false).count("id AS cnt").first()).cnt;
+        return (await databaseService.getQueryBuilder(DatabaseTables.Cards).where("isUpgrade", false).count("id AS cardCount").first()).cardCount;
     }
 
     public async get(card: IUserCard): Promise<IUserCard | undefined> {
@@ -49,13 +49,15 @@ export default class CardsRepository {
     }
 
     public async getCountByCard(user: IUser, card: IUserCard): Promise<number> {
-        const databaseService = await this.databaseProvider();        
-        return (await databaseService.getQueryBuilder(DatabaseTables.CardStack).where("cardId", card.id).andWhere("userId", user.id).count("id AS cnt").first()).cnt;
+        const databaseService = await this.databaseProvider();
+        return (await databaseService.getQueryBuilder(DatabaseTables.CardStack).where("cardId", card.id).andWhere("userId", user.id).count("id AS cardCount").first()).cardCount;
     }
 
     public async hasUpgrade(user: IUser, card: IUserCard): Promise<boolean> {
-        const databaseService = await this.databaseProvider();        
-        return (await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).where("upgradeCardId", card.id).andWhere("userId", user.id).count("id AS cnt").first()).cnt > 0;
+        const databaseService = await this.databaseProvider();
+        return (await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).where("upgradeCardId", card.id)
+            .andWhere("userId", user.id)
+            .count("id AS upgradeCount").first()).upgradeCount > 0;
     }
 
     public async takeCardFromStack(user: IUser, cardName: string): Promise<number | undefined> {
@@ -80,7 +82,7 @@ export default class CardsRepository {
     public async takeCardsFromStack(user: IUser, card: IUserCard, count: number): Promise<number> {
         const databaseService = await this.databaseProvider();
         const query = databaseService.getQueryBuilder(DatabaseTables.CardStack);
-        return await query.where("id", "in", 
+        return await query.where("id", "in",
             databaseService.getQueryBuilder(DatabaseTables.CardStack).from(DatabaseTables.CardStack).where({ userId: user.id, cardId: card.id, deleted: false }).select("id").limit(count)
         ).update({ deleted: true });
     }
@@ -113,9 +115,18 @@ export default class CardsRepository {
     public async getUniqueCardsCount(user: IUser): Promise<number> {
         const databaseService = await this.databaseProvider();
         const count = (await databaseService.getQueryBuilder(DatabaseTables.CardStack)
-            .countDistinct("cardId as cnt")
+            .countDistinct("cardId AS cardCount")
             .where({ userId: user.id, deleted: false })
-            .first()).cnt;
+            .first()).cardCount;
+        return count;
+    }
+
+    public async getUniqueUpgradesCount(user: IUser): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades)
+            .countDistinct("id as upgradeCount")
+            .where({ userId: user.id })
+            .first()).upgradeCount;
         return count;
     }
 
@@ -206,6 +217,9 @@ export default class CardsRepository {
             await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).insert({
                 userId: user.id, upgradedCardId: upgradedCard.id, upgradeCardId: upgrade.id, dateUpgraded: new Date()
             });
+
+            const count = await this.getUniqueUpgradesCount(user);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.UniqueCardUpgrades, count });
         }
     }
 

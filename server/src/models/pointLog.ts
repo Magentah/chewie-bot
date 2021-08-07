@@ -6,6 +6,7 @@ export default interface IPointLog {
     pointsBefore: number;
     points: number;
     time?: Date;
+    reason: PointLogReason;
 }
 
 export enum PointLogType {
@@ -27,4 +28,14 @@ export enum PointLogType {
     RedeemCard = "redeemcard",
     CardTrading = "cardtrading",
     CardRecycle = "cardrecycle",
+}
+
+export enum PointLogReason {
+    None = "",
+    Refund = "refund",
+    Win = "win",
+    Draw = "draw",
+    FirstPlace = "win-1st",
+    SecondPlace = "win-2nd",
+    ThirdPlace = "win-3rd",
 }

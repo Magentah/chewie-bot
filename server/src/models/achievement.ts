@@ -7,9 +7,11 @@ export enum AchievementType {
     AnimationRedeems = 5,
     DailyTaxesPaid = 6,
     DuelsWon = 7,
-    BackheistPointsWon = 8,
+    BankheistPointsWon = 8,
     BankheistPointsLost = 9,
-    DailyBitTaxesPaid = 10
+    DailyBitTaxesPaid = 10,
+    ArenaWon = 11,
+    UniqueCardUpgrades = 12,
 }
 
 export default interface IAchievement {

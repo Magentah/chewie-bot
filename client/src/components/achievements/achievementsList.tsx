@@ -86,9 +86,11 @@ const AchievementsList: React.FC<any> = (props: any) => {
         5: "Redeemed animation",
         6: "Daily Taxes paid",
         7: "Duels won",
-        8: "Total points won in Backheist",
-        9: "Total points lost in Backheist",
-        10: "Daily Taxes paid (Bits)"
+        8: "Total points won in Bankheist",
+        9: "Total points lost in Bankheist",
+        10: "Daily Taxes paid (Bits)",
+        11: "Arenas won",
+        12: "Unique cards upgraded",
     };
 
     useEffect(() => {

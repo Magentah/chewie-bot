@@ -4,7 +4,7 @@ import { UsersRepository } from "../database/usersRepository";
 import { IUser, ITwitchChatList, AchievementType } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
-import { PointLogType } from "../models/pointLog";
+import { PointLogReason, PointLogType } from "../models/pointLog";
 import { Logger, LogType } from "../logger";
 import PointLogsRepository from "../database/pointLogsRepository";
 import EventAggregator from "./eventAggregator";
@@ -105,9 +105,9 @@ export class UserService {
      * @param {IUser} user The user object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUserPoints(user: IUser, points: number, eventType: PointLogType | string): Promise<void> {
+    public async changeUserPoints(user: IUser, points: number, eventType: PointLogType | string, reason = PointLogReason.None): Promise<void> {
         user.points += points;
-        await this.users.incrementPoints(user, points, eventType);
+        await this.users.incrementPoints(user, points, eventType, reason);
 
         this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points });
     }
@@ -117,11 +117,11 @@ export class UserService {
      * @param {IUser} users The users object to update.
      * @param {points} points Number of points to add or remove (if negative)
      */
-    public async changeUsersPoints(users: IUser[], points: number, eventType: PointLogType): Promise<void> {
+    public async changeUsersPoints(users: IUser[], points: number, eventType: PointLogType, reason = PointLogReason.None): Promise<void> {
         // TODO: Make actual batch updates through the UsersRepository.
         for (const user of users) {
             user.points += points;
-            await this.users.incrementPoints(user, points, eventType);
+            await this.users.incrementPoints(user, points, eventType, reason);
         }
     }
 

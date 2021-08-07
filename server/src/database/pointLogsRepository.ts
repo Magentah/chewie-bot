@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 import * as moment from "moment";
-import IPointLog, { PointLogType } from "../models/pointLog";
+import IPointLog, { PointLogReason, PointLogType } from "../models/pointLog";
 import { IUser } from "../models";
 
 @injectable()
@@ -41,10 +41,10 @@ export class PointLogsRepository {
         return { won, lost };
     }
 
-    public async getWinCount(user: IUser, type: PointLogType): Promise<number> {
+    public async getWinCount(user: IUser, type: PointLogType, reason: PointLogReason): Promise<number> {
         const databaseService = await this.databaseProvider();
         const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
-            .where({ eventType: type, userId: user.id })
+            .where({ eventType: type, userId: user.id, reason })
             .andWhere("points", ">", 0).count("id AS cnt")
             .first()).cnt ?? 0;
         return won;
