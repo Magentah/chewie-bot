@@ -1,4 +1,4 @@
-import { UserLevels } from "../hooks/user";
+import { UserLevels } from "../contexts/userContext";
 
 type WebsocketCallback = (event: ISocketMessage) => void;
 

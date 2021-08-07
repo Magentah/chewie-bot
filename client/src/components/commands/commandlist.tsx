@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable from "material-table"
-import useUser, { UserLevels } from "../../hooks/user";
 import { UserLevel } from "../common/userLevel";
 import { Grid } from "@material-ui/core";
 import { Launch, Chat, Settings } from "@material-ui/icons";
+import { UserContext, UserLevels } from "../../contexts/userContext";
 
 enum CommandType {
     Text,
@@ -35,9 +35,7 @@ const CommandNameCell: React.FC<any> = (value: RowData) => {
 const CommandList: React.FC<any> = (props: any) => {
     const [commandlist, setCommandlist] = useState([] as RowData[]);
     const [userLevels, setUserLevels] = useState([] as UserLevel[]);
-    const [user, loadUser] = useUser();
-
-    useEffect(loadUser, []);
+    const userContext = useContext(UserContext);
 
     useEffect(() => {
         axios.get("/api/commandlist").then((response) => {
@@ -79,7 +77,7 @@ const CommandList: React.FC<any> = (props: any) => {
                     addRowPosition: "first"
                 }}
                 data = {commandlist}
-                editable = {(user.userLevel < UserLevels.Moderator) ? undefined :
+                editable = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
                     {
                         isEditable: rowData => rowData.type !== CommandType.System,
                         isDeletable: rowData => rowData.type !== CommandType.System,

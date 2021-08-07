@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import useUser, { UserLevels } from "../../hooks/user";
-import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon, Popover, MenuItem } from "@material-ui/core";
+import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon, Popover } from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import AddIcon from "@material-ui/icons/Add";
 import SaveIcon from "@material-ui/icons/Save";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { AddToListState } from "../common/addToListState";
+import { UserContext, UserLevels } from "../../contexts/userContext";
 
 const useStyles = makeStyles((theme) => ({
     addButton: {
@@ -30,8 +30,7 @@ function fallbackCopyTextToClipboard(text: string) {
     textArea.select();
 
     try {
-      const successful = document.execCommand("copy");
-      const msg = successful ? "successful" : "unsuccessful";
+      document.execCommand("copy");
     } catch (err) {
         // Ignore
     }
@@ -54,7 +53,7 @@ const SongList: React.FC<any> = (props: any) => {
     const classes = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [userlist, setUserlist] = useState([] as AutocompleteUser[]);
-    const [user, loadUser] = useUser();
+    const userContext = useContext(UserContext);
 
     const [popupAnchor, setPopupAnchor] = React.useState<HTMLButtonElement | undefined>(undefined);
     const [currentRowForAction, setCurrentRowForAction] = useState<RowData>();
@@ -65,8 +64,6 @@ const SongList: React.FC<any> = (props: any) => {
     const [songlistGenre, setSonglistGenre] = useState<string>("");
     const [songListState, setSongListState] = useState<AddToListState>();
     const [attributedUser, setAttributedUser] = useState<AutocompleteUser | null>(null);
-
-    useEffect(loadUser, []);
 
     useEffect(() => {
         axios.get("/api/songlist").then((response) => {
@@ -169,7 +166,7 @@ const SongList: React.FC<any> = (props: any) => {
         </Accordion>
     </Box>);
 
-    const addForm = (user.userLevel < UserLevels.Moderator) ? undefined :
+    const addForm = (userContext.user.userLevel < UserLevels.Moderator) ? undefined :
         <Box mb={2}>
             <Card><Box py={1} px={2}>
                 <form onSubmit={submitSongList}>
@@ -289,7 +286,7 @@ const SongList: React.FC<any> = (props: any) => {
                         icon: "attribution",
                         iconProps: rowData.attributedUserId ? { color: "primary" } : undefined,
                         tooltip: "Attribute to user",
-                        hidden: user.userLevel < UserLevels.Moderator,
+                        hidden: userContext.user.userLevel < UserLevels.Moderator,
                         onClick: (event, r) => {
                           if ((r as RowData).title !== undefined) {
                             openAttributionPopup(event.currentTarget, r as RowData);
@@ -298,7 +295,7 @@ const SongList: React.FC<any> = (props: any) => {
                     })
                 ]}
                 data = {songlist}
-                editable = {(user.userLevel < UserLevels.Moderator) ? undefined :
+                editable = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
                     {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,

@@ -36,7 +36,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
                 }
             });
         }
-    }, []);
+    }, [userProfile]);
 
     let userProfileContent;
 

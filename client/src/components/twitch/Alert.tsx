@@ -65,7 +65,7 @@ const Alert: React.FC = (props) => {
     }, [onAlertTriggered]);
 
     return <Fade in={showAlert} timeout={ timeout ? parseInt(timeout, 10) : 500 }>
-        <img src={alert ? alert.href : ""} width="1280" height="720"/>
+        <img alt="" src={alert ? alert.href : ""} width="1280" height="720"/>
     </Fade>;
 }
 

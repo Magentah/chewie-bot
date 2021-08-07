@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useContext } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon } from "@material-ui/core";
 
 import { Route, DashboardRoutes } from "../../Routes";
-import useUser from "../../hooks/user";
+import { UserContext } from "../../contexts/userContext";
 
 const width = 230;
 const useStyles = makeStyles((theme) => {
@@ -34,23 +34,21 @@ const SideBar: React.FC<any> = (props: any) => {
     const location = useLocation();
     const history = useHistory();
     const classes = useStyles();
-    const [user, loadUser] = useUser();
-
-    useEffect(loadUser, []);
+    const userContext = useContext(UserContext);
 
     const reroute = (path: string) => {
         history.push(path);
     };
     const renderRoutes = (routes: Route[]) => {
         const listItems = routes.map((r: Route, i: number) => {
-            if (user.userLevel < r.minUserLevel || r.hideInSidebar === true) {
+            if (userContext.user.userLevel < r.minUserLevel || r.hideInSidebar === true) {
                 return null;
             }
 
             return (
                 <React.Fragment key={r.name}>
                     <Divider />
-                    {r.makeDivider ? r.makeDivider(user.userLevel) : undefined}
+                    {r.makeDivider ? r.makeDivider(userContext.user.userLevel) : undefined}
                     <ListItem button selected={r.path === location.pathname} onClick={() => reroute(r.path)}>
                         {r.icon && (
                             <ListItemIcon>

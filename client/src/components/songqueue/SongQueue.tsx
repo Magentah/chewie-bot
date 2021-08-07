@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Image } from "react-bootstrap";
 import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab } from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
@@ -12,9 +12,9 @@ import AttachMoneyIcon from "@material-ui/icons/AttachMoney";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
-import useUser, { UserLevels } from "../../hooks/user";
 import MaterialTable, { Action, Column, Options } from "material-table";
 import useSetting from "../../hooks/setting";
+import { UserContext, UserLevels } from "../../contexts/userContext";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -62,7 +62,7 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     return (
         <Grid container direction="row" justify="flex-start" wrap="nowrap">
             <Grid item>
-                <a href={props.value.previewData.linkUrl} target="_blank">
+                <a href={props.value.previewData.linkUrl} target="_blank" rel="noopener noreferrer">
                     <Image style={{ maxHeight: "100px" }} src={props.value.previewData.previewUrl} thumbnail />
                 </a>
             </Grid>
@@ -71,7 +71,7 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
                     <Grid>
                         <Grid item xs={12}>
                             <Typography>
-                                <Link href={props.value.previewData.linkUrl} target="_blank">
+                                <Link href={props.value.previewData.linkUrl} target="_blank" rel="noopener noreferrer">
                                     {props.value?.details.title}
                                 </Link>
                             </Typography>
@@ -164,7 +164,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const [playedSongs, setPlayedSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
-    const [user, loadUser] = useUser();
+    const userContext = useContext(UserContext);
     const [songRequestUrl, setSongRequestUrl] = useState<string>();
     const donationLinkUrl = useSetting<string>("song-donation-link");
     const [songRequestState, setSongRequestState] = useState<SongRequestState>();
@@ -231,8 +231,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     useEffect(updateHistory, []);
 
-    useEffect(loadUser, []);
-
     useEffect(() => {
         websocket.current = new WebsocketService(window.location.hostname, window.location.protocol);
 
@@ -273,7 +271,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         try {
             setSongRequestState({state: "progress"});
 
-            await axios.post(`/api/songs/user/${user.username}`, { url: songRequestUrl, requestSource: "Bot UI" });
+            await axios.post(`/api/songs/user/${userContext.user.username}`, { url: songRequestUrl, requestSource: "Bot UI" });
             setSongRequestState({state: "success"});
             setSongRequestUrl("");
         } catch (error) {
@@ -300,7 +298,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     // Don't allow selecting songs for deletion without permission.
     const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto" };
     let tableActions: (Action<Song> | ((rowData: Song) => Action<Song>))[] = [];
-    if (user.userLevel >= UserLevels.Moderator) {
+    if (userContext.user.userLevel >= UserLevels.Moderator) {
         tableActions = [
             rowData => ({
                 icon: VerticalAlignTopIcon,
@@ -325,7 +323,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     // Find own requested songs and list them.
     const ownSongs: OwnRequest[] = [];
     for (const song of songs) {
-        if (song.requestedBy === user.username) {
+        if (song.requestedBy === userContext.user.username) {
             ownSongs.push({
                 index: songs.indexOf(song),
                 song
@@ -333,7 +331,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     }
 
-    const addSongrequestsForm = (user.userLevel >= UserLevels.Moderator)
+    const addSongrequestsForm = (userContext.user.userLevel >= UserLevels.Moderator)
         ? <Grid item xs={12}>
             <form onSubmit={submitSongRequest}>
                 <Grid container spacing={2} justify="flex-start">
@@ -374,12 +372,12 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         : undefined;
 
     // Display only for known users, we can't indentify requests otherwise.
-    const ownSongQueue = !user.username ? undefined :
+    const ownSongQueue = !userContext.user.username ? undefined :
         <Box mb={1} mt={2} key="own-queue">
             {(ownSongs.length === 0)
              ? (donationLinkUrl ?
                  <Typography>
-                    <Link href={donationLinkUrl} target="_blank">
+                    <Link href={donationLinkUrl} target="_blank" rel="noopener noreferrer">
                         <AttachMoneyIcon /> Donate for your song request
                     </Link>
                 </Typography>
@@ -397,7 +395,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                                    title={tile.song.details.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
-                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon} target="_blank">
+                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon} target="_blank" rel="noopener noreferrer">
                                            <OpenInNewIcon />
                                        </IconButton>
                                    }
@@ -442,7 +440,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     ];
 
-    if (user.userLevel >= UserLevels.Moderator) {
+    if (userContext.user.userLevel >= UserLevels.Moderator) {
         queueColumns.splice(1, 0,
         {
             title: "Comments",

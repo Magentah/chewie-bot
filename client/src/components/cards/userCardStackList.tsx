@@ -93,7 +93,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
         }
     };
 
-    useEffect(() => updateCards(), []);
+    useEffect(() => updateCards(), [updateCards]);
 
     function PaperComponent(paperProps: PaperProps) {
         return (
