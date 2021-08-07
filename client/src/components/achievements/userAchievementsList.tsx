@@ -9,6 +9,9 @@ const useStyles = makeStyles((theme) => ({
     collectionHeader: {
         marginTop: theme.spacing(2)
     },
+    achievementDescription: {
+        marginTop: theme.spacing(1),
+    },
     achievementsGrid: {
         background: theme.palette.divider,
         padding: theme.spacing(1),
@@ -82,7 +85,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                                         <Image title={tile.name} height={100} src={tile.url} alt={""} />
                                     </Grid>
                                     <Grid item>
-                                        <Typography align="center">{tile.name}</Typography>
+                                        <Typography className={classes.achievementDescription} variant="body2" align="center">{tile.name}</Typography>
                                     </Grid>
                                 </Grid>
                             </Box>

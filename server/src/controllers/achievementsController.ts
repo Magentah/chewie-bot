@@ -19,13 +19,31 @@ class AchievementsController {
         [AchievementType.Points]: "achievements.group.points",
         [AchievementType.Songlist]: "achievements.group.songlist",
         [AchievementType.UniqueCards]: "achievements.group.uniquecards",
+        [AchievementType.UniqueCardUpgrades]: "achievements.group.uniquecardupgrades",
         [AchievementType.Sudoku]: "achievements.group.sudoku",
         [AchievementType.AnimationRedeems]: "achievements.group.animationredeems",
         [AchievementType.DailyTaxesPaid]: "achievements.group.dailytaxespaid",
         [AchievementType.DuelsWon]: "achievements.group.duelswon",
-        [AchievementType.BackheistPointsWon]: "achievements.group.backheistpointswon",
+        [AchievementType.BankheistPointsWon]: "achievements.group.bankheistpointswon",
         [AchievementType.BankheistPointsLost]: "achievements.group.bankheistpointslost",
         [AchievementType.DailyBitTaxesPaid]: "achievements.group.dailybittaxespaid",
+        [AchievementType.ArenaWon]: "achievements.group.arenaswon",
+    };
+
+    private readonly AchievementOrder = {
+        [AchievementType.Points]: 1,
+        [AchievementType.UniqueCards]: 2,
+        [AchievementType.UniqueCardUpgrades]: 3,
+        [AchievementType.Sudoku]: 4,
+        [AchievementType.SongRequests]: 5,
+        [AchievementType.Songlist]: 6,
+        [AchievementType.AnimationRedeems]: 7,
+        [AchievementType.DailyTaxesPaid]: 8,
+        [AchievementType.DailyBitTaxesPaid]: 9,
+        [AchievementType.DuelsWon]: 10,
+        [AchievementType.BankheistPointsWon]: 11,
+        [AchievementType.BankheistPointsLost]: 11,
+        [AchievementType.ArenaWon]: 12,
     };
 
     constructor(@inject(AchievementsRepository) private achievementsRepository: AchievementsRepository) {
@@ -60,6 +78,7 @@ class AchievementsController {
         }
 
         const achievements = await this.achievementsRepository.getUserAchievements(user)
+        achievements.sort((x, y) => this.AchievementOrder[x.type] - this.AchievementOrder[y.type]);
 
         const resultAchievements = [];
         for (const achievement of achievements) {

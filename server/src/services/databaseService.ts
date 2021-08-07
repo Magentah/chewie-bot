@@ -309,6 +309,7 @@ export class DatabaseService {
             table.integer("pointsBefore").notNullable();
             table.integer("points").notNullable();
             table.dateTime("time").notNullable();
+            table.string("reason").nullable();
         });
     }
 
