@@ -35,7 +35,6 @@ import TwitchPubSubService from "./services/twitchPubSubService";
 
 import BotSettingsRepository from "./database/botSettings";
 import UsersRepository from "./database/usersRepository";
-import UserLevelsRepository from "./database/userLevelsRepository";
 import VIPLevelsRepository from "./database/vipLevels";
 import DonationsRepository from "./database/donations";
 import TextCommandsRepository from "./database/textCommands";
@@ -137,7 +136,6 @@ botContainer.bind<TwitchPubSubService>(TwitchPubSubService).toSelf().inSingleton
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
-botContainer.bind<UserLevelsRepository>(UserLevelsRepository).toSelf();
 botContainer.bind<PointLogsRepository>(PointLogsRepository).toSelf();
 botContainer.bind<VIPLevelsRepository>(VIPLevelsRepository).toSelf();
 botContainer.bind<DonationsRepository>(DonationsRepository).toSelf();

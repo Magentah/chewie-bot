@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
@@ -9,7 +9,7 @@ import { UserLevel } from "../common/userLevel";
 import AddIcon from "@material-ui/icons/Add";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
-import useUser, { UserLevels } from "../../hooks/user";
+import { UserContext, UserLevels } from "../../contexts/userContext";
 
 type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
 
@@ -54,7 +54,7 @@ const UserDetailsPanel: React.FC<any> = (props: any) => {
                 setFullUserProfile(response.data);
             }
         });
-    }, []);
+    }, [props.username]);
 
     return fullUserProfile ? <UserStatusLog profile={fullUserProfile} /> : <Box m={2}><Typography>Loading...</Typography></Box>;
 }
@@ -62,7 +62,7 @@ const UserDetailsPanel: React.FC<any> = (props: any) => {
 const UserList: React.FC<any> = (props: any) => {
     const [userlist, setUserlist] = useState([] as RowData[]);
     const [userLevels, setUserLevels] = useState([] as UserLevel[]);
-    const [user, loadUser] = useUser();
+    const userContext = useContext(UserContext);
     const [currentUserForAction, setCurrentUserForAction] = useState<RowData>();
 
     const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -100,8 +100,6 @@ const UserList: React.FC<any> = (props: any) => {
             setUserLevels(response.data);
         });
     }, []);
-
-    useEffect(loadUser, []);
 
     const [addVipState, setAddVipState] = useState<AddToListState>();
     const [addVipAmount, setAddVipAmount] = useState<number>(0);
@@ -213,7 +211,12 @@ const UserList: React.FC<any> = (props: any) => {
             <MaterialTable
                 columns = {[
                     { title: "User name", field: "username" },
-                    { title: "User level", field: "userLevelKey", lookup: Object.fromEntries(userLevels.map(e => [e.id, e.name])) },
+                    {
+                        title: "User level",
+                        field: "userLevel",
+                        lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])),
+                        editable: userContext.user.userLevel >= UserLevels.Admin ? "always" : "never"
+                    },
                     {
                         title: "VIP status",
                         field: "vipExpiry",
@@ -229,7 +232,7 @@ const UserList: React.FC<any> = (props: any) => {
                     pageSize: userlist?.length > 10 ? 50 : 10,
                     pageSizeOptions: [10, 50, 100, 200]
                 }}
-                actions={user.userLevelKey < UserLevels.Broadcaster ? undefined : [
+                actions={userContext.user.userLevel < UserLevels.Broadcaster ? undefined : [
                     {
                         icon: Star,
                         tooltip: "Add VIP gold",

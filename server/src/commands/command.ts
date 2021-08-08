@@ -13,7 +13,7 @@ export abstract class Command {
     }
 
     public execute(channel: string, user: IUser, ...args: any[]): void {
-        if (user && user.userLevel && user.userLevel.rank >= this.minimumUserLevel) {
+        if (user && user.userLevel && user.userLevel >= this.minimumUserLevel) {
             this.executeInternal(channel, user, ...args);
         } else {
             this.twitchService.sendMessage(channel, `${user.username}, you do not have permissions to execute this command.` );

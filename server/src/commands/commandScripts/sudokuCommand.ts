@@ -16,7 +16,7 @@ export class SudokuCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, force: number): Promise<void> {
-        if (!force && user && user.userLevel && user.userLevel.rank >= UserLevels.Moderator) {
+        if (!force && user && user.userLevel && user.userLevel >= UserLevels.Moderator) {
             // Moderators are exempt from being timed out.
             return;
         }

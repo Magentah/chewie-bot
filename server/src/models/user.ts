@@ -1,4 +1,4 @@
-import IUserLevel from "./userLevel";
+import { UserLevels } from "./userLevel";
 import IVIPLevel from "./vipLevel";
 import ITwitchUserProfile from "./twitchUserProfile";
 
@@ -14,8 +14,7 @@ export default interface IUser {
     vipPermanentRequests?: number;
     vipLevelKey?: number;
     vipLevel?: IVIPLevel;
-    userLevelKey?: number;
-    userLevel?: IUserLevel;
+    userLevel: UserLevels;
     hasLogin: boolean;
     streamlabsToken?: string;
     streamlabsSocketToken?: string;
