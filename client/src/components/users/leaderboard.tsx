@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Image } from "react-bootstrap";
 import { Card, Box, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import * as Cookie from "js-cookie";
 import useSetting from "../../hooks/setting";
+import { UserContext } from "../../contexts/userContext";
 
 type RowData = { username: string, points: number, rank: number };
 
@@ -61,7 +61,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
         });
     }, []);
 
-    const userProfile = Cookie.getJSON("user");
+    const userContext = useContext(UserContext);
 
     // Generate list of all top users. Current user is displayed
     // in an outlined row for highlighting.
@@ -69,7 +69,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
     let leaderboardList;
     if (userlist.length >= 3) {
         leaderboardList = <Grid xs>
-            {seasonEnd ? 
+            {seasonEnd ?
             <Box marginBottom={4} display="flex" justifyContent="center">
                 <Box className={classes.prizeHeader}>Season ends on <span style={{ fontWeight: "bold" }}>{seasonEnd}</span></Box>
             </Box> : undefined}
@@ -120,13 +120,13 @@ const Leaderboard: React.FC<any> = (props: any) => {
                 <Grid xs={12}>
                     {userlist.slice(3).map(x => (<Grid item container spacing={2}>
                         <Grid item>
-                            <Box className={x.username === userProfile?.username ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}` :`${classes.flexBox} ${classes.flexBoxNumber}`}
+                            <Box className={x.username === userContext.user.username ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}` :`${classes.flexBox} ${classes.flexBoxNumber}`}
                                  style={{ background: rankingColors[x.rank - 1] }}>
                                 {x.rank}
                             </Box>
                         </Grid>
                         <Grid item xs>
-                            <Box className={x.username === userProfile?.username ? `${classes.flexBox} ${classes.flexBoxCurrentUser}` : classes.flexBox}
+                            <Box className={x.username === userContext.user.username ? `${classes.flexBox} ${classes.flexBoxCurrentUser}` : classes.flexBox}
                                  style={{ background: rankingColors[x.rank - 1] }}>
                                 <Grid container>
                                     <Grid xs item style={{ width: "80%" }}>{x.username}</Grid>

@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop } from "@material-ui/core";
 import { Image } from "react-bootstrap";
-import * as Cookie from "js-cookie";
 import useSetting from "../../hooks/setting";
 import Sparkles from "../common/sparkle";
+import { UserContext } from "../../contexts/userContext";
 
 const useStyles = makeStyles((theme) => ({
     cardsCountBox: {
@@ -65,7 +65,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const cardCost = useSetting<number>("card-redeem-cost");
 
     const classes = useStyles();
-    const userProfile = Cookie.getJSON("user");
+    const userContext = useContext(UserContext);
 
     const updateCards = useCallback(() => {
         axios.get("/api/mycards").then((response) => {
@@ -119,11 +119,11 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                 <DialogTitle>Get a Random Dango Card</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
                     <Image src={"/assets/Dango-Card-Pop-Up.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"12em", position: "absolute", zIndex: 100}} />
-                    {userProfile?.username ?
+                    {userContext.user.username ?
                     <Typography>Would you like to trade {cardCost} chews for a random dango card?</Typography>
                     :<Typography>You need to be logged in to start collecting dango cards!</Typography>}
                 </DialogContent>
-                {userProfile?.username ?
+                {userContext.user.username ?
                 <DialogActions>
                     <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Trade</Button>
                     <Button onClick={() => handleCloseReset(false)} color="primary">Cancel</Button>

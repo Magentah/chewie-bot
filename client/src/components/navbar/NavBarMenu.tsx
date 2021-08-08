@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
     Avatar,
@@ -15,8 +15,8 @@ import {
 
 import { Face, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
-import * as Cookie from "js-cookie";
 import { useHistory } from "react-router-dom";
+import { UserContext } from "../../contexts/userContext";
 
 type NavMenuItem = {
     name: string;
@@ -43,10 +43,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const NavBarMenu: React.FC<any> = (props: any) => {
-    const userProfile = Cookie.getJSON("user");
     const classes = useStyles();
     const history = useHistory();
     const [anchor, setAnchor] = useState<undefined | HTMLElement>(undefined);
+    const userContext = useContext(UserContext);
     const navMenuItems: NavMenuItem[] = [
         { name: "Profile", iconComponent: Face, action: () => history.push("profile") },
         { name: "Log Out", iconComponent: ExitToApp, action: () => window.location.href = "/api/logout" },
@@ -75,11 +75,11 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         ));
     };
 
-    if (!userProfile) {
+    if (!userContext.user.username) {
         return null;
     }
 
-    const menu = !userProfile.username ? undefined : <Menu
+    const menu = <Menu
             id="navbar-menu"
             anchorEl={anchor}
             anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
@@ -98,12 +98,12 @@ const NavBarMenu: React.FC<any> = (props: any) => {
                         <Grid item>
                             <Avatar
                                 className={classes.small}
-                                src={userProfile.twitchUserProfile.profileImageUrl}
+                                src={userContext.user.twitchUserProfile.profileImageUrl}
                             ></Avatar>
                         </Grid>
                         <Grid item>
                             <Box ml={1}>
-                                <Typography>{userProfile.twitchUserProfile.displayName}</Typography>
+                                <Typography>{userContext.user.twitchUserProfile.displayName}</Typography>
                             </Box>
                         </Grid>
                     </Grid>

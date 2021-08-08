@@ -1,10 +1,11 @@
 import { Card, Typography, Grid, Avatar, Box, CardContent, createStyles, makeStyles, Theme, TableContainer, Table, TableRow, TableCell, TableBody } from "@material-ui/core";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import * as Cookie from "js-cookie";
 import Paper from "@material-ui/core/Paper";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
+import { UserContext } from "../../contexts/userContext";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -23,20 +24,20 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const UserProfileView: React.FC<any> = (props: any) => {
-    const userProfile = Cookie.getJSON("user");
+    const userContext = useContext(UserContext);
     const [fullUserProfile, setFullUserProfile] = useState<UserProfile>();
 
     const classes = useStyles();
 
     useEffect(() => {
-        if (userProfile) {
-            axios.get(`/api/userlist/profile/${userProfile.username}`).then((response) => {
+        if (userContext.user.username) {
+            axios.get(`/api/userlist/profile/${userContext.user.username}`).then((response) => {
                 if (response) {
                     setFullUserProfile(response.data);
                 }
             });
         }
-    }, [userProfile]);
+    }, [userContext.user.username]);
 
     let userProfileContent;
 
@@ -67,7 +68,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
                         </TableRow>
                         <TableRow>
                             <TableCell component="th" scope="row">Last song request:</TableCell>
-                            <TableCell align="right">{tryFormat(fullUserProfile.user.vipLastRequest)} {fullUserProfile.timezone}</TableCell>
+                            <TableCell align="right">{fullUserProfile.user.vipLastRequest ? tryFormat(fullUserProfile.user.vipLastRequest) + " " + fullUserProfile.timezone: "(None)"}</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
@@ -81,12 +82,12 @@ const UserProfileView: React.FC<any> = (props: any) => {
         userProfileContent = <Grid alignItems="flex-start">
             <Grid item container alignItems="center">
                 <Grid item>
-                    <Avatar className={classes.large} src={userProfile.twitchUserProfile.profileImageUrl} />
+                    <Avatar className={classes.large} src={userContext.user.twitchUserProfile.profileImageUrl} />
                 </Grid>
                 <Grid item>
                     <Grid>
                         <Box ml={1}>
-                            <Typography variant="h6">{userProfile.twitchUserProfile.displayName} ({fullUserProfile.user.userLevelName})</Typography>
+                            <Typography variant="h6">{userContext.user.twitchUserProfile.displayName} ({fullUserProfile.user.userLevelName})</Typography>
                         </Box>
                     </Grid>
                     <Grid>
