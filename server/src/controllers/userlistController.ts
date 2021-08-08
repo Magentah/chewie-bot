@@ -14,7 +14,7 @@ class UserlistController {
         [UserLevels.Subscriber]: "Subscriber",
         [UserLevels.Moderator]: "Moderator",
         [UserLevels.Bot]: "Bot",
-        [UserLevels.Admin]: "ViewAdminer",
+        [UserLevels.Admin]: "Admin",
         [UserLevels.Broadcaster]: "Broadcaster",
     };
 
