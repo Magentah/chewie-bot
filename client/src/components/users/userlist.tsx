@@ -211,7 +211,12 @@ const UserList: React.FC<any> = (props: any) => {
             <MaterialTable
                 columns = {[
                     { title: "User name", field: "username" },
-                    { title: "User level", field: "userLevel", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) },
+                    {
+                        title: "User level",
+                        field: "userLevel",
+                        lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])),
+                        editable: userContext.user.userLevel >= UserLevels.Admin ? "always" : "never"
+                    },
                     {
                         title: "VIP status",
                         field: "vipExpiry",

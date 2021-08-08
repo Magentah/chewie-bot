@@ -93,9 +93,10 @@ class UserlistController {
                 return;
             }
 
-            // Demoting or promoting a broadcaster user can only be done by the broadcaster.
+            // Demoting or promoting users needs extra permission checks.
             if (existingUser.userLevel !== newUser.userLevel) {
                 const sessionUser = req.user as IUser;
+                // Changing from or to broadcaster can only be done by broadcaster. 
                 if (sessionUser.userLevel !== UserLevels.Broadcaster) {
                     if (existingUser.userLevel === UserLevels.Broadcaster || newUser.userLevel === UserLevels.Broadcaster) {
                         res.status(StatusCodes.BAD_REQUEST);
@@ -103,6 +104,13 @@ class UserlistController {
                         return;
                     }
                 }
+
+                // Changing anything else needs admin permissions.
+                if (sessionUser.userLevel < UserLevels.Admin) {
+                    res.status(StatusCodes.FORBIDDEN);
+                    res.send(APIHelper.error(StatusCodes.FORBIDDEN, "Insufficient permissions for editing user level."));
+                    return;
+                } 
             }
 
             await this.userRepository.updateDetails(newUser);
