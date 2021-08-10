@@ -24,6 +24,7 @@ export enum BotSettings {
     DailyTaxBitAmount = "daily-tax-bits",
     SongDonationLink = "song-donation-link",
     CommandCooldownInSeconds = "command-timeout",
+    GoldWeeksPerT3Sub = "gold-weeks-per-sub-t3"
 }
 
 @injectable()
@@ -50,6 +51,7 @@ export default class BotSettingsService {
         [BotSettings.SongDonationLink]: "",
         [BotSettings.CardsRequiredForUpgrade]: 100,
         [BotSettings.CommandCooldownInSeconds]: 10,
+        [BotSettings.GoldWeeksPerT3Sub]: 1,
     };
 
     private readonly settingCache: { [name: string] : any; } = {};
