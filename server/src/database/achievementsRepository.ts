@@ -17,8 +17,10 @@ export default class AchievementsRepository {
     public async getUserAchievements(user: IUser): Promise<{achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string}[]> {
         const databaseService = await this.databaseProvider();
         const results = await databaseService.getQueryBuilder(DatabaseTables.Achievements)
-            .leftJoin(DatabaseTables.UserAchievements, "achievements.id", "userAchievements.achievementId")
-            .where("userId", user.id).orWhere("userId", null)
+            .leftJoin(DatabaseTables.UserAchievements, (x) => {
+                x.on("achievements.id", "userAchievements.achievementId")
+                .andOnVal("userAchievements.userId", "=", user.id ?? 0)
+            })
             .orderBy("type")
             .orderBy("amount")
             .select(["achievementId", "date", "expiredDate", "mimetype", "imageId", "type", "amount", "name"]);
