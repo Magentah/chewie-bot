@@ -2,18 +2,48 @@ import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, Icon, Popover } from "@material-ui/core";
+import {
+    Grid, TextField, Button, CircularProgress, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails, 
+    Icon, Popover, Tabs, Tab, Paper, InputAdornment, createMuiTheme, ThemeProvider
+} from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import AddIcon from "@material-ui/icons/Add";
 import SaveIcon from "@material-ui/icons/Save";
+import Search from "@material-ui/icons/Search";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { AddToListState } from "../common/addToListState";
 import { UserContext, UserLevels } from "../../contexts/userContext";
+
+// Use "condensed" display for rows
+const condensedTheme = createMuiTheme({
+    overrides: {
+      MuiTableCell: {
+        root: {
+          padding: "0 16px",
+        }
+      },
+      MuiIconButton: {
+        root: {
+          padding: "6px 8px",
+        }
+      }
+    }
+});
 
 const useStyles = makeStyles((theme) => ({
     addButton: {
         margin: theme.spacing(2, 0, 2),
     },
+    categoryTab: {
+        minWidth: 0
+    },
+    searchInput: {
+        marginRight: theme.spacing(2),
+        marginTop: theme.spacing(1),
+    },
+    tableContainer: {
+        marginTop: theme.spacing(2)
+    }
 }));
 
 function fallbackCopyTextToClipboard(text: string) {
@@ -52,6 +82,8 @@ const SongList: React.FC<any> = (props: any) => {
 
     const classes = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
+    const [songlistNew, setSonglistNew] = useState([] as RowData[]);
+    const [songlistFiltered, setSonglistFiltered] = useState([] as RowData[]);
     const [userlist, setUserlist] = useState([] as AutocompleteUser[]);
     const userContext = useContext(UserContext);
 
@@ -65,24 +97,38 @@ const SongList: React.FC<any> = (props: any) => {
     const [songListState, setSongListState] = useState<AddToListState>();
     const [attributedUser, setAttributedUser] = useState<AutocompleteUser | null>(null);
 
+    const [selectedTab, setSelectedTab] = useState(1);
+    const [selectedTabBeforeSearch, setSelectedTabBeforeSearch] = useState(0);
+    const [searchText, setSearchText] = useState("");
+    const [topLevelCategories, setTopLevelCategories] = useState([] as string[])
+
+    const selectTab = (tab: number, newList: RowData[], fullList: RowData[], genre: string) => {
+        setSelectedTab(tab);
+        if (tab === 0) {
+            setSonglistFiltered(newList);
+        } else {
+            setSonglistFiltered(fullList.filter(x => x.genre === genre));
+        }
+    };
+
     useEffect(() => {
         axios.get("/api/songlist").then((response) => {
             const results  = response.data as RowData[];
-            const newSongs: RowData[] = [];
 
             // Show new songs (14 days) in a separate category.
-            const today = new Date();
-            today.setDate(-14);
-            for (const row of results) {
-                if (row.created > today.getTime()) {
-                    newSongs.push({
-                        ...row,
-                        genre: " 📢 New in the list 🎉"
-                     });
-                }
-            }
+            const twoWeeksAgo = new Date();
+            twoWeeksAgo.setDate(-14);
+            const newSongs = results.filter(row => row.created > twoWeeksAgo.getTime());
 
-            setSonglist(results.concat(newSongs));
+            const genres = results.map(x => x.genre).filter((v, i, a) => a.indexOf(v) === i);
+            genres.splice(0, 0, `📢 New (${newSongs.length})`);
+
+            setSonglist(results);
+            setSonglistNew(newSongs);
+            setTopLevelCategories(genres);
+            if (genres.length > 1) {
+                selectTab(1, newSongs, results, genres[1]);
+            }
         });
     }, []);
 
@@ -255,64 +301,117 @@ const SongList: React.FC<any> = (props: any) => {
             </Box>
         </Popover>;
 
-    return <div>
+    const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+        selectTab(newValue, songlistNew, songlist, topLevelCategories[newValue]);
+    };
+
+    const handleSearchChange = (event: any) => {
+        setSearchText(event.target.value);
+
+        if (event.target.value) {
+            setSelectedTabBeforeSearch(selectedTab);
+            setSelectedTab(topLevelCategories.length);
+            const searchSubject = event.target.value.toLowerCase();
+            setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject) || x.album.toLowerCase().includes(searchSubject) || x.title.toLowerCase().includes(searchSubject)));
+        } else {
+            selectTab(selectedTabBeforeSearch, songlistNew, songlist, topLevelCategories[selectedTabBeforeSearch]);
+        }
+    }
+
+    return <Box>
             {attributionPopover}
             {songrequestRules}
             {addForm}
-            <MaterialTable
-                columns = {[
-                    { title: "Artist / Origin", field: "album" },
-                    { title: "Title", field: "title" },
-                    { title: "Genre", field: "genre", defaultGroupOrder: 0, defaultGroupSort: "asc" }
-                ]}
-                options = {{
-                    paging: false,
-                    grouping: true,
-                    defaultExpanded: true,
-                    actionsColumnIndex: 3,
-                    showTitle: false
-                }}
-                actions={[
-                    {
-                      icon: "content_copy",
-                      tooltip: "Copy to clipboard",
-                      onClick: (event, rowData) => {
-                        if ((rowData as RowData).title !== undefined) {
-                            copyTextToClipboard((rowData as RowData).album + " - " + (rowData as RowData).title);
-                        }
-                      }
-                    },
-                    rowData => ({
-                        icon: "attribution",
-                        iconProps: rowData.attributedUserId ? { color: "primary" } : undefined,
-                        tooltip: "Attribute to user",
-                        hidden: userContext.user.userLevel < UserLevels.Moderator,
-                        onClick: (event, r) => {
-                          if ((r as RowData).title !== undefined) {
-                            openAttributionPopup(event.currentTarget, r as RowData);
-                          }
-                        }
-                    })
-                ]}
-                data = {songlist}
-                editable = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
-                    {
-                        isEditable: rowData => true,
-                        isDeletable: rowData => true,
-                        onRowUpdate: updateSong,
-                        onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
-                            if (result.status === 200) {
-                                const newSonglist = [...songlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
-                                newSonglist.splice(index, 1);
-                                setSonglist(newSonglist);
+            <Card>
+                <Grid container>
+                    <Grid item xs>
+                        <Tabs
+                            value={selectedTab}
+                            indicatorColor="primary"
+                            textColor="primary"
+                            onChange={handleTabChange}>
+                            {topLevelCategories.map(x => <Tab className={classes.categoryTab} label={x} />)}
+                            {searchText ? <Tab className={classes.categoryTab} label={"Search"} /> : undefined}
+                        </Tabs>
+                    </Grid>
+                    <Grid item>
+                        <TextField
+                            className={classes.searchInput}
+                            id="search-input"
+                            value={searchText}
+                            onChange={handleSearchChange}
+                            label=""
+                            InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Search />
+                                </InputAdornment>
+                            )}}
+                        />
+                    </Grid>
+                </Grid>
+
+                <ThemeProvider theme={condensedTheme}>
+                    <MaterialTable
+                        columns = {[
+                            { title: "Artist / Origin", field: "album", defaultSort: "asc" },
+                            { title: "Title", field: "title" },
+                            { title: "Genre", field: "genre", hidden: selectedTab > 0 && selectedTab < topLevelCategories.length }
+                        ]}
+                        options = {{
+                            paging: false,
+                            defaultExpanded: true,
+                            actionsColumnIndex: 3,
+                            showTitle: false,
+                            search: false,
+                            toolbar: false
+                        }}
+                        actions={[
+                            {
+                                icon: "content_copy",
+                                tooltip: "Copy to clipboard",
+                                onClick: (event, rowData) => {
+                                    if ((rowData as RowData).title !== undefined) {
+                                        copyTextToClipboard((rowData as RowData).album + " - " + (rowData as RowData).title);
+                                    }
+                                }
+                            },
+                            rowData => ({
+                                icon: "attribution",
+                                iconProps: rowData.attributedUserId ? { color: "primary" } : undefined,
+                                tooltip: "Attribute to user",
+                                hidden: userContext.user.userLevel < UserLevels.Moderator,
+                                onClick: (event, r) => {
+                                if ((r as RowData).title !== undefined) {
+                                    openAttributionPopup(event.currentTarget, r as RowData);
+                                }
+                                }
+                            })
+                        ]}
+                        data = {songlistFiltered}
+                        editable = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
+                            {
+                                isEditable: rowData => true,
+                                isDeletable: rowData => true,
+                                onRowUpdate: updateSong,
+                                onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
+                                    if (result.status === 200) {
+                                        const newSonglist = [...songlist];
+                                        // @ts-ignore
+                                        const index = oldData?.tableData.id;
+                                        newSonglist.splice(index, 1);
+                                        setSonglist(newSonglist);
+                                    }
+                                })
                             }
-                        })
-                    }
-                }
-            />
-    </div>;
+                        }
+                        components={{
+                            Container: p => <Paper {...p} elevation={0} className={classes.tableContainer} />
+                        }}
+                    />
+                </ThemeProvider>
+            </Card>
+    </Box>;
 };
 
 export default SongList;
