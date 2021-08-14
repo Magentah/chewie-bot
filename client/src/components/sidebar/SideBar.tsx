@@ -46,7 +46,7 @@ const SideBar: React.FC<any> = (props: any) => {
             }
 
             return (
-                <React.Fragment key={r.name}>
+                <React.Fragment key={r.name + r.minUserLevel}>
                     <Divider />
                     {r.makeDivider ? r.makeDivider(userContext.user.userLevel) : undefined}
                     <ListItem button selected={r.path === location.pathname} onClick={() => reroute(r.path)}>
