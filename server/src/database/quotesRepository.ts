@@ -20,11 +20,12 @@ export class QuotesRepository {
 
     public async getByTextSearch(searchTerm: string): Promise<IQuote> {
         const databaseService = await this.databaseProvider();
-        let quote = await databaseService
+        const quote = await databaseService
             .getQueryBuilder(DatabaseTables.Quotes)
+            .orderByRaw("RANDOM()")
             .first()
-            .where('text', 'like', `%${searchTerm}%`)
-            .orWhere('author', 'like', `%${searchTerm}%`);
+            .where("text", "like", `%${searchTerm}%`)
+            .orWhere("author", "like", `%${searchTerm}%`);
 
         return quote as IQuote;
     }
