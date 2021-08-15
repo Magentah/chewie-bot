@@ -100,7 +100,13 @@ class SonglistController {
         }
 
         try {
-            await this.songlistService.add(newSong);
+            await this.songlistService.add({
+                album: newSong.album,
+                genre: "",
+                artist: newSong.artist,
+                categoryId: newSong.categoryId,
+                title: newSong.title
+            });
             res.status(StatusCodes.OK);
             res.send(newSong);
         } catch (err) {

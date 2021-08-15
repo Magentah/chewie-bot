@@ -3,13 +3,11 @@ import { makeStyles, createTheme } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
 import {
-    Grid, TextField, Button, CircularProgress, Box, Card,
+    Grid, TextField, Button, Box, Card,
     Popover, Paper, ThemeProvider
 } from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
-import AddIcon from "@material-ui/icons/Add";
 import SaveIcon from "@material-ui/icons/Save";
-import { AddToListState } from "../common/addToListState";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 
@@ -52,10 +50,6 @@ const EditSonglist: React.FC<any> = (props: any) => {
     const [currentRowForAction, setCurrentRowForAction] = useState<RowData>();
     const open = Boolean(popupAnchor);
 
-    const [songlistOrigin, setSonglistOrigin] = useState<string>("");
-    const [songlistTitle, setSonglistTitle] = useState<string>("");
-    const [songlistGenre, setSonglistGenre] = useState<number>(0);
-    const [songListState, setSongListState] = useState<AddToListState>();
     const [attributedUser, setAttributedUser] = useState<AutocompleteUser | null>(null);
 
     useEffect(() => {
@@ -75,41 +69,12 @@ const EditSonglist: React.FC<any> = (props: any) => {
         });
     }, []);
 
-    const submitSongList = async () => {
-        try {
-            setSongListState({state: "progress"});
-
-            const newData = { album: songlistOrigin, title: songlistTitle, categoryId: songlistGenre } as RowData;
-            const result = await axios.post("/api/songlist/add", newData,
-                    { validateStatus(status) { return true; }});
-            if (result.status === 200) {
-                setSongListState({state: "success"});
-                setSonglist([...songlist, newData]);
-                setSonglistOrigin("");
-                setSonglistTitle("");
-                setSonglistGenre(0);
-            } else {
-                setSongListState({
-                    state: "failed",
-                    message: result.data.error.message
-                });
-            }
-        } catch (error) {
-            setSongListState({
-                state: "failed",
-                message: error.message
-            });
-        }
-    };
-
     const updateSong = (newData: RowData, oldData: RowData | undefined) => axios.post("/api/songlist", newData).then((result) => {
-        if (result.status === 200) {
-            const newSonglist = [...songlist];
-            // @ts-ignore
-            const index = oldData?.tableData.id;
-            newSonglist[index] = newData;
-            setSonglist(newSonglist);
-        }
+        const newSonglist = [...songlist];
+        // @ts-ignore
+        const index = oldData?.tableData.id;
+        newSonglist[index] = newData;
+        setSonglist(newSonglist);
     });
 
     const onCategoryMoved = (rowsMoved: CategoryData[], direction: number) => {
@@ -155,64 +120,6 @@ const EditSonglist: React.FC<any> = (props: any) => {
         }
     };
 
-    const addForm =
-        <Box mb={2}>
-            <Card><Box py={1} px={2}>
-                <form onSubmit={submitSongList}>
-                    <Grid container spacing={2} justify="flex-start" wrap={"nowrap"}>
-                        <Grid item xs={4}>
-                            <Autocomplete
-                                id="song-origin"
-                                freeSolo
-                                fullWidth
-                                inputValue={songlistOrigin}
-                                /* Use unique values for autocomplete */
-                                options={songlist.map((x) => x.album).filter((v,i,a) => a.indexOf(v) === i)}
-                                onInputChange={(event: any, newValue: string | null) => setSonglistOrigin(newValue ?? "")}
-                                renderInput={(params: any) => (
-                                    <TextField {...params} label="Origin / Artist" fullWidth />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={4}>
-                            <TextField
-                                id="song-title"
-                                label="Title"
-                                fullWidth
-                                value={songlistTitle}
-                                onChange={(e) => setSonglistTitle(e.target.value)}
-                            />
-                        </Grid>
-                        <Grid item xs={3}>
-                            <Autocomplete
-                                id="song-genre"
-                                freeSolo
-                                fullWidth
-                                options={categories}
-                                /* inputValue={songlistGenre}
-                                Use unique values for autocomplete 
-                                onInputChange={(event: any, newValue: string | null) => setSonglistGenre(newValue ?? "")}*/
-                                renderInput={(params: any) => (
-                                    <TextField {...params} label="Genre" fullWidth />
-                                )}
-                            />
-                        </Grid>
-                        <Grid item xs={1} style={{minWidth: "7em"}} >
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={songListState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
-                                onClick={submitSongList}
-                                className={classes.addButton}
-                                disabled={songListState?.state === "progress"}>
-                                Add
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </form>
-            </Box></Card>
-        </Box>;
-
     const attributionPopover = <Popover
         open = {open}
         anchorEl = {popupAnchor}
@@ -246,7 +153,6 @@ const EditSonglist: React.FC<any> = (props: any) => {
 
     return <Box>
             {attributionPopover}
-            {addForm}
             <Card>
                 <ThemeProvider theme={condensedTheme}>
                     <MaterialTable
