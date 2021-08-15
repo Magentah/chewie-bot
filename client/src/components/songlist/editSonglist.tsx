@@ -10,6 +10,8 @@ import Autocomplete from "@material-ui/lab/Autocomplete";
 import AddIcon from "@material-ui/icons/Add";
 import SaveIcon from "@material-ui/icons/Save";
 import { AddToListState } from "../common/addToListState";
+import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 
 // Use "condensed" display for rows
 const condensedTheme = createTheme({
@@ -37,11 +39,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const EditSonglist: React.FC<any> = (props: any) => {
-    type RowData = { id: number, title: string, album: string, genre: string, created: number, attributedUserId?: number, attributedUsername: string };
+    type RowData = { id: number, title: string, album: string, artist: string, categoryId: number, created: number, attributedUserId?: number, attributedUsername: string };
+    type CategoryData = { id: number, name: string, sortOrder: number };
     type AutocompleteUser = { username: string, id: number };
 
     const classes = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
+    const [categories, setCategories] = useState([] as CategoryData[]);
     const [userlist, setUserlist] = useState([] as AutocompleteUser[]);
 
     const [popupAnchor, setPopupAnchor] = useState<HTMLButtonElement | undefined>(undefined);
@@ -50,19 +54,18 @@ const EditSonglist: React.FC<any> = (props: any) => {
 
     const [songlistOrigin, setSonglistOrigin] = useState<string>("");
     const [songlistTitle, setSonglistTitle] = useState<string>("");
-    const [songlistGenre, setSonglistGenre] = useState<string>("");
+    const [songlistGenre, setSonglistGenre] = useState<number>(0);
     const [songListState, setSongListState] = useState<AddToListState>();
     const [attributedUser, setAttributedUser] = useState<AutocompleteUser | null>(null);
-
-    const [topLevelCategories, setTopLevelCategories] = useState([] as string[])
 
     useEffect(() => {
         axios.get("/api/songlist").then((response) => {
             const results  = response.data as RowData[];
-            const genres = results.map(x => x.genre).filter((v, i, a) => a.indexOf(v) === i);
-
             setSonglist(results);
-            setTopLevelCategories(genres);
+        });
+        axios.get("/api/songlist/categories").then((response) => {
+            const results  = response.data as CategoryData[];
+            setCategories(results);
         });
     }, []);
 
@@ -76,7 +79,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
         try {
             setSongListState({state: "progress"});
 
-            const newData = { album: songlistOrigin, title: songlistTitle, genre: songlistGenre } as RowData;
+            const newData = { album: songlistOrigin, title: songlistTitle, categoryId: songlistGenre } as RowData;
             const result = await axios.post("/api/songlist/add", newData,
                     { validateStatus(status) { return true; }});
             if (result.status === 200) {
@@ -84,7 +87,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                 setSonglist([...songlist, newData]);
                 setSonglistOrigin("");
                 setSonglistTitle("");
-                setSonglistGenre("");
+                setSonglistGenre(0);
             } else {
                 setSongListState({
                     state: "failed",
@@ -108,6 +111,30 @@ const EditSonglist: React.FC<any> = (props: any) => {
             setSonglist(newSonglist);
         }
     });
+
+    const onCategoryMoved = (rowsMoved: CategoryData[], direction: number) => {
+        const newState = [...categories];
+
+        // Reorder categories according to direction.
+        for (const row of rowsMoved) {
+            for (let i = 0; i < categories.length; i++) {
+                if (categories[i].id === row.id) {
+                    const category = categories[i];
+                    newState.splice(i, 1);
+                    newState.splice(i + direction, 0, category);
+                }
+            }
+        }
+
+        // Assign new sort order for all items to avoid inconsistencies.
+        for (let i = 0; i < newState.length; i++) {
+            newState[i].sortOrder = i + 1;
+        }
+
+        axios.post("/api/songlist/categories", newState).then(() => {
+            setCategories(newState);
+        });
+    };
 
     const openAttributionPopup = (button: HTMLButtonElement, song: RowData) => {
         setPopupAnchor(button);
@@ -161,10 +188,10 @@ const EditSonglist: React.FC<any> = (props: any) => {
                                 id="song-genre"
                                 freeSolo
                                 fullWidth
-                                inputValue={songlistGenre}
-                                /* Use unique values for autocomplete */
-                                options={songlist.map((x) => x.genre).filter((v,i,a) => a.indexOf(v) === i)}
-                                onInputChange={(event: any, newValue: string | null) => setSonglistGenre(newValue ?? "")}
+                                options={categories}
+                                /* inputValue={songlistGenre}
+                                Use unique values for autocomplete 
+                                onInputChange={(event: any, newValue: string | null) => setSonglistGenre(newValue ?? "")}*/
                                 renderInput={(params: any) => (
                                     <TextField {...params} label="Genre" fullWidth />
                                 )}
@@ -224,17 +251,75 @@ const EditSonglist: React.FC<any> = (props: any) => {
                 <ThemeProvider theme={condensedTheme}>
                     <MaterialTable
                         columns = {[
-                            { title: "Artist / Origin", field: "album", defaultSort: "asc" },
+                            { title: "Category", field: "name" }
+                        ]}
+                        options = {{
+                            paging: false,
+                            sorting: false,
+                            actionsColumnIndex: 1,
+                            showTitle: false,
+                            search: false,
+                            toolbar: true
+                        }}
+                        actions={[
+                            rowData => ({
+                                icon: ArrowUpwardIcon,
+                                tooltip: "Move up",
+                                disabled: categories.indexOf(rowData) === 0,
+                                onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], -1) : onCategoryMoved([ data as CategoryData ], -1)
+                            }),
+                            rowData => ({
+                                icon: ArrowDownwardIcon,
+                                tooltip: "Move down",
+                                disabled: categories.indexOf(rowData) === categories.length - 1,
+                                onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], 1) : onCategoryMoved([ data as CategoryData ], 1)
+                            }),
+                        ]}
+                        data = {categories}
+                        editable = {
+                            {
+                                isEditable: rowData => true,
+                                isDeletable: rowData => true,
+                                onRowAdd: (newData) => axios.post("/api/songlist/categories/add", newData).then((result) => {
+                                    const newList = [...categories, result.data as CategoryData];
+                                    setCategories(newList);
+                                }),
+                                onRowUpdate: (newData, oldData) => axios.post("/api/songlist/categories/update", newData).then((result) => {
+                                    const newCategories = [...categories];
+                                    // @ts-ignore
+                                    const index = oldData?.tableData.id;
+                                    newCategories[index] = newData;
+                                    setCategories(newCategories);
+                                }),
+                                onRowDelete: oldData => axios.post("/api/songlist/categories/delete", oldData).then((result) => {
+                                    const newCategories = [...categories];
+                                    // @ts-ignore
+                                    const index = oldData?.tableData.id;
+                                    newCategories.splice(index, 1);
+                                    setCategories(newCategories);
+                                })
+                            }
+                        }
+                        components={{
+                            Container: p => <Paper {...p} elevation={0} className={classes.tableContainer} />
+                        }}
+                    />
+
+                    <MaterialTable
+                        columns = {[
+                            { title: "Origin", field: "album", defaultSort: "asc" },
                             { title: "Title", field: "title" },
-                            { title: "Genre", field: "genre" }
+                            { title: "Artist", field: "artist" },
+                            { title: "Genre", field: "categoryId", lookup: Object.fromEntries(categories.map(e => [e.id, e.name])) }
                         ]}
                         options = {{
                             paging: true,
                             pageSize: 50,
                             pageSizeOptions: [50, 100, 200],
-                            actionsColumnIndex: 3,
+                            actionsColumnIndex: 4,
                             showTitle: false,
-                            search: true
+                            search: true,
+                            addRowPosition: "first"
                         }}
                         actions={[
                             rowData => ({
@@ -253,15 +338,17 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             {
                                 isEditable: rowData => true,
                                 isDeletable: rowData => true,
+                                onRowAdd: (newData) => axios.post("/api/songlist/add", newData).then((result) => {
+                                    const newList = [...songlist, result.data as RowData];
+                                    setSonglist(newList);
+                                }),
                                 onRowUpdate: updateSong,
                                 onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
-                                    if (result.status === 200) {
-                                        const newSonglist = [...songlist];
-                                        // @ts-ignore
-                                        const index = oldData?.tableData.id;
-                                        newSonglist.splice(index, 1);
-                                        setSonglist(newSonglist);
-                                    }
+                                    const newSonglist = [...songlist];
+                                    // @ts-ignore
+                                    const index = oldData?.tableData.id;
+                                    newSonglist.splice(index, 1);
+                                    setSonglist(newSonglist);
                                 })
                             }
                         }

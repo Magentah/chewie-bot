@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
-import { ISonglistItem } from "../models";
+import { ISonglistCategory, ISonglistItem } from "../models";
 
 @injectable()
 export class SonglistRepository {
@@ -15,6 +15,12 @@ export class SonglistRepository {
             .leftJoin(DatabaseTables.Users, "songlist.attributedUserId", "users.id")
             .select(["songlist.*", "users.username AS attributedUsername"]);
         return songlist as ISonglistItem[];
+    }
+
+    public async getCategories(): Promise<ISonglistCategory[]> {
+        const databaseService = await this.databaseProvider();
+        const categories = await databaseService.getQueryBuilder(DatabaseTables.SonglistCategories).select().orderBy("sortOrder");
+        return categories as ISonglistCategory[];
     }
 
     public async getRandom(searchTerm: string): Promise<ISonglistItem | undefined> {
@@ -71,6 +77,27 @@ export class SonglistRepository {
         await databaseService.getQueryBuilder(DatabaseTables.Songlist).insert(item);
     }
 
+    public async addCategory(newCategory: ISonglistCategory): Promise<ISonglistCategory> {
+        const databaseService = await this.databaseProvider();
+        const newOrder = await databaseService.getQueryBuilder(DatabaseTables.SonglistCategories).max("sortOrder AS sortOrder").first();
+        newCategory.sortOrder = newOrder.sortOrder ? newOrder.sortOrder + 1 : 1;
+        const result = await databaseService.getQueryBuilder(DatabaseTables.SonglistCategories).insert(newCategory);
+        newCategory.id = result[0];
+        return newCategory;
+    }
+
+    public async updateCategories(categories: ISonglistCategory[]) {
+        const databaseService = await this.databaseProvider();
+        for (const category of categories) {
+            await databaseService.getQueryBuilder(DatabaseTables.SonglistCategories).update(category).where({ id: category.id });
+        }
+    }
+
+    public async updateCategory(category: ISonglistCategory) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.SonglistCategories).update(category).where({ id: category.id });
+    }
+
     public async update(item: ISonglistItem): Promise<void> {
         const databaseService = await this.databaseProvider();
         await databaseService
@@ -93,6 +120,11 @@ export class SonglistRepository {
         }
 
         return false;
+    }
+
+    public async deleteCategory(item: ISonglistCategory) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.SonglistCategories).delete().where({ id: item.id });
     }
 }
 

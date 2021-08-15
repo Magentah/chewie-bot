@@ -17,6 +17,7 @@ export enum DatabaseTables {
     CommandAliases = "commandAliases",
     BotSettings = "botSettings",
     Songlist = "songlist",
+    SonglistCategories = "songlistCategories",
     TwitchUserProfile = "twitchUserProfile",
     DiscordSettings = "discordSettings",
     EventLogs = "eventLogs",
@@ -96,6 +97,7 @@ export class DatabaseService {
                 await this.createCommandAliasTable();
                 await this.createBotSettingsTable();
                 await this.createSonglistTable();
+                await this.createSonglistCategoriesTable();
                 await this.createDiscordSettingTable();
                 await this.createEventLogsTable();
                 await this.createPointLogsTable();
@@ -272,9 +274,18 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("album").notNullable();
             table.string("title").notNullable();
-            table.string("genre").notNullable();
+            table.string("artist").notNullable().defaultTo("");
+            table.string("categoryId").notNullable().references(`id`).inTable(DatabaseTables.SonglistCategories);
             table.dateTime("created").notNullable();
             table.integer("attributedUserId").references(`id`).inTable(DatabaseTables.Users);
+        });
+    }
+
+    private async createSonglistCategoriesTable(): Promise<void> {
+        return this.createTable(DatabaseTables.SonglistCategories, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("name").notNullable().unique();
+            table.integer("sortOrder").notNullable();
         });
     }
 
