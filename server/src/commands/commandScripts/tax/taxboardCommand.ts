@@ -16,7 +16,7 @@ export class TaxboardCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, numberOfUsers: number): Promise<void> {
-        const userCount = numberOfUsers ? Math.min(25, numberOfUsers) : 10;
+        const userCount = numberOfUsers && Number.isInteger(numberOfUsers) ? Math.min(25, numberOfUsers) : 10;
 
         const taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
         if (taxChannelReward && taxChannelReward.id) {
