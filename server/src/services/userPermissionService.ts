@@ -32,32 +32,43 @@ export class UserPermissionService {
 
         if (this.isUserBroadcaster(username)) {
             newUserLevel = UserLevels.Broadcaster;
-        } else if (await this.isUserModded(username)) {
-            newUserLevel = UserLevels.Moderator;
-        } else if (await this.isUserSubbed(username)) {
-            newUserLevel = UserLevels.Subscriber;
+        } else if (userData.userLevel < UserLevels.Admin) {
+            const isModded = await this.isUserModded(username);
+            if (isModded === undefined) {
+                // Do not update user levels if status cannot currently be determined.
+                return;
+            }
+
+            if (isModded) {
+                newUserLevel = UserLevels.Moderator;
+            } else if (await this.isUserSubbed(username)) {
+                newUserLevel = UserLevels.Subscriber;
+            } else {
+                newUserLevel = UserLevels.Viewer;
+            }
         } else {
-            newUserLevel = UserLevels.Viewer;
+            // Don't change user levels of admins based on Twitch status.
+            return;
         }
 
         return this.updateUserLevelForUser(userData, newUserLevel);
     }
 
     private async updateUserLevelForUser(user: IUser, userLevel: UserLevels): Promise<void> {
-        if (user.userLevelKey !== userLevel) {
-            user.userLevelKey = userLevel;
+        if (user.userLevel !== userLevel) {
+            user.userLevel = userLevel;
             return this.userService.updateUser(user);
         }
     }
 
-    private async isUserModded(username: string): Promise<boolean> {
-        const mods: ITwitchUser[] = await this.twitchWebService.fetchModerators([username]);
-        return mods.length > 0;
+    private async isUserModded(username: string): Promise<boolean | undefined> {
+        const mods = await this.twitchWebService.fetchModerators([username]);
+        return mods === undefined ? undefined : mods.length > 0;
     }
 
-    private async isUserSubbed(username: string): Promise<boolean> {
-        const subs: any[] = await this.twitchWebService.fetchSubscribers([username]);
-        return subs.length > 0;
+    private async isUserSubbed(username: string): Promise<boolean | undefined> {
+        const subs = await this.twitchWebService.fetchSubscribers([username]);
+        return subs === undefined ? undefined : subs.length > 0;
     }
 
     private isUserBroadcaster(username: string): boolean {

@@ -1,3 +1,5 @@
+import { UserLevels } from "../contexts/userContext";
+
 type WebsocketCallback = (event: ISocketMessage) => void;
 
 class WebsocketService {
@@ -79,8 +81,7 @@ interface IUser {
     vipLastRequest?: Date;
     vipLevelKey?: number;
     vipLevel?: IVIPLevel;
-    userLevelKey?: number;
-    userLevel?: IUserLevel;
+    userLevel?: UserLevels;
     hasLogin: boolean;
     streamlabsToken?: string;
     streamlabsRefresh?: string;
@@ -88,12 +89,6 @@ interface IUser {
 }
 
 interface IVIPLevel {
-    id?: number;
-    name: string;
-    rank: number;
-}
-
-interface IUserLevel {
     id?: number;
     name: string;
     rank: number;

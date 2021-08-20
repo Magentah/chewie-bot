@@ -2,9 +2,10 @@ import { faDiscord, faPatreon, faSpotify, faTwitch, faYoutube } from "@fortaweso
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, Button, Card, CardContent, Divider, Grid, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-import React from "react";
+import React, { useContext } from "react";
 import { Image } from "react-bootstrap";
 import * as Cookie from "js-cookie";
+import { UserContext } from "../../contexts/userContext";
 
 type LoginProps = {};
 
@@ -80,7 +81,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
         ));
     };
 
-    const userProfile = Cookie.getJSON("user");
+    const userContext = useContext(UserContext);
 
     const requireBroadcasterAuth = Cookie.get("broadcaster_user") === "1";
 
@@ -88,7 +89,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
     let loginButton : JSX.Element | undefined;
 
     // Do not show login button if already logged in
-    if (userProfile?.username) {
+    if (userContext.user.username) {
         loginHeader = loginButton = undefined;
     } else {
         loginHeader = <Grid item xs={12} className={classes.sectionRow}>

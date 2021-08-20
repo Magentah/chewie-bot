@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useContext } from "react";
 import { Switch, Route, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Typography, Divider } from "@material-ui/core";
 import SideBar from "../../components/sidebar/SideBar";
 import NavBar from "../../components/navbar/NavBar";
 import { Route as RouteType, DashboardRoutes, NotFoundRoute } from "../../Routes";
-import useUser, { UserLevels } from "../../hooks/user";
+import { UserContext } from "../../contexts/userContext";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -41,22 +41,20 @@ const Dashboard: React.FC<{}> = (props) => {
     const classes = useStyles();
     const location = useLocation();
     const getRoute = createRouteMap(DashboardRoutes);
-    const [user, loadUser] = useUser();
+    const userContext = useContext(UserContext);
 
     const path = location.pathname;
 
     const routeForPath: RouteType = getRoute(path);
 
-    useEffect(loadUser, []);
-
     const renderRoute = () => {
         // Show loading text until user permissions are confirmed.
-        if (user.userLevelKey === UserLevels.None) {
+        if (!userContext.user.userLevel) {
             return <Typography>Loading...</Typography>;
         }
 
         const routeJsx = DashboardRoutes.map((route: RouteType) => (
-             (user.userLevelKey >= route.minUserLevel) ?
+             (userContext.user.userLevel >= route.minUserLevel) ?
                 <Route exact path={route.path} key={route.name}>
                     <route.component />
                 </Route>

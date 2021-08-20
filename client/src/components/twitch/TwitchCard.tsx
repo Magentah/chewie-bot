@@ -6,7 +6,6 @@ import {
     Link,
     Button,
     Input,
-    Divider,
     TextField,
     Snackbar,
     SnackbarContent,
@@ -20,14 +19,14 @@ import {
 import { makeStyles } from "@material-ui/core/styles";
 import { darken } from "@material-ui/core/styles/colorManipulator";
 import axios, { AxiosResponse } from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Image } from "react-bootstrap";
 import { Save, Visibility, VisibilityOff, Check, Clear } from "@material-ui/icons";
 import AuthService from "../../services/authService";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
-import useUser from "../../hooks/user";
 import MaterialTable from "material-table";
 import { blue } from "@material-ui/core/colors";
+import { UserContext } from "../../contexts/userContext";
 
 const useStyles = makeStyles((theme) => ({
     title: {
@@ -106,7 +105,7 @@ type SettingData = { key: string; value: string; description: string; readonly: 
 
 const TwitchCard: React.FC<any> = (props: any) => {
     const classes = useStyles();
-    const [user, loadUser] = useUser();
+    const userContext = useContext(UserContext);
     const [botUsername, setBotUsername] = useState("");
     const [botOAuth, setBotOAuth] = useState("");
     const [saved, setSaved] = useState(false);
@@ -115,8 +114,6 @@ const TwitchCard: React.FC<any> = (props: any) => {
     const [settings, setSettings] = useState([] as SettingData[]);
     const [backupStatusOpen, setBackupStatusOpen] = useState(false);
     const [backupStatusMessage, setBackupStatusMessage] = useState("");
-
-    useEffect(loadUser, []);
 
     useEffect(() => {
         axios.get("/api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {
@@ -136,7 +133,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
 
     const disconnectService = (url: string) => {
         axios.get(url).then((response: AxiosResponse<any>) => {
-            loadUser();
+            userContext.loadUser();
         });
     };
 
@@ -239,12 +236,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     </Button>
 
                                     <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>
-                                        {user.streamlabsSocketToken ? <Check /> : <Clear />}
+                                        {userContext.user.streamlabsSocketToken ? <Check /> : <Clear />}
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/streamlabs">
                                         Connect
                                     </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!user.streamlabsSocketToken}>
+                                    <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!userContext.user.streamlabsSocketToken}>
                                         Disconnect
                                     </Button>
                                 </ButtonGroup>
@@ -260,12 +257,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     </Button>
 
                                     <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>
-                                        {user.spotifyRefresh ? <Check /> : <Clear />}
+                                        {userContext.user.spotifyRefresh ? <Check /> : <Clear />}
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/spotify">
                                         Connect
                                     </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!user.spotifyRefresh}>
+                                    <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!userContext.user.spotifyRefresh}>
                                         Disconnect
                                     </Button>
                                 </ButtonGroup>
@@ -284,12 +281,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     </Button>
 
                                     <Button style={{ color: "white" }} className={classes.dropboxButton} disabled>
-                                        {user.dropboxAccessToken ? <Check /> : <Clear />}
+                                        {userContext.user.dropboxAccessToken ? <Check /> : <Clear />}
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/dropbox">
                                         Connect
                                     </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!user.dropboxAccessToken}>
+                                    <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!userContext.user.dropboxAccessToken}>
                                         Disconnect
                                     </Button>
                                 </ButtonGroup>

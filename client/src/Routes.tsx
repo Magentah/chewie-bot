@@ -1,7 +1,7 @@
 import React from "react";
-import { Divider, SvgIconTypeMap } from "@material-ui/core";
+import { SvgIconTypeMap } from "@material-ui/core";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
-import { Card, CardContent, Typography } from "@material-ui/core";
+import { Typography } from "@material-ui/core";
 
 // Icons
 import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Lens as DefaultIcon } from "@material-ui/icons";
@@ -14,7 +14,7 @@ import DonationList from "./components/donationlist/donationlist";
 import MessageList from "./components/messages/messagelist";
 import CommandList from "./components/commands/commandlist";
 import NotFound from "./components/error/404";
-import { UserLevels } from "./hooks/user";
+import { UserLevels } from "./contexts/userContext";
 import Login from "./views/login/Login";
 import UserList from "./components/users/userlist";
 import UserProfileView from "./components/users/userprofile";
@@ -33,16 +33,6 @@ export type Route = {
     minUserLevel: UserLevels,
     hideInSidebar?: boolean,
     makeDivider?: (userLevel: UserLevels) => JSX.Element | undefined
-};
-
-const DefaultComponent: React.FC<{}> = (props) => {
-    return (
-        <Card>
-            <CardContent>
-                <Typography variant="h5">Nothing to see here</Typography>
-            </CardContent>
-        </Card>
-    );
 };
 
 // Routes to be rendered from the SideBar
@@ -118,21 +108,21 @@ const DashboardRoutes: Route[] = [
         name: "Messages",
         icon: Message,
         component: MessageList,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/usercards",
         name: "Cards",
         icon: "contact_page",
         component: UserCardList,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/achievements",
         name: "Achievements",
         icon: "military_tech",
         component: AchievementsList,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/users",
@@ -160,7 +150,7 @@ const DashboardRoutes: Route[] = [
         name: "Bot Settings",
         icon: Build,
         component: TwitchCard,
-        minUserLevel: UserLevels.Broadcaster
+        minUserLevel: UserLevels.Admin
     }
 ];
 

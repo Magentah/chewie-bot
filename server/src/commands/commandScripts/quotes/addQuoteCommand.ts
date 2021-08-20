@@ -14,19 +14,21 @@ export default class AddQuoteCommand extends Command {
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async executeInternal(channel: string, user: IUser, author: string, text: string): Promise<void> {
-        if (typeof author !== 'string' || typeof text !== 'string') {
-            this.twitchService.sendMessage(channel, `Arguments must be strings.` );
+    public async executeInternal(channel: string, user: IUser, author: string, ...args: string[]): Promise<void> {
+        if (typeof author !== "string") {
+            this.twitchService.sendMessage(channel, `Author must be string.` );
             return;
         }
+
+        const text = args.join(" ");
         if (author.trim() === "" || text.trim() === "") {
             this.twitchService.sendMessage(channel, `Missing arguments, use !addquote <author> <text> to add a quote.` );
             return;
         }
 
-        let quoteExists = await this.quotesRepository.quoteExists(author, text);
+        const quoteExists = await this.quotesRepository.quoteExists(author, text);
         if (!quoteExists) {
-            let quote = {
+            const quote = {
                 text,
                 author,
                 dateAdded: new Date(),

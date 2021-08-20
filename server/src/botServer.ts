@@ -174,7 +174,7 @@ class BotServer extends Server {
             if (sessionUser && req.query.userLevel) {
                 const debugUsernames = Config.debug.usernames as string[];
                 if (debugUsernames.indexOf(sessionUser.username) >= 0) {
-                    sessionUser.userLevelKey = parseInt(req.query.userLevel.toString(), 10);
+                    sessionUser.userLevel = parseInt(req.query.userLevel.toString(), 10);
                     req.login(sessionUser as Express.User, (err: any) => {
                         Logger.info(LogType.Server, "Updated session user");
                     });

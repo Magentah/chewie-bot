@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
-import { IUser, ITwitchChatList, AchievementType } from "../models";
+import { IUser, ITwitchChatList, AchievementType, UserLevels } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
 import { PointLogReason, PointLogType } from "../models/pointLog";
@@ -30,7 +30,7 @@ export class UserService {
                 points: 0,
                 hasLogin: false,
                 vipLevelKey: 1,
-                userLevelKey: 1,
+                userLevel: UserLevels.Viewer,
             };
         } else {
             newUser = user;
@@ -52,7 +52,7 @@ export class UserService {
                         points: 0,
                         hasLogin: false,
                         vipLevelKey: 1,
-                        userLevelKey: 1,
+                        userLevel: UserLevels.Viewer,
                     };
                 }
             );
@@ -133,6 +133,10 @@ export class UserService {
     public async addVipGoldWeeks(user: IUser, goldWeeks: number, reason: string) {
         if (isNaN(goldWeeks)) {
             throw new RangeError("Invalid number of VIP gold months provided.");
+        }
+
+        if (goldWeeks === 0) {
+            return;
         }
 
         let vipStartDate = new Date(new Date().toDateString());

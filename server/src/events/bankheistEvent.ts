@@ -1,5 +1,5 @@
-import { EventService, UserService, TwitchService, EventLogService } from "../services";
-import { GameEventType, GameMessageType, IUser } from "../models";
+import { EventService, UserService, TwitchService, EventLogService, EventAggregator } from "../services";
+import { AchievementType, GameEventType, GameMessageType, IUser } from "../models";
 import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
 import { Logger, LogType } from "../logger";
@@ -7,6 +7,7 @@ import { inject } from "inversify";
 import { Lang } from "../lang";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import MessagesRepository from "../database/messagesRepository";
+import PointLogsRepository from "../database/pointLogsRepository";
 
 /**
  * Detailed description of a bankheist: http://wiki.deepbot.tv/bankheist
@@ -37,6 +38,8 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         @inject(EventService) private eventService: EventService,
         @inject(EventLogService) private eventLogService: EventLogService,
         @inject(MessagesRepository) private messages: MessagesRepository,
+        @inject(PointLogsRepository) private pointsLog: PointLogsRepository,
+        @inject(EventAggregator) private eventAggregator: EventAggregator,
         initiatingUser: IUser,
         wager: number
     ) {
@@ -174,6 +177,17 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
                 }
             } else {
                 Logger.warn(LogType.Command, `No messages available for ${GameMessageType.NoWin}`);
+            }
+        }
+
+        // Grant achievements
+        for (const participant of this.participants) {
+            const stats = await this.pointsLog.getStats(participant.user, PointLogType.Bankheist);
+            const total = stats.lost + stats.won;
+            if (total > 0) {
+                this.eventAggregator.publishAchievement({user: participant.user, type: AchievementType.BankheistPointsWon, count: total });
+            } else if (total < 0) {
+                this.eventAggregator.publishAchievement({user: participant.user, type: AchievementType.BankheistPointsLost, count: -total });
             }
         }
 

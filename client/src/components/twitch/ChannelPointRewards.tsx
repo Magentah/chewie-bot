@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import { Popover, Box, Grid, Button, TextField, MenuItem, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from "@material-ui/core";
 import { Add, Save, Delete } from "@material-ui/icons";
 import axios from "axios";
 import MaterialTable from "material-table";
-import useUser from "../../hooks/user";
 
 type RowData = { twitchRewardId: number, title: string, cost: number, isEnabled: boolean, isGlobalCooldownEnabled: boolean, globalCooldown: number | null, shouldSkipRequestQueue: boolean, associatedRedemption: string };
 
@@ -15,19 +13,19 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
     const [currentRewardForAction, setCurrentRewardForAction] = useState<RowData>();
     const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
 
-    //TODO: Might be better to do this on the server instead of here. First API call gets all rewards from the Twitch API
+    // TODO: Might be better to do this on the server instead of here. First API call gets all rewards from the Twitch API
     // Second API call gets the saved redemptions from the database and adds the data to the other results.
     useEffect(() => {
         axios.get("/api/twitch/channelrewards").then((result) => {
             let results = result.data;
             axios.get("api/twitch/channelrewards/associations").then((savedChannelPointRewards) => {
-                results = results.map((result: any) => {
-                    const foundReward = savedChannelPointRewards.data.find((channelPointReward: any) => channelPointReward.twitchRewardId == result.id);
-                    return {...result, associatedRedemption: foundReward?.associatedRedemption}
+                results = results.map((res: any) => {
+                    const foundReward = savedChannelPointRewards.data.find((channelPointReward: any) => channelPointReward.twitchRewardId === res.id);
+                    return {...res, associatedRedemption: foundReward?.associatedRedemption}
                 });
 
                 setChannelPointRewards(results);
-            });            
+            });
         });
     }, []);
 
@@ -36,7 +34,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
             setRedemptions(result.data);
             setSelectedRedemption(redemptions[0]);
         });
-    }, []);
+    }, [redemptions]);
 
     const [popupAnchor, setPopupAnchor] = React.useState<HTMLButtonElement | undefined>(undefined);
     const open = Boolean(popupAnchor);
@@ -107,7 +105,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
                     <form>
                         <Grid container spacing={2} justify="flex-start" wrap={"nowrap"} alignItems="center">
                             <Grid item>
-                                <TextField 
+                                <TextField
                                     select
                                     label="Set Redemption"
                                     id="set-redemption"
@@ -121,9 +119,9 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
                                 </TextField>
                             </Grid>
                             <Grid item>
-                                <Button 
-                                    variant="contained" 
-                                    color="primary" 
+                                <Button
+                                    variant="contained"
+                                    color="primary"
                                     startIcon={<Save />}
                                     onClick={() => saveRedemption()}
                                     >Save</Button>

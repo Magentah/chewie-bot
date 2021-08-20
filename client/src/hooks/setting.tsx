@@ -8,15 +8,11 @@ import { useEffect, useState } from "react";
 function useSetting<S>(setting: string): S | undefined {
     const [value, setValue] = useState<S>();
 
-    const loadSetting = () => {
+    useEffect(() => {
         axios.get("/api/setting/" + setting).then((response) => {
             setValue(response.data);
         });
-    };
-
-    useEffect(() => {
-        loadSetting();
-    }, []);
+    }, [setting]);
 
     return value;
 }

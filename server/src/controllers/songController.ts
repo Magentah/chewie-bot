@@ -31,7 +31,7 @@ class SongController {
         const sessionUser = req.user as IUser;
         if (sessionUser) {
             const user = await this.userService.getUser(sessionUser.username);
-            if (user?.userLevelKey && user.userLevelKey >= UserLevels.Moderator) {
+            if (user?.userLevel && user.userLevel >= UserLevels.Moderator) {
                 clearComments = false;
             }
         }

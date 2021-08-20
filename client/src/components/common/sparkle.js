@@ -1,6 +1,6 @@
 /// Code from https://www.joshwcomeau.com/react/animated-sparkles-in-react/
 
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import styled from 'styled-components'
 import { keyframes }  from 'styled-components'
 

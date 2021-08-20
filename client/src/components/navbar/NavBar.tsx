@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppBar, Toolbar, IconButton, Typography, Button } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
-import useUser, { UserLevels } from "../../hooks/user";
 import { green, red } from "@material-ui/core/colors";
+import { UserContext, UserLevels } from "../../contexts/userContext";
 
 type NavBarProps = {};
 const sidebarWidth = 230;
@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
 
 const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const [botConnected, setBotConnected] = useState(false);
-    const [user, loadUser] = useUser();
+    const userContext = useContext(UserContext);
 
     const classes = useStyles();
     const watchChewie = () => {
@@ -70,7 +70,6 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         }
     };
 
-    useEffect(loadUser, []);
     useEffect(() => {
         axios.get("/api/twitch/status").then((response) => {
             if (response?.data.data.state === "OPEN") {
@@ -81,7 +80,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         });
     }, []);
 
-    const connectBotButton = (user.userLevelKey < UserLevels.Broadcaster) ? undefined :
+    const connectBotButton = (userContext.user.userLevel < UserLevels.Admin) ? undefined :
         <Button className={botConnected ? classes.connectedButton: classes.disconnectedButton} onClick={connectBot} variant="contained">
             <Typography variant="caption">
                 {botConnected ? "Bot is connected" : "Bot is not connected"}

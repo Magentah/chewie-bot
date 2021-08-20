@@ -3,7 +3,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import { Box, Typography, Grid, Card } from "@material-ui/core";
 import { Image } from "react-bootstrap";
-import * as Cookie from "js-cookie";
 
 const useStyles = makeStyles((theme) => ({
     collectionHeader: {
@@ -42,7 +41,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
         });
     }, []);
 
-    useEffect(() => updateAchievements(), []);
+    useEffect(() => updateAchievements(), [updateAchievements]);
 
     if (achievementList.length === 0) {
         return <Card>
