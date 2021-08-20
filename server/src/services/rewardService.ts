@@ -83,7 +83,8 @@ export default class RewardService {
         this.addSubUserPoints(user, sub.months, sub.sub_type === SubType.Resub ? PointLogType.Resub : PointLogType.Sub, sub.sub_plan, false);
 
         if (sub.sub_plan === SubscriptionPlan.Tier3) {
-            this.userService.addVipGoldWeeks(user, 2, "T3 Resub");
+            const goldWeeksT3 = parseInt(await this.settings.getValue(BotSettings.GoldWeeksPerT3Sub), 10);
+            this.userService.addVipGoldWeeks(user, goldWeeksT3, "T3 Resub");
         }
     }
 

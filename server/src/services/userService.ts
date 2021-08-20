@@ -135,6 +135,10 @@ export class UserService {
             throw new RangeError("Invalid number of VIP gold months provided.");
         }
 
+        if (goldWeeks === 0) {
+            return;
+        }
+
         let vipStartDate = new Date(new Date().toDateString());
 
         // If VIP status still active, renew starting at the VIP end date

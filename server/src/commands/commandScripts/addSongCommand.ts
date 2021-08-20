@@ -33,7 +33,7 @@ export class AddSongCommand extends Command {
     }
 
     public getDescription(): string {
-        return `Adds a new song to the song queue. Usage: !addsong <url> [<for user>]`;
+        return `Adds a new song to the song queue. Usage: !addsong <url> [<for user>] [<comment>]`;
     }
 }
 
