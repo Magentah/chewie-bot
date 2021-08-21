@@ -69,44 +69,50 @@ function copyTextToClipboard(text: string) {
 }
 
 const SongList: React.FC<any> = (props: any) => {
-    type RowData = { id: number, title: string, album: string, genre: string, created: number, attributedUserId?: number, attributedUsername: string };
+    type RowData = { id: number, title: string, album: string, genre: string, artist: string, created: number, attributedUserId?: number, attributedUsername: string, categoryId?: number };
+    type CategoryData = { id: number, name?: string, sortOrder?: number };
 
     const classes = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [songlistNew, setSonglistNew] = useState([] as RowData[]);
     const [songlistFiltered, setSonglistFiltered] = useState<RowData[] | undefined>(undefined);
-    const [selectedTab, setSelectedTab] = useState(1);
-    const [selectedTabBeforeSearch, setSelectedTabBeforeSearch] = useState(0);
+    const [selectedTab, setSelectedTab] = useState<CategoryData>();
+    const [selectedTabBeforeSearch, setSelectedTabBeforeSearch] = useState<CategoryData>();
     const [searchText, setSearchText] = useState("");
-    const [topLevelCategories, setTopLevelCategories] = useState([] as string[])
+    const [topLevelCategories, setTopLevelCategories] = useState([] as CategoryData[]);
+    const TabNew = { id: 0 } as CategoryData;
+    const TabSearch = { id: -1 } as CategoryData;
 
-    const selectTab = (tab: number, newList: RowData[], fullList: RowData[], genre: string) => {
-        setSelectedTab(tab);
-        if (tab === 0) {
+    const selectTab = (newList: RowData[], fullList: RowData[], genre: CategoryData) => {
+        setSelectedTab(genre);
+        if (genre.id === TabNew.id) {
             setSonglistFiltered(newList);
         } else {
-            setSonglistFiltered(fullList.filter(x => x.genre === genre));
+            setSonglistFiltered(fullList.filter(x => x.categoryId === genre.id));
         }
     };
 
     useEffect(() => {
-        axios.get("/api/songlist").then((response) => {
-            const results  = response.data as RowData[];
-
-            // Show new songs (14 days) in a separate category.
-            const twoWeeksAgo = new Date();
-            twoWeeksAgo.setDate(-14);
-            const newSongs = results.filter(row => row.created > twoWeeksAgo.getTime());
-
-            const genres = results.map(x => x.genre).filter((v, i, a) => a.indexOf(v) === i);
-            genres.splice(0, 0, `📢 New (${newSongs.length})`);
-
-            setSonglist(results);
-            setSonglistNew(newSongs);
+        let genres: CategoryData[];
+        axios.get("/api/songlist/categories").then((response) => {
+            genres = response.data as CategoryData[];
             setTopLevelCategories(genres);
-            if (genres.length > 1) {
-                selectTab(1, newSongs, results, genres[1]);
-            }
+        }).then((r) => {
+            axios.get("/api/songlist").then((response) => {
+                const results = response.data as RowData[];
+
+                // Show new songs (14 days) in a separate category.
+                const twoWeeksAgo = new Date();
+                twoWeeksAgo.setDate(-14);
+                const newSongs = results.filter(row => row.created > twoWeeksAgo.getTime());
+
+                setSonglist(results);
+                setSonglistNew(newSongs);
+
+                if (genres.length > 0) {
+                    selectTab(songlistNew, results, genres[0]);
+                }
+            });
         });
     }, []);
 
@@ -128,8 +134,8 @@ const SongList: React.FC<any> = (props: any) => {
         </Accordion>
     </Box>);
 
-    const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-        selectTab(newValue, songlistNew, songlist, topLevelCategories[newValue]);
+    const handleTabChange = (event: React.ChangeEvent<{}>, categoryId: number) => {
+        selectTab(songlistNew, songlist, { id: categoryId });
     };
 
     const handleSearchChange = (event: any) => {
@@ -137,11 +143,14 @@ const SongList: React.FC<any> = (props: any) => {
 
         if (event.target.value) {
             setSelectedTabBeforeSearch(selectedTab);
-            setSelectedTab(topLevelCategories.length);
+            setSelectedTab(TabSearch);
             const searchSubject = event.target.value.toLowerCase();
-            setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject) || x.album.toLowerCase().includes(searchSubject) || x.title.toLowerCase().includes(searchSubject)));
-        } else {
-            selectTab(selectedTabBeforeSearch, songlistNew, songlist, topLevelCategories[selectedTabBeforeSearch]);
+            setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject)
+                || x.album.toLowerCase().includes(searchSubject)
+                || x.artist?.toLowerCase().includes(searchSubject)
+                || x.title.toLowerCase().includes(searchSubject)));
+        } else if (selectedTabBeforeSearch) {
+            selectTab(songlistNew, songlist, selectedTabBeforeSearch);
         }
     }
 
@@ -156,12 +165,13 @@ const SongList: React.FC<any> = (props: any) => {
                 <Grid container>
                     <Grid item xs>
                         <Tabs
-                            value={selectedTab}
+                            value={selectedTab?.id}
                             indicatorColor="primary"
                             textColor="primary"
                             onChange={handleTabChange}>
-                            {topLevelCategories.map(x => <Tab className={classes.categoryTab} label={x} />)}
-                            {searchText ? <Tab className={classes.categoryTab} label={"Search"} /> : undefined}
+                            {songlistNew.length > 0 ? <Tab className={classes.categoryTab} label={`📢 New (${songlistNew.length})`} value={TabNew.id} /> : undefined}
+                            {topLevelCategories.map(x => <Tab className={classes.categoryTab} label={x.name} value={x.id} />)}
+                            {searchText ? <Tab className={classes.categoryTab} label={"Search"} value={TabSearch.id} /> : undefined}
                         </Tabs>
                     </Grid>
                     <Grid item>
@@ -184,13 +194,14 @@ const SongList: React.FC<any> = (props: any) => {
                 <ThemeProvider theme={condensedTheme}>
                     <MaterialTable
                         columns = {[
-                            { title: "Artist / Origin", field: "album", defaultSort: "asc" },
+                            { title: "Origin", field: "album", defaultSort: "asc" },
                             { title: "Title", field: "title" },
-                            { title: "Genre", field: "genre", hidden: selectedTab > 0 && selectedTab < topLevelCategories.length }
+                            { title: "Artist", field: "artist" },
+                            { title: "Genre", field: "genre", hidden: selectedTab !== undefined && selectedTab.id > 0 }
                         ]}
                         options = {{
                             paging: false,
-                            actionsColumnIndex: 3,
+                            actionsColumnIndex: 4,
                             showTitle: false,
                             search: false,
                             toolbar: false
