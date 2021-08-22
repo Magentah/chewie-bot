@@ -6,7 +6,7 @@ import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon } fro
 import { Route, DashboardRoutes } from "../../Routes";
 import { UserContext } from "../../contexts/userContext";
 
-const width = 230;
+const width = 235;
 const useStyles = makeStyles((theme) => {
     return {
         root: {
