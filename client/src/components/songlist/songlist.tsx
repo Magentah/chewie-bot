@@ -159,6 +159,10 @@ const SongList: React.FC<any> = (props: any) => {
         return <Box>{songrequestRules}<Card><Box p={5}><LinearProgress /></Box></Card></Box>;
     }
 
+    // Some categories might not have data for "origin" (pop songs for example),
+    // so don't waste space with an empty column.
+    const hasOrigin = songlistFiltered.some(x => x.album);
+
     return <Box>
             {songrequestRules}
             <Card>
@@ -194,7 +198,7 @@ const SongList: React.FC<any> = (props: any) => {
                 <ThemeProvider theme={condensedTheme}>
                     <MaterialTable
                         columns = {[
-                            { title: "Origin", field: "album", defaultSort: "asc" },
+                            { title: "Origin", field: "album", defaultSort: "asc", hidden: !hasOrigin },
                             { title: "Title", field: "title" },
                             { title: "Artist", field: "artist" },
                             { title: "Genre", field: "genre", hidden: selectedTab !== undefined && selectedTab.id > 0 }
