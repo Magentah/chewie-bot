@@ -1,29 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles, createTheme } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
 import {
     Grid, TextField, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails,
-    Icon, Tabs, Tab, Paper, InputAdornment, ThemeProvider, LinearProgress
+    Icon, Tabs, Tab, Paper, InputAdornment, LinearProgress, TableContainer, Table, TableCell, TableRow, TableHead, TableBody, IconButton
 } from "@material-ui/core";
 import Search from "@material-ui/icons/Search";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-
-// Use "condensed" display for rows
-const condensedTheme = createTheme({
-    overrides: {
-      MuiTableCell: {
-        root: {
-          padding: "0 16px",
-        }
-      },
-      MuiIconButton: {
-        root: {
-          padding: "6px 8px",
-        }
-      }
-    }
-});
 
 const useStyles = makeStyles((theme) => ({
     categoryTab: {
@@ -154,6 +137,10 @@ const SongList: React.FC<any> = (props: any) => {
         }
     }
 
+    const handleCopyClick = (row: RowData) => {
+        copyTextToClipboard(row.album + " - " + row.title);
+    };
+
     // Show loading animation while data is being loaded.
     if (!songlistFiltered) {
         return <Box>{songrequestRules}<Card><Box p={5}><LinearProgress /></Box></Card></Box>;
@@ -162,6 +149,8 @@ const SongList: React.FC<any> = (props: any) => {
     // Some categories might not have data for "origin" (pop songs for example),
     // so don't waste space with an empty column.
     const hasOrigin = songlistFiltered.some(x => x.album);
+    const showGenre = selectedTab === undefined || selectedTab.id <= 0;
+    let lastOrigin = "";
 
     return <Box>
             {songrequestRules}
@@ -195,38 +184,34 @@ const SongList: React.FC<any> = (props: any) => {
                     </Grid>
                 </Grid>
 
-                <ThemeProvider theme={condensedTheme}>
-                    <MaterialTable
-                        columns = {[
-                            { title: "Origin", field: "album", defaultSort: "asc", hidden: !hasOrigin },
-                            { title: "Title", field: "title" },
-                            { title: "Artist", field: "artist" },
-                            { title: "Genre", field: "genre", hidden: selectedTab !== undefined && selectedTab.id > 0 }
-                        ]}
-                        options = {{
-                            paging: false,
-                            actionsColumnIndex: 4,
-                            showTitle: false,
-                            search: false,
-                            toolbar: false
-                        }}
-                        actions={[
-                            {
-                                icon: "content_copy",
-                                tooltip: "Copy to clipboard",
-                                onClick: (event, rowData) => {
-                                    if ((rowData as RowData).title !== undefined) {
-                                        copyTextToClipboard((rowData as RowData).album + " - " + (rowData as RowData).title);
-                                    }
-                                }
-                            }
-                        ]}
-                        data = {songlistFiltered}
-                        components={{
-                            Container: p => <Paper {...p} elevation={0} className={classes.tableContainer} />
-                        }}
-                    />
-                </ThemeProvider>
+                <TableContainer component={Paper}>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                {hasOrigin ? <TableCell>Origin</TableCell> : undefined}
+                                <TableCell>Title</TableCell>
+                                <TableCell>Artist</TableCell>
+                                {showGenre ? <TableCell>Genre</TableCell> : undefined}
+                                <TableCell></TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                        {songlistFiltered.map((row) => (
+                            <TableRow key={row.id}>
+                                {hasOrigin ? <TableCell component="th" scope="row">{lastOrigin === row.album ? "" : (lastOrigin = row.album)}</TableCell> : undefined}
+                                <TableCell>{row.title}</TableCell>
+                                <TableCell>{row.artist}</TableCell>
+                                {showGenre ? <TableCell>{row.genre}</TableCell> : undefined}
+                                <TableCell align="right">
+                                    <IconButton onClick={() => handleCopyClick(row)} color="primary" aria-label="Copy to clipboard" component="span" style={{padding: 0}}>
+                                        <Icon>content_copy</Icon>
+                                    </IconButton>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Card>
     </Box>;
 };

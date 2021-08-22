@@ -13,6 +13,9 @@ export class SonglistRepository {
         const songlist = await databaseService
             .getQueryBuilder(DatabaseTables.Songlist)
             .leftJoin(DatabaseTables.Users, "songlist.attributedUserId", "users.id")
+            .orderBy("album")
+            .orderBy("artist")
+            .orderBy("title")
             .select(["songlist.*", "users.username AS attributedUsername"]);
         return songlist as ISonglistItem[];
     }
