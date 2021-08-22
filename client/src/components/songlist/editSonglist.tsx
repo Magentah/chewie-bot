@@ -4,7 +4,7 @@ import axios from "axios";
 import MaterialTable from "material-table"
 import {
     Grid, TextField, Button, Box, Card,
-    Popover, Paper, ThemeProvider
+    Popover, Paper, ThemeProvider, Tabs, Tab
 } from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import SaveIcon from "@material-ui/icons/Save";
@@ -45,6 +45,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [categories, setCategories] = useState([] as CategoryData[]);
     const [userlist, setUserlist] = useState([] as AutocompleteUser[]);
+    const [selectedTab, setSelectedTab] = useState(0);
 
     const [popupAnchor, setPopupAnchor] = useState<HTMLButtonElement | undefined>(undefined);
     const [currentRowForAction, setCurrentRowForAction] = useState<RowData>();
@@ -101,6 +102,10 @@ const EditSonglist: React.FC<any> = (props: any) => {
         });
     };
 
+    const handleTabChange = (event: React.ChangeEvent<{}>, tab: number) => {
+        setSelectedTab(tab);
+    };
+
     const openAttributionPopup = (button: HTMLButtonElement, song: RowData) => {
         setPopupAnchor(button);
         setCurrentRowForAction(song);
@@ -151,120 +156,130 @@ const EditSonglist: React.FC<any> = (props: any) => {
             </Box>
         </Popover>;
 
+        const categoryTable = <MaterialTable
+            columns = {[
+                { title: "Category", field: "name" }
+            ]}
+            options = {{
+                paging: false,
+                sorting: false,
+                actionsColumnIndex: 1,
+                showTitle: false,
+                search: false,
+                toolbar: true
+            }}
+            actions={[
+                rowData => ({
+                    icon: ArrowUpwardIcon,
+                    tooltip: "Move up",
+                    disabled: categories.indexOf(rowData) === 0,
+                    onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], -1) : onCategoryMoved([ data as CategoryData ], -1)
+                }),
+                rowData => ({
+                    icon: ArrowDownwardIcon,
+                    tooltip: "Move down",
+                    disabled: categories.indexOf(rowData) === categories.length - 1,
+                    onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], 1) : onCategoryMoved([ data as CategoryData ], 1)
+                }),
+            ]}
+            data = {categories}
+            editable = {
+                {
+                    isEditable: rowData => true,
+                    isDeletable: rowData => true,
+                    onRowAdd: (newData) => axios.post("/api/songlist/categories/add", newData).then((result) => {
+                        const newList = [...categories, result.data as CategoryData];
+                        setCategories(newList);
+                    }),
+                    onRowUpdate: (newData, oldData) => axios.post("/api/songlist/categories/update", newData).then((result) => {
+                        const newCategories = [...categories];
+                        // @ts-ignore
+                        const index = oldData?.tableData.id;
+                        newCategories[index] = newData;
+                        setCategories(newCategories);
+                    }),
+                    onRowDelete: oldData => axios.post("/api/songlist/categories/delete", oldData).then((result) => {
+                        const newCategories = [...categories];
+                        // @ts-ignore
+                        const index = oldData?.tableData.id;
+                        newCategories.splice(index, 1);
+                        setCategories(newCategories);
+                    })
+                }
+            }
+            components={{
+                Container: p => <Paper {...p} elevation={0} className={classes.tableContainer} style={{marginTop: 0}} />
+            }}
+            />;
+
+        const songlistTable = <MaterialTable
+            columns = {[
+                { title: "Origin", field: "album", defaultSort: "asc" },
+                { title: "Title", field: "title" },
+                { title: "Artist", field: "artist" },
+                { title: "Genre", field: "categoryId", lookup: Object.fromEntries(categories.map(e => [e.id, e.name])) }
+            ]}
+            options = {{
+                paging: true,
+                pageSize: 50,
+                pageSizeOptions: [50, 100, 200],
+                actionsColumnIndex: 4,
+                showTitle: false,
+                search: true,
+                addRowPosition: "first"
+            }}
+            actions={[
+                rowData => ({
+                    icon: "attribution",
+                    iconProps: rowData.attributedUserId ? { color: "primary" } : undefined,
+                    tooltip: "Attribute to user",
+                    onClick: (event, r) => {
+                        if ((r as RowData).title !== undefined) {
+                            openAttributionPopup(event.currentTarget, r as RowData);
+                        }
+                    }
+                })
+            ]}
+            data = {songlist}
+            editable = {
+                {
+                    isEditable: rowData => true,
+                    isDeletable: rowData => true,
+                    onRowAdd: (newData) => axios.post("/api/songlist/add", newData).then((result) => {
+                        const newList = [...songlist, result.data as RowData];
+                        setSonglist(newList);
+                    }),
+                    onRowUpdate: updateSong,
+                    onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
+                        const newSonglist = [...songlist];
+                        // @ts-ignore
+                        const index = oldData?.tableData.id;
+                        newSonglist.splice(index, 1);
+                        setSonglist(newSonglist);
+                    })
+                }
+            }
+            components={{
+                Container: p => <Paper {...p} elevation={0} className={classes.tableContainer} style={{marginTop: 0}} />
+            }}
+        />;
+
     return <Box>
             {attributionPopover}
             <Card>
                 <ThemeProvider theme={condensedTheme}>
-                    <MaterialTable
-                        columns = {[
-                            { title: "Category", field: "name" }
-                        ]}
-                        options = {{
-                            paging: false,
-                            sorting: false,
-                            actionsColumnIndex: 1,
-                            showTitle: false,
-                            search: false,
-                            toolbar: true
-                        }}
-                        actions={[
-                            rowData => ({
-                                icon: ArrowUpwardIcon,
-                                tooltip: "Move up",
-                                disabled: categories.indexOf(rowData) === 0,
-                                onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], -1) : onCategoryMoved([ data as CategoryData ], -1)
-                            }),
-                            rowData => ({
-                                icon: ArrowDownwardIcon,
-                                tooltip: "Move down",
-                                disabled: categories.indexOf(rowData) === categories.length - 1,
-                                onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], 1) : onCategoryMoved([ data as CategoryData ], 1)
-                            }),
-                        ]}
-                        data = {categories}
-                        editable = {
-                            {
-                                isEditable: rowData => true,
-                                isDeletable: rowData => true,
-                                onRowAdd: (newData) => axios.post("/api/songlist/categories/add", newData).then((result) => {
-                                    const newList = [...categories, result.data as CategoryData];
-                                    setCategories(newList);
-                                }),
-                                onRowUpdate: (newData, oldData) => axios.post("/api/songlist/categories/update", newData).then((result) => {
-                                    const newCategories = [...categories];
-                                    // @ts-ignore
-                                    const index = oldData?.tableData.id;
-                                    newCategories[index] = newData;
-                                    setCategories(newCategories);
-                                }),
-                                onRowDelete: oldData => axios.post("/api/songlist/categories/delete", oldData).then((result) => {
-                                    const newCategories = [...categories];
-                                    // @ts-ignore
-                                    const index = oldData?.tableData.id;
-                                    newCategories.splice(index, 1);
-                                    setCategories(newCategories);
-                                })
-                            }
-                        }
-                        components={{
-                            Container: p => <Paper {...p} elevation={0} className={classes.tableContainer} />
-                        }}
-                    />
+                    <Tabs value={selectedTab}
+                          indicatorColor="primary"
+                          textColor="primary"
+                          onChange={handleTabChange}>
+                          <Tab label={"Songs"} value={0} />
+                          <Tab label={"Categories"} value={1} />
+                    </Tabs>
 
-                    <MaterialTable
-                        columns = {[
-                            { title: "Origin", field: "album", defaultSort: "asc" },
-                            { title: "Title", field: "title" },
-                            { title: "Artist", field: "artist" },
-                            { title: "Genre", field: "categoryId", lookup: Object.fromEntries(categories.map(e => [e.id, e.name])) }
-                        ]}
-                        options = {{
-                            paging: true,
-                            pageSize: 50,
-                            pageSizeOptions: [50, 100, 200],
-                            actionsColumnIndex: 4,
-                            showTitle: false,
-                            search: true,
-                            addRowPosition: "first"
-                        }}
-                        actions={[
-                            rowData => ({
-                                icon: "attribution",
-                                iconProps: rowData.attributedUserId ? { color: "primary" } : undefined,
-                                tooltip: "Attribute to user",
-                                onClick: (event, r) => {
-                                    if ((r as RowData).title !== undefined) {
-                                        openAttributionPopup(event.currentTarget, r as RowData);
-                                    }
-                                }
-                            })
-                        ]}
-                        data = {songlist}
-                        editable = {
-                            {
-                                isEditable: rowData => true,
-                                isDeletable: rowData => true,
-                                onRowAdd: (newData) => axios.post("/api/songlist/add", newData).then((result) => {
-                                    const newList = [...songlist, result.data as RowData];
-                                    setSonglist(newList);
-                                }),
-                                onRowUpdate: updateSong,
-                                onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
-                                    const newSonglist = [...songlist];
-                                    // @ts-ignore
-                                    const index = oldData?.tableData.id;
-                                    newSonglist.splice(index, 1);
-                                    setSonglist(newSonglist);
-                                })
-                            }
-                        }
-                        components={{
-                            Container: p => <Paper {...p} elevation={0} className={classes.tableContainer} />
-                        }}
-                    />
+                    {selectedTab === 0 ? songlistTable : categoryTable}
                 </ThemeProvider>
             </Card>
-    </Box>;
+        </Box>;
 };
 
 export default EditSonglist;
