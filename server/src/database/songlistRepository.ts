@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
-import { ISonglistCategory, ISonglistItem } from "../models";
+import { ISonglistCategory, ISonglistItem, IUser } from "../models";
 
 @injectable()
 export class SonglistRepository {
@@ -8,15 +8,20 @@ export class SonglistRepository {
         // Empty
     }
 
-    public async getList(): Promise<ISonglistItem[]> {
+    public async getList(userId: number | undefined): Promise<ISonglistItem[]> {
         const databaseService = await this.databaseProvider();
         const songlist = await databaseService
             .getQueryBuilder(DatabaseTables.Songlist)
             .leftJoin(DatabaseTables.Users, "songlist.attributedUserId", "users.id")
+            .leftJoin(DatabaseTables.SonglistFavorites, (x) => {
+                x.on("songlist.id", "songlistFavorites.songId")
+                .andOnVal("songlistFavorites.userId", "=", userId ?? 0)
+            })
             .orderBy("album")
             .orderBy("artist")
             .orderBy("title")
-            .select(["songlist.*", "users.username AS attributedUsername"]);
+            .select(["songlist.*", "users.username AS attributedUsername", "songlistFavorites.id AS favoriteId"]);
+
         return songlist as ISonglistItem[];
     }
 
@@ -26,33 +31,60 @@ export class SonglistRepository {
         return categories as ISonglistCategory[];
     }
 
-    public async getRandom(searchTerm: string): Promise<ISonglistItem | undefined> {
+    public async getRandom(searchTerm: string, filterFavorite?: IUser): Promise<ISonglistItem | undefined> {
         const databaseService = await this.databaseProvider();
 
         if (searchTerm) {
             // First take any random song from a given genre
-            let result = await databaseService
+            let query = databaseService
                 .getQueryBuilder(DatabaseTables.Songlist)
                 .where("genre", "like", `%${searchTerm}%`)
+                .leftJoin(DatabaseTables.SonglistFavorites, (x) => {
+                    x.on("songlist.id", "songlistFavorites.songId")
+                    .andOnVal("songlistFavorites.userId", "=", filterFavorite?.id ?? 0)
+                })
                 .orderByRaw("RANDOM()")
-                .first() as ISonglistItem;
+                .first();
 
+            if (filterFavorite?.id) {
+                query = query.whereNotNull("songlistFavorites.id");
+            }
+
+            const result = await query as ISonglistItem;
             if (result) {
                 return result;
             }
 
             // Otherwise any result that fits.
-            result = await databaseService
-                .getQueryBuilder(DatabaseTables.Songlist)
-                .where("album", "like", `%${searchTerm}%`)
-                .orWhere("title", "like", `%${searchTerm}%`)
+            query = databaseService.getQueryBuilder(DatabaseTables.Songlist)
+                .where((bd) => bd.where("album", "like", `%${searchTerm}%`).orWhere("title", "like", `%${searchTerm}%`))
+                .leftJoin(DatabaseTables.SonglistFavorites, (x) => {
+                    x.on("songlist.id", "songlistFavorites.songId")
+                    .andOnVal("songlistFavorites.userId", "=", filterFavorite?.id ?? 0)
+                })
                 .orderByRaw("RANDOM()")
-                .first() as ISonglistItem;
+                .first();
 
-            return result;
+            if (filterFavorite?.id) {
+                query = query.whereNotNull("songlistFavorites.id");
+            }
+
+            return await query;
         }
 
-        return await databaseService.getQueryBuilder(DatabaseTables.Songlist).orderByRaw("RANDOM()").first() as ISonglistItem;
+        let query = databaseService.getQueryBuilder(DatabaseTables.Songlist)
+            .leftJoin(DatabaseTables.SonglistFavorites, (x) => {
+                x.on("songlist.id", "songlistFavorites.songId")
+                .andOnVal("songlistFavorites.userId", "=", filterFavorite?.id ?? 0)
+            })
+            .orderByRaw("RANDOM()")
+            .first();
+
+        if (filterFavorite?.id) {
+            query = query.whereNotNull("songlistFavorites.id");
+        }
+
+        return await query as ISonglistItem;
     }
 
     public async get(id: number): Promise<ISonglistItem> {
@@ -128,6 +160,16 @@ export class SonglistRepository {
     public async deleteCategory(item: ISonglistCategory) {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.SonglistCategories).delete().where({ id: item.id });
+    }
+
+    public async markFavorite(user: IUser, id: number | undefined) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.SonglistFavorites).insert({userId: user.id, songId: id}).onConflict().ignore();
+    }
+
+    public async unmarkFavorite(user: IUser, id: number | undefined) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.SonglistFavorites).delete().where({userId: user.id, songId: id});
     }
 }
 

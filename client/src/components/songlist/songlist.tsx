@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { makeStyles, createTheme } from "@material-ui/core/styles";
+import React, { useContext, useEffect, useState } from "react";
+import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import {
     Grid, TextField, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails,
@@ -7,6 +7,9 @@ import {
 } from "@material-ui/core";
 import Search from "@material-ui/icons/Search";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import StarIcon from "@material-ui/icons/Star";
+import StarOutlineIcon from "@material-ui/icons/StarOutline";
+import { UserContext } from "../../contexts/userContext";
 
 const useStyles = makeStyles((theme) => ({
     categoryTab: {
@@ -52,10 +55,14 @@ function copyTextToClipboard(text: string) {
 }
 
 const SongList: React.FC<any> = (props: any) => {
-    type RowData = { id: number, title: string, album: string, genre: string, artist: string, created: number, attributedUserId?: number, attributedUsername: string, categoryId?: number };
+    type RowData = {
+        id: number, title: string, album: string, genre: string, artist: string, created: number, attributedUserId?: number,
+        attributedUsername: string, categoryId?: number, favoriteId?: number
+    };
     type CategoryData = { id: number, name?: string, sortOrder?: number };
 
     const classes = useStyles();
+    const userContext = useContext(UserContext);
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [songlistNew, setSonglistNew] = useState([] as RowData[]);
     const [songlistFiltered, setSonglistFiltered] = useState<RowData[] | undefined>(undefined);
@@ -141,6 +148,46 @@ const SongList: React.FC<any> = (props: any) => {
         copyTextToClipboard(row.album + " - " + row.title);
     };
 
+
+    const updateRowInList = (list: RowData[], row: RowData, updatedRow: RowData): RowData[] => {
+        if (list) {
+            const index = list.indexOf(row);
+            if (index < 0) {
+                return list;
+            }
+
+            const newData = [...list];
+            newData?.splice(index, 1, updatedRow);
+            return newData;
+        } else {
+            return list;
+        }
+    }
+
+    const handleFavoriteClick = async (row: RowData) => {
+        let updatedRow: RowData | undefined;
+
+        try {
+            if (row.favoriteId) {
+                await axios.post("/api/songlist/unstar", row);
+                updatedRow = {...row, favoriteId: 0};
+            } else {
+                await axios.post("/api/songlist/star", row);
+                updatedRow = {...row, favoriteId: 1};
+            }
+        } catch (err) {
+            return;
+        }
+
+        if (updatedRow) {
+            if (songlistFiltered) {
+                setSonglistFiltered(updateRowInList(songlistFiltered, row, updatedRow));
+            }
+            setSonglistNew(updateRowInList(songlistNew, row, updatedRow));
+            setSonglist(updateRowInList(songlist, row, updatedRow));
+        }
+    };
+
     // Show loading animation while data is being loaded.
     if (!songlistFiltered) {
         return <Box>{songrequestRules}<Card><Box p={5}><LinearProgress /></Box></Card></Box>;
@@ -206,6 +253,10 @@ const SongList: React.FC<any> = (props: any) => {
                                     <IconButton onClick={() => handleCopyClick(row)} color="primary" aria-label="Copy to clipboard" component="span" style={{padding: 0}}>
                                         <Icon>content_copy</Icon>
                                     </IconButton>
+                                    {userContext.user.id ?
+                                    <IconButton onClick={() => handleFavoriteClick(row)} color="primary" aria-label="Mark as favorite" component="span" style={{padding: 0, paddingLeft: 3}}>
+                                        {row.favoriteId ? <StarIcon /> : <StarOutlineIcon />}
+                                    </IconButton> : undefined}
                                 </TableCell>
                             </TableRow>
                         ))}

@@ -18,6 +18,7 @@ export enum DatabaseTables {
     BotSettings = "botSettings",
     Songlist = "songlist",
     SonglistCategories = "songlistCategories",
+    SonglistFavorites = "songlistFavorites",
     TwitchUserProfile = "twitchUserProfile",
     DiscordSettings = "discordSettings",
     EventLogs = "eventLogs",
@@ -98,6 +99,7 @@ export class DatabaseService {
                 await this.createBotSettingsTable();
                 await this.createSonglistTable();
                 await this.createSonglistCategoriesTable();
+                await this.createSonglistFavoritesTable();
                 await this.createDiscordSettingTable();
                 await this.createEventLogsTable();
                 await this.createPointLogsTable();
@@ -286,6 +288,15 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("name").notNullable().unique();
             table.integer("sortOrder").notNullable();
+        });
+    }
+
+    private async createSonglistFavoritesTable(): Promise<void> {
+        return this.createTable(DatabaseTables.SonglistFavorites, (table) => {
+            table.increments("id").primary().notNullable();
+            table.integer("userId").notNullable().references(`id`).inTable(DatabaseTables.Users).onDelete("CASCADE");
+            table.integer("songId").notNullable().references(`id`).inTable(DatabaseTables.Songlist).onDelete("CASCADE");
+            table.unique(["userId", "songId"]);
         });
     }
 
