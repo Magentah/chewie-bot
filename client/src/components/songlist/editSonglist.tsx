@@ -23,6 +23,11 @@ const condensedTheme = createTheme({
         root: {
           padding: "6px 8px",
         }
+      },
+      MuiInputBase: {
+        root: {
+            fontSize: "13px",
+          }
       }
     }
 });
@@ -214,9 +219,41 @@ const EditSonglist: React.FC<any> = (props: any) => {
 
         const songlistTable = <MaterialTable
             columns = {[
-                { title: "Origin", field: "album", defaultSort: "asc" },
+                {
+                    title: "Origin", field: "album", defaultSort: "asc",
+                    editComponent: p => (
+                        <Autocomplete
+                            id="song-origin"
+                            freeSolo
+                            size="small"
+                            fullWidth
+                            inputValue={p.value}
+                            /* Use unique values for autocomplete */
+                            options={songlist.map((x) => x.album).filter((v,i,a) => v && a.indexOf(v) === i)}
+                            onInputChange={(event: any, newValue: string | null) => p.onChange(newValue)}
+                            renderInput={(params: any) => (
+                                <TextField {...params} placeholder="Origin" fullWidth size="small" />
+                            )}
+                        />)
+                },
                 { title: "Title", field: "title" },
-                { title: "Artist", field: "artist" },
+                {
+                    title: "Artist", field: "artist",
+                    editComponent: p => (
+                        <Autocomplete
+                            id="song-artist"
+                            freeSolo
+                            size="small"
+                            fullWidth
+                            inputValue={p.value}
+                            /* Use unique values for autocomplete */
+                            options={songlist.map((x) => x.artist).filter((v,i,a) => v && a.indexOf(v) === i)}
+                            onInputChange={(event: any, newValue: string | null) => p.onChange(newValue)}
+                            renderInput={(params: any) => (
+                                <TextField {...params} placeholder="Artist" fullWidth />
+                            )}
+                        />)
+                },
                 { title: "Genre", field: "categoryId", lookup: Object.fromEntries(categories.map(e => [e.id, e.name])) }
             ]}
             options = {{
