@@ -70,13 +70,13 @@ class CommandlistController {
                     }
 
                     let commandName = "";
-                    let commandArguments: string[] = [];
+                    let commandArguments = "";
 
                     // Split list of command arguments to array if any
                     const argsSeparator = commandContent.indexOf(" ");
                     if (argsSeparator > 0) {
                         commandName = commandContent.substr(0, argsSeparator);
-                        commandArguments = commandContent.substr(argsSeparator + 1).split(" ");
+                        commandArguments = commandContent.substr(argsSeparator + 1);
                     } else {
                         commandName = commandContent;
                     }
@@ -140,10 +140,10 @@ class CommandlistController {
                         const argsSeparator = commandContent.indexOf(" ");
                         if (argsSeparator > 0) {
                             aliasCommand.commandName = commandContent.substr(0, argsSeparator);
-                            aliasCommand.commandArguments = commandContent.substr(argsSeparator + 1).split(" ");
+                            aliasCommand.commandArguments = commandContent.substr(argsSeparator + 1);
                         } else {
                             aliasCommand.commandName = commandContent;
-                            aliasCommand.commandArguments = [];
+                            aliasCommand.commandArguments = "";
                         }
 
                         aliasCommand.alias = commandInfo.commandName;
