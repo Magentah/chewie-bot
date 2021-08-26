@@ -72,13 +72,16 @@ const SongList: React.FC<any> = (props: any) => {
     const [topLevelCategories, setTopLevelCategories] = useState([] as CategoryData[]);
     const TabNew = { id: 0 } as CategoryData;
     const TabSearch = { id: -1 } as CategoryData;
+    const TabFavorite = { id: -2 } as CategoryData;
 
-    const selectTab = (newList: RowData[], fullList: RowData[], genre: CategoryData) => {
-        setSelectedTab(genre);
-        if (genre.id === TabNew.id) {
+    const selectTab = (newList: RowData[], fullList: RowData[], category: CategoryData) => {
+        setSelectedTab(category);
+        if (category.id === TabNew.id) {
             setSonglistFiltered(newList);
+        } else if (category.id === TabFavorite.id) {
+            setSonglistFiltered(fullList.filter(x => x.favoriteId));
         } else {
-            setSonglistFiltered(fullList.filter(x => x.categoryId === genre.id));
+            setSonglistFiltered(fullList.filter(x => x.categoryId === category.id));
         }
     };
 
@@ -211,6 +214,7 @@ const SongList: React.FC<any> = (props: any) => {
                             onChange={handleTabChange}>
                             {songlistNew.length > 0 ? <Tab className={classes.categoryTab} label={`📢 New (${songlistNew.length})`} value={TabNew.id} /> : undefined}
                             {topLevelCategories.map(x => <Tab className={classes.categoryTab} label={x.name} value={x.id} />)}
+                            {songlist.some(x => x.favoriteId) ? <Tab className={classes.categoryTab} label={<StarIcon />} aria-label="Favorite songs" value={TabFavorite.id} title="Favorite songs" /> : undefined}
                             {searchText ? <Tab className={classes.categoryTab} label={"Search"} value={TabSearch.id} /> : undefined}
                         </Tabs>
                     </Grid>
