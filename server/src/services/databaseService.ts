@@ -18,6 +18,8 @@ export enum DatabaseTables {
     BotSettings = "botSettings",
     Songlist = "songlist",
     SonglistCategories = "songlistCategories",
+    SonglistTags = "songlistTags",
+    SonglistSongTags = "songlistSongTags",
     SonglistFavorites = "songlistFavorites",
     TwitchUserProfile = "twitchUserProfile",
     DiscordSettings = "discordSettings",
@@ -100,6 +102,8 @@ export class DatabaseService {
                 await this.createSonglistTable();
                 await this.createSonglistCategoriesTable();
                 await this.createSonglistFavoritesTable();
+                await this.createSonglistTagsTable();
+                await this.createSonglistSongTagsTable();
                 await this.createDiscordSettingTable();
                 await this.createEventLogsTable();
                 await this.createPointLogsTable();
@@ -297,6 +301,22 @@ export class DatabaseService {
             table.integer("userId").notNullable().references(`id`).inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.integer("songId").notNullable().references(`id`).inTable(DatabaseTables.Songlist).onDelete("CASCADE");
             table.unique(["userId", "songId"]);
+        });
+    }
+
+    private async createSonglistTagsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.SonglistTags, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("name").notNullable().unique();
+        });
+    }
+
+    private async createSonglistSongTagsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.SonglistSongTags, (table) => {
+            table.increments("id").primary().notNullable();
+            table.integer("tagId").notNullable().references(`id`).inTable(DatabaseTables.SonglistTags).onDelete("CASCADE");
+            table.integer("songId").notNullable().references(`id`).inTable(DatabaseTables.Songlist).onDelete("CASCADE");
+            table.unique(["tagId", "songId"]);
         });
     }
 

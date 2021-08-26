@@ -15,6 +15,7 @@ songListRouter.post("/api/songlist/star", (req, res) => songlistController.markF
 songListRouter.post("/api/songlist/unstar", (req, res) => songlistController.unmarkFavoriteSong(req, res));
 
 songListRouter.get("/api/songlist/categories", (req, res) => songlistController.getSonglistCategories(req, res));
+songListRouter.get("/api/songlist/tags", (req, res) => songlistController.getSonglistTags(req, res));
 songListRouter.post("/api/songlist/categories/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songlistController.addCategory(req, res));
 songListRouter.post("/api/songlist/categories/update", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songlistController.updateCategory(req, res));
 songListRouter.post("/api/songlist/categories", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songlistController.updateSonglistCategories(req, res));

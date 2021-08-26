@@ -3,14 +3,20 @@ export default interface ISonglistItem {
     album: string;
     title: string;
     artist: string;
-    genre: string;
+    genre?: string;
     categoryId: number;
     created?: Date;
-    attributedUserId?: number | null
+    attributedUserId?: number | null;
+    songTags?: string | string[]
 }
 
 export interface ISonglistCategory {
     id?: number;
     name: string;
     sortOrder: number;
+}
+
+export interface ISonglistTag {
+    id?: number;
+    name: string;
 }

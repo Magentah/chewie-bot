@@ -27,7 +27,7 @@ class SonglistController {
         const sessionUser = req.user as IUser;
         const songs = await this.songlistService.getList(sessionUser?.id);
         res.status(StatusCodes.OK);
-        res.send(songs);
+        res.send(songs.map(x => ({...x, songTags: typeof(x.songTags) === "string" ? x.songTags?.split(";") ?? [] : x.songTags})));
     }
 
     /**
@@ -39,6 +39,17 @@ class SonglistController {
         const categories = await this.songlistService.getCategories();
         res.status(StatusCodes.OK);
         res.send(categories);
+    }
+
+    /**
+     * Gets all songlist tags.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async getSonglistTags(req: Request, res: Response): Promise<void> {
+        const tags = await this.songlistService.getTags();
+        res.status(StatusCodes.OK);
+        res.send(tags);
     }
 
     /**
@@ -58,11 +69,11 @@ class SonglistController {
             await this.songlistService.update({
                 id: newSong.id,
                 album: newSong.album,
-                genre: newSong.genre,
                 artist: newSong.artist,
                 categoryId: newSong.categoryId,
                 title: newSong.title,
-                attributedUserId: newSong.attributedUserId ?? null
+                attributedUserId: newSong.attributedUserId ?? null,
+                songTags: newSong.songTags
             });
 
             if (newSong.attributedUserId) {
@@ -101,15 +112,15 @@ class SonglistController {
         }
 
         try {
-            await this.songlistService.add({
+            const result = await this.songlistService.add({
                 album: newSong.album,
-                genre: "",
                 artist: newSong.artist,
                 categoryId: newSong.categoryId,
-                title: newSong.title
+                title: newSong.title,
+                songTags: newSong.songTags
             });
             res.status(StatusCodes.OK);
-            res.send(newSong);
+            res.send(result);
         } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(

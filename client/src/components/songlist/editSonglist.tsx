@@ -4,7 +4,7 @@ import axios from "axios";
 import MaterialTable from "material-table"
 import {
     Grid, TextField, Button, Box, Card,
-    Popover, Paper, ThemeProvider, Tabs, Tab
+    Popover, Paper, ThemeProvider, Tabs, Tab, Chip
 } from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import SaveIcon from "@material-ui/icons/Save";
@@ -38,17 +38,31 @@ const useStyles = makeStyles((theme) => ({
     },
     tableContainer: {
         marginTop: theme.spacing(2)
-    }
+    },
+    tagContainer: {
+        display: "flex",
+        flexWrap: "wrap",
+        listStyle: "none",
+        margin: 0,
+      },
+    chip: {
+        margin: theme.spacing(0.5),
+    },
 }));
 
 const EditSonglist: React.FC<any> = (props: any) => {
-    type RowData = { id: number, title: string, album: string, artist: string, categoryId: number, created: number, attributedUserId?: number, attributedUsername: string };
+    type RowData = {
+        id: number, title: string, album: string, artist: string, categoryId: number,
+        created: number, attributedUserId?: number, attributedUsername: string, songTags: string[]
+    };
     type CategoryData = { id: number, name: string, sortOrder: number };
+    type TagData = { id: number, name: string };
     type AutocompleteUser = { username: string, id: number };
 
     const classes = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [categories, setCategories] = useState([] as CategoryData[]);
+    const [tags, setTags] = useState([] as TagData[]);
     const [userlist, setUserlist] = useState([] as AutocompleteUser[]);
     const [selectedTab, setSelectedTab] = useState(0);
 
@@ -66,6 +80,10 @@ const EditSonglist: React.FC<any> = (props: any) => {
         axios.get("/api/songlist/categories").then((response) => {
             const results  = response.data as CategoryData[];
             setCategories(results);
+        });
+        axios.get("/api/songlist/tags").then((response) => {
+            const results  = response.data as TagData[];
+            setTags(results);
         });
     }, []);
 
@@ -254,13 +272,43 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             )}
                         />)
                 },
-                { title: "Genre", field: "categoryId", lookup: Object.fromEntries(categories.map(e => [e.id, e.name])) }
+                { title: "Genre", field: "categoryId", lookup: Object.fromEntries(categories.map(e => [e.id, e.name])) },
+                {
+                    title: "Tags", field: "songTags",
+                    render: rowData =>
+                        (<Box className={classes.tagContainer}>
+                        {rowData.songTags?.map((data) => {
+                                return (
+                                <li key={data}>
+                                    <Chip size="small" label={data} className={classes.chip} />
+                                </li>);
+                        })}
+                        </Box>),
+                    editComponent: p => (
+                        <Autocomplete
+                            multiple
+                            id="song-tags"
+                            options={tags.map((option) => option.name)}
+                            defaultValue={p.value}
+                            freeSolo
+                            size="small"
+                            onChange={(event: any, newValue: string[] | null) => p.onChange(newValue)}
+                            renderTags={(value: string[], getTagProps) =>
+                                value.map((option: string, index: number) => (
+                                    <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                                ))
+                            }
+                            renderInput={(params) => (
+                                <TextField {...params} label="" placeholder="Tags" />
+                            )}
+                        />)
+                },
             ]}
             options = {{
                 paging: true,
                 pageSize: 50,
                 pageSizeOptions: [50, 100, 200],
-                actionsColumnIndex: 4,
+                actionsColumnIndex: 5,
                 showTitle: false,
                 search: true,
                 addRowPosition: "first"
