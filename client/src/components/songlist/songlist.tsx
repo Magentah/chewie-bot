@@ -254,13 +254,15 @@ const SongList: React.FC<any> = (props: any) => {
                                 <TableCell>{row.artist}</TableCell>
                                 {showGenre ? <TableCell>{row.genre}</TableCell> : undefined}
                                 <TableCell align="right">
-                                    <IconButton onClick={() => handleCopyClick(row)} color="primary" aria-label="Copy to clipboard" component="span" style={{padding: 0}}>
-                                        <Icon>content_copy</Icon>
-                                    </IconButton>
-                                    {userContext.user.id ?
-                                    <IconButton onClick={() => handleFavoriteClick(row)} color="primary" aria-label="Mark as favorite" component="span" style={{padding: 0, paddingLeft: 3}}>
-                                        {row.favoriteId ? <StarIcon /> : <StarOutlineIcon />}
-                                    </IconButton> : undefined}
+                                    <Grid justify="flex-end" container wrap={"nowrap"}>
+                                        <IconButton onClick={() => handleCopyClick(row)} color="primary" aria-label="Copy to clipboard" component="span" style={{padding: 0}}>
+                                            <Icon>content_copy</Icon>
+                                        </IconButton>
+                                        {userContext.user.id ?
+                                        <IconButton onClick={() => handleFavoriteClick(row)} color="primary" aria-label="Mark as favorite" component="span" style={{padding: 0, paddingLeft: 3}}>
+                                            {row.favoriteId ? <StarIcon /> : <StarOutlineIcon />}
+                                        </IconButton> : undefined}
+                                    </Grid>
                                 </TableCell>
                             </TableRow>
                         ))}
