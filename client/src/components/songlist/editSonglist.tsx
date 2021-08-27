@@ -245,7 +245,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             freeSolo
                             size="small"
                             fullWidth
-                            inputValue={p.value}
+                            inputValue={p.value ?? ""}
                             /* Use unique values for autocomplete */
                             options={songlist.map((x) => x.album).filter((v,i,a) => v && a.indexOf(v) === i)}
                             onInputChange={(event: any, newValue: string | null) => p.onChange(newValue)}
@@ -263,7 +263,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             freeSolo
                             size="small"
                             fullWidth
-                            inputValue={p.value}
+                            inputValue={p.value ?? ""}
                             /* Use unique values for autocomplete */
                             options={songlist.map((x) => x.artist).filter((v,i,a) => v && a.indexOf(v) === i)}
                             onInputChange={(event: any, newValue: string | null) => p.onChange(newValue)}
@@ -289,7 +289,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             multiple
                             id="song-tags"
                             options={tags.map((option) => option.name)}
-                            defaultValue={p.value}
+                            defaultValue={p.value ?? []}
                             freeSolo
                             size="small"
                             onChange={(event: any, newValue: string[] | null) => p.onChange(newValue)}
