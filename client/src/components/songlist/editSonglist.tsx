@@ -305,7 +305,8 @@ const EditSonglist: React.FC<any> = (props: any) => {
                                 // Create new tag when user types ";" (we should allow spaces in tags btw)
                                 const newTags = newValue.split(";");
                                 if (newTags.length > 1) {
-                                    p.onChange(p.value.concat(newTags.filter(x => x !== "")));
+                                    const newTagsList = newTags.filter(x => x !== "");
+                                    p.onChange(p.value ? p.value.concat(newTagsList) : newTagsList);
                                 }
                             }}
                             renderInput={(params) => (
@@ -314,7 +315,8 @@ const EditSonglist: React.FC<any> = (props: any) => {
                                         // Create new tag when input focus is lost
                                         const newTags = e.target.value.split(";");
                                         if (newTags.length) {
-                                            p.onChange(p.value.concat(newTags.filter(x => x !== "")));
+                                            const newTagsList = newTags.filter(x => x !== "");
+                                            p.onChange(p.value ? p.value.concat(newTagsList) : newTagsList);
                                         }
                                     }}
                                 />
