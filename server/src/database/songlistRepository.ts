@@ -205,6 +205,8 @@ export class SonglistRepository {
         for (const tagId of tagIds) {
             await this.linkSongTag(tagId, item.id);
         }
+
+        await this.deleteUnusedTags();
     }
 
     private async getTagIds(item: ISonglistItem) {
@@ -239,16 +241,23 @@ export class SonglistRepository {
         return result[0];
     }
 
+    private async deleteUnusedTags() {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.SonglistTags).delete().whereNotIn("id", (b) => b.select("tagId").distinct().from(DatabaseTables.SonglistSongTags));
+    }
+
     public async delete(item: ISonglistItem | number): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         if (typeof item === "number") {
             const toDelete = await this.get(item);
             if (toDelete) {
                 await databaseService.getQueryBuilder(DatabaseTables.Songlist).delete().where({ id: toDelete.id });
+                await this.deleteUnusedTags();
                 return true;
             }
         } else if (item.id && this.get(item.id)) {
             await databaseService.getQueryBuilder(DatabaseTables.Songlist).delete().where({ id: item.id });
+            await this.deleteUnusedTags();
             return true;
         }
 

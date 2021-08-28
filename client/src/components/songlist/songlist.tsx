@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import {
@@ -74,7 +74,7 @@ const SongList: React.FC<any> = (props: any) => {
     const TabSearch = { id: -1 } as CategoryData;
     const TabFavorite = { id: -2 } as CategoryData;
 
-    const selectTab = (newList: RowData[], fullList: RowData[], category: CategoryData) => {
+    const selectTab = useCallback((newList: RowData[], fullList: RowData[], category: CategoryData) => {
         setSelectedTab(category);
         if (category.id === TabNew.id) {
             setSonglistFiltered(newList);
@@ -83,7 +83,7 @@ const SongList: React.FC<any> = (props: any) => {
         } else {
             setSonglistFiltered(fullList.filter(x => x.categoryId === category.id));
         }
-    };
+    }, []);
 
     useEffect(() => {
         let genres: CategoryData[];
@@ -103,11 +103,11 @@ const SongList: React.FC<any> = (props: any) => {
                 setSonglistNew(newSongs);
 
                 if (genres.length > 0) {
-                    selectTab(songlistNew, results, genres[0]);
+                    selectTab(newSongs, results, genres[0]);
                 }
             });
         });
-    }, []);
+    }, [selectTab]);
 
     const songrequestRules = (<Box mb={2}>
         <Accordion defaultExpanded={true}>

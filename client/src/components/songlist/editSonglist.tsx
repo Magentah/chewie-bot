@@ -6,7 +6,7 @@ import {
     Grid, TextField, Button, Box, Card,
     Popover, Paper, ThemeProvider, Tabs, Tab, Chip
 } from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import Autocomplete, { AutocompleteInputChangeReason } from "@material-ui/lab/Autocomplete";
 import SaveIcon from "@material-ui/icons/Save";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
@@ -245,6 +245,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             freeSolo
                             size="small"
                             fullWidth
+                            defaultValue={p.value ?? ""}
                             inputValue={p.value ?? ""}
                             /* Use unique values for autocomplete */
                             options={songlist.map((x) => x.album).filter((v,i,a) => v && a.indexOf(v) === i)}
@@ -263,6 +264,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             freeSolo
                             size="small"
                             fullWidth
+                            defaultValue={p.value ?? ""}
                             inputValue={p.value ?? ""}
                             /* Use unique values for autocomplete */
                             options={songlist.map((x) => x.artist).filter((v,i,a) => v && a.indexOf(v) === i)}
@@ -290,16 +292,32 @@ const EditSonglist: React.FC<any> = (props: any) => {
                             id="song-tags"
                             options={tags.map((option) => option.name)}
                             defaultValue={p.value ?? []}
+                            value={p.value ?? []}
                             freeSolo
                             size="small"
                             onChange={(event: any, newValue: string[] | null) => p.onChange(newValue)}
                             renderTags={(value: string[], getTagProps) =>
                                 value.map((option: string, index: number) => (
-                                    <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                                    <Chip size="small" variant="outlined" label={option} {...getTagProps({ index })} />
                                 ))
                             }
+                            onInputChange={(event: any, newValue: string, reason: AutocompleteInputChangeReason) => {
+                                // Create new tag when user types ";" (we should allow spaces in tags btw)
+                                const newTags = newValue.split(";");
+                                if (newTags.length > 1) {
+                                    p.onChange(p.value.concat(newTags.filter(x => x !== "")));
+                                }
+                            }}
                             renderInput={(params) => (
-                                <TextField {...params} label="" placeholder="Tags" />
+                                <TextField {...params} label="" placeholder="Tags"
+                                    onBlur={e => {
+                                        // Create new tag when input focus is lost
+                                        const newTags = e.target.value.split(";");
+                                        if (newTags.length) {
+                                            p.onChange(p.value.concat(newTags.filter(x => x !== "")));
+                                        }
+                                    }}
+                                />
                             )}
                         />)
                 },
