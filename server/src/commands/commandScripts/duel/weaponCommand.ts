@@ -59,9 +59,9 @@ export default class WeaponCommand extends Command {
 
     public getAliases(): ICommandAlias[] {
         return [
-            { alias: "rock", commandArguments: [DuelWeapon.Rock], commandName: "weapon" },
-            { alias: "paper", commandArguments: [DuelWeapon.Paper], commandName: "weapon" },
-            { alias: "scissors", commandArguments: [DuelWeapon.Scissors], commandName: "weapon" },
+            { alias: "rock", commandArguments: DuelWeapon.Rock, commandName: "weapon" },
+            { alias: "paper", commandArguments: DuelWeapon.Paper, commandName: "weapon" },
+            { alias: "scissors", commandArguments: DuelWeapon.Scissors, commandName: "weapon" },
         ];
     }
 

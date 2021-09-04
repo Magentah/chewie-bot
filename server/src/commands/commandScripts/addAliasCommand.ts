@@ -38,7 +38,7 @@ export default class AddAliasCommand extends Command {
             alias = {
                 alias: newAlias,
                 commandName: command,
-                commandArguments: args,
+                commandArguments: args.join(" "),
             };
 
             await this.commandAliases.add(alias);

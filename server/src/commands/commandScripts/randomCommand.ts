@@ -16,7 +16,7 @@ export default class RandomCommand extends Command {
         const song = await this.songlist.getRandom(searchSubject);
 
         if (song) {
-            this.twitchService.sendMessage(channel, `Song for ${user.username}: ${song.album} - ${song.title}`);
+            this.twitchService.sendMessage(channel, `Song for ${user.username}: ${song.album ? song.album : song.artist} - ${song.title}`);
         } else {
             this.twitchService.sendMessage(channel, `Nothing found in songlist for "${searchSubject}".`);
         }

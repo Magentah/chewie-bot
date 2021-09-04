@@ -19,7 +19,7 @@ export { default as ISocketMessage, SocketMessageType } from "./socketMessage";
 export { default as ICommandAlias } from "./commandAlias";
 export { default as IBotSettings } from "./botSettings";
 export { default as IServiceResponse, ResponseStatus } from "./serviceResponse";
-export { default as ISonglistItem } from "./songlistItem";
+export { default as ISonglistItem, ISonglistCategory } from "./songlistItem";
 export { default as ITwitchUserProfile } from "./twitchUserProfile";
 export {
     ISubscriptionData,

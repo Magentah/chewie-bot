@@ -1,7 +1,6 @@
 import { Card, Typography, Grid, Avatar, Box, CardContent, createStyles, makeStyles, Theme, TableContainer, Table, TableRow, TableCell, TableBody } from "@material-ui/core";
 import axios from "axios";
 import React, { useContext, useEffect, useState } from "react";
-import * as Cookie from "js-cookie";
 import Paper from "@material-ui/core/Paper";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
