@@ -108,7 +108,7 @@ class SongController {
 
             res.status(StatusCodes.OK);
             res.send(song);
-        } catch (err) {
+        } catch (err: any) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
         }

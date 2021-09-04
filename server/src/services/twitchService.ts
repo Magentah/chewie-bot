@@ -97,7 +97,7 @@ export class TwitchService {
         try {
             await this.client.say(channel, message);
             return Response.Success();
-        } catch (error) {
+        } catch (error: any) {
             Logger.warn(LogType.Twitch, error);
             return Response.Error(undefined, error);
         }
@@ -107,7 +107,7 @@ export class TwitchService {
         try {
             await this.client.whisper(username, message);
             return Response.Success();
-        } catch (error) {
+        } catch (error: any) {
             Logger.warn(LogType.Twitch, error);
             return Response.Error(undefined, error);
         }
@@ -120,7 +120,7 @@ export class TwitchService {
             const test = await this.channelSearch(Config.twitch.broadcasterName);
             Logger.info(LogType.Twitch, "Test channel search", test);
             return Response.Success();
-        } catch (error) {
+        } catch (error: any) {
             Logger.warn(LogType.Twitch, error);
             return Response.Error(undefined, error);
         }
@@ -131,7 +131,7 @@ export class TwitchService {
             Logger.info(LogType.Twitch, `Bot left channel ${channel}`);
             await this.client.part(channel);
             return Response.Success();
-        } catch (error) {
+        } catch (error: any) {
             Logger.warn(LogType.Twitch, error);
             return Response.Error(undefined, error);
         }
@@ -141,7 +141,7 @@ export class TwitchService {
         try {
             await this.client.timeout(channel, username, length, reason);
             return Response.Success();
-        } catch (error) {
+        } catch (error: any) {
             Logger.warn(LogType.Twitch, error);
             return Response.Error(undefined, error);
         }
@@ -529,7 +529,7 @@ export class TwitchService {
                     return await this.joinChannel(this.channel);
                 }
                 return Response.Success();
-            } catch (error) {
+            } catch (error: any) {
                 Logger.err(LogType.Twitch, error);
                 return Response.Error(undefined, error);
             }
@@ -545,7 +545,7 @@ export class TwitchService {
             try {
                 this.client.disconnect();
                 return Response.Success();
-            } catch (error) {
+            } catch (error: any) {
                 Logger.err(LogType.Twitch, error);
                 return Response.Error(undefined, error);
             }
