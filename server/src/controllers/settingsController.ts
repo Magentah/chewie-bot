@@ -57,7 +57,7 @@ class SettingsController {
 
             res.status(StatusCodes.OK);
             res.send(settings);
-        } catch (err) {
+        } catch (err: any) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
         }
@@ -85,7 +85,7 @@ class SettingsController {
                     res.sendStatus(StatusCodes.FORBIDDEN);
                     break;
             }
-        } catch (err) {
+        } catch (err: any) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
         }
@@ -104,7 +104,7 @@ class SettingsController {
 
             res.status(StatusCodes.OK);
             res.send(setting);
-        } catch (err) {
+        } catch (err: any) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, err.message));
         }

@@ -42,7 +42,7 @@ export class DropboxService {
                     Logger.err(LogType.Backup, "Dropbox is not configured for the broadcaster.");
                 }
             }
-        } catch (ex) {
+        } catch (ex: any) {
             Logger.err(LogType.Backup, "File upload to Dropbox failed", ex.message);
         }
     }

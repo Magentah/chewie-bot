@@ -55,9 +55,9 @@ export default class RedeemCommand extends Command {
 
     public getAliases(): ICommandAlias[] {
         return [
-            { alias: "redeemclap", commandName: "redeem", commandArguments: [RedeemVariation.Clap] },
-            { alias: "redeemcatjam", commandName: "redeem", commandArguments: [RedeemVariation.Catjam] },
-            { alias: "redeemcomfy", commandName: "redeem", commandArguments: [RedeemVariation.Comfy] },
+            { alias: "redeemclap", commandName: "redeem", commandArguments: RedeemVariation.Clap },
+            { alias: "redeemcatjam", commandName: "redeem", commandArguments: RedeemVariation.Catjam },
+            { alias: "redeemcomfy", commandName: "redeem", commandArguments: RedeemVariation.Comfy },
         ];
     }
 

@@ -122,7 +122,7 @@ export class StreamlabsService {
                 transports: ["websocket"],
                 reconnection: true,
             });
-        } catch (err) {
+        } catch (err: any) {
             Logger.err(LogType.Streamlabs, "Error", err);
         }
         this.websocket.on("connect", this.onSocketOpen);

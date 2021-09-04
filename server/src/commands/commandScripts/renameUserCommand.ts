@@ -50,7 +50,7 @@ export default class RenameUserCommand extends Command {
             this.eventLog.addUserRename(user, oldUserName, newUserName);
 
             this.twitchService.sendMessage(channel, `Renamed ${oldUserName} to ${newUserName} successfully.`);
-        }  catch (err) {
+        }  catch (err: any) {
             this.twitchService.sendMessage(channel, `User cannot be renamed (${err.code}).`);
         }
     }

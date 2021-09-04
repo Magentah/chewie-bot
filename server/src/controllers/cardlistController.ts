@@ -99,7 +99,7 @@ class CardlistController {
             });
             res.status(StatusCodes.OK);
             res.send(card);
-        } catch (err) {
+        } catch (err: any) {
             Logger.err(LogType.Cards, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
@@ -172,7 +172,7 @@ class CardlistController {
             } else {
                 res.sendStatus(StatusCodes.OK);
             }
-        } catch (err) {
+        } catch (err: any) {
             Logger.err(LogType.Cards, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
@@ -208,7 +208,7 @@ class CardlistController {
             });
             res.status(StatusCodes.OK);
             res.send(result);
-        } catch (err) {
+        } catch (err: any) {
             Logger.err(LogType.Cards, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
