@@ -296,7 +296,7 @@ export default class TwitchEventService {
             } else {
                 return undefined;
             }
-        } catch (ex) {
+        } catch (ex: any) {
             Logger.err(LogType.TwitchEvents, "Error when creating a subscription.", ex);
         }
     }

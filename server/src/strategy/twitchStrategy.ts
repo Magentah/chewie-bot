@@ -40,7 +40,7 @@ class TwitchStrategy extends OAuth2Strategy {
                 };
 
                 done(undefined, profile);
-            } catch (e) {
+            } catch (e: any) {
                 done(e);
             }
         });

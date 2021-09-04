@@ -120,7 +120,7 @@ class AchievementsController {
             });
             res.status(StatusCodes.OK);
             res.send(achievement);
-        } catch (err) {
+        } catch (err: any) {
             Logger.err(LogType.Achievements, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
@@ -193,7 +193,7 @@ class AchievementsController {
             } else {
                 res.sendStatus(StatusCodes.OK);
             }
-        } catch (err) {
+        } catch (err: any) {
             Logger.err(LogType.Achievements, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
@@ -230,7 +230,7 @@ class AchievementsController {
             });
             res.status(StatusCodes.OK);
             res.send(result);
-        } catch (err) {
+        } catch (err: any) {
             Logger.err(LogType.Achievements, err);
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(

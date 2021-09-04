@@ -138,7 +138,7 @@ export default class CardsRepository {
                 const result = await databaseService.getQueryBuilder(DatabaseTables.Cards).insert(card);
                 card.id = result[0];
                 return card;
-            } catch (err) {
+            } catch (err: any) {
                 if (err.code === "SQLITE_CONSTRAINT") {
                     throw new Error("Card with same name already exists.");
                 }
