@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { AchievementType, ISonglistItem } from "../models";
+import { AchievementType, ISonglistCategory, ISonglistItem, IUser } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SonglistRepository, UsersRepository } from "../database";
@@ -24,9 +24,32 @@ class SonglistController {
      * @param res Express HTTP Response
      */
     public async getSonglist(req: Request, res: Response): Promise<void> {
-        const songs = await this.songlistService.getList();
+        const sessionUser = req.user as IUser;
+        const songs = await this.songlistService.getList(sessionUser?.id);
         res.status(StatusCodes.OK);
-        res.send(songs);
+        res.send(songs.map(x => ({...x, songTags: typeof(x.songTags) === "string" ? x.songTags?.split(";") ?? [] : x.songTags})));
+    }
+
+    /**
+     * Gets all songlist categories.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async getSonglistCategories(req: Request, res: Response): Promise<void> {
+        const categories = await this.songlistService.getCategories();
+        res.status(StatusCodes.OK);
+        res.send(categories);
+    }
+
+    /**
+     * Gets all songlist tags.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async getSonglistTags(req: Request, res: Response): Promise<void> {
+        const tags = await this.songlistService.getTags();
+        res.status(StatusCodes.OK);
+        res.send(tags);
     }
 
     /**
@@ -46,9 +69,11 @@ class SonglistController {
             await this.songlistService.update({
                 id: newSong.id,
                 album: newSong.album,
-                genre: newSong.genre,
+                artist: newSong.artist,
+                categoryId: newSong.categoryId,
                 title: newSong.title,
-                attributedUserId: newSong.attributedUserId ?? null
+                attributedUserId: newSong.attributedUserId ?? null,
+                songTags: newSong.songTags
             });
 
             if (newSong.attributedUserId) {
@@ -87,9 +112,125 @@ class SonglistController {
         }
 
         try {
-            await this.songlistService.add(newSong);
+            const result = await this.songlistService.add({
+                album: newSong.album,
+                artist: newSong.artist,
+                categoryId: newSong.categoryId,
+                title: newSong.title,
+                songTags: newSong.songTags
+            });
             res.status(StatusCodes.OK);
-            res.send(newSong);
+            res.send(result);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song."
+                )
+            );
+        }
+    }
+
+    /**
+     * Adds a category for the song list.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async addCategory(req: Request, res: Response): Promise<void> {
+        const newCategory = req.body as ISonglistCategory;
+        if (!newCategory) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a category object."));
+            return;
+        }
+
+        try {
+            const result = await this.songlistService.addCategory(newCategory);
+            res.status(StatusCodes.OK);
+            res.send(result);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song."
+                )
+            );
+        }
+    }
+
+    /**
+     * Update a category for the song list.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async updateCategory(req: Request, res: Response): Promise<void> {
+        const category = req.body as ISonglistCategory;
+        if (!category) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a category object."));
+            return;
+        }
+
+        try {
+            await this.songlistService.updateCategory({id: category.id, name: category.name, sortOrder: category.sortOrder});
+            res.sendStatus(StatusCodes.OK);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song."
+                )
+            );
+        }
+    }
+
+    /**
+     * Deletes a songlist category.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async deleteCategory(req: Request, res: Response): Promise<void> {
+        const newCategory = req.body as ISonglistCategory;
+        if (!newCategory) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a category object."));
+            return;
+        }
+
+        try {
+            await this.songlistService.deleteCategory(newCategory);
+            res.sendStatus(StatusCodes.OK);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song."
+                )
+            );
+        }
+    }
+
+    /**
+     * Updates the entire list of categories for the song list.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async updateSonglistCategories(req: Request, res: Response): Promise<void> {
+        const categories = req.body as ISonglistCategory[];
+        if (!categories) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a category object."));
+            return;
+        }
+
+        try {
+            await this.songlistService.updateCategories(categories.map(x => ({id: x.id, name: x.name, sortOrder: x.sortOrder})));
+            res.status(StatusCodes.OK);
+            res.send(categories);
         } catch (err) {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR);
             res.send(
@@ -119,6 +260,72 @@ class SonglistController {
         }
 
         res.sendStatus(StatusCodes.OK);
+    }
+
+    /**
+     * Adds a song to the user's personal favorites.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async markFavoriteSong(req: Request, res: Response): Promise<void> {
+        const sessionUser = req.user as IUser;
+        if (!sessionUser) {
+            res.sendStatus(StatusCodes.FORBIDDEN);
+            return;
+        }
+
+        const song = req.body as ISonglistItem;
+        if (!song) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
+            return;
+        }
+
+        try {
+            await this.songlistService.markFavorite(sessionUser, song.id);
+            res.sendStatus(StatusCodes.OK);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song."
+                )
+            );
+        }
+    }
+
+    /**
+     * Removes a song from the user's personal favorites.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async unmarkFavoriteSong(req: Request, res: Response): Promise<void> {
+        const sessionUser = req.user as IUser;
+        if (!sessionUser) {
+            res.sendStatus(StatusCodes.FORBIDDEN);
+            return;
+        }
+
+        const song = req.body as ISonglistItem;
+        if (!song) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
+            return;
+        }
+
+        try {
+            await this.songlistService.unmarkFavorite(sessionUser, song.id);
+            res.sendStatus(StatusCodes.OK);
+        } catch (err) {
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+            res.send(
+                APIHelper.error(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    "There was an error when attempting to add the song."
+                )
+            );
+        }
     }
 }
 

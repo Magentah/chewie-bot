@@ -10,6 +10,7 @@ import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Mess
 import TwitchCard from "./components/twitch/TwitchCard";
 import MusicRequestView from "./views/music-requests/MusicRequestView";
 import SongList from "./components/songlist/songlist";
+import EditSonglist from "./components/songlist/editSonglist";
 import DonationList from "./components/donationlist/donationlist";
 import MessageList from "./components/messages/messagelist";
 import CommandList from "./components/commands/commandlist";
@@ -102,6 +103,13 @@ const DashboardRoutes: Route[] = [
                     variant="caption"
                 >Configuration</Typography>
             </li> : undefined
+    },
+    {
+        path: "/editSonglist",
+        name: "Songlist",
+        icon: LibraryMusic,
+        component: EditSonglist,
+        minUserLevel: UserLevels.Moderator
     },
     {
         path: "/messages",

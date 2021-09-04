@@ -40,7 +40,7 @@ export class CommandService {
                 const command = this.commandList.get(commandAlias.commandName);
                 if (command) {
                     if (commandAlias.commandArguments) {
-                        this.executeCommandInternal(command, commandName, channel, user, commandAlias.commandArguments);
+                        this.executeCommandInternal(command, commandName, channel, user, [commandAlias.commandArguments]);
                     } else {
                         this.executeCommandInternal(command, commandName, channel, user, args);
                     }
@@ -87,7 +87,7 @@ export class CommandService {
     private getAliasArgs(command: Command, aliasName: string): string[] | undefined {
         for (const alias of command.getAliases()) {
             if (alias.alias === aliasName && alias.commandArguments) {
-                return alias.commandArguments;
+                return alias.commandArguments.split(" ");
             }
         }
 

@@ -41,7 +41,7 @@ export class CommandAliasesRepository {
 
     public async update(alias: ICommandAlias): Promise<void> {
         const databaseService = await this.databaseProvider();
-        const commandArguments = alias.commandArguments === undefined ? "" : alias.commandArguments.join(" ");
+        const commandArguments = alias.commandArguments ?? "";
 
         await databaseService
             .getQueryBuilder(DatabaseTables.CommandAliases)
