@@ -529,7 +529,7 @@ export class TwitchService {
                     return await this.joinChannel(this.channel);
                 }
                 return Response.Success();
-            } catch (error) {
+            } catch (error: any) {
                 Logger.err(LogType.Twitch, error);
                 return Response.Error(undefined, error);
             }
@@ -545,7 +545,7 @@ export class TwitchService {
             try {
                 this.client.disconnect();
                 return Response.Success();
-            } catch (error) {
+            } catch (error: any) {
                 Logger.err(LogType.Twitch, error);
                 return Response.Error(undefined, error);
             }
