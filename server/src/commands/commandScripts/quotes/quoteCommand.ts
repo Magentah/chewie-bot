@@ -38,7 +38,7 @@ export default class QuoteCommand extends Command {
             };
             const date = new Date(quote.dateAdded).toLocaleDateString('en-US', dateOptions);
 
-            this.twitchService.sendMessage(channel, `#${quote.id} - "${quote.text}", ${quote.author} (${date})` );
+            this.twitchService.sendMessage(channel, `» ${quote.text} « (${quote.author} - ${date}, #${quote.id})`);
         }
     }
 
