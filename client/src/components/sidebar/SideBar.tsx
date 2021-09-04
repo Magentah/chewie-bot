@@ -6,7 +6,7 @@ import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon } fro
 import { Route, DashboardRoutes } from "../../Routes";
 import { UserContext } from "../../contexts/userContext";
 
-const width = 230;
+const width = 235;
 const useStyles = makeStyles((theme) => {
     return {
         root: {
@@ -46,7 +46,7 @@ const SideBar: React.FC<any> = (props: any) => {
             }
 
             return (
-                <React.Fragment key={r.name}>
+                <React.Fragment key={r.name + r.minUserLevel}>
                     <Divider />
                     {r.makeDivider ? r.makeDivider(userContext.user.userLevel) : undefined}
                     <ListItem button selected={r.path === location.pathname} onClick={() => reroute(r.path)}>
