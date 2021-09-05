@@ -57,7 +57,7 @@ function copyTextToClipboard(text: string) {
 const SongList: React.FC<any> = (props: any) => {
     type RowData = {
         id: number, title: string, album: string, genre: string, artist: string, created: number, attributedUserId?: number,
-        attributedUsername: string, categoryId?: number, favoriteId?: number
+        attributedUsername: string, categoryId?: number, favoriteId?: number, songTags: string[]
     };
     type CategoryData = { id: number, name?: string, sortOrder?: number };
 
@@ -143,6 +143,7 @@ const SongList: React.FC<any> = (props: any) => {
             setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject)
                 || x.album.toLowerCase().includes(searchSubject)
                 || x.artist?.toLowerCase().includes(searchSubject)
+                || x.songTags?.some(tag => tag.toLowerCase().includes(searchSubject))
                 || x.title.toLowerCase().includes(searchSubject)));
         } else if (selectedTabBeforeSearch) {
             selectTab(songlistNew, songlist, selectedTabBeforeSearch);
