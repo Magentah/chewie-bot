@@ -135,7 +135,9 @@ const SongList: React.FC<any> = (props: any) => {
         setSearchText(event.target.value);
 
         if (event.target.value) {
-            setSelectedTabBeforeSearch(selectedTab);
+            if (selectedTab?.id !== TabSearch.id) {
+                setSelectedTabBeforeSearch(selectedTab);
+            }
             setSelectedTab(TabSearch);
             const searchSubject = event.target.value.toLowerCase();
             setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject)
