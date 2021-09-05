@@ -217,7 +217,7 @@ const SongList: React.FC<any> = (props: any) => {
                             {songlistNew.length > 0 ? <Tab className={classes.categoryTab} label={`📢 New (${songlistNew.length})`} value={TabNew.id} /> : undefined}
                             {topLevelCategories.map(x => <Tab className={classes.categoryTab} label={x.name} value={x.id} />)}
                             {songlist.some(x => x.favoriteId) ? <Tab className={classes.categoryTab} label={<StarIcon />} aria-label="Favorite songs" value={TabFavorite.id} title="Favorite songs" /> : undefined}
-                            {searchText ? <Tab className={classes.categoryTab} label={"Search"} value={TabSearch.id} /> : undefined}
+                            {searchText ? <Tab className={classes.categoryTab} label={`Search (${songlistFiltered.length})`} value={TabSearch.id} /> : undefined}
                         </Tabs>
                     </Grid>
                     <Grid item>
