@@ -140,20 +140,23 @@ const SongList: React.FC<any> = (props: any) => {
             }
             setSelectedTab(TabSearch);
             const searchSubject = event.target.value.toLowerCase();
-            setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject)
-                || x.album.toLowerCase().includes(searchSubject)
-                || x.artist?.toLowerCase().includes(searchSubject)
-                || x.songTags?.some(tag => tag.toLowerCase().includes(searchSubject))
-                || x.title.toLowerCase().includes(searchSubject)));
+            if (searchSubject === "*") {
+                setSonglistFiltered(songlist);
+            } else {
+                setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject)
+                    || x.album.toLowerCase().includes(searchSubject)
+                    || x.artist?.toLowerCase().includes(searchSubject)
+                    || x.songTags?.some(tag => tag.toLowerCase().includes(searchSubject))
+                    || x.title.toLowerCase().includes(searchSubject)));
+            }
         } else if (selectedTabBeforeSearch) {
             selectTab(songlistNew, songlist, selectedTabBeforeSearch);
         }
     }
 
     const handleCopyClick = (row: RowData) => {
-        copyTextToClipboard(row.album + " - " + row.title);
+        copyTextToClipboard((row.album ? row.album : row.artist) + " - " + row.title);
     };
-
 
     const updateRowInList = (list: RowData[], row: RowData, updatedRow: RowData): RowData[] => {
         if (list) {
