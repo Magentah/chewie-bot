@@ -144,7 +144,8 @@ export class SongService {
                 username,
             });
 
-            await this.eventLogService.addSongRequest(username, {
+            const user = await this.userService.getUser(username);
+            await this.eventLogService.addSongRequest(user ?? username, {
                 message: "Song was requested.",
                 song: {
                     title: song.details.title,
@@ -155,9 +156,8 @@ export class SongService {
                 },
             });
 
-            const user = await this.userService.getUser(username);
             if (user) {
-                const count = await this.eventLogService.getCount(EventLogType.SongRequest, username);
+                const count = await this.eventLogService.getCount(EventLogType.SongRequest, user);
                 this.eventAggregator.publishAchievement({ user, type: AchievementType.SongRequests, count });
             }
 
@@ -218,8 +218,8 @@ export class SongService {
      * Set a song in the queue to Played status.
      * @param song The song or song id to update.
      */
-    public songPlayed(song: ISong | number): void;
-    public songPlayed(song: any): void {
+    public async songPlayed(song: ISong | number): Promise<void>;
+    public async songPlayed(song: any): Promise<void> {
         if (typeof song === "number") {
             const songToChange =
                 this.songQueue.filter((item) => {
@@ -230,7 +230,8 @@ export class SongService {
                 const songData = this.songQueue[songIndex];
                 this.songQueue.splice(songIndex, 1);
 
-                this.eventLogService.addSongPlayed(songData.requestedBy, {
+                const user = await this.userService.getUser(songData.requestedBy);
+                this.eventLogService.addSongPlayed(user ?? songData.requestedBy, {
                     message: "Song has been played.",
                     song: songData,
                 });
@@ -307,8 +308,8 @@ export class SongService {
      * Remove a song from the song queue.
      * @param song The song or song id to remove.
      */
-    public removeSong(song: ISong | number): void;
-    public removeSong(song: any): void {
+    public async removeSong(song: ISong | number): Promise<void>;
+    public async removeSong(song: any): Promise<void> {
         if (typeof song === "number") {
             const songToDelete =
                 this.songQueue.filter((item) => {
@@ -319,7 +320,8 @@ export class SongService {
                 const songData = this.songQueue[songIndex];
                 this.songQueue.splice(songIndex, 1);
 
-                this.eventLogService.addSongRemoved(songData.requestedBy, {
+                const user = await this.userService.getUser(songData.requestedBy);
+                this.eventLogService.addSongRemoved(user ?? songData.requestedBy, {
                     message: "Song has been removed from request queue.",
                     song: {
                         title: songData.details.title,
