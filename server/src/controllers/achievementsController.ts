@@ -114,6 +114,7 @@ class AchievementsController {
             await this.achievementsRepository.addOrUpdate({...achievementData,
                 type: achievement.type,
                 amount: achievement.amount,
+                pointRedemption: achievement.pointRedemption,
                 seasonal: achievement.seasonal,
                 name: achievement.name,
                 announcementMessage: achievement.announcementMessage
@@ -151,6 +152,7 @@ class AchievementsController {
             achievementData = await this.achievementsRepository.addOrUpdate({
                 type: achievement.type,
                 amount: achievement.amount,
+                pointRedemption: achievement.pointRedemption,
                 seasonal: achievement.seasonal,
                 name: achievement.name,
                 announcementMessage: achievement.announcementMessage,
@@ -222,6 +224,7 @@ class AchievementsController {
             const result = await this.achievementsRepository.addOrUpdate({
                 type: newAchievement.type,
                 amount: newAchievement.amount,
+                pointRedemption: newAchievement.pointRedemption,
                 seasonal: newAchievement.seasonal,
                 name: newAchievement.name,
                 announcementMessage: newAchievement.announcementMessage,

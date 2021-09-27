@@ -454,6 +454,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable().unique();
             table.integer("type").notNullable();
             table.integer("amount").notNullable();
+            table.integer("pointRedemption").notNullable().defaultTo(0);
             table.integer("name").notNullable();
             table.boolean("seasonal").notNullable().defaultTo(false);
             table.string("imageId").notNullable();
