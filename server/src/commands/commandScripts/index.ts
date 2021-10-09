@@ -16,6 +16,7 @@ export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
 export { default as VipCommand } from "./vipCommand";
 export { default as RandomCommand } from "./randomCommand";
 export { default as RandomFavoriteCommand } from "./randomFavoriteCommand";
+export { default as RandomUserFavoriteCommand } from "./randomUserFavoriteCommand";
 export { default as ExplainCommand } from "./explainCommand";
 
 // Duel

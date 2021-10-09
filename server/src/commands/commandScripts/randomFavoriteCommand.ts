@@ -19,11 +19,13 @@ export default class RandomFavoriteCommand extends Command {
             this.twitchService.sendMessage(channel, `Song for ${user.username}: ${song.album ? song.album : song.artist} - ${song.title}`);
         } else {
             this.twitchService.sendMessage(channel, `No favorite found in songlist for "${searchSubject}".`);
+        } else {
+            this.twitchService.sendMessage(channel, `${user.username}, you have not specified any favorite songs yet.`);
         }
     }
 
     public getDescription(): string {
-        return `Selects a random (of all / by genre / by search subject) favorite song from the song list and puts it into chat. Usage: !random [<genre or search subject>]`;
+        return `Selects a random (of all / by genre / by search subject) favorite song from the song list and puts it into chat. Usage: !randomFavorite [<genre or search subject>]`;
     }
 
     public getAliases(): ICommandAlias[] {
