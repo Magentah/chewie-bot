@@ -57,7 +57,7 @@ function copyTextToClipboard(text: string) {
 const SongList: React.FC<any> = (props: any) => {
     type RowData = {
         id: number, title: string, album: string, genre: string, artist: string, created: number, attributedUserId?: number,
-        attributedUsername: string, categoryId?: number, favoriteId?: number
+        attributedUsername: string, categoryId?: number, favoriteId?: number, songTags: string[]
     };
     type CategoryData = { id: number, name?: string, sortOrder?: number };
 
@@ -135,22 +135,28 @@ const SongList: React.FC<any> = (props: any) => {
         setSearchText(event.target.value);
 
         if (event.target.value) {
-            setSelectedTabBeforeSearch(selectedTab);
+            if (selectedTab?.id !== TabSearch.id) {
+                setSelectedTabBeforeSearch(selectedTab);
+            }
             setSelectedTab(TabSearch);
             const searchSubject = event.target.value.toLowerCase();
-            setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject)
-                || x.album.toLowerCase().includes(searchSubject)
-                || x.artist?.toLowerCase().includes(searchSubject)
-                || x.title.toLowerCase().includes(searchSubject)));
+            if (searchSubject === "*") {
+                setSonglistFiltered(songlist);
+            } else {
+                setSonglistFiltered(songlist.filter(x => x.genre.toLowerCase().includes(searchSubject)
+                    || x.album.toLowerCase().includes(searchSubject)
+                    || x.artist?.toLowerCase().includes(searchSubject)
+                    || x.songTags?.some(tag => tag.toLowerCase().includes(searchSubject))
+                    || x.title.toLowerCase().includes(searchSubject)));
+            }
         } else if (selectedTabBeforeSearch) {
             selectTab(songlistNew, songlist, selectedTabBeforeSearch);
         }
     }
 
     const handleCopyClick = (row: RowData) => {
-        copyTextToClipboard(row.album + " - " + row.title);
+        copyTextToClipboard((row.album ? row.album : row.artist) + " - " + row.title);
     };
-
 
     const updateRowInList = (list: RowData[], row: RowData, updatedRow: RowData): RowData[] => {
         if (list) {
@@ -215,7 +221,7 @@ const SongList: React.FC<any> = (props: any) => {
                             {songlistNew.length > 0 ? <Tab className={classes.categoryTab} label={`📢 New (${songlistNew.length})`} value={TabNew.id} /> : undefined}
                             {topLevelCategories.map(x => <Tab className={classes.categoryTab} label={x.name} value={x.id} />)}
                             {songlist.some(x => x.favoriteId) ? <Tab className={classes.categoryTab} label={<StarIcon />} aria-label="Favorite songs" value={TabFavorite.id} title="Favorite songs" /> : undefined}
-                            {searchText ? <Tab className={classes.categoryTab} label={"Search"} value={TabSearch.id} /> : undefined}
+                            {searchText ? <Tab className={classes.categoryTab} label={`Search (${songlistFiltered.length})`} value={TabSearch.id} /> : undefined}
                         </Tabs>
                     </Grid>
                     <Grid item>
