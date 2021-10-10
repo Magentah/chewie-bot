@@ -8,3 +8,4 @@ export { default as SettingsController } from "./settingsController";
 export { default as DonationlistController } from "./donationlistController";
 export { default as CardlistController } from "./cardlistController";
 export { default as ChannelPointRewardController } from "./channelPointRewardController";
+export { default as SeasonController } from "./seasonController";

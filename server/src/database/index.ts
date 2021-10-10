@@ -13,3 +13,4 @@ export { default as ChannelPointRewardRepository } from "./channelPointRewardRep
 export { default as StreamActivityRepository } from "./streamActivityRepository";
 export { default as UserTaxHistoryRepository } from "./userTaxHistoryRepository";
 export { default as UserTaxStreakRepository } from "./userTaxHistoryRepository";
+export { default as SeasonsRepository } from "./seasonsRepository";

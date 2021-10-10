@@ -4,7 +4,7 @@ import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Typography } from "@material-ui/core";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Event, Lens as DefaultIcon } from "@material-ui/icons";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
@@ -25,6 +25,7 @@ import ChannelPointRewards from "./components/twitch/ChannelPointRewards";
 import UserCardStackList from "./components/cards/userCardStackList";
 import AchievementsList from "./components/achievements/achievementsList";
 import UserAchievementsList from "./components/achievements/userAchievementsList";
+import SeasonList from "./components/seasons/seasonList";
 
 export type Route = {
     path: string;
@@ -152,6 +153,13 @@ const DashboardRoutes: Route[] = [
         icon: Payment,
         component: DonationList,
         minUserLevel: UserLevels.Moderator
+    },
+    {
+        path: "/seasons",
+        name: "Seasons",
+        icon: Event,
+        component: SeasonList,
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/bot",

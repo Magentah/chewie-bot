@@ -36,6 +36,7 @@ export enum DatabaseTables {
     StreamActivity = "streamActivity",
     Achievements = "achievements",
     UserAchievements = "userAchievements",
+    Seasons = "seasons",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -119,6 +120,7 @@ export class DatabaseService {
                 await this.createStreamActivityTable();
                 await this.createAchievementsTable();
                 await this.createUserAchievementsTable();
+                await this.createSeasonsTable();
 
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -474,6 +476,14 @@ export class DatabaseService {
             // Achievements can only be granted once, unless seasonal, then they need to have different
             // expiration dates for each season.
             table.unique(["userId", "achievementId", "expiredDate"]);
+        });
+    }
+
+    private async createSeasonsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Seasons, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.dateTime("startDate");
+            table.dateTime("endDate");
         });
     }
 
