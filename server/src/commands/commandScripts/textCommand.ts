@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { EventTypes, IUser } from "../../models";
+import { EventTypes, IUser, UserLevels } from "../../models";
 import Logger, { LogType } from "../../logger";
 import { BotContainer } from "../../inversify.config";
 import { StreamActivityRepository, TextCommandsRepository } from "../../database";
@@ -25,7 +25,14 @@ export class TextCommand extends Command {
         this.streamActivityRepository = BotContainer.get(StreamActivityRepository);
     }
 
-    public async execute(channel: string, user: IUser, commandName: string, useCooldown: boolean, ...args: any[]): Promise<void> {
+    public async execute(channel: string, user: IUser, commandName: string, useCooldown: boolean, minUserLevel: UserLevels, ...args: any[]): Promise<void> {
+        if (minUserLevel) {
+            if (!user?.userLevel || user.userLevel < minUserLevel) {
+                this.twitchService.sendMessage(channel, `${user.username}, you do not have permissions to execute this command.` );
+                return;
+            }
+        }
+
         // Skip command if still in cooldown.
         if (useCooldown) {
             if (this.cooldowns[commandName]) {
