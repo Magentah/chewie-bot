@@ -2,7 +2,7 @@ import axios from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
-import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType, ITwitchChatters } from "../models";
+import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType, ITwitchChatters, IUser } from "../models";
 import { Response } from "../helpers";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -451,7 +451,7 @@ export class TwitchService {
         // Empty
     }
 
-    private subGiftEventHandler(
+    private async subGiftEventHandler(
         channel: string,
         username: string,
         streakMonths: number,
@@ -461,7 +461,8 @@ export class TwitchService {
     ) {
         // userstate.login should contain the plain (non international) username.
         const actualUser = userstate.login ?? username;
-        this.eventLogService.addTwitchGiftSub(actualUser, { channel, streakMonths, recipient, methods, userstate });
+        const user = await this.users.addUser(actualUser);
+        this.eventLogService.addTwitchGiftSub(user, { channel, streakMonths, recipient, methods, userstate });
 
         if (this.giftSubCallback) {
             this.giftSubCallback(actualUser, recipient, userstate["msg-param-gift-months"], methods.plan);
@@ -472,8 +473,9 @@ export class TwitchService {
      * This event will occur additionally to the individual "subgift" events. So 10 subs gifted to the community will result in one
      * "submysterygift" and 10 "subgift" events.
      */
-    private subMysteryGiftEventHandler(channel: string, username: string, numbOfSubs: number, methods: tmi.SubMethods, userstate: tmi.SubMysteryGiftUserstate) {
-        this.eventLogService.addTwitchCommunityGiftSub(username, { channel, numbOfSubs, methods, userstate });
+    private async subMysteryGiftEventHandler(channel: string, username: string, numbOfSubs: number, methods: tmi.SubMethods, userstate: tmi.SubMysteryGiftUserstate) {
+        const user = await this.users.addUser(username);
+        this.eventLogService.addTwitchCommunityGiftSub(user, { channel, numbOfSubs, methods, userstate });
 
         if (this.subMysteryGiftCallback) {
             this.subMysteryGiftCallback(username, numbOfSubs, methods.plan);

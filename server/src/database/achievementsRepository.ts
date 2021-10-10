@@ -31,7 +31,8 @@ export default class AchievementsRepository {
         const databaseService = await this.databaseProvider();
         const queryBuilder = databaseService.getQueryBuilder(DatabaseTables.Achievements);
         const results = await queryBuilder
-            .where({ seasonal: false, type })
+            .where({ type })
+            .andWhere("amount", ">", 0)
             .whereNotExists(databaseService.getQueryBuilder(DatabaseTables.UserAchievements)
                 .select("id").from(DatabaseTables.UserAchievements).where({ userId: exlucdeExistingUser.id }).andWhereRaw("userAchievements.achievementId = achievements.id")
             )

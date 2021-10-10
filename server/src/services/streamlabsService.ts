@@ -175,30 +175,26 @@ export class StreamlabsService {
             case StreamlabsEvent.Host:
             case StreamlabsEvent.Raid:
                 break;
-
-            default: {
-                // For the time being, record any events that are unknown. Maybe there are messages for gift subs?
-                this.eventLogService.addStreamlabsEventReceived("(Unknown)", EventLogType.Streamlabs, message);
-                break;
-            }
         }
     }
 
-    private bitsReceived(messages: IBitsMessage[]) {
+    private async bitsReceived(messages: IBitsMessage[]) {
         Logger.info(LogType.Streamlabs, JSON.stringify(messages));
 
         for (const bits of messages) {
-            this.eventLogService.addStreamlabsEventReceived(bits.name, EventLogType.Bits, bits);
+            const user = await this.users.addUser(bits.name);
+            this.eventLogService.addStreamlabsEventReceived(user, EventLogType.Bits, bits);
 
             this.rewards.processBits(bits);
         }
     }
 
-    private resubscriptionReceived(messages: IResubscriptionMessage[]) {
+    private async resubscriptionReceived(messages: IResubscriptionMessage[]) {
         Logger.info(LogType.Streamlabs, JSON.stringify(messages));
 
         for (const sub of messages) {
-            this.eventLogService.addStreamlabsEventReceived(sub.name, EventLogType.Resub, sub);
+            const user = await this.users.addUser(sub.name);
+            this.eventLogService.addStreamlabsEventReceived(user, EventLogType.Resub, sub);
 
             const subMessage: ISubscriptionMessage = {
                 ...sub,
@@ -209,21 +205,23 @@ export class StreamlabsService {
         }
     }
 
-    private subscriptionReceived(messages: ISubscriptionMessage[]) {
+    private async subscriptionReceived(messages: ISubscriptionMessage[]) {
         Logger.info(LogType.Streamlabs, JSON.stringify(messages));
 
         for (const sub of messages) {
-            this.eventLogService.addStreamlabsEventReceived(sub.name, EventLogType.Sub, sub);
+            const user = await this.users.addUser(sub.name);
+            this.eventLogService.addStreamlabsEventReceived(user, EventLogType.Sub, sub);
 
             this.rewards.processSub(sub);
         }
     }
 
-    private donationReceived(messages: IDonationMessage[]): void {
+    private async donationReceived(messages: IDonationMessage[]) {
         Logger.info(LogType.Streamlabs, JSON.stringify(messages));
 
         for (const donation of messages) {
-            this.eventLogService.addStreamlabsEventReceived(donation.from, EventLogType.Donation, donation);
+            const user = await this.users.getUser(donation.from);
+            this.eventLogService.addStreamlabsEventReceived(user ?? donation.from, EventLogType.Donation, donation);
             this.donations.add({ username: donation.name, date: new Date(), message: donation.message, amount: donation.amount, type: "Streamlabs" });
 
             this.rewards.processDonation(donation);

@@ -281,7 +281,7 @@ export class DatabaseService {
             table.string("album").notNullable();
             table.string("title").notNullable();
             table.string("artist").notNullable().defaultTo("");
-            table.string("categoryId").notNullable().references(`id`).inTable(DatabaseTables.SonglistCategories);
+            table.integer("categoryId").notNullable().references(`id`).inTable(DatabaseTables.SonglistCategories);
             table.dateTime("created").notNullable();
             table.integer("attributedUserId").references(`id`).inTable(DatabaseTables.Users);
         });
@@ -325,6 +325,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("type").notNullable();
             table.string("username").notNullable();
+            table.integer("userId").references(`id`).inTable(DatabaseTables.Users);
             table.json("data").notNullable();
             table.dateTime("time").notNullable();
         });

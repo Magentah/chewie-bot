@@ -35,7 +35,8 @@ export default class AchievementService {
         }
 
         // First, determine all achievements that can potentially be granted for a certain type.
-        // Exclude seasonal achievements, because these will be granted at the end of a season.
+        // Exclude achievements with amount = number of streams in season, because these will be
+        // granted at the end of a season.
         const achievements = await this.repository.getGlobalByType(type, user);
         if (achievements.length === 0) {
             return;

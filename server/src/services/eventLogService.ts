@@ -9,98 +9,98 @@ export class EventLogService {
         // Empty
     }
 
-    public async addSongRequest(username: string, data: object | object[]): Promise<void> {
+    public async addSongRequest(user: IUser | string, data: object | object[]): Promise<void> {
         // Always log since needed for achievements.
-        const log = this.createLog(EventLogType.SongRequest, username, data);
+        const log = this.createLog(EventLogType.SongRequest, user, data);
         await this.eventLogs.add(log);
     }
 
     public async addSudoku(user: IUser) {
         // Always log since needed for achievements.
-        const log = this.createLog(EventLogType.Sudoku, user.username, {});
+        const log = this.createLog(EventLogType.Sudoku, user, {});
         await this.eventLogs.add(log);
     }
 
     public async addRedeem(user: IUser, type: string) {
         // Always log since needed for achievements.
-        const log = this.createLog(EventLogType.RedeemCommand, user.username, { type });
+        const log = this.createLog(EventLogType.RedeemCommand, user, { type });
         await this.eventLogs.add(log);
     }
 
-    public async addSongPlayed(username: string, data: object | object[]): Promise<void> {
+    public async addSongPlayed(user: IUser | string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.song.played) {
             return;
         }
-        const log = this.createLog(EventLogType.SongPlayed, username, data);
+        const log = this.createLog(EventLogType.SongPlayed, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addSongRemoved(username: string, data: object | object[]): Promise<void> {
+    public async addSongRemoved(user: IUser | string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.song.removed) {
             return;
         }
-        const log = this.createLog(EventLogType.SongRemoved, username, data);
+        const log = this.createLog(EventLogType.SongRemoved, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addChannelPointRedemption(username: string, data: object | object[]): Promise<void> {
-        const log = this.createLog(EventLogType.PointRewardRedemption, username, data);
+    public async addChannelPointRedemption(user: IUser, data: object | object[]): Promise<void> {
+        const log = this.createLog(EventLogType.PointRewardRedemption, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addDuel(username: string, data: object | object[]): Promise<void> {
+    public async addDuel(user: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.event.duel) {
             return;
         }
-        const log = this.createLog(EventLogType.Duel, username, data);
+        const log = this.createLog(EventLogType.Duel, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addBankheist(username: string, data: object | object[]): Promise<void> {
+    public async addBankheist(users: string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.event.bankheist) {
             return;
         }
-        const log = this.createLog(EventLogType.Bankheist, username, data);
+        const log = this.createLog(EventLogType.Bankheist, users, data);
         await this.eventLogs.add(log);
     }
 
-    public async addCommand(username: string, data: object | object[]): Promise<void> {
-        const log = this.createLog(EventLogType.Command, username, data);
+    public async addCommand(user: IUser, data: object | object[]): Promise<void> {
+        const log = this.createLog(EventLogType.Command, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addVipGoldAdded(username: string, data: object | object[]): Promise<void> {
+    public async addVipGoldAdded(user: IUser, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.song.gold) {
             return;
         }
-        const log = this.createLog(EventLogType.GoldAdded, username, data);
+        const log = this.createLog(EventLogType.GoldAdded, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addTwitchGiftSub(username: string, data: object | object[]): Promise<void> {
+    public async addTwitchGiftSub(user: IUser, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.twitch.subs) {
             return;
         }
 
-        const log = this.createLog(EventLogType.GiftSub, username, data);
+        const log = this.createLog(EventLogType.GiftSub, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addTwitchCommunityGiftSub(username: string, data: object | object[]): Promise<void> {
+    public async addTwitchCommunityGiftSub(user: IUser, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.twitch.subs) {
             return;
         }
 
-        const log = this.createLog(EventLogType.CommunityGiftSub, username, data);
+        const log = this.createLog(EventLogType.CommunityGiftSub, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async addStreamlabsEventReceived(username: string, type: EventLogType, data: object | object[]) {
+    public async addStreamlabsEventReceived(user: IUser | string, type: EventLogType, data: object | object[]) {
         if (!Config.log.enabledEventLogs.streamlabs.events) {
             return;
         }
 
-        const log = this.createLog(type, username, data);
+        const log = this.createLog(type, user, data);
         await this.eventLogs.add(log);
     }
 
@@ -109,30 +109,42 @@ export class EventLogService {
             return;
         }
 
-        const log = this.createLog(EventLogType.RenameUser, user.username, { oldUserName, newUserName });
+        const log = this.createLog(EventLogType.RenameUser, user, { oldUserName, newUserName });
         await this.eventLogs.add(log);
     }
 
-    public async addCardTrading(username: string, data: object | object[]): Promise<void> {
+    public async addCardTrading(user: IUser | string, data: object | object[]): Promise<void> {
         if (!Config.log.enabledEventLogs.event.cardtrading) {
             return;
         }
-        const log = this.createLog(EventLogType.CardTrading, username, data);
+        const log = this.createLog(EventLogType.CardTrading, user, data);
         await this.eventLogs.add(log);
     }
 
-    public async getCount(type: EventLogType, username: string) : Promise<number> {
-        return await this.eventLogs.getCount(type, username);
+    public async getCount(type: EventLogType, user: IUser) : Promise<number> {
+        return await this.eventLogs.getCount(type, user);
     }
 
-    private createLog(type: EventLogType, username: string, data: object | object[]): IEventLog {
-        const log: IEventLog = {
-            type,
-            username,
-            data: JSON.stringify(data),
-        };
+    private createLog(type: EventLogType, user: IUser | string | undefined, data: object | object[]): IEventLog {
+        if (typeof(user) === "string") {
+            const log: IEventLog = {
+                type,
+                username: user,
+                userId: undefined,
+                data: JSON.stringify(data),
+            };
 
-        return log;
+            return log;
+        } else {
+            const log: IEventLog = {
+                type,
+                username: user ? user.username : "",
+                userId: user?.id ?? 0,
+                data: JSON.stringify(data),
+            };
+
+            return log;
+        }
     }
 }
 

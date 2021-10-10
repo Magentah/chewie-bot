@@ -260,7 +260,7 @@ class UserlistController {
         }
 
         const userData = this.userRepository.mapUserToDetailsUserData(user);
-        const goldLogs = (await this.eventLogs.getForUser(username, [EventLogType.GoldAdded, EventLogType.SongRequest])).map(x => this.mapToEvent(x));
+        const goldLogs = (await this.eventLogs.getForUser(user, [EventLogType.GoldAdded, EventLogType.SongRequest])).map(x => this.mapToEvent(x));
         const rank = await this.userRepository.getPointsRank(user);
 
         const userProfile = {

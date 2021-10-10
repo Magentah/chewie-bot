@@ -331,7 +331,8 @@ const EditSonglist: React.FC<any> = (props: any) => {
                 actionsColumnIndex: 5,
                 showTitle: false,
                 search: true,
-                addRowPosition: "first"
+                addRowPosition: "first",
+                filtering: true
             }}
             actions={[
                 rowData => ({

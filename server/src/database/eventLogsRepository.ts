@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
-import { IEventLog, EventLogType } from "../models";
+import { IEventLog, EventLogType, IUser } from "../models";
 import * as moment from "moment";
 import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 
@@ -18,12 +18,12 @@ export class EventLogsRepository {
         return eventLogs;
     }
 
-    public async getForUser(username: string, type: EventLogType[]): Promise<IEventLog[]> {
+    public async getForUser(user: IUser, type: EventLogType[]): Promise<IEventLog[]> {
         const databaseService = await this.databaseProvider();
         const eventLogs: IEventLog[] = await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
             .select()
             .whereIn("type", type)
-            .andWhere("username", "like", username)
+            .andWhere("userId", user.id)
             .orderBy("time", "desc");
         return eventLogs;
     }
@@ -34,10 +34,10 @@ export class EventLogsRepository {
         return eventLogs;
     }
 
-    public async getCount(type: EventLogType, username: string): Promise<number> {
+    public async getCount(type: EventLogType, user: IUser): Promise<number> {
         const databaseService = await this.databaseProvider();
         const count = (await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
-            .select().where({ username, type }).count("id as cnt").first()).cnt;
+            .select().where({ userId: user.id, type }).count("id as cnt").first()).cnt;
         return count;
     }
 

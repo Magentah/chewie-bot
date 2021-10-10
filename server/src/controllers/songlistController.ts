@@ -113,7 +113,7 @@ class SonglistController {
 
         try {
             const result = await this.songlistService.add({
-                album: newSong.album,
+                album: newSong.album ?? "",
                 artist: newSong.artist,
                 categoryId: newSong.categoryId,
                 title: newSong.title,

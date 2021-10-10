@@ -154,7 +154,7 @@ export class UserService {
 
         await this.users.updateVipExpiry(user);
 
-        this.eventLog.addVipGoldAdded(user.username, { weeksAdded: goldWeeks, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests, reason });
+        this.eventLog.addVipGoldAdded(user, { weeksAdded: goldWeeks, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests, reason });
     }
 
     /**
