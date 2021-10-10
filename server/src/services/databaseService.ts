@@ -325,6 +325,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("type").notNullable();
             table.string("username").notNullable();
+            table.integer("userId").references(`id`).inTable(DatabaseTables.Users);
             table.json("data").notNullable();
             table.dateTime("time").notNullable();
         });

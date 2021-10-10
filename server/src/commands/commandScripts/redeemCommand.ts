@@ -46,7 +46,7 @@ export default class RedeemCommand extends Command {
             await this.twitchService.sendMessage(channel, `${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote}`);
 
             await this.eventLogService.addRedeem(user, variation);
-            const count = await this.eventLogService.getCount(EventLogType.RedeemCommand, user.username);
+            const count = await this.eventLogService.getCount(EventLogType.RedeemCommand, user);
 
             const msg = { user, type: AchievementType.AnimationRedeems, count };
             this.eventAggregator.publishAchievement(msg);

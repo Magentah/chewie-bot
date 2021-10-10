@@ -26,7 +26,7 @@ export class SudokuCommand extends Command {
 
         await this.eventLogService.addSudoku(user);
 
-        const count = await this.eventLogService.getCount(EventLogType.Sudoku, user.username);
+        const count = await this.eventLogService.getCount(EventLogType.Sudoku, user);
         const msg = { user, type: AchievementType.Sudoku, count };
         this.eventAggregator.publishAchievement(msg);
     }
