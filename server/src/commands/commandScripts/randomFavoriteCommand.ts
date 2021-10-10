@@ -17,7 +17,7 @@ export default class RandomFavoriteCommand extends Command {
 
         if (song) {
             this.twitchService.sendMessage(channel, `Song for ${user.username}: ${song.album ? song.album : song.artist} - ${song.title}`);
-        } else {
+        } else if (searchSubject) {
             this.twitchService.sendMessage(channel, `No favorite found in songlist for "${searchSubject}".`);
         } else {
             this.twitchService.sendMessage(channel, `${user.username}, you have not specified any favorite songs yet.`);
