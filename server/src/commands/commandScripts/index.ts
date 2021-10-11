@@ -48,6 +48,7 @@ export { default as TaxStreakCommand } from "./tax/taxStreakCommand";
 export { default as PointsCommand } from "../commandScripts/points/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/points/givePointsCommand";
 export { default as AddPointsCommand } from "../commandScripts/points/addPointsCommand";
+export { default as RemovePointsCommand } from "../commandScripts/points/removePointsCommand";
 export { default as RenameUserCommand } from "../commandScripts/renameUserCommand";
 export { default as TopCommand } from "../commandScripts/points/topCommand";
 export { default as CheckLossesCommand } from "../commandScripts/checklossesCommand";

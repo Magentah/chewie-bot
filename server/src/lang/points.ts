@@ -6,8 +6,10 @@ Lang.register("points.add.wrongarguments", "$1 - try again with !add <username> 
 Lang.register("points.give.noself", "$1, you can't give chews to yourself!");
 Lang.register("points.give.insufficientpoints", "$1, you don't have enough chews to do that!");
 Lang.register("points.userunknown", "$1 is not a valid user.");
+Lang.register("points.insufficient", "$1 does not have enough points.");
 Lang.register("points.give.success", "$1 has given $2 $3 chews!");
 Lang.register("points.add.success", "$1 has added $3 chews to $2!");
+Lang.register("points.remove.success", "$1 has removed $3 chews from $2!");
 
 Lang.register("points.check.neutralstats", "$1, your stats for $2: +$3 points and $4 points. ");
 Lang.register("points.check.notransaction", "$1 has not yet been involved in any transaction.");
