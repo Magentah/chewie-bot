@@ -3,6 +3,7 @@ import { Lang } from "../lang";
 Lang.register("points.status", "$1: $2 chews.");
 Lang.register("points.give.wrongarguments", "$1 - try again with !give <username> <chews>");
 Lang.register("points.add.wrongarguments", "$1 - try again with !add <username> <chews>");
+Lang.register("points.remove.wrongarguments", "$1 - try again with !remove <username> <chews>");
 Lang.register("points.give.noself", "$1, you can't give chews to yourself!");
 Lang.register("points.give.insufficientpoints", "$1, you don't have enough chews to do that!");
 Lang.register("points.userunknown", "$1 is not a valid user.");
