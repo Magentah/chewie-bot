@@ -30,7 +30,7 @@ export default class RandomUserFavoriteCommand extends Command {
         const song = await this.songlist.getRandom(searchSubject, forUser);
 
         if (song) {
-            this.twitchService.sendMessage(channel, `Song for ${user.username}: ${song.album} - ${song.title}`);
+            this.twitchService.sendMessage(channel, `Song for ${user.username}: ${song.album ? song.album : song.artist} - ${song.title}`);
         } else if (searchSubject) {
             this.twitchService.sendMessage(channel, `${forUserName} has no favorites for "${searchSubject}" in the songlist.`);
         } else {
