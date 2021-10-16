@@ -60,6 +60,11 @@ export class PointLogsRepository {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.PointLogs).where({ userId: user.id }).delete();
     }
+
+    public async archivePoints(user: IUser, seasonId: number) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.PointArchive).insert({"userId": user.id, "seasonId": seasonId, "points": user.points});
+    }
 }
 
 export default PointLogsRepository;

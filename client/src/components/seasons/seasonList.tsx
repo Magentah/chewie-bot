@@ -26,6 +26,14 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const DateCell: React.FC<any> = (date: number) => {
+    return (
+        <span>
+            {date ? new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" }).format(new Date(date)): "(Ongoing)"}
+        </span>
+    );
+};
+
 type RowData = { id: number, startDate: Date, endDate: Date };
 
 const SeasonList: React.FC<any> = (props: any) => {
@@ -49,12 +57,7 @@ const SeasonList: React.FC<any> = (props: any) => {
 
         if (createSeason) {
             axios.post("/api/seasons/add").then((result) => {
-                if (typeof result.data === "string") {
-                    
-                } else {
-                    
-                    updateSeasons();
-                }
+                updateSeasons();
             })
         }
     };
@@ -79,15 +82,17 @@ const SeasonList: React.FC<any> = (props: any) => {
 
         <Grid>
             <Grid item>
-                <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}>Start/end season</Button>
+                <Box margin={2}>
+                    <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}>Start/end season</Button>
+                </Box>
             </Grid>
             <Grid item>
                 <MaterialTable
                     title = {<Typography>This list shows all past seasons.</Typography>}
                     columns = {[
                         { title: "Number", field: "id", defaultSort: "desc" },
-                        { title: "Start date", field: "startDate", type: "date" },
-                        { title: "End date", field: "endDate", type: "date" }
+                        { title: "Start date", field: "startDate", type: "date", render: rowData => DateCell(rowData.startDate) },
+                        { title: "End date", field: "endDate", type: "date", render: rowData => DateCell(rowData.endDate) }
                     ]}
                     options = {{
                         paging: false,

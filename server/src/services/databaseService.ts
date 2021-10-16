@@ -25,6 +25,7 @@ export enum DatabaseTables {
     DiscordSettings = "discordSettings",
     EventLogs = "eventLogs",
     PointLogs = "pointLogs",
+    PointArchive = "pointArchive",
     Messages = "messages",
     Cards = "userCards",
     CardStack = "userCardStack",
@@ -121,6 +122,7 @@ export class DatabaseService {
                 await this.createAchievementsTable();
                 await this.createUserAchievementsTable();
                 await this.createSeasonsTable();
+                await this.createPointArchiveTable();
 
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -484,6 +486,15 @@ export class DatabaseService {
             table.increments("id").primary().notNullable().unique();
             table.dateTime("startDate");
             table.dateTime("endDate");
+        });
+    }
+
+    private async createPointArchiveTable(): Promise<void> {
+        return this.createTable(DatabaseTables.PointArchive, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("seasonId").notNullable().references("id").inTable(DatabaseTables.Seasons).onDelete("CASCADE");
+            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");;
+            table.decimal("points").notNullable();
         });
     }
 

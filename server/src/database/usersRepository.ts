@@ -88,8 +88,18 @@ export class UsersRepository {
                 "users.id"
             ]).distinct();
 
-        // Need to map from SQLResult to the correct model.
         return userResult;
+    }
+
+    /**
+     * Gets all users that have points.
+     */
+    public async getUsersWithPoints(): Promise<IUser[]> {
+        const databaseService = await this.databaseProvider();
+        const userResult = await this.makeUserQuery(databaseService).where("points", ">", 0);
+
+        // Need to map from SQLResult to the correct model.
+        return userResult.map((x: any) => this.mapDBUserToUser(x));
     }
 
     /**
