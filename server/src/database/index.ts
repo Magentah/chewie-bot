@@ -12,5 +12,5 @@ export { default as CardsRepository } from "./cardsRepository";
 export { default as ChannelPointRewardRepository } from "./channelPointRewardRepository";
 export { default as StreamActivityRepository } from "./streamActivityRepository";
 export { default as UserTaxHistoryRepository } from "./userTaxHistoryRepository";
-export { default as UserTaxStreakRepository } from "./userTaxHistoryRepository";
+export { default as UserTaxStreakRepository } from "./userTaxStreakRepository";
 export { default as SeasonsRepository } from "./seasonsRepository";
