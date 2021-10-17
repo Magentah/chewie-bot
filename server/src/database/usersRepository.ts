@@ -121,17 +121,31 @@ export class UsersRepository {
     /**
      * Gets a user leaderboard (only returns basic information)
      */
-    public async getLeaderboard(topCount: number, includeUser: IUser | undefined): Promise<{username: string, points: number, rank: number}[]> {
+    public async getLeaderboard(topCount: number, includeUser: IUser | undefined, seasonId: number | undefined): Promise<{username: string, points: number, rank: number}[]> {
         const databaseService = await this.databaseProvider();
 
-        const userResult = await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .orderBy("points", "desc").orderBy("username", "asc")
-            .limit(topCount)
-            .select([
-                "users.username",
-                "users.points"
-            ]);
+        let userResult;
+        if (seasonId) {
+            userResult = await databaseService
+                .getQueryBuilder(DatabaseTables.PointArchive)
+                .leftJoin(DatabaseTables.Users, "userId", "users.id")
+                .where("seasonId", seasonId)
+                .orderBy("pointArchive.points", "desc").orderBy("username", "asc")
+                .limit(topCount)
+                .select([
+                    "users.username",
+                    "pointArchive.points"
+                ]);
+        } else {
+            userResult = await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .orderBy("points", "desc").orderBy("username", "asc")
+                .limit(topCount)
+                .select([
+                    "users.username",
+                    "users.points"
+                ]);
+        }
 
         let counter = 1;
         const result = userResult.map((x: any) => { return { username: x.username, points: x.points, rank: counter++ } });
@@ -140,11 +154,28 @@ export class UsersRepository {
         if (includeUser) {
             const curentUser = result.filter((item: any) => item.username === includeUser.username)[0] || undefined;
             if (!curentUser) {
-                const currentUserRank = (await databaseService
-                    .getQueryBuilder(DatabaseTables.Users)
-                    .where("points", ">", includeUser.points)
-                    .count("id as cnt")
-                    .first()).cnt;
+                let currentUserRank;
+                if (seasonId) {
+                    const userPoints = (await databaseService
+                        .getQueryBuilder(DatabaseTables.PointArchive)
+                        .where("seasonId", seasonId)
+                        .andWhere("userId", includeUser.id)
+                        .select("points")
+                        .first())?.points ?? 0;
+                    currentUserRank = (await databaseService
+                        .getQueryBuilder(DatabaseTables.PointArchive)
+                        .where("seasonId", seasonId)
+                        .andWhere("points", ">", userPoints)
+                        .count("id as cnt")
+                        .first()).cnt;
+                } else {
+                    currentUserRank = (await databaseService
+                        .getQueryBuilder(DatabaseTables.Users)
+                        .where("points", ">", includeUser.points)
+                        .count("id as cnt")
+                        .first()).cnt;
+                }
+
                 result.push({ username: includeUser.username, points: includeUser.points, rank: currentUserRank + 1});
                 return result;
             }

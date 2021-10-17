@@ -475,6 +475,7 @@ export class DatabaseService {
             table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements).onDelete("CASCADE");
             table.dateTime("date").notNullable();
             table.dateTime("expiredDate");
+            table.integer("seasonId").references("id").inTable(DatabaseTables.Seasons);
             // Achievements can only be granted once, unless seasonal, then they need to have different
             // expiration dates for each season.
             table.unique(["userId", "achievementId", "expiredDate"]);
@@ -486,6 +487,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable().unique();
             table.dateTime("startDate");
             table.dateTime("endDate");
+            table.string("plannedEndDate");
         });
     }
 

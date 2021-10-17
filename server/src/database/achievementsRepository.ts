@@ -40,7 +40,7 @@ export default class AchievementsRepository {
             .orderBy("amount");
         return results as IAchievement[];
     }
-    
+
     public async getEndOfSeasonAchievements(): Promise<IAchievement[]> {
         const databaseService = await this.databaseProvider();
         const queryBuilder = databaseService.getQueryBuilder(DatabaseTables.Achievements);
@@ -93,12 +93,12 @@ export default class AchievementsRepository {
             .insert({ userId: user.id, achievementId: achievement.id, date: new Date().getTime() }).onConflict(["userId", "achievementId", "expiredDate"]).ignore()
     }
 
-    public async expire(achievement: IAchievement, dateUntil: Date) {
+    public async expire(achievement: IAchievement, seasonId: number, dateUntil: Date) {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.UserAchievements)
             .where("achievementId", achievement.id)
             .whereNull("expiredDate")
-            .update({ "expiredDate": dateUntil });
+            .update({ "expiredDate": dateUntil, seasonId });
     }
 
     public getFileExt(mimetype: string): string | undefined {

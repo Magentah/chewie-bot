@@ -76,7 +76,7 @@ export default class AchievementService {
      * Grant all achievements, that depend on the number of streams in the season.
      * @returns
      */
-    public async grantSeasonEndAchievements(dateFrom: Date, dateUntil: Date) {
+    public async grantSeasonEndAchievements(seasonId: number, dateFrom: Date, dateUntil: Date) {
         const achievements = await this.repository.getEndOfSeasonAchievements();
         if (achievements.length === 0) {
             return;
@@ -105,7 +105,7 @@ export default class AchievementService {
 
         // Expire existing achievements.
         for (const achievement of achievements) {
-            this.repository.expire(achievement, dateUntil);
+            this.repository.expire(achievement, seasonId, dateUntil);
         }
 
         if (eventCount === 0) {

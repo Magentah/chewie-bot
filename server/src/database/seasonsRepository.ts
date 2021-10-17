@@ -26,6 +26,16 @@ export default class SeasonsRepository {
         return seasons as ISeason[];
     }
 
+    public async get(season: ISeason): Promise<ISeason | undefined> {
+        if (!season.id) {
+            return undefined;
+        }
+
+        const databaseService = await this.databaseProvider();
+        const results = await databaseService.getQueryBuilder(DatabaseTables.Seasons).where({ id: season.id }).first();
+        return results as ISeason;
+    }
+
     public async addSeason(): Promise<{newSeasonId: number, lastSeasonId: number | undefined}> {
         // Find last season and end it.
         const databaseService = await this.databaseProvider();
@@ -43,5 +53,16 @@ export default class SeasonsRepository {
 
         // Return new season ID
         return { newSeasonId: result[0], lastSeasonId: lastSeason?.id };
+    }
+
+    public async updateSeason(season: ISeason): Promise<ISeason | undefined> {
+        const existingSeason = await this.get(season);
+        if (existingSeason) {
+            const databaseService = await this.databaseProvider();
+            await databaseService.getQueryBuilder(DatabaseTables.Seasons).where({ id: season.id }).update(season);
+            return season;
+        }
+
+        return undefined;
     }
 }

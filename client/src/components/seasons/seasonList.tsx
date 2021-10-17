@@ -34,7 +34,7 @@ const DateCell: React.FC<any> = (date: number) => {
     );
 };
 
-type RowData = { id: number, startDate: Date, endDate: Date };
+type RowData = { id: number, startDate: Date, endDate: Date, plannedEndDate: string };
 
 const SeasonList: React.FC<any> = (props: any) => {
     const [seasonList, setSeasonList] = useState([] as RowData[]);
@@ -90,13 +90,14 @@ const SeasonList: React.FC<any> = (props: any) => {
                 <MaterialTable
                     title = {<Typography>This list shows all past seasons.</Typography>}
                     columns = {[
-                        { title: "Number", field: "id", defaultSort: "desc" },
-                        { title: "Start date", field: "startDate", type: "date", render: rowData => DateCell(rowData.startDate) },
-                        { title: "End date", field: "endDate", type: "date", render: rowData => DateCell(rowData.endDate) }
+                        { title: "Number", field: "id", defaultSort: "desc", editable: "never" },
+                        { title: "Start date", field: "startDate", type: "date", render: rowData => DateCell(rowData.startDate), editable: "never" },
+                        { title: "End date", field: "endDate", type: "date", render: rowData => DateCell(rowData.endDate), editable: "never" },
+                        { title: "Planned end", field: "plannedEndDate", editable: "always" }
                     ]}
                     options = {{
                         paging: false,
-                        actionsColumnIndex: 3,
+                        actionsColumnIndex: 4,
                         showTitle: true,
                         tableLayout: "auto",
                         search: false
@@ -112,15 +113,6 @@ const SeasonList: React.FC<any> = (props: any) => {
                                     //@ts-ignore
                                     const index = oldData?.tableData.id;
                                     newList[index] = newData;
-                                    setSeasonList(newList);
-                                }
-                            }),
-                            onRowDelete: oldData => axios.post("/api/seasons/delete", oldData).then((result) => {
-                                if (result.status === 200) {
-                                    const newList = [...seasonList];
-                                    //@ts-ignore
-                                    const index = oldData?.tableData.id;
-                                    newList.splice(index, 1);
                                     setSeasonList(newList);
                                 }
                             })
