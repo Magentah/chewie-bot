@@ -495,6 +495,7 @@ export class DatabaseService {
             table.integer("seasonId").notNullable().references("id").inTable(DatabaseTables.Seasons).onDelete("CASCADE");
             table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");;
             table.decimal("points").notNullable();
+            table.unique(["userId", "seasonId"]);
         });
     }
 

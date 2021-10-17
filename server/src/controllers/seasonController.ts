@@ -9,15 +9,19 @@ import { UserService } from "../services/userService";
 import { UsersRepository } from "../database/usersRepository";
 import { PointLogType } from "../models/pointLog";
 import PointLogsRepository from "../database/pointLogsRepository";
+import UserTaxStreakRepository from "../database/userTaxStreakRepository";
+import AchievementService from "../services/achievementService";
 
 @injectable()
 class SeasonController {
     constructor(
         @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(PointLogsRepository) private pointLogsRepository: PointLogsRepository,
+        @inject(UserTaxStreakRepository) private userTaxStreakRepository: UserTaxStreakRepository,
         @inject(UserService) private userService: UserService,
         @inject(UsersRepository) private userRepository: UsersRepository,
-        @inject(BotSettingsService) private settingsService: BotSettingsService
+        @inject(BotSettingsService) private settingsService: BotSettingsService,
+        @inject(AchievementService) private achievementService: AchievementService
     ) {
         Logger.info(LogType.ServerInfo, `SeasonController constructor. SeasonsRepository exists: ${this.seasonsRepository !== undefined}`);
     }
@@ -41,13 +45,17 @@ class SeasonController {
 
     /**
      * Starts a new season and performs the related operations (resetting points etc.)
-     * @param req 
-     * @param res 
+     * @param req
+     * @param res
      */
     public async addSeason(req: Request, res: Response): Promise<void> {
         try {
+            const currentSeason = await this.seasonsRepository.getCurrentSeason();
+
+            // Add new season
             const seasonData = await this.seasonsRepository.addSeason();
-            
+
+            // Reset and archive all users' points.
             for (const user of await this.userRepository.getUsersWithPoints()) {
                 if (seasonData.lastSeasonId) {
                     await this.pointLogsRepository.archivePoints(user, seasonData.lastSeasonId);
@@ -55,6 +63,13 @@ class SeasonController {
 
                 await this.userService.changeUserPoints(user, -user.points, PointLogType.SeasonReset);
             }
+
+            // Grant achievements. Consider all streams started and taxes paid until right now.
+            // Dont't use season end date because the pure date will be a few hours in the past and miss the current stream.
+            this.achievementService.grantSeasonEndAchievements(currentSeason.startDate, new Date());
+
+            // Reset tax streaks
+            this.userTaxStreakRepository.reset();
 
             res.sendStatus(StatusCodes.OK);
         } catch (err: any) {

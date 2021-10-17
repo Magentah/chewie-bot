@@ -8,6 +8,18 @@ export default class SeasonsRepository {
         // Empty
     }
 
+    public async getCurrentSeason(): Promise<ISeason> {
+        const databaseService = await this.databaseProvider();
+        const endDate = new Date(new Date().toDateString());
+        const lastSeason = await databaseService.getQueryBuilder(DatabaseTables.Seasons).whereNull("endDate").orderBy("startDate", "desc").first() as ISeason;
+        if (lastSeason) {
+            lastSeason.endDate = endDate;
+            return lastSeason;
+        } else {
+            return { id: 0, startDate: new Date(0), endDate };
+        }
+    }
+
     public async getAll(): Promise<ISeason[]> {
         const databaseService = await this.databaseProvider();
         const seasons = await databaseService.getQueryBuilder(DatabaseTables.Seasons).select();
@@ -22,13 +34,13 @@ export default class SeasonsRepository {
         const endDate = new Date(new Date().toDateString());
         if (lastSeason) {
             await databaseService.getQueryBuilder(DatabaseTables.Seasons).where("id", lastSeason.id).update("endDate", endDate);
-            
+
             // Start date of next season should always be one day after the last season.
             endDate.setDate(endDate.getDate() + 1);
         }
 
         const result = await databaseService.getQueryBuilder(DatabaseTables.Seasons).insert({"startDate": endDate});
-        
+
         // Return new season ID
         return { newSeasonId: result[0], lastSeasonId: lastSeason?.id };
     }

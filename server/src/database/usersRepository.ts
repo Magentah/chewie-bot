@@ -40,6 +40,22 @@ export class UsersRepository {
         return this.mapDBUserToUser(userResult);
     }
 
+    /**
+     * Gets a user from the database if the user exists.
+     * @param id ID of the user to get
+     */
+    public async getById(id: number): Promise<IUser | undefined> {
+        const databaseService = await this.databaseProvider();
+        const userResult = await this.makeUserQuery(databaseService).where("users.id", id).first();
+
+        if (!userResult) {
+            return undefined;
+        }
+
+        // Need to map from SQLResult to the correct model.
+        return this.mapDBUserToUser(userResult);
+    }
+
     public async getByIds(ids: number[]): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
         const userResult = await this.makeUserQuery(databaseService).whereIn("users.id", ids);

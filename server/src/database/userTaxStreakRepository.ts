@@ -48,4 +48,11 @@ export default class UserTaxStreakRepository {
             .update({ lastTaxRedemptionId: taxRedemptionId, currentStreak, longestStreak })
             .where("userId", userId);
     }
+
+    public async reset() {
+        const databaseService = await this.databaseProvider();
+        await databaseService
+            .getQueryBuilder(DatabaseTables.UserTaxStreak)
+            .update({"currentStreak": 0, "longestStreak": 0});
+    }
 }
