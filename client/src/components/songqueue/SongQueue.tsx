@@ -374,15 +374,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     // Display only for known users, we can't indentify requests otherwise.
     const ownSongQueue = !userContext.user.username ? undefined :
         <Box mb={1} mt={2} key="own-queue">
-            {(ownSongs.length === 0)
-             ? (donationLinkUrl ?
-                 <Typography>
-                    <Link href={donationLinkUrl} target="_blank" rel="noopener noreferrer">
-                        <AttachMoneyIcon /> Donate for your song request
-                    </Link>
-                </Typography>
-               : undefined)
-             : <Box mt={2}>
+            {ownSongs.length > 0 ?
+            <Box mt={2}>
                 <Typography variant="h6">
                     Your requests
                 </Typography>
@@ -404,11 +397,29 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                        ))}
                    </GridList>
                 </div>
-               </Box>
-            }
+            </Box> : undefined}
             {addSongrequestsForm}
             <Divider />
-        </Box>
+        </Box>;
+
+    const donationLinks = ownSongs.length === 0 && donationLinkUrl ?
+        <Grid container style={{marginTop: "1em"}}>
+           <Grid item>
+               <Typography>
+                   <Link href={donationLinkUrl} target="_blank" rel="noopener noreferrer">
+                       <AttachMoneyIcon /> Donate for your song request
+                   </Link>
+               </Typography>
+           </Grid>
+           <Grid item>
+               <Typography style={{marginLeft: "1em"}}>
+                   <Link href={"https://rally.io/creator/CHEWS/"} target="_blank" rel="noopener noreferrer">
+                       <AttachMoneyIcon /> Donate using $CHEWS
+                   </Link>
+               </Typography>
+           </Grid>
+       </Grid>
+      : undefined;
 
     const queueColumns: Column<Song>[] = [
         {
@@ -454,6 +465,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     if (selectedTab === 0) {
         elements.push(ownSongQueue);
+        elements.push(donationLinks);
         elements.push(<MaterialTable
             key="full-queue"
             title = "Song Queue"
