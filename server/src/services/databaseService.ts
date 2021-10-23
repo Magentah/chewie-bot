@@ -455,6 +455,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable().unique();
             table.integer("type").notNullable();
             table.integer("amount").notNullable();
+            table.integer("pointRedemption").notNullable().defaultTo(0);
             table.integer("name").notNullable();
             table.boolean("seasonal").notNullable().defaultTo(false);
             table.string("imageId").notNullable();
@@ -471,6 +472,7 @@ export class DatabaseService {
             table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements).onDelete("CASCADE");
             table.dateTime("date").notNullable();
             table.dateTime("expiredDate");
+            table.dateTime("redemptionDate");
             // Achievements can only be granted once, unless seasonal, then they need to have different
             // expiration dates for each season.
             table.unique(["userId", "achievementId", "expiredDate"]);

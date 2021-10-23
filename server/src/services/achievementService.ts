@@ -1,18 +1,18 @@
 import { inject, injectable } from "inversify";
-import { AchievementType, IUser } from "../models";
-import { BotSettings } from "./botSettingsService";
-import BotSettingsService from "./botSettingsService";
+import { AchievementType, IAchievement, IUser } from "../models";
 import AchievementsRepository from "../database/achievementsRepository";
 import Logger, { LogType } from "../logger";
 import AchievementMessage from "../models/achievementMessage";
 import TwitchService from "./twitchService";
 import * as Config from "../config.json";
 import EventAggregator, { EventChannel } from "./eventAggregator";
+import { UserService } from ".";
+import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export default class AchievementService {
     constructor(
-        @inject(BotSettingsService) private settingsService: BotSettingsService,
+        @inject(UserService) private userService: UserService,
         @inject(AchievementsRepository) private repository: AchievementsRepository,
         @inject(TwitchService) private twitchService: TwitchService,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
@@ -59,5 +59,20 @@ export default class AchievementService {
                 break;
             }
         }
+    }
+
+    /**
+     * Redeems an achievement for points. Regular achievements can only be redeemed once, sesonal achievements once each season.
+     * @param user User who redeems
+     * @param achievement Achievment to be redeemed (ID is userAchievement.id here)
+     * @returns true if successfull
+     */
+    public async redeemAchievement(user: IUser, achievement: IAchievement): Promise<boolean> {
+        if (await this.repository.redeemForPoints(user, achievement)) {
+            await this.userService.changeUserPoints(user, achievement.pointRedemption, PointLogType.Achievement);
+            return true;
+        }
+
+        return false;
     }
 }

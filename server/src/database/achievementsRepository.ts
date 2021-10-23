@@ -14,7 +14,7 @@ export default class AchievementsRepository {
         return results as IAchievement[];
     }
 
-    public async getUserAchievements(user: IUser): Promise<{achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string}[]> {
+    public async getUserAchievements(user: IUser): Promise<{achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string, pointRedemption: number}[]> {
         const databaseService = await this.databaseProvider();
         const results = await databaseService.getQueryBuilder(DatabaseTables.Achievements)
             .leftJoin(DatabaseTables.UserAchievements, (x) => {
@@ -23,8 +23,8 @@ export default class AchievementsRepository {
             })
             .orderBy("type")
             .orderBy("amount")
-            .select(["achievementId", "date", "expiredDate", "mimetype", "imageId", "type", "amount", "name"]);
-        return results as {achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string}[];
+            .select(["achievementId", "date", "expiredDate", "mimetype", "imageId", "type", "amount", "name", "pointRedemption", "userAchievements.id AS id", "redemptionDate"]);
+        return results as {achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string, pointRedemption: number}[];
     }
 
     public async getGlobalByType(type: AchievementType, exlucdeExistingUser: IUser): Promise<IAchievement[]> {
@@ -38,6 +38,16 @@ export default class AchievementsRepository {
             )
             .orderBy("amount");
         return results as IAchievement[];
+    }
+
+    public async redeemForPoints(user: IUser, achievement: IAchievement): Promise<boolean> {
+        const databaseService = await this.databaseProvider();
+
+        // Filtering for user id here is only a permission check since ID would already be unique here.
+        const result = await databaseService.getQueryBuilder(DatabaseTables.UserAchievements).update({redemptionDate: new Date()})
+            .where({userId: user.id, id: achievement.id}).whereNull("redemptionDate");
+
+        return result > 0;
     }
 
     public async get(achievement: IAchievement): Promise<IAchievement | undefined> {
