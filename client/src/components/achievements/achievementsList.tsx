@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-type RowData = { id?: number, type: number, amount: number, seasonal: boolean, imageId: string, announcementMessage: string, url: string, name: string };
+type RowData = { id?: number, type: number, amount: number, seasonal: boolean, imageId: string, announcementMessage: string, pointRedemption: number, url: string, name: string };
 const MaxFileSize = 1024 * 1024 * 5;
 const FileTypes = ["image/jpeg", "image/png"];
 
@@ -68,6 +68,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
     const [achievementListState, setAchievementListState] = useState<AddToListState>();
 
     const [achievementType, setAchievementType] = useState<number>(0);
+    const [achievementPoints, setAchievementPoints] = useState<number>(0);
     const [achievementMsg, setAchievementMsg] = useState<string>("");
     const [achievementName, setAchievementName] = useState<string>("");
     const [achievementAmount, setAchievementAmount] = useState<number>(1);
@@ -93,6 +94,9 @@ const AchievementsList: React.FC<any> = (props: any) => {
         12: "Unique cards upgraded",
     };
 
+    const achievementTypesSorted = Object.entries(achievementTypes);
+    achievementTypesSorted.sort((a, b) => b[1] < a[1] ? 1 : -1);
+
     useEffect(() => {
         axios.get("/api/achievements").then((response) => {
             setAchievementlist(response.data);
@@ -110,6 +114,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
             const newData = {
                 type: achievementType,
                 amount: achievementAmountIsNumberOfStreams ? -1 : achievementAmount,
+                pointRedemption: achievementPoints,
                 seasonal: achievementSeasonal,
                 name: achievementName,
                 announcementMessage: achievementMsg
@@ -127,6 +132,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                 setAchievementListState({state: "success"});
                 setAchievementlist(newList);
                 setAchievementType(0);
+                setAchievementPoints(0);
                 setAchievementAmount(1);
                 setAchievementMsg("");
                 setAchievementName("");
@@ -156,18 +162,9 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                     <Select
                                         value={achievementType}
                                         onChange={(event: React.ChangeEvent<{ name?: string | undefined; value: unknown; }>) => setAchievementType(event.target.value as number ?? 0)}>
-                                        {Object.entries(achievementTypes).map(([key, value]) => <MenuItem value={key}>{value}</MenuItem>)}
+                                        {achievementTypesSorted.map(([key, value]) => <MenuItem value={key}>{value}</MenuItem>)}
                                     </Select>
                                 </FormControl>
-                            </Grid>
-                            <Grid item>
-                                <TextField
-                                    id="achievement-msg"
-                                    label="Announcement message"
-                                    fullWidth
-                                    value={achievementMsg}
-                                    onChange={(e) => setAchievementMsg(e.target.value)}
-                                />
                             </Grid>
                             <Grid item>
                                 <TextField
@@ -178,8 +175,17 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                     onChange={(e) => setAchievementName(e.target.value)}
                                 />
                             </Grid>
-                            <Grid item container alignItems="center" direction="row">
-                                <Grid item>
+                            <Grid item>
+                                <TextField
+                                    id="achievement-msg"
+                                    label="Announcement message"
+                                    fullWidth
+                                    value={achievementMsg}
+                                    onChange={(e) => setAchievementMsg(e.target.value)}
+                                />
+                            </Grid>
+                            <Grid item container alignItems="center" direction="row" wrap="nowrap">
+                                <Grid item xs={4}>
                                     <TextField
                                         id="achievement-amount"
                                         label="Amount required"
@@ -202,6 +208,17 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                         label="Use number of streams in season"
                                     />
                                 </Grid>
+                            </Grid>
+                            <Grid item xs={4}>
+                                <TextField
+                                        id="achievement-points"
+                                        label="Points rewarded"
+                                        type="number"
+                                        InputProps={{ inputProps: { min: 0 } }}
+                                        fullWidth
+                                        value={achievementPoints}
+                                        onChange={(e) => setAchievementPoints(parseInt(e.target.value, 10))}
+                                />
                             </Grid>
                             <Grid item>
                                 <FormControlLabel
@@ -277,13 +294,14 @@ const AchievementsList: React.FC<any> = (props: any) => {
                             </Grid>
                           )
                     },
+                    { title: "Points rewarded", field: "pointRedemption", type: "numeric" },
                     { title: "Seasonal", field: "seasonal", type: "boolean" },
                     { title: "Announcement message", field: "announcementMessage", },
                     { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} />, editable: "never" }
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 6,
+                    actionsColumnIndex: 7,
                     showTitle: false,
                     addRowPosition: "first",
                     tableLayout: "auto",

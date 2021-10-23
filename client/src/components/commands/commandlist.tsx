@@ -65,7 +65,7 @@ const CommandList: React.FC<any> = (props: any) => {
                         width: "10%"
                     },
                     { title: "Type", field: "type", editable: "onAdd", lookup: { 0: "Text", 1: "Alias", 2: "System" }, defaultFilter: ["0", "1"], initialEditValue: 0 },
-                    { title: "Required permissions", field: "minUserLevel", editable: "never", lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
+                    { title: "Required permissions", field: "minUserLevel", editable: (columnDef: any, rowData: RowData) => rowData?.type === CommandType.Text, lookup: Object.fromEntries(userLevels.map(e => [e.rank, e.name])) }
                 ]}
                 options = {{
                     paging: true,

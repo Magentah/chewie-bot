@@ -1,7 +1,5 @@
 import { inject, injectable } from "inversify";
 import { AchievementType, EventTypes, IAchievement, IUser } from "../models";
-import { BotSettings } from "./botSettingsService";
-import BotSettingsService from "./botSettingsService";
 import AchievementsRepository from "../database/achievementsRepository";
 import StreamActivityRepository from "../database/streamActivityRepository";
 import Logger, { LogType } from "../logger";
@@ -12,11 +10,13 @@ import EventAggregator, { EventChannel } from "./eventAggregator";
 import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UsersRepository from "../database/usersRepository";
 import { TaxType } from "../models/taxHistory";
+import { UserService } from ".";
+import { PointLogType } from "../models/pointLog";
 
 @injectable()
 export default class AchievementService {
     constructor(
-        @inject(BotSettingsService) private settingsService: BotSettingsService,
+        @inject(UserService) private userService: UserService,
         @inject(AchievementsRepository) private repository: AchievementsRepository,
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(UserTaxHistoryRepository) private userTaxHistoryRepository: UserTaxHistoryRepository,
@@ -139,5 +139,20 @@ export default class AchievementService {
                     break;
             }
         }
+    }
+
+    /**
+     * Redeems an achievement for points. Regular achievements can only be redeemed once, sesonal achievements once each season.
+     * @param user User who redeems
+     * @param achievement Achievment to be redeemed (ID is userAchievement.id here)
+     * @returns true if successfull
+     */
+    public async redeemAchievement(user: IUser, achievement: IAchievement): Promise<boolean> {
+        if (await this.repository.redeemForPoints(user, achievement)) {
+            await this.userService.changeUserPoints(user, achievement.pointRedemption, PointLogType.Achievement);
+            return true;
+        }
+
+        return false;
     }
 }

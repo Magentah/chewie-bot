@@ -29,6 +29,7 @@ export enum PointLogType {
     CardTrading = "cardtrading",
     CardRecycle = "cardrecycle",
     SeasonReset = "seasonreset",
+    Achievement = "achievement",
 }
 
 export enum PointLogReason {

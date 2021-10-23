@@ -95,7 +95,8 @@ class CommandlistController {
                         commandName: commandInfo.commandName,
                         message: commandInfo.content,
                         useCount: commandInfo.useCount ?? 0,
-                        useCooldown: commandInfo.useCooldown ?? true
+                        useCooldown: commandInfo.useCooldown ?? true,
+                        minimumUserLevel: commandInfo.minUserLevel
                     });
 
                     const resultTextCmd = await this.textCommandsRepository.get(commandInfo.commandName);
@@ -162,6 +163,7 @@ class CommandlistController {
                         txtCommand.message = commandInfo.content;
                         txtCommand.useCount = commandInfo.useCount ?? 0;
                         txtCommand.useCooldown = commandInfo.useCooldown ?? true;
+                        txtCommand.minimumUserLevel = commandInfo.minUserLevel;
                         await this.textCommandsRepository.update(txtCommand);
                     }
 
@@ -230,7 +232,7 @@ class CommandlistController {
             commandName: command.commandName,
             content: command.message,
             type: CommandType.Text,
-            minUserLevel: UserLevels.Viewer,
+            minUserLevel: command.minimumUserLevel ?? UserLevels.Viewer,
             useCount: command.useCount,
             useCooldown: command.useCooldown
         };

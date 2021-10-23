@@ -9,6 +9,7 @@ import fs = require("fs");
 import path = require("path");
 import { Guid } from "guid-typescript";
 import { Lang } from "../lang";
+import { AchievementService } from "../services";
 
 @injectable()
 class AchievementsController {
@@ -46,7 +47,8 @@ class AchievementsController {
         [AchievementType.ArenaWon]: 12,
     };
 
-    constructor(@inject(AchievementsRepository) private achievementsRepository: AchievementsRepository) {
+    constructor(@inject(AchievementsRepository) private achievementsRepository: AchievementsRepository,
+                @inject(AchievementService) private achievementService: AchievementService) {
         Logger.info(
             LogType.ServerInfo,
             `AchievementsController constructor. AchievementsRepository exists: ${this.achievementsRepository !== undefined}`
@@ -93,6 +95,30 @@ class AchievementsController {
     }
 
     /**
+     * Redeems a user's achievement for chews.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public async redeemAchievement(req: Request, res: Response): Promise<void> {
+        const user = req.user as IUser;
+        if (!user) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "User not logged in."));
+            return;
+        }
+
+        const achievement = req.body as IAchievement;
+        if (!achievement) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include an achievement object."));
+            return;
+        }
+
+        await this.achievementService.redeemAchievement(user, achievement);
+        res.sendStatus(StatusCodes.OK);
+    }
+
+    /**
      * Updates the details of an achievement.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
@@ -114,6 +140,7 @@ class AchievementsController {
             await this.achievementsRepository.addOrUpdate({...achievementData,
                 type: achievement.type,
                 amount: achievement.amount,
+                pointRedemption: achievement.pointRedemption,
                 seasonal: achievement.seasonal,
                 name: achievement.name,
                 announcementMessage: achievement.announcementMessage
@@ -151,6 +178,7 @@ class AchievementsController {
             achievementData = await this.achievementsRepository.addOrUpdate({
                 type: achievement.type,
                 amount: achievement.amount,
+                pointRedemption: achievement.pointRedemption,
                 seasonal: achievement.seasonal,
                 name: achievement.name,
                 announcementMessage: achievement.announcementMessage,
@@ -222,6 +250,7 @@ class AchievementsController {
             const result = await this.achievementsRepository.addOrUpdate({
                 type: newAchievement.type,
                 amount: newAchievement.amount,
+                pointRedemption: newAchievement.pointRedemption,
                 seasonal: newAchievement.seasonal,
                 name: newAchievement.name,
                 announcementMessage: newAchievement.announcementMessage,
