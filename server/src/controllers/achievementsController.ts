@@ -95,6 +95,24 @@ class AchievementsController {
     }
 
     /**
+     * Gets a list of all users with a specific achievement.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public async getUsersWithAchievements(req: Request, res: Response): Promise<void> {
+        const achievementId = parseInt(req.params.id, 10);
+        if (!achievementId) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Achievement ID missing."));
+            return;
+        }
+
+        const users = await this.achievementsRepository.getUsersWithAchievement(achievementId);
+        res.status(StatusCodes.OK);
+        res.send(users);
+    }
+
+    /**
      * Redeems a user's achievement for chews.
      * @param req Express HTTP Request
      * @param res Express HTTP Response

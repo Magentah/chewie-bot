@@ -31,6 +31,16 @@ export default class AchievementsRepository {
             type: AchievementType, amount: number, name: string, pointRedemption: number, seasonId: number}[];
     }
 
+    public async getUsersWithAchievement(achievementId: number): Promise<string[]> {
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.UserAchievements)
+            .leftJoin(DatabaseTables.Users, "userAchievements.userId", "users.id")
+            .where("achievementId", achievementId)
+            .orderBy("username")
+            .select("username").distinct();
+        return result.map(x => x.username);
+    }
+
     public async getGlobalByType(type: AchievementType, excludeExistingUser: IUser): Promise<IAchievement[]> {
         const databaseService = await this.databaseProvider();
         const queryBuilder = databaseService.getQueryBuilder(DatabaseTables.Achievements);
