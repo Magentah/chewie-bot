@@ -14,17 +14,18 @@ export default class AchievementsRepository {
         return results as IAchievement[];
     }
 
-    public async getUserAchievements(user: IUser): Promise<{achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string}[]> {
+    public async getUserAchievements(user: IUser): Promise<{achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string, seasonId: number}[]> {
         const databaseService = await this.databaseProvider();
         const results = await databaseService.getQueryBuilder(DatabaseTables.Achievements)
             .leftJoin(DatabaseTables.UserAchievements, (x) => {
                 x.on("achievements.id", "userAchievements.achievementId")
                 .andOnVal("userAchievements.userId", "=", user.id ?? 0)
             })
+            .orderBy("seasonId")
             .orderBy("type")
             .orderBy("amount")
-            .select(["achievementId", "date", "expiredDate", "mimetype", "imageId", "type", "amount", "name"]);
-        return results as {achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string}[];
+            .select(["achievementId", "date", "expiredDate", "mimetype", "imageId", "type", "amount", "name", "seasonId"]);
+        return results as {achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, type: AchievementType, amount: number, name: string, seasonId: number}[];
     }
 
     public async getGlobalByType(type: AchievementType, excludeExistingUser: IUser): Promise<IAchievement[]> {

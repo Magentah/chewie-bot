@@ -78,12 +78,12 @@ class AchievementsController {
         }
 
         const achievements = await this.achievementsRepository.getUserAchievements(user)
-        achievements.sort((x, y) => this.AchievementOrder[x.type] - this.AchievementOrder[y.type]);
+        achievements.sort((x, y) => x.seasonId === y.seasonId ? this.AchievementOrder[x.type] - this.AchievementOrder[y.type] : x.seasonId - y.seasonId);
 
         const resultAchievements = [];
         for (const achievement of achievements) {
             const fullData = {...achievement,
-                group: Lang.get(this.AchievementCategories[achievement.type], achievement.amount),
+                group: achievement.seasonId ? `Season #${achievement.seasonId}` : Lang.get(this.AchievementCategories[achievement.type], achievement.amount),
             };
             resultAchievements.push(this.addUrl(fullData));
         }
