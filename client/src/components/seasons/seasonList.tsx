@@ -1,30 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@material-ui/core";
+import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@material-ui/core";
 import MaterialTable from "material-table";
-
-const useStyles = makeStyles((theme) => ({
-    collectionHeader: {
-        marginTop: theme.spacing(2)
-    },
-    achievementDescription: {
-        marginTop: theme.spacing(1),
-    },
-    achievementsGrid: {
-        background: theme.palette.divider,
-        padding: theme.spacing(1),
-        marginTop: theme.spacing(2)
-    },
-    noAchievementsGrid: {
-        background: theme.palette.divider,
-        padding: theme.spacing(15, 5),
-        marginTop: theme.spacing(2)
-    },
-    uppercase: {
-        textTransform: "uppercase"
-    },
-}));
 
 const DateCell: React.FC<any> = (date: number) => {
     return (
@@ -39,8 +16,7 @@ type RowData = { id: number, startDate: Date, endDate: Date, plannedEndDate: str
 const SeasonList: React.FC<any> = (props: any) => {
     const [seasonList, setSeasonList] = useState([] as RowData[]);
     const [dialogOpen, setDialogOpen] = useState(false);
-
-    const classes = useStyles();
+    const [newSeasonEnd, setNewSeasonEnd] = useState("");
 
     const updateSeasons = useCallback(() => {
         axios.get("/api/seasons").then((response) => {
@@ -56,7 +32,7 @@ const SeasonList: React.FC<any> = (props: any) => {
         setDialogOpen(false);
 
         if (createSeason) {
-            axios.post("/api/seasons/add").then((result) => {
+            axios.post("/api/seasons/add", { newSeasonEnd }).then((result) => {
                 updateSeasons();
             })
         }
@@ -66,13 +42,24 @@ const SeasonList: React.FC<any> = (props: any) => {
         <Dialog open={dialogOpen} onClose={() => handleCloseReset(false)}>
             <DialogTitle>Start New Season</DialogTitle>
             <DialogContent>
-                <DialogContentText>Do you want to start a new season?</DialogContentText>
-                <DialogContentText>The following tasks will be performed:</DialogContentText>
+                <Typography>Do you want to start a new season?</Typography>
+                <Typography>The following tasks will be performed:</Typography>
                 <ul>
                     <li>Reset and archive all users' points</li>
                     <li>Reset tax streak</li>
                     <li>Grant outstanding achievements</li>
                 </ul>
+                <Typography>New season end date (optional):</Typography>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="next-season-end"
+                    label="Planned End Date"
+                    fullWidth
+                    variant="standard"
+                    value={newSeasonEnd}
+                    onChange={(e) => setNewSeasonEnd(e.target.value)}
+                />
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Start new season</Button>
@@ -110,7 +97,7 @@ const SeasonList: React.FC<any> = (props: any) => {
                             onRowUpdate: (newData, oldData) => axios.post("/api/seasons", newData).then((result) => {
                                 if (result.status === 200) {
                                     const newList = [...seasonList];
-                                    //@ts-ignore
+                                    // @ts-ignore
                                     const index = oldData?.tableData.id;
                                     newList[index] = newData;
                                     setSeasonList(newList);

@@ -36,7 +36,7 @@ export default class SeasonsRepository {
         return results as ISeason;
     }
 
-    public async addSeason(): Promise<{newSeasonId: number, lastSeasonId: number | undefined}> {
+    public async addSeason(plannedEndDate: string | undefined): Promise<{newSeasonId: number, lastSeasonId: number | undefined}> {
         // Find last season and end it.
         const databaseService = await this.databaseProvider();
         const lastSeason = await databaseService.getQueryBuilder(DatabaseTables.Seasons).whereNull("endDate").orderBy("startDate", "desc").first() as ISeason;
@@ -49,7 +49,7 @@ export default class SeasonsRepository {
             endDate.setDate(endDate.getDate() + 1);
         }
 
-        const result = await databaseService.getQueryBuilder(DatabaseTables.Seasons).insert({"startDate": endDate});
+        const result = await databaseService.getQueryBuilder(DatabaseTables.Seasons).insert({"startDate": endDate, plannedEndDate});
 
         // Return new season ID
         return { newSeasonId: result[0], lastSeasonId: lastSeason?.id };

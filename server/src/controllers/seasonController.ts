@@ -53,7 +53,7 @@ class SeasonController {
             const currentSeason = await this.seasonsRepository.getCurrentSeason();
 
             // Add new season
-            const seasonData = await this.seasonsRepository.addSeason();
+            const seasonData = await this.seasonsRepository.addSeason(req.body.newSeasonEnd);
 
             // Reset and archive all users' points.
             for (const user of await this.userRepository.getUsersWithPoints()) {
