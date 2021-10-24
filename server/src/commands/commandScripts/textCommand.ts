@@ -61,13 +61,13 @@ export class TextCommand extends Command {
         } else {
             const newUseCount = await this.commands.incrementUseCount(commandName);
 
-            message = await this.ReplaceCommonVariables(message, newUseCount, user);
+            message = await this.ReplaceCommonVariables(message, newUseCount, user, args);
 
             this.twitchService.sendMessage(channel, message);
         }
     }
 
-    private async ReplaceCommonVariables(message: string, newUseCount: number, user: IUser): Promise<string> {
+    private async ReplaceCommonVariables(message: string, newUseCount: number, user: IUser, args: any[]): Promise<string> {
         // Replace variable with current counter
         // Use after increment since starting with 1 makes more sense.
         if (message.indexOf("{count}") !== -1) {
@@ -95,6 +95,37 @@ export class TextCommand extends Command {
             }
 
             message = message.replace(/\{uptime\}/ig, uptime);
+        }
+
+        // If user name with @ is given, provide clean version of user name.
+        let userFromParams = "";
+        for (const a of args) {
+            if (typeof(a) === "string" && a.startsWith("@")) {
+                userFromParams = a.substr(1);
+                break;
+            }
+        }
+
+        // Assume first parameter to be user name.
+        if (!userFromParams && args.length > 0) {
+            userFromParams = args[1];
+        }
+
+        message = message.replace(/\{userfromargument\}/ig, userFromParams);
+
+        if (message.indexOf("{userlaststreaming}") !== -1 && userFromParams) {
+            let lastStreaming = "(unknown)";
+            try {
+                lastStreaming = await this.twitchService.getLastChannelCategory(userFromParams);
+                if (!lastStreaming) {
+                    // Should fit into senteces like "were last seen streaming ..."
+                    lastStreaming = "nothing";
+                }
+            } catch (error: any) {
+                Logger.err(LogType.Command, error);
+            }
+
+            message = message.replace(/\{userlaststreaming\}/ig, lastStreaming);
         }
 
         return message;

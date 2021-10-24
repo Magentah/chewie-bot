@@ -19,6 +19,7 @@ export default interface IAchievement {
     type: number;
     name: string;
     amount: number;
+    pointRedemption: number;
     seasonal: boolean;
     imageId: string;
     mimetype?: string;

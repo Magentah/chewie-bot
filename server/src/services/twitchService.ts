@@ -117,8 +117,6 @@ export class TwitchService {
         try {
             Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
             await this.client.join(channel);
-            const test = await this.channelSearch(Config.twitch.broadcasterName);
-            Logger.info(LogType.Twitch, "Test channel search", test);
             return Response.Success();
         } catch (error: any) {
             Logger.warn(LogType.Twitch, error);
@@ -165,6 +163,28 @@ export class TwitchService {
         };
         const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/search/channels?query=${channelName}`, options);
         return data;
+    }
+
+    public async getLastChannelCategory(channelName: string): Promise<string> {
+        const accessDetails = await this.authService.getClientAccessTokenWithScopes(Constants.TwitchBroadcasterScopes);
+        const options = {
+            headers: {
+                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
+                "Client-Id": accessDetails.clientId,
+            },
+        };
+
+        const userData = await axios.get(`${Constants.TwitchAPIEndpoint}/users?login=` + channelName, options);
+        if (!userData?.data?.data[0]?.id) {
+            return "";
+        }
+
+        const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/channels?broadcaster_id=${userData.data.data[0].id}`, options);
+        if (!data?.data) {
+            return "";
+        }
+
+        return data.data[0].game_name;
     }
 
     public async userExistsInChat(channel: string, username: string): Promise<boolean> {

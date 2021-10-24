@@ -455,6 +455,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable().unique();
             table.integer("type").notNullable();
             table.integer("amount").notNullable();
+            table.integer("pointRedemption").notNullable().defaultTo(0);
             table.integer("name").notNullable();
             table.boolean("seasonal").notNullable().defaultTo(false);
             table.string("imageId").notNullable();
@@ -471,6 +472,7 @@ export class DatabaseService {
             table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements).onDelete("CASCADE");
             table.dateTime("date").notNullable();
             table.dateTime("expiredDate");
+            table.dateTime("redemptionDate");
             // Achievements can only be granted once, unless seasonal, then they need to have different
             // expiration dates for each season.
             table.unique(["userId", "achievementId", "expiredDate"]);
@@ -560,9 +562,9 @@ export class DatabaseService {
             Logger.info(LogType.Backup, "Backing up database.");
             if (Config.database.client === "sqlite3") {
                 const now = moment();
-                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup`;
+                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup.gz`;
                 exec("mkdir db/backups");
-                exec(`sqlite3 ${Config.database.connection.name} .dump > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
+                exec(`sqlite3 ${Config.database.connection.name} .dump | gzip > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
                     if (callback) {
                         callback(err, stderr, stdout);
                     }

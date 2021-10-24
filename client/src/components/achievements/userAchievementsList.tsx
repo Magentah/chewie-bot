@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import { Box, Typography, Grid, Card } from "@material-ui/core";
+import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@material-ui/core";
 import { Image } from "react-bootstrap";
+import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 
 const useStyles = makeStyles((theme) => ({
     collectionHeader: {
@@ -24,12 +26,35 @@ const useStyles = makeStyles((theme) => ({
     uppercase: {
         textTransform: "uppercase"
     },
+    achievement: {
+        position: "relative",
+        "& .redeem-button": {
+            display: "none"
+        },
+        "&:hover .redeem-button": {
+            display: "flex"
+        }
+    },
+    redeemIcon: {
+        position: "absolute",
+        top: "0px",
+        right: "0px",
+        zIndex: 10
+    },
+    redeemButtonOverlay: {
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 10
+     }
 }));
 
-type RowData = { achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, url: string, name: string, group: string };
+type RowData = { achievementId: number, date: Date, expiredDate: Date, mimetype: string, imageId: string, url: string, name: string, group: string, pointRedemption: number, redemptionDate: Date };
 
 const UserAchievementList: React.FC<any> = (props: any) => {
     const [achievementList, setAchievementList] = useState([] as RowData[]);
+    const [achievementToRedeem, setAchievementToRedeem] = useState<RowData>();
 
     const classes = useStyles();
 
@@ -40,6 +65,13 @@ const UserAchievementList: React.FC<any> = (props: any) => {
             }
         });
     }, []);
+
+    const redeemAchievement = (achievement: RowData | undefined) => {
+        axios.post("/api/myachievements/redeem", achievement).then((result) => {
+            setAchievementToRedeem(undefined);
+            updateAchievements();
+        });
+    };
 
     useEffect(() => updateAchievements(), [updateAchievements]);
 
@@ -69,6 +101,16 @@ const UserAchievementList: React.FC<any> = (props: any) => {
     }, Object.create(null));
 
     return <Card>
+            <Dialog open={achievementToRedeem !== undefined} onClose={() => setAchievementToRedeem(undefined)}>
+                <DialogTitle>Redeem Achievements for Chews</DialogTitle>
+                <DialogContent style={{overflow: "visible"}}>
+                    <DialogContentText>Do you want to redeem this achievement for {achievementToRedeem?.pointRedemption} chews?</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => redeemAchievement(achievementToRedeem)} color="primary" autoFocus>Yes</Button>
+                    <Button onClick={() => setAchievementToRedeem(undefined)}>No</Button>
+                </DialogActions>
+            </Dialog>
         {Object.keys(groupedResult).map((group) => (
             <Grid>
                 <Box padding={3}>
@@ -78,15 +120,25 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                     <Grid item>
                         <Box flexWrap="wrap" display="flex" className={classes.achievementsGrid}>
                             {groupedResult[group].map((tile: RowData) => (
-                            <Box m={1} width={140}>
-                                <Grid container direction="column" alignItems="center" style={{opacity: tile.date ?  1 : 0.2}}>
-                                    <Grid item>
-                                        <Image title={tile.name} height={100} src={tile.url} alt={""} />
+                            <Box>
+                                <Box m={1} width={140}>
+                                    <Grid container direction="column" alignItems="center" style={{opacity: tile.date ?  1 : 0.2}} className={classes.achievement}>
+                                        <Grid item>
+                                            <Image title={tile.name} height={100} src={tile.url} alt={""} />
+                                            {tile.pointRedemption && tile.date && !tile.redemptionDate ?
+                                            <React.Fragment>
+                                                <MonetizationOnIcon className={classes.redeemIcon} />
+                                                <Button className={`redeem-button ${classes.redeemButtonOverlay}`} variant="contained" color="primary" onClick={() => setAchievementToRedeem(tile)}>
+                                                    Redeem {tile.pointRedemption}
+                                                </Button>
+                                            </React.Fragment> : undefined}
+                                            {tile.pointRedemption && tile.redemptionDate ? <CheckCircleIcon className={classes.redeemIcon} /> : undefined}
+                                        </Grid>
+                                        <Grid item>
+                                            <Typography className={classes.achievementDescription} variant="body2" align="center">{tile.name}</Typography>
+                                        </Grid>
                                     </Grid>
-                                    <Grid item>
-                                        <Typography className={classes.achievementDescription} variant="body2" align="center">{tile.name}</Typography>
-                                    </Grid>
-                                </Grid>
+                                </Box>
                             </Box>
                             ))}
                         </Box>
