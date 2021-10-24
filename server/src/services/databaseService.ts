@@ -562,9 +562,9 @@ export class DatabaseService {
             Logger.info(LogType.Backup, "Backing up database.");
             if (Config.database.client === "sqlite3") {
                 const now = moment();
-                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup`;
+                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup.gz`;
                 exec("mkdir db/backups");
-                exec(`sqlite3 ${Config.database.connection.name} .dump > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
+                exec(`sqlite3 ${Config.database.connection.name} .dump | gzip > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
                     if (callback) {
                         callback(err, stderr, stdout);
                     }
