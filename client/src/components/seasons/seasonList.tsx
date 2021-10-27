@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@material-ui/core";
+import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress } from "@material-ui/core";
 import MaterialTable from "material-table";
 import { Alert } from "@material-ui/lab";
+import { AddToListState } from "../common/addToListState";
 
 const DateCell: React.FC<any> = (date: number) => {
     return (
@@ -18,7 +19,7 @@ const SeasonList: React.FC<any> = (props: any) => {
     const [seasonList, setSeasonList] = useState([] as RowData[]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newSeasonEnd, setNewSeasonEnd] = useState("");
-    const [newSeasonError, setNewSeasonError] = useState("");
+    const [addSeasonState, setAddSeasonState] = useState<AddToListState>();
 
     const updateSeasons = useCallback(() => {
         axios.get("/api/seasons").then((response) => {
@@ -32,16 +33,16 @@ const SeasonList: React.FC<any> = (props: any) => {
 
     const handleCloseReset = (createSeason: boolean) => {
         if (createSeason) {
+            setAddSeasonState({state: "progress"});
             axios.post("/api/seasons/add", { newSeasonEnd }).then((result) => {
                 setDialogOpen(false);
-                setNewSeasonError("");
                 updateSeasons();
+                setAddSeasonState({state: "success"});
             }).catch(error => {
-                setNewSeasonError(error.response.data.error.message);
+                setAddSeasonState({state: "failed", message: error.response.data.error.message});
             });
         } else {
             setDialogOpen(false);
-            setNewSeasonError("");
         }
     };
 
@@ -67,10 +68,14 @@ const SeasonList: React.FC<any> = (props: any) => {
                     value={newSeasonEnd}
                     onChange={(e) => setNewSeasonEnd(e.target.value)}
                 />
-                {newSeasonError ? <Alert style={{marginTop: "1em"}} severity="error">{newSeasonError}</Alert> : undefined}
+                {addSeasonState?.state === "failed" ? <Alert style={{marginTop: "1em"}} severity="error">{addSeasonState.message}</Alert> : undefined}
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => handleCloseReset(true)} color="primary" autoFocus>Start new season</Button>
+                <Button onClick={() => handleCloseReset(true)}
+                    color="primary" autoFocus
+                    disabled={addSeasonState?.state === "progress"}
+                    startIcon={addSeasonState?.state === "progress" ? <CircularProgress size={15} /> : undefined}
+                >Start new season</Button>
                 <Button onClick={() => handleCloseReset(false)}>Cancel</Button>
             </DialogActions>
         </Dialog>
