@@ -153,10 +153,11 @@ export class UsersRepository {
         // Check if user is part of toplist and add if not
         if (includeUser) {
             const curentUser = result.filter((item: any) => item.username === includeUser.username)[0] || undefined;
+            let userPoints = includeUser.points;
             if (!curentUser) {
                 let currentUserRank;
                 if (seasonId) {
-                    const userPoints = (await databaseService
+                    userPoints = (await databaseService
                         .getQueryBuilder(DatabaseTables.PointArchive)
                         .where("seasonId", seasonId)
                         .andWhere("userId", includeUser.id)
@@ -176,7 +177,7 @@ export class UsersRepository {
                         .first()).cnt;
                 }
 
-                result.push({ username: includeUser.username, points: includeUser.points, rank: currentUserRank + 1});
+                result.push({ username: includeUser.username, points: userPoints, rank: currentUserRank + 1});
                 return result;
             }
         }
