@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@material-ui/core";
+import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, PaperProps, Paper, Icon } from "@material-ui/core";
 import { Image } from "react-bootstrap";
-import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 
 const useStyles = makeStyles((theme) => ({
@@ -100,10 +99,17 @@ const UserAchievementList: React.FC<any> = (props: any) => {
         return r;
     }, Object.create(null));
 
+    function PaperComponent(paperProps: PaperProps) {
+        return (
+          <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em", paddingRight: "1em", paddingBottom: "0.5em", minWidth: "30em"}} />
+        );
+    }
+
     return <Card>
-            <Dialog open={achievementToRedeem !== undefined} onClose={() => setAchievementToRedeem(undefined)}>
+            <Dialog open={achievementToRedeem !== undefined} onClose={() => setAchievementToRedeem(undefined)} PaperComponent={PaperComponent}>
                 <DialogTitle>Redeem Achievements for Chews</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
+                    <Image src={"/assets/Redeem-Achievement.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"10em", position: "absolute", zIndex: 100}} />
                     <DialogContentText>Do you want to redeem this achievement for {achievementToRedeem?.pointRedemption} chews?</DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -127,7 +133,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                                             <Image title={tile.name} height={100} src={tile.url} alt={""} />
                                             {tile.pointRedemption && tile.date && !tile.redemptionDate ?
                                             <React.Fragment>
-                                                <MonetizationOnIcon className={classes.redeemIcon} />
+                                                <Icon className={classes.redeemIcon}>paid</Icon>
                                                 <Button className={`redeem-button ${classes.redeemButtonOverlay}`} variant="contained" color="primary" onClick={() => setAchievementToRedeem(tile)}>
                                                     Redeem {tile.pointRedemption}
                                                 </Button>
