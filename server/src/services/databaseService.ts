@@ -88,6 +88,7 @@ export class DatabaseService {
     private db: Knex;
     private isInit: boolean = false;
     private inSetup: boolean = false;
+    private currentTransaction: Knex.Transaction<any, any[]> | undefined = undefined;
 
     public async initDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -573,7 +574,19 @@ export class DatabaseService {
         return this.isInit;
     }
 
+    public transaction<T>(transactionScope: (trx: Knex.Transaction) => Promise<T> | void) : Promise<T> {
+        return this.db.transaction(transactionScope);
+    }
+
+    public useTransaction(trx: Knex.Transaction<any, any[]> | undefined) {
+        this.currentTransaction = trx;
+    }
+
     public getQueryBuilder(tableName: string): Knex.QueryBuilder {
+        if (this.currentTransaction) {
+            return this.db(tableName).transacting(this.currentTransaction);
+        }
+
         return this.db(tableName);
     }
 
