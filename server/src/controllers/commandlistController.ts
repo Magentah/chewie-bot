@@ -96,7 +96,7 @@ class CommandlistController {
                         message: commandInfo.content,
                         useCount: commandInfo.useCount ?? 0,
                         useCooldown: commandInfo.useCooldown ?? true,
-                        minimumUserLevel: commandInfo.minUserLevel
+                        minimumUserLevel: commandInfo.minUserLevel ? commandInfo.minUserLevel : UserLevels.Viewer
                     });
 
                     const resultTextCmd = await this.textCommandsRepository.get(commandInfo.commandName);
