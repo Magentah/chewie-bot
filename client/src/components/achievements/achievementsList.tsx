@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
 import MaterialTable from "material-table"
-import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Typography } from "@material-ui/core";
+import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox,
+    Typography, Dialog, DialogTitle, DialogContent, DialogActions } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import { DropzoneArea, DropzoneDialog } from "material-ui-dropzone";
 import { AddToListState } from "../common/addToListState";
 import AddIcon from "@material-ui/icons/Add";
+import GroupIcon from "@material-ui/icons/Group";
 
 const useStyles = makeStyles((theme) => ({
     addButton: {
@@ -66,6 +68,7 @@ const ImageCell: React.FC<{value: RowData}> = ({value}) => {
 const AchievementsList: React.FC<any> = (props: any) => {
     const [achievementlist, setAchievementlist] = useState([] as RowData[]);
     const [achievementListState, setAchievementListState] = useState<AddToListState>();
+    const [usersWithAchievement, setUsersWithAchievement] = useState<string[]>();
 
     const [achievementType, setAchievementType] = useState<number>(0);
     const [achievementPoints, setAchievementPoints] = useState<number>(0);
@@ -100,6 +103,15 @@ const AchievementsList: React.FC<any> = (props: any) => {
     useEffect(() => {
         axios.get("/api/achievements").then((response) => {
             setAchievementlist(response.data);
+        });
+    }, []);
+
+    const getUsersWithAchievement = useCallback((achievementId: number) => {
+        setUsersWithAchievement(undefined);
+        axios.get("/api/userachievements/" + achievementId).then((response) => {
+            if (response) {
+                setUsersWithAchievement(response.data);
+            }
         });
     }, []);
 
@@ -258,6 +270,24 @@ const AchievementsList: React.FC<any> = (props: any) => {
 
     return <div>
             {addForm}
+            <Dialog open={usersWithAchievement !== undefined} onClose={() => setUsersWithAchievement(undefined)}>
+                <DialogTitle>Users with this achievement</DialogTitle>
+                <DialogContent>
+                <TextField
+                    label={`Users: ${usersWithAchievement?.length}`}
+                    multiline
+                    variant="outlined"
+                    minRows={5}
+                    InputProps={{
+                        readOnly: true,
+                    }}
+                    value={usersWithAchievement?.join("\r\n")}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setUsersWithAchievement(undefined)}>Close</Button>
+                </DialogActions>
+            </Dialog>
             <MaterialTable
                 columns = {[
                     {
@@ -307,6 +337,18 @@ const AchievementsList: React.FC<any> = (props: any) => {
                     tableLayout: "auto",
                 }}
                 data = {achievementlist}
+                actions={[
+                    {
+                      icon: GroupIcon,
+                      tooltip: "Users with this achievement",
+                      onClick: (event, rowData) => {
+                        const id = (rowData as RowData).id;
+                        if (id) {
+                            getUsersWithAchievement(id);
+                        }
+                      }
+                    },
+                ]}
                 editable = {
                     {
                         isEditable: rowData => true,

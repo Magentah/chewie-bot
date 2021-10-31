@@ -44,6 +44,7 @@ export { default as RedeemUpgradeCommand } from "./cards/redeemUpgradeCommand";
 // Tax
 export { default as TaxboardCommand } from "./tax/taxboardCommand";
 export { default as TaxStreakCommand } from "./tax/taxStreakCommand";
+export { default as MyTaxCommand } from "./tax/myTaxCommand";
 
 export { default as PointsCommand } from "../commandScripts/points/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/points/givePointsCommand";

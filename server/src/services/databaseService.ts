@@ -25,6 +25,7 @@ export enum DatabaseTables {
     DiscordSettings = "discordSettings",
     EventLogs = "eventLogs",
     PointLogs = "pointLogs",
+    PointArchive = "pointArchive",
     Messages = "messages",
     Cards = "userCards",
     CardStack = "userCardStack",
@@ -36,6 +37,7 @@ export enum DatabaseTables {
     StreamActivity = "streamActivity",
     Achievements = "achievements",
     UserAchievements = "userAchievements",
+    Seasons = "seasons",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -86,6 +88,7 @@ export class DatabaseService {
     private db: Knex;
     private isInit: boolean = false;
     private inSetup: boolean = false;
+    private currentTransaction: Knex.Transaction<any, any[]> | undefined = undefined;
 
     public async initDatabase(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -119,6 +122,8 @@ export class DatabaseService {
                 await this.createStreamActivityTable();
                 await this.createAchievementsTable();
                 await this.createUserAchievementsTable();
+                await this.createSeasonsTable();
+                await this.createPointArchiveTable();
 
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
@@ -472,10 +477,30 @@ export class DatabaseService {
             table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements).onDelete("CASCADE");
             table.dateTime("date").notNullable();
             table.dateTime("expiredDate");
+            table.integer("seasonId").references("id").inTable(DatabaseTables.Seasons);
             table.dateTime("redemptionDate");
             // Achievements can only be granted once, unless seasonal, then they need to have different
             // expiration dates for each season.
             table.unique(["userId", "achievementId", "expiredDate"]);
+        });
+    }
+
+    private async createSeasonsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.Seasons, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.dateTime("startDate");
+            table.dateTime("endDate");
+            table.string("plannedEndDate");
+        });
+    }
+
+    private async createPointArchiveTable(): Promise<void> {
+        return this.createTable(DatabaseTables.PointArchive, (table) => {
+            table.increments("id").primary().notNullable().unique();
+            table.integer("seasonId").notNullable().references("id").inTable(DatabaseTables.Seasons).onDelete("CASCADE");
+            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");;
+            table.decimal("points").notNullable();
+            table.unique(["userId", "seasonId"]);
         });
     }
 
@@ -549,7 +574,19 @@ export class DatabaseService {
         return this.isInit;
     }
 
+    public transaction<T>(transactionScope: (trx: Knex.Transaction) => Promise<T> | void) : Promise<T> {
+        return this.db.transaction(transactionScope);
+    }
+
+    public useTransaction(trx: Knex.Transaction<any, any[]> | undefined) {
+        this.currentTransaction = trx;
+    }
+
     public getQueryBuilder(tableName: string): Knex.QueryBuilder {
+        if (this.currentTransaction) {
+            return this.db(tableName).transacting(this.currentTransaction);
+        }
+
         return this.db(tableName);
     }
 

@@ -80,18 +80,36 @@ class AchievementsController {
         }
 
         const achievements = await this.achievementsRepository.getUserAchievements(user)
-        achievements.sort((x, y) => this.AchievementOrder[x.type] - this.AchievementOrder[y.type]);
+        achievements.sort((x, y) => x.seasonId === y.seasonId ? this.AchievementOrder[x.type] - this.AchievementOrder[y.type] : x.seasonId - y.seasonId);
 
         const resultAchievements = [];
         for (const achievement of achievements) {
             const fullData = {...achievement,
-                group: Lang.get(this.AchievementCategories[achievement.type], achievement.amount),
+                group: achievement.seasonId ? `Season #${achievement.seasonId}` : Lang.get(this.AchievementCategories[achievement.type], achievement.amount),
             };
             resultAchievements.push(this.addUrl(fullData));
         }
 
         res.status(StatusCodes.OK);
         res.send(resultAchievements);
+    }
+
+    /**
+     * Gets a list of all users with a specific achievement.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public async getUsersWithAchievements(req: Request, res: Response): Promise<void> {
+        const achievementId = parseInt(req.params.id, 10);
+        if (!achievementId) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Achievement ID missing."));
+            return;
+        }
+
+        const users = await this.achievementsRepository.getUsersWithAchievement(achievementId);
+        res.status(StatusCodes.OK);
+        res.send(users);
     }
 
     /**

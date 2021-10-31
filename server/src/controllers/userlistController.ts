@@ -4,7 +4,7 @@ import { inject, injectable } from "inversify";
 import { EventLogType, IEventLog, IUser, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
-import { EventLogsRepository, UsersRepository } from "../database";
+import { EventLogsRepository, UsersRepository, SeasonsRepository } from "../database";
 import { UserService } from "../services/userService";
 
 @injectable()
@@ -20,7 +20,8 @@ class UserlistController {
 
     constructor(@inject(UsersRepository) private userRepository: UsersRepository,
                 @inject(UserService) private userService: UserService,
-                @inject(EventLogsRepository) private eventLogs: EventLogsRepository) {
+                @inject(EventLogsRepository) private eventLogs: EventLogsRepository,
+                @inject(SeasonsRepository) private seasonRepository: SeasonsRepository) {
         Logger.info(
             LogType.ServerInfo,
             `UserlistController constructor. UserlistRepository exists: ${this.userRepository !== undefined}`
@@ -57,8 +58,17 @@ class UserlistController {
      */
     public async getLeaderboard(req: Request, res: Response): Promise<void> {
         const sessionUser = req.user as IUser;
+        let seasonId = parseInt(req.params.season, 10);
+
+        // Do not use point achive if current season.
+        if (seasonId) {
+            if ((await this.seasonRepository.getCurrentSeason()).id === seasonId) {
+                seasonId = 0;
+            }
+        }
+
         const currentUser = sessionUser ? await this.userService.getUser(sessionUser.username) : undefined;
-        const users = await this.userRepository.getLeaderboard(10, currentUser);
+        const users = await this.userRepository.getLeaderboard(10, currentUser, seasonId);
         res.status(StatusCodes.OK);
         res.send(users);
     }

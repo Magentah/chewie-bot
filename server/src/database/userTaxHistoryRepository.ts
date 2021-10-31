@@ -92,6 +92,17 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
+    public async getCountByUser(type: TaxType, fromDate: Date, toDate: Date): Promise<{userId: number, taxCount: number}[]> {
+        const databaseService = await this.databaseProvider();
+        const taxHistoryCount = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory)
+            .where("taxRedemptionDate", "<", toDate)
+            .andWhere("taxRedemptionDate", ">=", fromDate)
+            .andWhere("type", type)
+            .groupBy("userId")
+            .select(["userId", databaseService.raw("COUNT(*) AS taxCount")]);
+        return taxHistoryCount as {userId: number, taxCount: number}[];
+    }
+
     public async add(userId: number, channelPointRewardId: string | undefined, type: TaxType): Promise<IDBUserTaxHistory> {
         const databaseService = await this.databaseProvider();
         const now = Date.now();

@@ -40,6 +40,22 @@ export class UsersRepository {
         return this.mapDBUserToUser(userResult);
     }
 
+    /**
+     * Gets a user from the database if the user exists.
+     * @param id ID of the user to get
+     */
+    public async getById(id: number): Promise<IUser | undefined> {
+        const databaseService = await this.databaseProvider();
+        const userResult = await this.makeUserQuery(databaseService).where("users.id", id).first();
+
+        if (!userResult) {
+            return undefined;
+        }
+
+        // Need to map from SQLResult to the correct model.
+        return this.mapDBUserToUser(userResult);
+    }
+
     public async getByIds(ids: number[]): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
         const userResult = await this.makeUserQuery(databaseService).whereIn("users.id", ids);
@@ -88,24 +104,48 @@ export class UsersRepository {
                 "users.id"
             ]).distinct();
 
-        // Need to map from SQLResult to the correct model.
         return userResult;
+    }
+
+    /**
+     * Gets all users that have points.
+     */
+    public async getUsersWithPoints(): Promise<IUser[]> {
+        const databaseService = await this.databaseProvider();
+        const userResult = await this.makeUserQuery(databaseService).where("points", ">", 0);
+
+        // Need to map from SQLResult to the correct model.
+        return userResult.map((x: any) => this.mapDBUserToUser(x));
     }
 
     /**
      * Gets a user leaderboard (only returns basic information)
      */
-    public async getLeaderboard(topCount: number, includeUser: IUser | undefined): Promise<{username: string, points: number, rank: number}[]> {
+    public async getLeaderboard(topCount: number, includeUser: IUser | undefined, seasonId: number | undefined): Promise<{username: string, points: number, rank: number}[]> {
         const databaseService = await this.databaseProvider();
 
-        const userResult = await databaseService
-            .getQueryBuilder(DatabaseTables.Users)
-            .orderBy("points", "desc").orderBy("username", "asc")
-            .limit(topCount)
-            .select([
-                "users.username",
-                "users.points"
-            ]);
+        let userResult;
+        if (seasonId) {
+            userResult = await databaseService
+                .getQueryBuilder(DatabaseTables.PointArchive)
+                .leftJoin(DatabaseTables.Users, "userId", "users.id")
+                .where("seasonId", seasonId)
+                .orderBy("pointArchive.points", "desc").orderBy("username", "asc")
+                .limit(topCount)
+                .select([
+                    "users.username",
+                    "pointArchive.points"
+                ]);
+        } else {
+            userResult = await databaseService
+                .getQueryBuilder(DatabaseTables.Users)
+                .orderBy("points", "desc").orderBy("username", "asc")
+                .limit(topCount)
+                .select([
+                    "users.username",
+                    "users.points"
+                ]);
+        }
 
         let counter = 1;
         const result = userResult.map((x: any) => { return { username: x.username, points: x.points, rank: counter++ } });
@@ -113,13 +153,31 @@ export class UsersRepository {
         // Check if user is part of toplist and add if not
         if (includeUser) {
             const curentUser = result.filter((item: any) => item.username === includeUser.username)[0] || undefined;
+            let userPoints = includeUser.points;
             if (!curentUser) {
-                const currentUserRank = (await databaseService
-                    .getQueryBuilder(DatabaseTables.Users)
-                    .where("points", ">", includeUser.points)
-                    .count("id as cnt")
-                    .first()).cnt;
-                result.push({ username: includeUser.username, points: includeUser.points, rank: currentUserRank + 1});
+                let currentUserRank;
+                if (seasonId) {
+                    userPoints = (await databaseService
+                        .getQueryBuilder(DatabaseTables.PointArchive)
+                        .where("seasonId", seasonId)
+                        .andWhere("userId", includeUser.id)
+                        .select("points")
+                        .first())?.points ?? 0;
+                    currentUserRank = (await databaseService
+                        .getQueryBuilder(DatabaseTables.PointArchive)
+                        .where("seasonId", seasonId)
+                        .andWhere("points", ">", userPoints)
+                        .count("id as cnt")
+                        .first()).cnt;
+                } else {
+                    currentUserRank = (await databaseService
+                        .getQueryBuilder(DatabaseTables.Users)
+                        .where("points", ">", includeUser.points)
+                        .count("id as cnt")
+                        .first()).cnt;
+                }
+
+                result.push({ username: includeUser.username, points: userPoints, rank: currentUserRank + 1});
                 return result;
             }
         }

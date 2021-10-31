@@ -53,3 +53,4 @@ export {
 } from "./twitchChannelReward";
 export { default as IChannelPointReward, IChannelPointRewardHistory, ChannelPointRedemption } from "./channelPointReward";
 export { default as IAchievement, AchievementType } from "./achievement";
+export { default as ISeason } from "./season";
