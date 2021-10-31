@@ -8,6 +8,12 @@ export class QuotesRepository {
         // Empty
     }
 
+    public async getList(): Promise<IQuote[]> {
+        const databaseService = await this.databaseProvider();
+        const quotes = await databaseService.getQueryBuilder(DatabaseTables.Quotes);
+        return quotes as IQuote[];
+    }
+
     public async getById(id: number): Promise<IQuote> {
         const databaseService = await this.databaseProvider();
         const quote = await databaseService
@@ -54,17 +60,37 @@ export class QuotesRepository {
     }
 
     public async add(quote: IQuote): Promise<number> {
+        if (!quote.dateAdded) {
+            quote.dateAdded = new Date();
+        }
+
         const databaseService = await this.databaseProvider();
         const insert = await databaseService.getQueryBuilder(DatabaseTables.Quotes).insert(quote);
-
         return insert[0];
+    }
+
+    public async addOrUpdate(quote: IQuote): Promise<IQuote> {
+        if (!quote.id) {
+            quote.id = await this.add(quote);
+            return quote;
+        }
+
+        const existingQuote = await this.getById(quote.id);
+        if (!existingQuote) {
+            quote.id = await this.add(quote);
+            return quote;
+        } else {
+            const databaseService = await this.databaseProvider();
+            await databaseService.getQueryBuilder(DatabaseTables.Quotes).where({ id: quote.id }).update(quote);
+            return quote;
+        }
     }
 
     public async delete(id: number): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         const deleted = await databaseService.getQueryBuilder(DatabaseTables.Quotes).delete().where({ id });
 
-        return deleted===1;
+        return deleted === 1;
     }
 }
 

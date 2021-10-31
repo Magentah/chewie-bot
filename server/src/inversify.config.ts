@@ -69,6 +69,7 @@ import CardlistController from "./controllers/cardlistController";
 import ChannelPointRewardController from "./controllers/channelPointRewardController";
 import AchievementsController from "./controllers/achievementsController";
 import SeasonController from "./controllers/seasonController";
+import QuotelistController from "./controllers/quotelistController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
@@ -173,6 +174,7 @@ botContainer.bind<CardlistController>(CardlistController).toSelf();
 botContainer.bind<ChannelPointRewardController>(ChannelPointRewardController).toSelf();
 botContainer.bind<AchievementsController>(AchievementsController).toSelf();
 botContainer.bind<SeasonController>(SeasonController).toSelf();
+botContainer.bind<QuotelistController>(QuotelistController).toSelf();
 
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();

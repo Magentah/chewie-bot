@@ -10,3 +10,4 @@ export { default as SettingsRouter } from "./settingsRouter";
 export { default as CardlistRouter } from "./cardlistRouter";
 export { default as AchievementlistRouter } from "./achievementlistRouter";
 export { default as SeasonRouter } from "./seasonRouter";
+export { default as QuotelistRouter } from "./quotelistRouter";
