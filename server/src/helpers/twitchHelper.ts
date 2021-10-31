@@ -1,12 +1,8 @@
-// There's no type declarations for this, but we only need it to parse chat command arguments and it's easy enough to use without them.
-// tslint:disable-next-line: no-var-requires
-const parser = require("minimist-string");
 import * as crypto from "crypto";
 import * as http from "http";
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
 import { TwitchMessageSignatureError } from "../errors";
-import { HttpTransportInstance } from "winston/lib/winston/transports";
 
 export class TwitchHelper {
     /**
@@ -36,14 +32,73 @@ export class TwitchHelper {
         }
     }
 
+    /**
+     * Splits string into separate command arguments. Only accepts double quotes.
+     * @param text Raw argument text
+     * @returns Array of command arguments.
+     */
+    private static commandArgs2Array(text: string): any[] {
+        if (!text) {
+            return [];
+        }
+
+        const resultArgs: any[] = [];
+        let inString = false;
+        let currentArg = "";
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === "\"") {
+                // Check for escaped quote, use as regular text.
+                if (text[i + 1] === "\"") {
+                    currentArg += text[i];
+                    i++;
+                } else if (inString) {
+                    resultArgs.push(currentArg);
+                    currentArg = "";
+                    inString = false;
+                } else {
+                    inString = true;
+                }
+            } else if (text[i] === " ") {
+                // Space: Make next argument, unless in string.
+                if (inString) {
+                    currentArg += text[i];
+                } else if (currentArg) {
+                    resultArgs.push(currentArg);
+                    currentArg = "";
+                } else {
+                    // Ignore space at the start of an argument.
+                }
+            } else {
+                currentArg += text[i];
+            }
+        }
+
+        if (currentArg) {
+            resultArgs.push(currentArg);
+        }
+
+        // Bot currently relies on numbers always being positive.
+        // Also need to convert numbers to actual number values.
+        for (let i = 0; i < resultArgs.length; i++) {
+            const numbericValue = Number(resultArgs[i]);
+            if (!isNaN(numbericValue)) {
+                if (numbericValue < 0) {
+                    resultArgs[i] = NaN;
+                } else {
+                    resultArgs[i] = numbericValue;
+                }
+            }
+        }
+
+        return resultArgs;
+    }
+
     public static getCommandArgs(message: string): string[] | undefined {
         if (TwitchHelper.hasCommand(message)) {
             if (message.indexOf(" ") > -1) {
-                // parser will return an object and can have kvp args, but they should never happen for chat commands.
-                // just in case, we remove all -- as they're used to indicate arg names.
-                message = message.replace("--", "");
-                const args = parser(message.slice(message.indexOf(" ")).trim());
-                return args._ as string[];
+                const commandArgs = message.slice(message.indexOf(" ")).trim();
+                const args = TwitchHelper.commandArgs2Array(commandArgs);
+                return args;
             }
         }
         return undefined;
