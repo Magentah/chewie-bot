@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import { Typography } from "@material-ui/core";
 
 const MessageList: React.FC<any> = (props: any) => {

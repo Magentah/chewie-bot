@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles, createTheme } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import {
     Grid, TextField, Button, Box, Card,
     Popover, Paper, ThemeProvider, Tabs, Tab, Chip
@@ -96,9 +96,12 @@ const EditSonglist: React.FC<any> = (props: any) => {
     const updateSong = (newData: RowData, oldData: RowData | undefined) => axios.post("/api/songlist", newData).then((result) => {
         const newSonglist = [...songlist];
         // @ts-ignore
-        const index = oldData?.tableData.id;
-        newSonglist[index] = newData;
-        setSonglist(newSonglist);
+        const target = newSonglist.find((el) => el.id === oldData.tableData.id);
+        if (target) {
+            const index = newSonglist.indexOf(target);
+            newSonglist[index] = newData;
+            setSonglist([...newSonglist]);
+        }
     });
 
     const onCategoryMoved = (rowsMoved: CategoryData[], direction: number) => {
@@ -121,13 +124,18 @@ const EditSonglist: React.FC<any> = (props: any) => {
         }
 
         axios.post("/api/songlist/categories", newState).then(() => {
-            setCategories(newState);
+            setCategories([...newState]);
         });
     };
 
     const handleTabChange = (event: React.ChangeEvent<{}>, tab: number) => {
         setSelectedTab(tab);
     };
+
+    const hasIndex = (categories: CategoryData[], category: CategoryData, index: number) => {
+        const obj = categories.find((el) => el.id === category.id);
+        return obj && categories.indexOf(obj) === index;
+    }
 
     const openAttributionPopup = (button: HTMLButtonElement, song: RowData) => {
         setPopupAnchor(button);
@@ -181,7 +189,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
 
         const categoryTable = <MaterialTable
             columns = {[
-                { title: "Category", field: "name" }
+                { title: "Category", field: "name", customSort: () => 0 }
             ]}
             options = {{
                 paging: false,
@@ -195,13 +203,13 @@ const EditSonglist: React.FC<any> = (props: any) => {
                 rowData => ({
                     icon: ArrowUpwardIcon,
                     tooltip: "Move up",
-                    disabled: categories.indexOf(rowData) === 0,
+                    disabled: hasIndex(categories, rowData, 0),
                     onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], -1) : onCategoryMoved([ data as CategoryData ], -1)
                 }),
                 rowData => ({
                     icon: ArrowDownwardIcon,
                     tooltip: "Move down",
-                    disabled: categories.indexOf(rowData) === categories.length - 1,
+                    disabled: hasIndex(categories, rowData, categories.length - 1),
                     onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], 1) : onCategoryMoved([ data as CategoryData ], 1)
                 }),
             ]}
@@ -217,16 +225,22 @@ const EditSonglist: React.FC<any> = (props: any) => {
                     onRowUpdate: (newData, oldData) => axios.post("/api/songlist/categories/update", newData).then((result) => {
                         const newCategories = [...categories];
                         // @ts-ignore
-                        const index = oldData?.tableData.id;
-                        newCategories[index] = newData;
-                        setCategories(newCategories);
+                        const target = newCategories.find((el) => el.id === oldData.tableData.id);
+                        if (target) {
+                            const index = newCategories.indexOf(target);
+                            newCategories[index] = newData;
+                            setCategories([...newCategories]);
+                        }
                     }),
                     onRowDelete: oldData => axios.post("/api/songlist/categories/delete", oldData).then((result) => {
                         const newCategories = [...categories];
                         // @ts-ignore
-                        const index = oldData?.tableData.id;
-                        newCategories.splice(index, 1);
-                        setCategories(newCategories);
+                        const target = newCategories.find((el) => el.id === oldData.tableData.id);
+                        if (target) {
+                            const index = newCategories.indexOf(target);
+                            newCategories.splice(index, 1);
+                            setCategories([...newCategories]);
+                        }
                     })
                 }
             }
@@ -359,9 +373,12 @@ const EditSonglist: React.FC<any> = (props: any) => {
                     onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
                         const newSonglist = [...songlist];
                         // @ts-ignore
-                        const index = oldData?.tableData.id;
-                        newSonglist.splice(index, 1);
-                        setSonglist(newSonglist);
+                        const target = newSonglist.find((el) => el.id === oldData.tableData.id);
+                        if (target) {
+                            const index = newSonglist.indexOf(target);
+                            newSonglist.splice(index, 1);
+                            setSonglist([...newSonglist]);
+                        }
                     })
                 }
             }

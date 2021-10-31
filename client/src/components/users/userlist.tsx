@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@material-ui/core";
 import { Star, SettingsBackupRestore } from "@material-ui/icons";
 import { AddToListState } from "../common/addToListState";
@@ -269,7 +269,11 @@ const UserList: React.FC<any> = (props: any) => {
                         })
                     }
                 }
-                detailPanel = {rowData => <UserDetailsPanel username={rowData.username} />}
+                detailPanel = {[
+                    {
+                      render: ({ rowData }) => <UserDetailsPanel username={rowData.username} />
+                    }
+                ]}
             />
         </div>
     );

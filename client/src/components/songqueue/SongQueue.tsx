@@ -12,7 +12,7 @@ import AttachMoneyIcon from "@material-ui/icons/AttachMoney";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
-import MaterialTable, { Action, Column, Options } from "material-table";
+import MaterialTable, { Action, Column, Options } from "@material-table/core";
 import useSetting from "../../hooks/setting";
 import { UserContext, UserLevels } from "../../contexts/userContext";
 

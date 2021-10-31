@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox,
     Typography, Dialog, DialogTitle, DialogContent, DialogActions } from "@material-ui/core";
 import { Image } from "react-bootstrap";

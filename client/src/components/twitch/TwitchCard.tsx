@@ -24,7 +24,7 @@ import { Image } from "react-bootstrap";
 import { Save, Visibility, VisibilityOff, Check, Clear } from "@material-ui/icons";
 import AuthService from "../../services/authService";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
-import MaterialTable from "material-table";
+import MaterialTable from "@material-table/core";
 import { blue } from "@material-ui/core/colors";
 import { UserContext } from "../../contexts/userContext";
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Popover, Box, Grid, Button, TextField, MenuItem, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from "@material-ui/core";
 import { Add, Save, Delete } from "@material-ui/icons";
 import axios from "axios";
-import MaterialTable from "material-table";
+import MaterialTable from "@material-table/core";
 
 type RowData = { twitchRewardId: number, title: string, cost: number, isEnabled: boolean, isGlobalCooldownEnabled: boolean, globalCooldown: number | null, shouldSkipRequestQueue: boolean, associatedRedemption: string };
 
