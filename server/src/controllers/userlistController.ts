@@ -5,7 +5,7 @@ import { EventLogType, IEventLog, IUser, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { EventLogsRepository, UsersRepository, SeasonsRepository } from "../database";
-import { UserService } from "../services/userService";;
+import { UserService } from "../services/userService";
 
 @injectable()
 class UserlistController {
