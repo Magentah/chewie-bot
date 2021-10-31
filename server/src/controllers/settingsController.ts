@@ -26,7 +26,6 @@ class SettingsController {
         [BotSettings.CardRedeemCost]: { title: "Points required for redeeming cards", readonly: false },
         [BotSettings.CardRedeemPerWeek]: { title: "Number of cards which can be redeemed per week (0 = no limit)", readonly: false },
         [BotSettings.CardRecyclePoints]: { title: "Points received for recycling a card", readonly: false },
-        [BotSettings.SeasonEnd]: { title: "Season end date", readonly: false },
         [BotSettings.DailyTaxBitAmount]: { title: "Amount of bits considered as daily tax", readonly: false },
         [BotSettings.SongDonationLink]: { title: "URL for donations on song queue page", readonly: false },
         [BotSettings.CardsRequiredForUpgrade]: { title: "Number of cards required for redeeming an upgrade", readonly: false },
@@ -73,7 +72,6 @@ class SettingsController {
             const setting = req.params.name;
 
             switch (setting) {
-                case BotSettings.SeasonEnd:
                 case BotSettings.CardRedeemCost:
                 case BotSettings.SongDonationLink:
                     const value = await this.settingsService.getValue(setting);

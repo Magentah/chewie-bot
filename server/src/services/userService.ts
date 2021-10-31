@@ -109,7 +109,10 @@ export class UserService {
         user.points += points;
         await this.users.incrementPoints(user, points, eventType, reason);
 
-        this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points });
+        // No achievement processing necessary if ponts are being reset.
+        if (user.points > 0) {
+            this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points });
+        }
     }
 
     /**
@@ -120,8 +123,7 @@ export class UserService {
     public async changeUsersPoints(users: IUser[], points: number, eventType: PointLogType, reason = PointLogReason.None): Promise<void> {
         // TODO: Make actual batch updates through the UsersRepository.
         for (const user of users) {
-            user.points += points;
-            await this.users.incrementPoints(user, points, eventType, reason);
+            await this.changeUserPoints(user, points, eventType, reason);
         }
     }
 

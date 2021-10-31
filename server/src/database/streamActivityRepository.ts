@@ -21,7 +21,10 @@ export default class StreamActivityRepository {
      */
     public async getForEvent(eventType: string): Promise<IDBStreamActivity[]> {
         const databaseService = await this.databaseProvider();
-        const triggeredEvents = await databaseService.getQueryBuilder(DatabaseTables.StreamActivity).select("*").where("event", "like", eventType);
+        const triggeredEvents = await databaseService.getQueryBuilder(DatabaseTables.StreamActivity)
+            .select("*")
+            .where("event", "like", eventType)
+            .orderBy("dateTimeTriggered", "asc");
         return triggeredEvents as IDBStreamActivity[];
     }
 
