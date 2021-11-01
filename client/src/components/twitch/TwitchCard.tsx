@@ -117,11 +117,9 @@ const TwitchCard: React.FC<any> = (props: any) => {
 
     useEffect(() => {
         axios.get("/api/twitch/botSettings", { withCredentials: true }).then((response: AxiosResponse<any>) => {
-            if (response.status === 200) {
-                const botSettingsWrapper: any = { botSettings: response.data };
-                setBotUsername(botSettingsWrapper.botSettings.username);
-                setBotOAuth(botSettingsWrapper.botSettings.oauth);
-            }
+            const botSettingsWrapper: any = { botSettings: response.data };
+            setBotUsername(botSettingsWrapper.botSettings.username);
+            setBotOAuth(botSettingsWrapper.botSettings.oauth);
         });
     }, [saved]);
 
@@ -408,6 +406,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                 paging: false,
                                 showTitle: false,
                                 actionsColumnIndex: 2,
+                                padding: "dense"
                             }}
                             data={settings}
                             components={{
@@ -418,12 +417,13 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                 isDeletable: (rowData) => false,
                                 onRowUpdate: (newData, oldData) =>
                                     axios.post("/api/settings", newData).then((result) => {
-                                        if (result.status === 200) {
-                                            const newSettings = [...settings];
-                                            // @ts-ignore
-                                            const index = oldData?.tableData.id;
-                                            newSettings[index] = newData;
-                                            setSettings(newSettings);
+                                        const newList = [...settings];
+                                        // @ts-ignore
+                                        const target = newList.find((el) => el.key === oldData?.key);
+                                        if (target) {
+                                            const index = newList.indexOf(target);
+                                            newList[index] = newData;
+                                            setSettings([...newList]);
                                         }
                                     }),
                             }}

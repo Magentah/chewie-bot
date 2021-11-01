@@ -300,7 +300,10 @@ class AchievementsController {
             this.achievementsRepository.delete(achievement);
             if (achievement.mimetype) {
                 const fileExt = this.achievementsRepository.getFileExt(achievement.mimetype);
-                fs.unlinkSync(path.join(this.ImageDir, `${achievement.imageId}.${fileExt}`));
+                const imagePath = path.join(this.ImageDir, `${achievement.imageId}.${fileExt}`);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
             }
         } else if (Number(req.body)) {
             const achievementData = await this.achievementsRepository.get(achievement);
@@ -308,7 +311,10 @@ class AchievementsController {
                 this.achievementsRepository.delete(achievementData);
                 if (achievementData.mimetype) {
                     const fileExt = this.achievementsRepository.getFileExt(achievementData.mimetype);
-                    fs.unlinkSync(path.join(this.ImageDir, `${achievementData.imageId}.${fileExt}`));
+                    const imagePath = path.join(this.ImageDir, `${achievementData.imageId}.${fileExt}`);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
                 }
             }
         } else {

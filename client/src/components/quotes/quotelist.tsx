@@ -36,7 +36,8 @@ const QuoteList: React.FC<any> = (props: any) => {
                     pageSize: 50,
                     pageSizeOptions: [50, 100, 200],
                     showTitle: false,
-                    addRowPosition: "first"
+                    addRowPosition: "first",
+                    padding: "dense"
                 }}
                 data = {quotelist}
                 editable = {

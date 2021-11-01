@@ -34,27 +34,10 @@ const MessageList: React.FC<any> = (props: any) => {
                             "bank-level-4": "Bank Level 4",
                             "bank-level-5": "Bank Level 5"
                         },
-                        // Workaround to allow at least some degree of column sizing, it's not working as advertised at all.
-                        headerStyle: {
-                            display: "inline",
-                            border: 0
-                        },
-                        cellStyle: {
-                            width: "12em"
-                        },
+                        width: "10em"
                     },
-                    { title: "Message", field: "text" },
-                    {
-                        title: "Event", field: "eventType", initialEditValue: "bankheist", lookup: { "bankheist": "Bankheist" },
-                        // Workaround to allow at least some degree of column sizing, it's not working as advertised at all.
-                        headerStyle: {
-                            display: "inline",
-                            border: 0
-                        },
-                        cellStyle: {
-                            width: "10em"
-                        },
-                    }
+                    { title: "Message", field: "text", width: "70%" },
+                    { title: "Event", field: "eventType", initialEditValue: "bankheist", lookup: { "bankheist": "Bankheist" }, width: "9em" }
                 ]}
                 options = {{
                     paging: false,
@@ -69,27 +52,27 @@ const MessageList: React.FC<any> = (props: any) => {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,
                         onRowAdd: (newData) => axios.post("/api/messages", newData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...messagelist, newData];
-                                setMessagelist(newList);
-                            }
+                            const newList = [...messagelist, result.data as RowData];
+                            setMessagelist(newList);
                         }),
                         onRowUpdate: (newData, oldData) => axios.post("/api/messages", newData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...messagelist];
-                                //@ts-ignore
-                                const index = oldData?.tableData.id;
+                            const newList = [...messagelist];
+                            // @ts-ignore
+                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
                                 newList[index] = newData;
-                                setMessagelist(newList);
+                                setMessagelist([...newList]);
                             }
                         }),
                         onRowDelete: oldData => axios.post("/api/messages/delete", oldData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...messagelist];
-                                //@ts-ignore
-                                const index = oldData?.tableData.id;
+                            const newList = [...messagelist];
+                            // @ts-ignore
+                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
                                 newList.splice(index, 1);
-                                setMessagelist(newList);
+                                setMessagelist([...newList]);
                             }
                         })
                     }

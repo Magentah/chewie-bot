@@ -30,7 +30,8 @@ const DonationList: React.FC<any> = (props: any) => {
                     paging: false,
                     grouping: true,
                     defaultExpanded: false,
-                    showTitle: false
+                    showTitle: false,
+                    padding: "dense"
                 }}
                 data = {donationlist}
             />

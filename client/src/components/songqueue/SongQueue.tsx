@@ -303,13 +303,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             rowData => ({
                 icon: VerticalAlignTopIcon,
                 tooltip: "Move to top",
-                hidden: songs.indexOf(rowData) === 0,
+                hidden: songs.length > 0 && songs[0].id === rowData.id,
                 onClick: (event, data) => (data as Song[]).length ? onSongMovedToTop(data as Song[]) : onSongMovedToTop([ data as Song ])
             }),
             rowData => ({
                 icon: CheckIcon,
                 tooltip: "Complete",
-                hidden: songs.indexOf(rowData) !== 0,
+                hidden: songs.length > 0 && songs[0].id !== rowData.id,
                 onClick: (evt, data) => (data as Song[]).length ? onSongCompleted(data as Song[]) : onSongCompleted([ data as Song ])
             }),
             {

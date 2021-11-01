@@ -74,7 +74,8 @@ const CommandList: React.FC<any> = (props: any) => {
                     actionsColumnIndex: 6,
                     showTitle: false,
                     filtering: true,
-                    addRowPosition: "first"
+                    addRowPosition: "first",
+                    padding: "dense"
                 }}
                 data = {commandlist}
                 editable = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
