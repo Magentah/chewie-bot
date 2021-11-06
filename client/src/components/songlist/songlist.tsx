@@ -76,6 +76,8 @@ const SongList: React.FC<any> = (props: any) => {
 
     const selectTab = useCallback((newList: RowData[], fullList: RowData[], category: CategoryData) => {
         setSelectedTab(category);
+        setSearchText("");
+
         if (category.id === TabNew.id) {
             setSonglistFiltered(newList);
         } else if (category.id === TabFavorite.id) {
