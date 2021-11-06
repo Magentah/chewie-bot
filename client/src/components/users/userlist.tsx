@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@material-ui/core";
 import { Star, SettingsBackupRestore } from "@material-ui/icons";
 import { AddToListState } from "../common/addToListState";
@@ -230,16 +230,17 @@ const UserList: React.FC<any> = (props: any) => {
                     actionsColumnIndex: 4,
                     showTitle: false,
                     pageSize: userlist?.length > 10 ? 50 : 10,
-                    pageSizeOptions: [10, 50, 100, 200]
+                    pageSizeOptions: [10, 50, 100, 200],
+                    padding: "dense"
                 }}
                 actions={userContext.user.userLevel < UserLevels.Broadcaster ? undefined : [
                     {
                         icon: Star,
                         tooltip: "Add VIP gold",
                         onClick: (event, rowData) => {
-                        if ((rowData as RowData).username !== undefined) {
-                            openVipPopup(event.currentTarget, rowData as RowData);
-                        }
+                            if ((rowData as RowData).username !== undefined) {
+                                openVipPopup(event.currentTarget, rowData as RowData);
+                            }
                         }
                     },
                     {
@@ -259,17 +260,22 @@ const UserList: React.FC<any> = (props: any) => {
                         isEditable: rowData => userLevels.length > 0,
                         isDeletable: rowData => true,
                         onRowUpdate: (newData, oldData) => axios.post("/api/userlist", newData).then((result) => {
-                            if (result.status === 200) {
-                                const newUserlist = [...userlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
-                                newUserlist[index] = newData;
-                                setUserlist(newUserlist);
+                            const newList = [...userlist];
+                            // @ts-ignore
+                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
+                                newList[index] = newData;
+                                setUserlist([...newList]);
                             }
                         })
                     }
                 }
-                detailPanel = {rowData => <UserDetailsPanel username={rowData.username} />}
+                detailPanel = {[
+                    {
+                      render: ({ rowData }) => <UserDetailsPanel username={rowData.username} />
+                    }
+                ]}
             />
         </div>
     );

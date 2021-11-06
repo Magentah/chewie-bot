@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 
 const DonationList: React.FC<any> = (props: any) => {
     type RowData = {username: string, date: Date, amount: number, message: string};
@@ -30,7 +30,8 @@ const DonationList: React.FC<any> = (props: any) => {
                     paging: false,
                     grouping: true,
                     defaultExpanded: false,
-                    showTitle: false
+                    showTitle: false,
+                    padding: "dense"
                 }}
                 data = {donationlist}
             />

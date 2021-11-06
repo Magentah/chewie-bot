@@ -231,7 +231,10 @@ class CardlistController {
             this.cardRepository.delete(card);
             if (card.mimetype) {
                 const fileExt = this.cardRepository.getFileExt(card.mimetype);
-                fs.unlinkSync(path.join(this.ImageDir, `${card.imageId}.${fileExt}`));
+                const imagePath = path.join(this.ImageDir, `${card.imageId}.${fileExt}`);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
             }
         } else if (Number(req.body)) {
             const cardData = await this.cardRepository.get(card);
@@ -239,7 +242,10 @@ class CardlistController {
                 this.cardRepository.delete(cardData);
                 if (cardData.mimetype) {
                     const fileExt = this.cardRepository.getFileExt(cardData.mimetype);
-                    fs.unlinkSync(path.join(this.ImageDir, `${cardData.imageId}.${fileExt}`));
+                    const imagePath = path.join(this.ImageDir, `${cardData.imageId}.${fileExt}`);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
                 }
             }
         } else {

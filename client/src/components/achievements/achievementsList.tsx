@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox,
     Typography, Dialog, DialogTitle, DialogContent, DialogActions } from "@material-ui/core";
 import { Image } from "react-bootstrap";
@@ -354,21 +354,21 @@ const AchievementsList: React.FC<any> = (props: any) => {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,
                         onRowUpdate: (newData, oldData) => axios.post("/api/achievements", newData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...achievementlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
+                            const newList = [...achievementlist];
+                            const target = newList.find((el) => el.id === oldData?.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
                                 newList[index] = newData;
-                                setAchievementlist(newList);
+                                setAchievementlist([...newList]);
                             }
                         }),
                         onRowDelete: oldData => axios.post("/api/achievements/delete", oldData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...achievementlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
+                            const newList = [...achievementlist];
+                            const target = newList.find((el) => el.id === oldData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
                                 newList.splice(index, 1);
-                                setAchievementlist(newList);
+                                setAchievementlist([...newList]);
                             }
                         })
                     }

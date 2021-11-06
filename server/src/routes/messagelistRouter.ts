@@ -7,9 +7,9 @@ import MessagelistController from "../controllers/messagelistController";
 const messagelistRouter: express.Router = express.Router();
 const messagelistController: MessagelistController = BotContainer.get(MessagelistController);
 
-messagelistRouter.get("/api/messages", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Admin), (res, req) => messagelistController.getMessagelist(res, req));
-messagelistRouter.post("/api/messages/add", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Admin), (res, req) => messagelistController.addMessage(res, req));
-messagelistRouter.post("/api/messages", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Admin), (res, req) => messagelistController.updateMessage(res, req));
-messagelistRouter.post("/api/messages/delete", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Admin), (res, req) => messagelistController.removeMessage(res, req));
+messagelistRouter.get("/api/messages", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin), (req, res) => messagelistController.getMessagelist(req, res));
+messagelistRouter.post("/api/messages/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin), (req, res) => messagelistController.addMessage(req, res));
+messagelistRouter.post("/api/messages", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin), (req, res) => messagelistController.updateMessage(req, res));
+messagelistRouter.post("/api/messages/delete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin), (req, res) => messagelistController.removeMessage(req, res));
 
 export default messagelistRouter;

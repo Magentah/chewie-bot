@@ -241,7 +241,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
             {currentSeasonId ?
                 <Box marginBottom={4} display="flex" justifyContent="center">
                     {seasons.length <= 1 ?
-                    <Box className={classes.prizeHeader}>Season ends on <span style={{ fontWeight: "bold" }}>{seasons[0].description}</span></Box> :
+                    <Box className={classes.prizeHeader}><span style={{ fontWeight: "bold" }}>{seasons[0].description}</span></Box> :
                     <FormControl>
                         <InputLabel id="season-label">Season</InputLabel>
                         <Select
