@@ -1,5 +1,4 @@
 import { inject, injectable } from "inversify";
-import { Logger, LogType } from "../logger";
 import { ITwitchUserProfile } from "../models";
 import { DatabaseProvider, DatabaseTables } from "../services";
 
@@ -11,14 +10,6 @@ export class TwitchUserProfileRepository {
 
     public async get(username: string): Promise<ITwitchUserProfile> {
         const databaseService = await this.databaseProvider();
-        Logger.debug(
-            LogType.Database,
-            databaseService
-                .getQueryBuilder(DatabaseTables.TwitchUserProfile)
-                .where("twitchUserProfile.username", "like", username)
-                .first()
-                .toSQL().sql
-        );
         const twitchProfile = await databaseService
             .getQueryBuilder(DatabaseTables.TwitchUserProfile)
             .where("twitchUserProfile.username", "like", username)
@@ -26,14 +17,13 @@ export class TwitchUserProfileRepository {
         return twitchProfile as ITwitchUserProfile;
     }
 
-    public async add(twitchProfile: ITwitchUserProfile): Promise<void> {
+    public async addOrUpdate(twitchProfile: ITwitchUserProfile): Promise<void> {
         const databaseService = await this.databaseProvider();
         if (!(await this.twitchProfileExists(twitchProfile))) {
-            Logger.debug(
-                LogType.Database,
-                databaseService.getQueryBuilder(DatabaseTables.TwitchUserProfile).insert(twitchProfile).toSQL().sql
-            );
             await databaseService.getQueryBuilder(DatabaseTables.TwitchUserProfile).insert(twitchProfile);
+        } else {
+            // Update profile (needed for user name or display name changes)
+            await databaseService.getQueryBuilder(DatabaseTables.TwitchUserProfile).update(twitchProfile).where({id: twitchProfile.id});
         }
     }
 
