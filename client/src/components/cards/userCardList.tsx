@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Snackbar } from "@material-ui/core";
 import { Image } from "react-bootstrap";
@@ -267,6 +267,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                     showTitle: false,
                     addRowPosition: "first",
                     tableLayout: "auto",
+                    padding: "dense"
                 }}
                 data = {cardlist}
                 editable = {
@@ -274,21 +275,23 @@ const UserCardList: React.FC<any> = (props: any) => {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,
                         onRowUpdate: (newData, oldData) => axios.post("/api/cards", newData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...cardlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
+                            const newList = [...cardlist];
+                            // @ts-ignore
+                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
                                 newList[index] = newData;
-                                setCardlist(newList);
+                                setCardlist([...newList]);
                             }
                         }),
                         onRowDelete: oldData => axios.post("/api/cards/delete", oldData).then((result) => {
-                            if (result.status === 200) {
-                                const newList = [...cardlist];
-                                // @ts-ignore
-                                const index = oldData?.tableData.id;
+                            const newList = [...cardlist];
+                            // @ts-ignore
+                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
                                 newList.splice(index, 1);
-                                setCardlist(newList);
+                                setCardlist([...newList]);
                             }
                         })
                     }

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import MaterialTable from "material-table"
+import MaterialTable from "@material-table/core";
 import { UserLevel } from "../common/userLevel";
 import { Grid } from "@material-ui/core";
 import { Launch, Chat, Settings } from "@material-ui/icons";
@@ -74,7 +74,8 @@ const CommandList: React.FC<any> = (props: any) => {
                     actionsColumnIndex: 6,
                     showTitle: false,
                     filtering: true,
-                    addRowPosition: "first"
+                    addRowPosition: "first",
+                    padding: "dense"
                 }}
                 data = {commandlist}
                 editable = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
@@ -99,16 +100,22 @@ const CommandList: React.FC<any> = (props: any) => {
                         onRowUpdate: (newData, oldData) => axios.post("/api/commandlist", newData).then((result) => {
                             const newList = [...commandlist];
                             // @ts-ignore
-                            const index = oldData?.tableData.id;
-                            newList[index] = newData;
-                            setCommandlist(newList);
+                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
+                                newList[index] = newData;
+                                setCommandlist([...newList]);
+                            }
                         }),
                         onRowDelete: oldData => axios.post("/api/commandlist/delete", oldData).then((result) => {
                             const newList = [...commandlist];
                             // @ts-ignore
-                            const index = oldData?.tableData.id;
-                            newList.splice(index, 1);
-                            setCommandlist(newList);
+                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            if (target) {
+                                const index = newList.indexOf(target);
+                                newList.splice(index, 1);
+                                setCommandlist([...newList]);
+                            }
                         })
                     }
                 }

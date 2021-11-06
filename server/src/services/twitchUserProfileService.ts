@@ -12,7 +12,7 @@ export class TwitchUserProfileService {
     }
 
     public async addTwitchUserProfile(userProfile: ITwitchUserProfile): Promise<ITwitchUserProfile> {
-        await this.twitchUserProfiles.add(userProfile);
+        await this.twitchUserProfiles.addOrUpdate(userProfile);
         return await this.getTwitchUserProfile(userProfile.username);
     }
 

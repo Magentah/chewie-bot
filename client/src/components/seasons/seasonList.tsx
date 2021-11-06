@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress } from "@material-ui/core";
-import MaterialTable from "material-table";
+import MaterialTable from "@material-table/core";
 import { Alert } from "@material-ui/lab";
 import { AddToListState } from "../common/addToListState";
 

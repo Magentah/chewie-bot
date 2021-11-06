@@ -4,7 +4,7 @@ import { OverridableComponent } from "@material-ui/core/OverridableComponent";
 import { Typography } from "@material-ui/core";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Event, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Event, ChatBubbleOutline, Lens as DefaultIcon } from "@material-ui/icons";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";
@@ -13,6 +13,7 @@ import SongList from "./components/songlist/songlist";
 import EditSonglist from "./components/songlist/editSonglist";
 import DonationList from "./components/donationlist/donationlist";
 import MessageList from "./components/messages/messagelist";
+import QuoteList from "./components/quotes/quotelist";
 import CommandList from "./components/commands/commandlist";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./contexts/userContext";
@@ -118,6 +119,13 @@ const DashboardRoutes: Route[] = [
         icon: Message,
         component: MessageList,
         minUserLevel: UserLevels.Admin
+    },
+    {
+        path: "/quotes",
+        name: "Quotes",
+        icon: ChatBubbleOutline,
+        component: QuoteList,
+        minUserLevel: UserLevels.Moderator
     },
     {
         path: "/usercards",
