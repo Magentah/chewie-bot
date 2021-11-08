@@ -8,6 +8,7 @@ import { Lang } from "../lang";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import MessagesRepository from "../database/messagesRepository";
 import PointLogsRepository from "../database/pointLogsRepository";
+import SeasonsRepository from "../database/seasonsRepository";
 
 /**
  * Detailed description of a bankheist: http://wiki.deepbot.tv/bankheist
@@ -39,6 +40,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         @inject(EventLogService) private eventLogService: EventLogService,
         @inject(MessagesRepository) private messages: MessagesRepository,
         @inject(PointLogsRepository) private pointsLog: PointLogsRepository,
+        @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         initiatingUser: IUser,
         wager: number
@@ -182,12 +184,21 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
         // Grant achievements
         for (const participant of this.participants) {
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
             const stats = await this.pointsLog.getStats(participant.user, PointLogType.Bankheist);
+            const seasonStats = await this.pointsLog.getStats(participant.user, PointLogType.Bankheist, currentSeasonStart);
             const total = stats.lost + stats.won;
+            const seasonTotal = seasonStats.lost + seasonStats.won;
             if (total > 0) {
-                this.eventAggregator.publishAchievement({user: participant.user, type: AchievementType.BankheistPointsWon, count: total });
+                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsWon, count: total });
             } else if (total < 0) {
-                this.eventAggregator.publishAchievement({user: participant.user, type: AchievementType.BankheistPointsLost, count: -total });
+                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsLost, count: -total });
+            }
+
+            if (seasonTotal > 0) {
+                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsWon, sesonalCount: seasonTotal });
+            } else if (seasonTotal < 0) {
+                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsLost, sesonalCount: -seasonTotal });
             }
         }
 

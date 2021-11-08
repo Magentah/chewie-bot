@@ -30,13 +30,13 @@ export default class AchievementService {
         const subscriber = this.eventAggregator.getSubscriber();
         subscriber.on("message", (channel: string, message: string) => {
             const msg: AchievementMessage = JSON.parse(message);
-            this.grantAchievements(msg.user, msg.type, msg.count);
+            this.grantAchievements(msg.user, msg.type, msg.count, msg.sesonalCount);
         });
         subscriber.subscribe(EventChannel.Achievements);
     }
 
-    public async grantAchievements(user: IUser, type: AchievementType, currentAmount: number) {
-        if (!currentAmount) {
+    public async grantAchievements(user: IUser, type: AchievementType, currentAmount?: number, seasonalAmount?: number) {
+        if (!currentAmount && !seasonalAmount) {
             Logger.warn(LogType.Achievements, "grantAchievements called without amount");
             return;
         }
@@ -50,12 +50,14 @@ export default class AchievementService {
         }
 
         for (const achievement of achievements) {
-            if (currentAmount >= achievement.amount) {
-                await this.grantAchievement(user, achievement);
+            if (achievement.seasonal) {
+                if (seasonalAmount && seasonalAmount >= achievement.amount) {
+                    await this.grantAchievement(user, achievement);
+                }
             } else {
-                // Achievements sorted by amount asc, so once we got beyond
-                // our current amount we can stop.
-                break;
+                if (currentAmount && currentAmount >= achievement.amount) {
+                    await this.grantAchievement(user, achievement);
+                }
             }
         }
     }

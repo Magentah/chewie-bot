@@ -10,17 +10,19 @@ export class PointLogsRepository {
         // Empty
     }
 
-    public async getStats(user: IUser, type: PointLogType | undefined): Promise<{won: number, lost: number}> {
+    public async getStats(user: IUser, type: PointLogType | undefined, startTime: Date = new Date(0)): Promise<{won: number, lost: number}> {
         const databaseService = await this.databaseProvider();
         const filter = type ? {eventType: type, userId: user.id} : {userId: user.id};
         const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
             .where(filter).andWhere("eventType", "<>", PointLogType.Reset)
             .andWhere("points", ">", 0).sum("points AS sum")
+            .andWhere("time", ">=", startTime)
             .first()).sum ?? 0;
 
         const lost = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
             .where(filter).andWhere("eventType", "<>", PointLogType.Reset)
             .andWhere("points", "<", 0).sum("points AS sum")
+            .andWhere("time", ">=", startTime)
             .first()).sum ?? 0;
 
         return { won, lost };
