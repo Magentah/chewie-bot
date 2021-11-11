@@ -110,7 +110,9 @@ export class UserService {
 
         // No achievement processing necessary if ponts are being reset.
         if (user.points > 0) {
-            this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points });
+            // count == seasonalCount since points are always reset. Only difference between seasonal and non-seasonal
+            // achievements here would be that non-seasonal achievements stay permanently across seasons.
+            this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points, seasonalCount: user.points });
         }
     }
 

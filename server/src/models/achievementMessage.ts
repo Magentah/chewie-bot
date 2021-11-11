@@ -5,5 +5,5 @@ export default interface AchievementMessage {
     user: IUser;
     type: AchievementType;
     count?: number;
-    sesonalCount?: number;
+    seasonalCount?: number;
 }

@@ -4,6 +4,7 @@ import { AchievementType, EventLogType, ICommandAlias, IUser } from "../../model
 import { BotContainer } from "../../inversify.config";
 import { PointLogType } from "../../models/pointLog";
 import { BotSettings } from "../../services/botSettingsService";
+import SeasonsRepository from "../../database/seasonsRepository";
 import EventAggregator from "../../services/eventAggregator";
 
 enum RedeemVariation {
@@ -17,6 +18,7 @@ export default class RedeemCommand extends Command {
     private settingsService: BotSettingsService;
     private eventLogService: EventLogService;
     private eventAggregator: EventAggregator;
+    private seasonsRepository: SeasonsRepository;
 
     private readonly Variations = {
         [RedeemVariation.Clap]: {emote: "chewieClap", url: "https://i.imgur.com/yCfzpSf.gif"},
@@ -30,6 +32,7 @@ export default class RedeemCommand extends Command {
         this.settingsService = BotContainer.get(BotSettingsService);
         this.eventLogService = BotContainer.get(EventLogService);
         this.eventAggregator = BotContainer.get(EventAggregator);
+        this.seasonsRepository = BotContainer.get(SeasonsRepository);
     }
 
     public async executeInternal(channel: string, user: IUser, variation: string): Promise<void> {
@@ -45,10 +48,13 @@ export default class RedeemCommand extends Command {
             await this.twitchService.triggerAlert("redeem", variation, data.url);
             await this.twitchService.sendMessage(channel, `${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote}`);
 
+            // Check for achievements
             await this.eventLogService.addRedeem(user, variation);
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
             const count = await this.eventLogService.getCount(EventLogType.RedeemCommand, user);
+            const seasonalCount = await this.eventLogService.getCount(EventLogType.RedeemCommand, user, currentSeasonStart);
 
-            const msg = { user, type: AchievementType.AnimationRedeems, count };
+            const msg = { user, type: AchievementType.AnimationRedeems, count, seasonalCount };
             this.eventAggregator.publishAchievement(msg);
         }
     }

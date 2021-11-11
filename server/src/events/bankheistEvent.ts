@@ -196,9 +196,9 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
             }
 
             if (seasonTotal > 0) {
-                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsWon, sesonalCount: seasonTotal });
+                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsWon, seasonalCount: seasonTotal });
             } else if (seasonTotal < 0) {
-                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsLost, sesonalCount: -seasonTotal });
+                this.eventAggregator.publishAchievement({ user: participant.user, type: AchievementType.BankheistPointsLost, seasonalCount: -seasonTotal });
             }
         }
 

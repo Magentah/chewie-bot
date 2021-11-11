@@ -3,16 +3,19 @@ import { AchievementType, EventLogType, ICommandAlias, IUser, UserLevels } from 
 import { EventLogService } from "../../services";
 import { BotContainer } from "../../inversify.config";
 import EventAggregator from "../../services/eventAggregator";
+import SeasonsRepository from "../../database/seasonsRepository";
 
 export class SudokuCommand extends Command {
     private readonly SudokuTimeoutLength = 120;
     private eventLogService: EventLogService;
+    private seasonsRepository: SeasonsRepository;
     private eventAggregator: EventAggregator;
 
     constructor() {
         super();
         this.eventLogService = BotContainer.get(EventLogService);
         this.eventAggregator = BotContainer.get(EventAggregator);
+        this.seasonsRepository = BotContainer.get(SeasonsRepository);
     }
 
     public async executeInternal(channel: string, user: IUser, force: number): Promise<void> {
@@ -26,8 +29,10 @@ export class SudokuCommand extends Command {
 
         await this.eventLogService.addSudoku(user);
 
+        const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
         const count = await this.eventLogService.getCount(EventLogType.Sudoku, user);
-        const msg = { user, type: AchievementType.Sudoku, count };
+        const seasonalCount = await this.eventLogService.getCount(EventLogType.Sudoku, user, currentSeasonStart);
+        const msg = { user, type: AchievementType.Sudoku, count, seasonalCount };
         this.eventAggregator.publishAchievement(msg);
     }
 

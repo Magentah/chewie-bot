@@ -30,7 +30,7 @@ export default class AchievementService {
         const subscriber = this.eventAggregator.getSubscriber();
         subscriber.on("message", (channel: string, message: string) => {
             const msg: AchievementMessage = JSON.parse(message);
-            this.grantAchievements(msg.user, msg.type, msg.count, msg.sesonalCount);
+            this.grantAchievements(msg.user, msg.type, msg.count, msg.seasonalCount);
         });
         subscriber.subscribe(EventChannel.Achievements);
     }

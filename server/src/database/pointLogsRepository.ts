@@ -10,19 +10,19 @@ export class PointLogsRepository {
         // Empty
     }
 
-    public async getStats(user: IUser, type: PointLogType | undefined, startTime: Date = new Date(0)): Promise<{won: number, lost: number}> {
+    public async getStats(user: IUser, type: PointLogType | undefined, sinceDate: Date = new Date(0)): Promise<{won: number, lost: number}> {
         const databaseService = await this.databaseProvider();
         const filter = type ? {eventType: type, userId: user.id} : {userId: user.id};
         const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
             .where(filter).andWhere("eventType", "<>", PointLogType.Reset)
             .andWhere("points", ">", 0).sum("points AS sum")
-            .andWhere("time", ">=", startTime)
+            .andWhere("time", ">=", sinceDate)
             .first()).sum ?? 0;
 
         const lost = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
             .where(filter).andWhere("eventType", "<>", PointLogType.Reset)
             .andWhere("points", "<", 0).sum("points AS sum")
-            .andWhere("time", ">=", startTime)
+            .andWhere("time", ">=", sinceDate)
             .first()).sum ?? 0;
 
         return { won, lost };
@@ -43,11 +43,12 @@ export class PointLogsRepository {
         return { won, lost };
     }
 
-    public async getWinCount(user: IUser, type: PointLogType, reason: PointLogReason): Promise<number> {
+    public async getWinCount(user: IUser, type: PointLogType, reason: PointLogReason, sinceDate: Date = new Date(0)): Promise<number> {
         const databaseService = await this.databaseProvider();
         const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
             .where({ eventType: type, userId: user.id, reason })
             .andWhere("points", ">", 0).count("id AS cnt")
+            .andWhere("time", ">=", sinceDate)
             .first()).cnt ?? 0;
         return won;
     }

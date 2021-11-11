@@ -7,6 +7,7 @@ import { inject } from "inversify";
 import { Lang } from "../lang";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import PointLogsRepository from "../database/pointLogsRepository";
+import SeasonsRepository from "../database/seasonsRepository";
 
 /**
  * Detailed description of an arena (tournament) event: http://wiki.deepbot.tv/arena
@@ -29,6 +30,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         @inject(UserService) userService: UserService,
         @inject(EventService) private eventService: EventService,
         @inject(PointLogsRepository) private pointLogsRepository: PointLogsRepository,
+        @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         initiatingUser: IUser,
         wager: number
@@ -107,8 +109,10 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         // In the end this is all a bit fake but it shouldn't really matter.
         const numberOfWinsNeeded = Math.floor(Math.log(this.participants.length) / Math.log(2));
 
+        const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
         const arenasWon = await this.pointLogsRepository.getWinCount(winners[0].user, PointLogType.Arena, PointLogReason.FirstPlace);
-        this.eventAggregator.publishAchievement({user: winners[0].user, type: AchievementType.ArenaWon, count: arenasWon });
+        const arenasWonSeasonal = await this.pointLogsRepository.getWinCount(winners[0].user, PointLogType.Arena, PointLogReason.FirstPlace, currentSeasonStart);
+        this.eventAggregator.publishAchievement({user: winners[0].user, type: AchievementType.ArenaWon, count: arenasWon, seasonalCount: arenasWonSeasonal });
 
         this.sendMessage(
             Lang.get("arena.result3rd", numberOfWinsNeeded - 1, winners[2].points, winners[2].user.username)
