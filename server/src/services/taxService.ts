@@ -78,24 +78,30 @@ export default class TaxService {
         // The second should be the last stream online event.
         // If there's only 1, then this is the first stream.
         const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "desc");
-        var lastOnlineEvent: IDBStreamActivity | undefined;
+        let lastOnlineEvent: IDBStreamActivity | undefined;
         if (lastOnlineEvents) {
             lastOnlineEvent = lastOnlineEvents.length === 2 ? lastOnlineEvents[1] : lastOnlineEvents[0];
         }
-        let lastOnlineDate: Date | undefined;
-        let usersNotPaidTax: IDBUserTaxHistory[] = [];
-        let usersPaidTax: IDBUserTaxHistory[] = [];
 
+        // Ignore stream restarts (another stream within 6 hours since the last one).
+        if (lastOnlineEvents.length === 2) {
+            const sixHours = 6 * 60 * 60 * 1000;
+            if (new Date(lastOnlineEvents[0].dateTimeTriggered).getTime() - new Date(lastOnlineEvents[1].dateTimeTriggered).getTime() < sixHours) {
+                return;
+            }
+        }
+
+        let lastOnlineDate: Date | undefined;
         if (lastOnlineEvent) {
             lastOnlineDate = lastOnlineEvent.dateTimeTriggered;
         }
 
-        //TODO: Should probably have a way to do these updates in bulk rather than iterating through each user.
+        // TODO: Should probably have a way to do these updates in bulk rather than iterating through each user.
         // Last Online Date is the online time of the previous stream before the current one that is online.
         if (lastOnlineDate) {
             // Get all users who have paid tax since the last time the stream was online and update their streak.
-            usersPaidTax = await this.userTaxHistoryRepository.getSinceDate(lastOnlineDate);
-            usersPaidTax.forEach(async (taxEvent) => {
+            const usersPaidTax = await this.userTaxHistoryRepository.getSinceDate(lastOnlineDate);
+            for (const taxEvent of usersPaidTax) {
                 const currentStreakData = await this.userTaxStreakRepository.get(taxEvent.userId);
                 if (currentStreakData) {
                     let longestStreak: number = currentStreakData.longestStreak;
@@ -108,35 +114,28 @@ export default class TaxService {
                 } else if (taxEvent.id) {
                     await this.userTaxStreakRepository.add(taxEvent.userId, taxEvent.id);
                 }
-            });
+            };
         } else {
             // Stream hasn't been online yet, so streaks still need to be setup.
             const usersPaidTax = await this.userTaxHistoryRepository.getAll(TaxType.ChannelPoints);
-            usersPaidTax.forEach(async (taxEvent) => {
+            for (const taxEvent of usersPaidTax) {
                 if (taxEvent.id) {
                     await this.userTaxStreakRepository.add(taxEvent.userId, taxEvent.id);
                 }
-            });
+            };
         }
 
         // Get all users who haven't paid tax since the last online date.
-        //const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "asc");
         if (lastOnlineEvents.length === 2) {
-            usersNotPaidTax = await this.userTaxHistoryRepository.getUsersBetweenDates(
-                lastOnlineEvents[0].dateTimeTriggered,
-                lastOnlineEvents[1].dateTimeTriggered
+            const usersNotPaidTax = await this.userTaxHistoryRepository.getUsersNotPaidTax(
+                lastOnlineEvents[1].dateTimeTriggered,
+                lastOnlineEvents[0].dateTimeTriggered
             );
-            usersNotPaidTax.filter((taxEvent) => {
-                return !usersPaidTax.includes(taxEvent);
-            });
-        }
 
-        // Update all users who have not paid tax since the last stream to set current streak to 0.
-        usersNotPaidTax.forEach(async (taxEvent) => {
-            const streakEvent = await this.userTaxStreakRepository.get(taxEvent.userId);
-            if (streakEvent && taxEvent.id) {
-                await this.userTaxStreakRepository.updateStreak(taxEvent.userId, taxEvent.id, 0, streakEvent.longestStreak);
-            }
-        });
+            // Update all users who have not paid tax since the last stream to set current streak to 0.
+            for (const streakEvent of usersNotPaidTax) {
+                await this.userTaxStreakRepository.updateStreak(streakEvent.userId, streakEvent.lastTaxRedemptionId, 0, streakEvent.longestStreak);
+            };
+        }
     }
 }
