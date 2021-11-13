@@ -1,14 +1,14 @@
 import { inject, injectable, LazyServiceIdentifer } from "inversify";
-import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward, AchievementType, IUser } from "../models";
+import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, AchievementType, IUser } from "../models";
 import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository, { IDBStreamActivity } from "../database/streamActivityRepository";
 import TwitchChannelPointRewardService from "./channelPointRewardService";
 import UserService from "./userService";
-import BotSettingsService, { BotSettings } from "./botSettingsService";
+import BotSettingsService from "./botSettingsService";
 import TwitchEventService from "./twitchEventService";
 import EventAggregator from "./eventAggregator";
-import { IDBUserTaxHistory, TaxType } from "../models/taxHistory";
+import { TaxType } from "../models/taxHistory";
 import { Logger, LogType } from "../logger";
 
 @injectable()
@@ -114,7 +114,7 @@ export default class TaxService {
                 } else if (taxEvent.id) {
                     await this.userTaxStreakRepository.add(taxEvent.userId, taxEvent.id);
                 }
-            };
+            }
         } else {
             // Stream hasn't been online yet, so streaks still need to be setup.
             const usersPaidTax = await this.userTaxHistoryRepository.getAll(TaxType.ChannelPoints);
@@ -122,7 +122,7 @@ export default class TaxService {
                 if (taxEvent.id) {
                     await this.userTaxStreakRepository.add(taxEvent.userId, taxEvent.id);
                 }
-            };
+            }
         }
 
         // Get all users who haven't paid tax since the last online date.
@@ -135,7 +135,7 @@ export default class TaxService {
             // Update all users who have not paid tax since the last stream to set current streak to 0.
             for (const streakEvent of usersNotPaidTax) {
                 await this.userTaxStreakRepository.updateStreak(streakEvent.userId, streakEvent.lastTaxRedemptionId, 0, streakEvent.longestStreak);
-            };
+            }
         }
     }
 }
