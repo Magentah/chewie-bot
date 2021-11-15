@@ -9,6 +9,7 @@ import { inject } from "inversify";
 import { Lang } from "../lang";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import PointLogsRepository from "../database/pointLogsRepository";
+import SeasonsRepository from "../database/seasonsRepository";
 
 /**
  * Rough description of a duel:
@@ -32,6 +33,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         @inject(EventService) private eventService: EventService,
         @inject(EventLogService) private eventLogService: EventLogService,
         @inject(PointLogsRepository) private pointLogsRepository: PointLogsRepository,
+        @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         initiatingUser: IUser,
         targetUser: IUser | undefined,
@@ -262,8 +264,11 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
             });
 
             await this.userService.changeUserPoints(winner.user, this.wager * 2, this.pointLogType, PointLogReason.Win);
+
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
             const duelsWon = await this.pointLogsRepository.getWinCount(winner.user, PointLogType.Duel, PointLogReason.Win);
-            this.eventAggregator.publishAchievement({user: winner.user, type: AchievementType.DuelsWon, count: duelsWon });
+            const duelsWonSeasonal = await this.pointLogsRepository.getWinCount(winner.user, PointLogType.Duel, PointLogReason.Win, currentSeasonStart);
+            this.eventAggregator.publishAchievement({user: winner.user, type: AchievementType.DuelsWon, count: duelsWon, seasonalCount: duelsWonSeasonal });
 
             switch (winner.weapon) {
                 case DuelWeapon.Rock:

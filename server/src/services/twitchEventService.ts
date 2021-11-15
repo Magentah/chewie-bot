@@ -122,7 +122,10 @@ export default class TwitchEventService {
             LogType.TwitchEvents,
             `There are currently ${Object.keys(this.eventCallbacks).length} callbacks for the following types: ${Object.keys(this.eventCallbacks).join(" - ")}`
         );
-        this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
+
+        if (this.eventCallbacks[notification.subscription.type]) {
+            this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
+        }
 
         switch (notification.subscription.type) {
         }

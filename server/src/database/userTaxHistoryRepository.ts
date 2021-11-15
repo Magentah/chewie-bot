@@ -15,9 +15,10 @@ export default class UserTaxHistoryRepository {
         return returnRewardEvent;
     }
 
-    public async getCountForUser(userId: number, type: TaxType): Promise<number> {
+    public async getCountForUser(userId: number, type: TaxType, sinceDate: Date = new Date(0)): Promise<number> {
         const databaseService = await this.databaseProvider();
-        const count = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).count("id as cnt").where("userId", userId).andWhere("type", type).first()).cnt;
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).count("id as cnt")
+            .where("userId", userId).andWhere("type", type).andWhere("taxRedemptionDate", ">=", sinceDate).first()).cnt;
         return count;
     }
 

@@ -3,9 +3,9 @@ import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPoin
 import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository, { IDBStreamActivity } from "../database/streamActivityRepository";
+import SeasonsRepository from "../database/seasonsRepository";
 import TwitchChannelPointRewardService from "./channelPointRewardService";
 import UserService from "./userService";
-import BotSettingsService from "./botSettingsService";
 import TwitchEventService from "./twitchEventService";
 import EventAggregator from "./eventAggregator";
 import { TaxType } from "../models/taxHistory";
@@ -18,8 +18,8 @@ export default class TaxService {
         @inject(UserTaxHistoryRepository) private userTaxHistoryRepository: UserTaxHistoryRepository,
         @inject(UserTaxStreakRepository) private userTaxStreakRepository: UserTaxStreakRepository,
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
+        @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
-        @inject(BotSettingsService) private botSettingsService: BotSettingsService,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
@@ -53,8 +53,10 @@ export default class TaxService {
         if (user.id) {
             await this.userTaxHistoryRepository.add(user.id, rewardId, TaxType.ChannelPoints);
 
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
             const count = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.ChannelPoints);
-            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyTaxesPaid, count });
+            const seasonalCount = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.ChannelPoints, currentSeasonStart);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyTaxesPaid, count, seasonalCount });
         }
     }
 
@@ -63,8 +65,10 @@ export default class TaxService {
         if (user.id) {
             await this.userTaxHistoryRepository.add(user.id, undefined, TaxType.Bits);
 
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
             const count = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.Bits);
-            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyBitTaxesPaid, count });
+            const seasonalCount = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.Bits, currentSeasonStart);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyBitTaxesPaid, count, seasonalCount });
         }
     }
 

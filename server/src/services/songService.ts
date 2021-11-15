@@ -8,6 +8,7 @@ import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
 import { EventLogService } from "./eventLogService";
 import EventAggregator from "./eventAggregator";
+import SeasonsRepository from "../database/seasonsRepository";
 import UserService from "./userService";
 
 @injectable()
@@ -22,6 +23,7 @@ export class SongService {
         @inject(EventLogService) private eventLogService: EventLogService,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(UserService) private userService: UserService,
+        @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
     ) {
         //
     }
@@ -157,8 +159,10 @@ export class SongService {
             });
 
             if (user) {
+                const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
                 const count = await this.eventLogService.getCount(EventLogType.SongRequest, user);
-                this.eventAggregator.publishAchievement({ user, type: AchievementType.SongRequests, count });
+                const seasonalCount = await this.eventLogService.getCount(EventLogType.SongRequest, user, currentSeasonStart);
+                this.eventAggregator.publishAchievement({ user, type: AchievementType.SongRequests, count, seasonalCount });
             }
 
             return song;

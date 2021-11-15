@@ -215,7 +215,7 @@ export class DatabaseService {
             table.string("streamlabsSocketToken");
             table.string("streamlabsRefresh");
             table.string("spotifyRefresh");
-            table.integer("twitchProfileKey").unsigned();
+            table.integer("twitchProfileKey").unsigned().index();
             table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
             table.string("dropboxAccessToken");
             table.string("dropboxRefreshToken");
@@ -224,8 +224,8 @@ export class DatabaseService {
 
     private async createTwitchProfileTable(): Promise<void> {
         return this.createTable(DatabaseTables.TwitchUserProfile, (table) => {
-            table.integer("id").primary().notNullable().unique();
-            table.string("username").notNullable();
+            table.integer("id").primary().notNullable();
+            table.string("username").notNullable().index();
             table.string("displayName").notNullable();
             table.string("profileImageUrl");
         });
@@ -330,9 +330,9 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("type").notNullable();
             table.string("username").notNullable();
-            table.integer("userId").references(`id`).inTable(DatabaseTables.Users);
+            table.integer("userId").references(`id`).inTable(DatabaseTables.Users).index();
             table.json("data").notNullable();
-            table.dateTime("time").notNullable();
+            table.dateTime("time").notNullable().index();
         });
     }
 
@@ -340,11 +340,11 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.PointLogs, (table) => {
             table.increments("id").primary().notNullable();
             table.string("eventType").notNullable();
-            table.integer("userId").notNullable().references(`id`).inTable(DatabaseTables.Users);
+            table.integer("userId").notNullable().references(`id`).inTable(DatabaseTables.Users).index();
             table.string("username").notNullable();
             table.integer("pointsBefore").notNullable();
             table.integer("points").notNullable();
-            table.dateTime("time").notNullable();
+            table.dateTime("time").notNullable().index();
             table.string("reason").nullable();
         });
     }
@@ -360,7 +360,7 @@ export class DatabaseService {
 
     private async createUserCardsTable(): Promise<void> {
         return this.createTable(DatabaseTables.Cards, (table) => {
-            table.integer("id").primary().notNullable().unique();
+            table.integer("id").primary().notNullable();
             table.string("name").unique().notNullable();
             table.string("imageId").notNullable();
             table.string("mimetype");
@@ -374,10 +374,10 @@ export class DatabaseService {
 
     private async createUserCardStackTable(): Promise<void> {
         return this.createTable(DatabaseTables.CardStack, (table) => {
-            table.integer("id").primary().notNullable().unique();
-            table.integer("userId").notNullable();
+            table.integer("id").primary().notNullable();
+            table.integer("userId").notNullable().index();
             table.foreign("userId").references(`id`).inTable(DatabaseTables.Users);
-            table.integer("cardId").notNullable();
+            table.integer("cardId").notNullable().index();
             table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
             table.dateTime("redemptionDate").notNullable();
             table.boolean("deleted").notNullable().defaultTo(false);
@@ -386,7 +386,7 @@ export class DatabaseService {
 
     private async createUserCardUpgradesTable(): Promise<void> {
         return this.createTable(DatabaseTables.CardUpgrades, (table) => {
-            table.integer("id").primary().notNullable().unique();
+            table.integer("id").primary().notNullable();
             table.integer("userId").notNullable();
             table.foreign("userId").references(`id`).inTable(DatabaseTables.Users);
             table.integer("upgradedCardId").notNullable();
@@ -400,7 +400,7 @@ export class DatabaseService {
 
     private async createUserTaxStreakTable(): Promise<void> {
         return this.createTable(DatabaseTables.UserTaxStreak, (table) => {
-            table.increments("id").primary().notNullable().unique();
+            table.increments("id").primary().notNullable();
             table.integer("userId").notNullable().unique();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.integer("currentStreak").notNullable();
@@ -412,18 +412,18 @@ export class DatabaseService {
 
     private async createUserTaxHistoryTable(): Promise<void> {
         return this.createTable(DatabaseTables.UserTaxHistory, (table) => {
-            table.increments("id").primary().notNullable().unique();
-            table.integer("userId").notNullable();
+            table.increments("id").primary().notNullable();
+            table.integer("userId").notNullable().index();
             table.integer("type").notNullable();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
-            table.dateTime("taxRedemptionDate").notNullable();
+            table.dateTime("taxRedemptionDate").notNullable().index();
             table.string("channelPointRewardTwitchId");
         });
     }
 
     private async createChannelPointRewardsTable(): Promise<void> {
         return this.createTable(DatabaseTables.ChannelPointRewards, (table) => {
-            table.increments("id").primary().notNullable().unique();
+            table.increments("id").primary().notNullable();
             table.string("twitchRewardId").notNullable().unique();
             table.string("title").notNullable();
             table.integer("cost").notNullable();
@@ -438,8 +438,8 @@ export class DatabaseService {
 
     private async createChannelPointRewardHistoryTable(): Promise<void> {
         return this.createTable(DatabaseTables.ChannelPointRewardHistory, (table) => {
-            table.increments("id").primary().notNullable().unique();
-            table.integer("userId").notNullable();
+            table.increments("id").primary().notNullable();
+            table.integer("userId").notNullable().index();
             table.foreign("userId").references("id").inTable(DatabaseTables.Users);
             table.string("rewardId").notNullable();
             table.string("associatedRedemption").notNullable();
@@ -449,15 +449,15 @@ export class DatabaseService {
 
     private async createStreamActivityTable(): Promise<void> {
         return this.createTable(DatabaseTables.StreamActivity, (table) => {
-            table.increments("id").primary().notNullable().unique();
+            table.increments("id").primary().notNullable();
             table.string("event").notNullable();
-            table.dateTime("dateTimeTriggered").notNullable();
+            table.dateTime("dateTimeTriggered").notNullable().index();
         });
     }
 
     private async createAchievementsTable(): Promise<void> {
         return this.createTable(DatabaseTables.Achievements, (table) => {
-            table.increments("id").primary().notNullable().unique();
+            table.increments("id").primary().notNullable();
             table.integer("type").notNullable();
             table.integer("amount").notNullable();
             table.integer("pointRedemption").notNullable().defaultTo(0);
@@ -472,9 +472,9 @@ export class DatabaseService {
 
     private async createUserAchievementsTable(): Promise<void> {
         return this.createTable(DatabaseTables.UserAchievements, (table) => {
-            table.increments("id").primary().notNullable().unique();
+            table.increments("id").primary().notNullable();
             table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users);
-            table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements).onDelete("CASCADE");
+            table.integer("achievementId").notNullable().references("id").inTable(DatabaseTables.Achievements).onDelete("CASCADE").index();
             table.dateTime("date").notNullable();
             table.dateTime("expiredDate");
             table.integer("seasonId").references("id").inTable(DatabaseTables.Seasons);
@@ -487,7 +487,7 @@ export class DatabaseService {
 
     private async createSeasonsTable(): Promise<void> {
         return this.createTable(DatabaseTables.Seasons, (table) => {
-            table.increments("id").primary().notNullable().unique();
+            table.increments("id").primary().notNullable();
             table.dateTime("startDate");
             table.dateTime("endDate");
             table.string("plannedEndDate");
@@ -496,7 +496,7 @@ export class DatabaseService {
 
     private async createPointArchiveTable(): Promise<void> {
         return this.createTable(DatabaseTables.PointArchive, (table) => {
-            table.increments("id").primary().notNullable().unique();
+            table.increments("id").primary().notNullable();
             table.integer("seasonId").notNullable().references("id").inTable(DatabaseTables.Seasons).onDelete("CASCADE");
             table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");;
             table.decimal("points").notNullable();
