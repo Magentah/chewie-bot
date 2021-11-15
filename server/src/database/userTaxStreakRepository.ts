@@ -1,13 +1,6 @@
 import { inject, injectable } from "inversify";
+import { IDBUserTaxStreak } from "../models/taxHistory";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
-
-interface IDBUserTaxStreak {
-    id?: number;
-    userId: number;
-    currentStreak: number;
-    longestStreak: number;
-    lastTaxRedemptionId: number;
-}
 
 @injectable()
 export default class UserTaxStreakRepository {
