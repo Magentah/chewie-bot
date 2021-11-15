@@ -34,10 +34,10 @@ export class EventLogsRepository {
         return eventLogs;
     }
 
-    public async getCount(type: EventLogType, user: IUser): Promise<number> {
+    public async getCount(type: EventLogType, user: IUser, sinceDate: Date = new Date(0)): Promise<number> {
         const databaseService = await this.databaseProvider();
         const count = (await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
-            .select().where({ userId: user.id, type }).count("id as cnt").first()).cnt;
+            .select().where({ userId: user.id, type }).andWhere("time", ">=", sinceDate).count("id as cnt").first()).cnt;
         return count;
     }
 

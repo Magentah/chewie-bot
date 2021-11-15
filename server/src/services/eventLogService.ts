@@ -121,8 +121,8 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async getCount(type: EventLogType, user: IUser) : Promise<number> {
-        return await this.eventLogs.getCount(type, user);
+    public async getCount(type: EventLogType, user: IUser, sinceDate: Date = new Date(0)) : Promise<number> {
+        return await this.eventLogs.getCount(type, user, sinceDate);
     }
 
     private createLog(type: EventLogType, user: IUser | string | undefined, data: object | object[]): IEventLog {

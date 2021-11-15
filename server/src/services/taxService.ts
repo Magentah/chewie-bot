@@ -1,15 +1,15 @@
 import { inject, injectable, LazyServiceIdentifer } from "inversify";
-import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, IChannelPointReward, AchievementType, IUser } from "../models";
+import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, AchievementType, IUser } from "../models";
 import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository, { IDBStreamActivity } from "../database/streamActivityRepository";
+import SeasonsRepository from "../database/seasonsRepository";
 import TwitchChannelPointRewardService from "./channelPointRewardService";
 import UserService from "./userService";
-import BotSettingsService, { BotSettings } from "./botSettingsService";
 import TwitchEventService from "./twitchEventService";
 import EventAggregator from "./eventAggregator";
 import { IDBUserTaxHistory, TaxType } from "../models/taxHistory";
-import { Logger, LogType } from "../logger";
+import { Logger, LogType } from "../logger"
 
 @injectable()
 export default class TaxService {
@@ -18,8 +18,8 @@ export default class TaxService {
         @inject(UserTaxHistoryRepository) private userTaxHistoryRepository: UserTaxHistoryRepository,
         @inject(UserTaxStreakRepository) private userTaxStreakRepository: UserTaxStreakRepository,
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
+        @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
-        @inject(BotSettingsService) private botSettingsService: BotSettingsService,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
@@ -53,8 +53,10 @@ export default class TaxService {
         if (user.id) {
             await this.userTaxHistoryRepository.add(user.id, rewardId, TaxType.ChannelPoints);
 
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
             const count = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.ChannelPoints);
-            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyTaxesPaid, count });
+            const seasonalCount = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.ChannelPoints, currentSeasonStart);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyTaxesPaid, count, seasonalCount });
         }
     }
 
@@ -63,8 +65,10 @@ export default class TaxService {
         if (user.id) {
             await this.userTaxHistoryRepository.add(user.id, undefined, TaxType.Bits);
 
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
             const count = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.Bits);
-            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyBitTaxesPaid, count });
+            const seasonalCount = await this.userTaxHistoryRepository.getCountForUser(user.id, TaxType.Bits, currentSeasonStart);
+            this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyBitTaxesPaid, count, seasonalCount });
         }
     }
 
@@ -90,7 +94,7 @@ export default class TaxService {
             lastOnlineDate = lastOnlineEvent.dateTimeTriggered;
         }
 
-        //TODO: Should probably have a way to do these updates in bulk rather than iterating through each user.
+        // TODO: Should probably have a way to do these updates in bulk rather than iterating through each user.
         // Last Online Date is the online time of the previous stream before the current one that is online.
         if (lastOnlineDate) {
             // Get all users who have paid tax since the last time the stream was online and update their streak.
@@ -120,7 +124,7 @@ export default class TaxService {
         }
 
         // Get all users who haven't paid tax since the last online date.
-        //const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "asc");
+        // const lastOnlineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOnline, 2, "asc");
         if (lastOnlineEvents.length === 2) {
             usersNotPaidTax = await this.userTaxHistoryRepository.getUsersBetweenDates(
                 lastOnlineEvents[0].dateTimeTriggered,

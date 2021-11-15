@@ -7,6 +7,7 @@ import EventHelper from "../../../helpers/eventHelper";
 import { BotContainer } from "../../../inversify.config";
 import { Lang } from "../../../lang";
 import PointLogsRepository from "../../../database/pointLogsRepository";
+import SeasonsRepository from "../../../database/seasonsRepository";
 
 /**
  * Command for starting a duel.
@@ -18,6 +19,7 @@ export default class DuelCommand extends Command {
     private eventLogService: EventLogService;
     private eventAggregator: EventAggregator;
     private pointLogsRepository: PointLogsRepository;
+    private seasonsRepository: SeasonsRepository;
 
     constructor() {
         super();
@@ -26,6 +28,7 @@ export default class DuelCommand extends Command {
         this.eventLogService = BotContainer.get(EventLogService);
         this.eventAggregator = BotContainer.get(EventAggregator);
         this.pointLogsRepository = BotContainer.get(PointLogsRepository);
+        this.seasonsRepository = BotContainer.get(SeasonsRepository);
     }
 
     public async executeInternal(channel: string, user: IUser, usernameOrWager: string, wager: number): Promise<void> {
@@ -66,7 +69,8 @@ export default class DuelCommand extends Command {
             }
         }
 
-        const duel = new DuelEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, this.pointLogsRepository, this.eventAggregator, user, targetUser, wagerValue);
+        const duel = new DuelEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, this.pointLogsRepository, 
+            this.seasonsRepository, this.eventAggregator, user, targetUser, wagerValue);
         duel.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         // If target user known, check if he can accept at all (check number of chews)

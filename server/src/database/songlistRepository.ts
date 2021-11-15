@@ -133,12 +133,13 @@ export class SonglistRepository {
         return title as ISonglistItem;
     }
 
-    public async countAttributions(userId: number) : Promise<number> {
+    public async countAttributions(userId: number, sinceDate: Date = new Date(0)) : Promise<number> {
         const databaseService = await this.databaseProvider();
         const count = (await databaseService
             .getQueryBuilder(DatabaseTables.Songlist)
             .count("id AS cnt")
             .where({ attributedUserId: userId })
+            .andWhere("created", ">=", sinceDate)
             .first()).cnt;
         return count;
     }

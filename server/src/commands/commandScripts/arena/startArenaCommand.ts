@@ -6,6 +6,7 @@ import ArenaEvent from "../../../events/arenaEvent";
 import { BotContainer } from "../../../inversify.config";
 import { Lang } from "../../../lang";
 import PointLogsRepository from "../../../database/pointLogsRepository";
+import SeasonsRepository from "../../../database/seasonsRepository";
 
 /**
  * Command for starting an arena.
@@ -16,6 +17,7 @@ export default class StartArenaCommand extends Command {
     private userService: UserService;
     private pointLogsRepository: PointLogsRepository;
     private eventAggregator: EventAggregator;
+    private seasonsRepository: SeasonsRepository;
 
     constructor() {
         super();
@@ -24,6 +26,7 @@ export default class StartArenaCommand extends Command {
         this.userService = BotContainer.get(UserService);
         this.eventAggregator = BotContainer.get(EventAggregator);
         this.pointLogsRepository = BotContainer.get(PointLogsRepository);
+        this.seasonsRepository = BotContainer.get(SeasonsRepository);
 
         this.minimumUserLevel = UserLevels.Moderator;
     }
@@ -34,7 +37,7 @@ export default class StartArenaCommand extends Command {
             return;
         }
 
-        const arena = new ArenaEvent(this.twitchService, this.userService, this.eventService, this.pointLogsRepository, this.eventAggregator, user, wager);
+        const arena = new ArenaEvent(this.twitchService, this.userService, this.eventService, this.pointLogsRepository, this.seasonsRepository, this.eventAggregator, user, wager);
         arena.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         function isEvent(event: string | ArenaEvent): event is ArenaEvent {
