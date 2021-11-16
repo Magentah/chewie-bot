@@ -9,3 +9,11 @@ export interface IDBUserTaxHistory {
     taxRedemptionDate: Date;
     channelPointRewardTwitchId: string;
 }
+
+export interface IDBUserTaxStreak {
+    id?: number;
+    userId: number;
+    currentStreak: number;
+    longestStreak: number;
+    lastTaxRedemptionId: number;
+}

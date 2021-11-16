@@ -6,10 +6,12 @@ import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SonglistRepository, UsersRepository } from "../database";
 import { EventAggregator } from "../services";
+import SeasonsRepository from "../database/seasonsRepository";
 
 @injectable()
 class SonglistController {
     constructor(@inject(SonglistRepository) private songlistService: SonglistRepository,
+                @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
                 @inject(EventAggregator) private eventAggregator: EventAggregator,
                 @inject(UsersRepository) private usersRepository: UsersRepository) {
         Logger.info(
@@ -79,8 +81,10 @@ class SonglistController {
             if (newSong.attributedUserId) {
                 const user = (await this.usersRepository.getByIds([newSong.attributedUserId]))[0];
                 if (user) {
+                    const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
                     const count = await this.songlistService.countAttributions(newSong.attributedUserId);
-                    const msg = { user, count, type: AchievementType.Songlist };
+                    const seasonalCount = await this.songlistService.countAttributions(newSong.attributedUserId, currentSeasonStart);
+                    const msg = { user, count, seasonalCount, type: AchievementType.Songlist };
                     this.eventAggregator.publishAchievement(msg);
                 }
             }

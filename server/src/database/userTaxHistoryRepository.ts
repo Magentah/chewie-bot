@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
-import { IDBUserTaxHistory, TaxType } from "../models/taxHistory";
+import Logger, { LogType } from "../logger";
+import { IDBUserTaxHistory, IDBUserTaxStreak, TaxType } from "../models/taxHistory";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -14,9 +15,10 @@ export default class UserTaxHistoryRepository {
         return returnRewardEvent;
     }
 
-    public async getCountForUser(userId: number, type: TaxType): Promise<number> {
+    public async getCountForUser(userId: number, type: TaxType, sinceDate: Date = new Date(0)): Promise<number> {
         const databaseService = await this.databaseProvider();
-        const count = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).count("id as cnt").where("userId", userId).andWhere("type", type).first()).cnt;
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).count("id as cnt")
+            .where("userId", userId).andWhere("type", type).andWhere("taxRedemptionDate", ">=", sinceDate).first()).cnt;
         return count;
     }
 
@@ -41,15 +43,19 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
-    public async getUsersBetweenDates(fromDate: Date, toDate: Date): Promise<IDBUserTaxHistory[]> {
+    public async getUsersNotPaidTax(fromDate: Date, toDate: Date): Promise<IDBUserTaxStreak[]> {
         const databaseService = await this.databaseProvider();
-        const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService
-            .getQueryBuilder(DatabaseTables.UserTaxHistory)
+        const returnUserTaxHistory = await databaseService
+            .getQueryBuilder(DatabaseTables.UserTaxStreak)
             .select("*")
-            .where("taxRedemptionDate", "<", toDate)
-            .andWhere("taxRedemptionDate", ">=", fromDate)
-            .andWhere("type", TaxType.ChannelPoints)
-            .distinct("userId");
+            .where("currentStreak", ">", 0)
+            .whereNotIn("userId", (b) =>
+                // All users who *did* pay tax in the last stream
+                b.select("userId").distinct().from(DatabaseTables.UserTaxHistory)
+                .where("taxRedemptionDate", "<", toDate)
+                .andWhere("taxRedemptionDate", ">=", fromDate)
+                .andWhere("type", TaxType.ChannelPoints)
+        );
 
         return returnUserTaxHistory;
     }
