@@ -54,7 +54,6 @@ const SeasonList: React.FC<any> = (props: any) => {
                 <Typography>The following tasks will be performed:</Typography>
                 <ul>
                     <li>Reset and archive all users' points</li>
-                    <li>Reset tax streak</li>
                     <li>Grant outstanding achievements</li>
                 </ul>
                 <Typography>New season end date (optional):</Typography>
