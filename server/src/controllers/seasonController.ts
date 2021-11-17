@@ -70,9 +70,6 @@ class SeasonController {
                     // Grant achievements. Consider all streams started and taxes paid until right now.
                     // Dont't use season end date because the pure date will be a few hours in the past and miss the current stream.
                     await this.achievementService.grantSeasonEndAchievements(currentSeason.id, currentSeason.startDate, new Date());
-
-                    // Reset tax streaks
-                    await this.userTaxStreakRepository.reset();
                 }));
             } finally {
                 this.databaseService.useTransaction(undefined);

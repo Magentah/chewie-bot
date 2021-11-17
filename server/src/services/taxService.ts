@@ -107,16 +107,25 @@ export default class TaxService {
             const usersPaidTax = await this.userTaxHistoryRepository.getSinceDate(lastOnlineDate);
             for (const taxEvent of usersPaidTax) {
                 const currentStreakData = await this.userTaxStreakRepository.get(taxEvent.userId);
+                let currentStreak = 0;
                 if (currentStreakData) {
                     let longestStreak: number = currentStreakData.longestStreak;
-                    if (currentStreakData.currentStreak + 1 > currentStreakData.longestStreak) {
-                        longestStreak = currentStreakData.currentStreak + 1;
+                    currentStreak = currentStreakData.currentStreak + 1;
+
+                    if (currentStreak > currentStreakData.longestStreak) {
+                        longestStreak = currentStreak;
                     }
                     if (taxEvent.id) {
-                        await this.userTaxStreakRepository.updateStreak(taxEvent.userId, taxEvent.id, currentStreakData.currentStreak + 1, longestStreak);
+                        await this.userTaxStreakRepository.updateStreak(taxEvent.userId, taxEvent.id, currentStreak, longestStreak);
                     }
                 } else if (taxEvent.id) {
+                    currentStreak = 1;
                     await this.userTaxStreakRepository.add(taxEvent.userId, taxEvent.id);
+                }
+
+                const user = await this.userService.getUserById(taxEvent.userId);
+                if (user) {
+                    this.eventAggregator.publishAchievement({ user, type: AchievementType.DailyTaxStreak, count: currentStreak, seasonalCount: currentStreak });
                 }
             }
         } else {

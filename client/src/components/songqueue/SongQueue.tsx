@@ -89,11 +89,16 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     );
 };
 
-const RequestTimeCell: React.FC<any> = (value: Song) => {
+const RequestUserTimeCell: React.FC<any> = (value: Song) => {
     return (
-        <Typography>
-            {moment(value?.requestTime).format("HH:mm")}
-        </Typography>
+        <React.Fragment>
+            <div>
+                {value?.requestedBy}
+            </div>
+            <div>
+            🕑 {moment(value?.requestTime).format("HH:mm")}
+            </div>
+        </React.Fragment>
     );
 };
 
@@ -296,7 +301,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     };
 
     // Don't allow selecting songs for deletion without permission.
-    const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto" };
+    const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto", showTitle: false };
     let tableActions: (Action<Song> | ((rowData: Song) => Action<Song>))[] = [];
     if (userContext.user.userLevel >= UserLevels.Moderator) {
         tableActions = [
@@ -432,16 +437,10 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         {
             title: "Requested By",
             field: "requestedBy",
+            render: rowData => RequestUserTimeCell(rowData),
             align: "left",
             sorting: false,
             width: "20%"
-        },
-        {
-            title: "Time",
-            field: "requestTime",
-            render: rowData => RequestTimeCell(rowData),
-            sorting: false,
-            width: "10%"
         },
         {
             title: "Requested With",
@@ -457,7 +456,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             title: "Comments",
             field: "comments",
             render: rowData => <div style={{maxWidth: "20em"}}>{rowData.comments}</div>,
-            width: "10%",
+            width: "20%",
         });
     }
 
@@ -495,7 +494,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                      field: "requestedBy",
                      align: "left",
                      sorting: false,
-                     width: "10%"
+                     width: "10%",
                 },
                 {
                     title: "Request time",
@@ -505,7 +504,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                     width: "10%"
                 },
             ]}
-            options = {{...tableOptions, search: false, showTitle: false, toolbar: false}}
+            options = {{...tableOptions, search: false, toolbar: false}}
             data = {playedSongs}
             components={{
                 Container: p => <Paper {...p} elevation={0} className={`${classes.requestHistory} ${classes.table}`} />
