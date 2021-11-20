@@ -95,6 +95,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
         10: "Daily Taxes paid (Bits)",
         11: "Arenas won",
         12: "Unique cards upgraded",
+        13: "Daily Taxes streak",
     };
 
     const achievementTypesSorted = Object.entries(achievementTypes);
