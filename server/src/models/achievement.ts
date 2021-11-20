@@ -12,6 +12,7 @@ export enum AchievementType {
     DailyBitTaxesPaid = 10,
     ArenaWon = 11,
     UniqueCardUpgrades = 12,
+    DailyTaxStreak = 13,
 }
 
 export default interface IAchievement {

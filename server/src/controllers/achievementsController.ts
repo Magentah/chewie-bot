@@ -29,6 +29,7 @@ class AchievementsController {
         [AchievementType.BankheistPointsLost]: "achievements.group.bankheistpointslost",
         [AchievementType.DailyBitTaxesPaid]: "achievements.group.dailybittaxespaid",
         [AchievementType.ArenaWon]: "achievements.group.arenaswon",
+        [AchievementType.DailyTaxStreak]: "achievements.group.dailytaxespaid",
     };
 
     private readonly AchievementOrder = {
@@ -40,11 +41,12 @@ class AchievementsController {
         [AchievementType.Songlist]: 6,
         [AchievementType.AnimationRedeems]: 7,
         [AchievementType.DailyTaxesPaid]: 8,
-        [AchievementType.DailyBitTaxesPaid]: 9,
-        [AchievementType.DuelsWon]: 10,
-        [AchievementType.BankheistPointsWon]: 11,
-        [AchievementType.BankheistPointsLost]: 11,
-        [AchievementType.ArenaWon]: 12,
+        [AchievementType.DailyTaxStreak]: 9,
+        [AchievementType.DailyBitTaxesPaid]: 10,
+        [AchievementType.DuelsWon]: 11,
+        [AchievementType.BankheistPointsWon]: 12,
+        [AchievementType.BankheistPointsLost]: 13,
+        [AchievementType.ArenaWon]: 14,
     };
 
     constructor(@inject(AchievementsRepository) private achievementsRepository: AchievementsRepository,

@@ -205,6 +205,14 @@ export class UserService {
     }
 
     /**
+     * Gets a user by ID.
+     * @param {number} id The ID of the user to get.
+     */
+    public async getUserById(id: number): Promise<IUser | undefined> {
+        return await this.users.getById(id);
+    }
+
+    /**
      * Deletes a user
      * @param {IUser} username The username of the user to delete.
      */
