@@ -15,7 +15,8 @@ export default interface IUserCard {
     baseCardName?: string;
     rarity: CardRarity;
     isUpgrade: boolean;
-    creationDate: Date
+    creationDate: Date;
+    isEnabled: boolean;
 }
 
 export interface IUserCardOnStackInfo extends IUserCard {

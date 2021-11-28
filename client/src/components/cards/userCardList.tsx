@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string, baseCardName: string, isUpgrade: boolean };
+type RowData = { id?: number, name: string, setName: string, rarity: number, imageId: string, url: string, baseCardName: string, isUpgrade: boolean, isEnabled: boolean };
 const MaxFileSize = 1024 * 1024 * 5;
 const FileTypes = ["image/jpeg", "image/png"];
 
@@ -259,11 +259,12 @@ const UserCardList: React.FC<any> = (props: any) => {
                         },
                     },
                     { title: "Upgrade version", field: "isUpgrade", type: "boolean" },
+                    { title: "Enabled", field: "isEnabled", type: "boolean" },
                     { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} />, editable: "never" }
                 ]}
                 options = {{
                     paging: false,
-                    actionsColumnIndex: 6,
+                    actionsColumnIndex: 7,
                     showTitle: false,
                     addRowPosition: "first",
                     tableLayout: "auto",

@@ -95,7 +95,8 @@ class CardlistController {
                 setName: card.setName,
                 baseCardName: card.baseCardName,
                 rarity: card.rarity,
-                isUpgrade: card.isUpgrade
+                isUpgrade: card.isUpgrade,
+                isEnabled: card.isEnabled
             });
             res.status(StatusCodes.OK);
             res.send(card);
@@ -142,7 +143,8 @@ class CardlistController {
                     rarity: card.rarity,
                     creationDate: new Date(),
                     imageId: Guid.create().toString(),
-                    isUpgrade: card.isUpgrade
+                    isUpgrade: card.isUpgrade,
+                    isEnabled: card.isEnabled ?? true
                 });
             }
 
@@ -204,7 +206,8 @@ class CardlistController {
                 rarity: newCard.rarity,
                 creationDate: new Date(),
                 imageId: Guid.create().toString(),
-                isUpgrade: newCard.isUpgrade
+                isUpgrade: newCard.isUpgrade,
+                isEnabled: true
             });
             res.status(StatusCodes.OK);
             res.send(result);
