@@ -10,13 +10,17 @@ import path = require("path");
 import { Guid } from "guid-typescript";
 import CardService from "../services/cardService";
 import { IUserCardOnStackInfo } from "../models/userCard";
+import { Lang } from "../lang";
+import { TwitchService } from "../services/twitchService";
+import * as Config from "../config.json";
 
 @injectable()
 class CardlistController {
     readonly ImageDir: string = "images";
 
     constructor(@inject(CardsRepository) private cardRepository: CardsRepository,
-                @inject(CardService) private cardService: CardService) {
+                @inject(CardService) private cardService: CardService,
+                @inject(TwitchService) private twitchService: TwitchService) {
         Logger.info(
             LogType.ServerInfo,
             `CardlistController constructor. CardsRepository exists: ${this.cardRepository !== undefined}`
@@ -67,6 +71,12 @@ class CardlistController {
         }
 
         const result = await this.cardService.redeemRandomCard(user.username);
+
+        // Post upgrades in chat when redeemed from UI
+        if (result && typeof(result) !== "string" && result.isUpgrade) {
+            await this.twitchService.sendMessage(Config.twitch.broadcasterName, Lang.get("cards.cardredeemed", user.username, result.name));
+        }
+
         res.status(StatusCodes.OK);
         res.send(result);
     }
