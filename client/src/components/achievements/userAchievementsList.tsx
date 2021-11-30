@@ -110,7 +110,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                 <DialogTitle>Redeem Achievements for Chews</DialogTitle>
                 <DialogContent style={{overflow: "visible"}}>
                     <Image src={"/assets/Redeem-Achievement.png"} alt="" style={{marginLeft: "-11em", marginTop: "-9em", width:"10em", position: "absolute", zIndex: 100}} />
-                    <DialogContentText>Do you want to redeem this achievement for {achievementToRedeem?.pointRedemption} chews?</DialogContentText>
+                    <DialogContentText>Would you like to claim {achievementToRedeem?.pointRedemption} chews from this achievement?</DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => redeemAchievement(achievementToRedeem)} color="primary" autoFocus>Yes</Button>
