@@ -47,6 +47,11 @@ const useStyles = makeStyles((theme) => ({
         zIndex: theme.zIndex.drawer + 1,
         color: "#fff",
     },
+    uppercase: {
+        textTransform: "uppercase",
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(-1)
+    },
 }));
 
 type RowData = {
@@ -100,6 +105,13 @@ const UserCardStackList: React.FC<any> = (props: any) => {
           <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em", paddingRight: "1em", paddingBottom: "0.5em", minWidth: "30em"}} />
         );
     }
+
+    // Group cards by set
+    const groupedResult = cardlist.reduce((r, a) => {
+        r[a.setName] = r[a.setName] || [];
+        r[a.setName].push(a);
+        return r;
+    }, Object.create(null));
 
     return <Card>
             <Backdrop className={classes.backdrop} open={cardViewUrl !== ""} onClick={() => setCardViewUrl("")}>
@@ -165,29 +177,39 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                 </Grid> : undefined}
                             </Grid>
                         </Box> :
-                        <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
-                            {cardlist.map((tile: RowData) => (
-                            <Box m={1}><Grid key={tile.name}>
+                        Object.keys(groupedResult).map((group) => (
+                            <Grid>
+                                {Object.keys(groupedResult).length > 1 && group ?
                                 <Grid item>
-                                    <Box display="flex" justifyContent="center">
-                                        <Box className={classes.individualCardCounter}>
-                                            <Typography className={classes.individualCardCounterText} align="center">× {tile.cardCount}</Typography>
-                                        </Box>
+                                    <Typography variant="h6" className={classes.uppercase}>{group}</Typography>
+                                </Grid> : undefined}
+                                <Grid item>
+                                    <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
+                                        {groupedResult[group].map((tile: RowData) => (
+                                            <Box m={1}>
+                                                <Grid key={tile.name}>
+                                                    <Grid item>
+                                                        <Box display="flex" justifyContent="center">
+                                                            <Box className={classes.individualCardCounter}>
+                                                                <Typography className={classes.individualCardCounterText} align="center">× {tile.cardCount}</Typography>
+                                                            </Box>
+                                                        </Box>
+                                                    </Grid>
+                                                    <Grid item>
+                                                        {tile.upgradedName ?
+                                                        <Sparkles>
+                                                            <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
+                                                        </Sparkles> :
+                                                        <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />}
+                                                    </Grid>
+                                                </Grid>
+                                            </Box>))}
                                     </Box>
                                 </Grid>
-                                <Grid item>
-                                    {tile.upgradedName ?
-                                    <Sparkles>
-                                        <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
-                                    </Sparkles> :
-                                    <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />}
-                                </Grid>
-                            </Grid></Box>
-                            ))}
-                        </Box>}
-                    </Grid>
+                            </Grid>))}
+                        </Grid>
                 </Box>
-        </Grid>
+            </Grid>
     </Card>;
 };
 
