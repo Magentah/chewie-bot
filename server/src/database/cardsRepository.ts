@@ -198,7 +198,7 @@ export default class CardsRepository {
         for (const rarity of rarities) {
             const card = await databaseService
                 .getQueryBuilder(DatabaseTables.Cards)
-                .where({rarity: rarity.rarity})
+                .where({rarity: rarity.rarity, isEnabled: true})
                 .whereNotExists(databaseService.getQueryBuilder(DatabaseTables.CardUpgrades)
                     .select("id").from(DatabaseTables.CardUpgrades).where({ userId: user.id }).andWhereRaw("userCards.id = userCardUpgrades.upgradeCardId"))
                 .first()

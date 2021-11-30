@@ -368,6 +368,7 @@ export class DatabaseService {
             table.string("baseCardName");
             table.integer("rarity").notNullable();
             table.boolean("isUpgrade").defaultTo(false).notNullable();
+            table.boolean("isEnabled").defaultTo(true).notNullable();
             table.dateTime("creationDate").notNullable();
         });
     }
