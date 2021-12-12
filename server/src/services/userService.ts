@@ -88,15 +88,18 @@ export class UserService {
     }
 
     /**
+     * Moves data from one user to another.
+     */
+    public async moveUserData(fromUser: IUser, toUser: IUser): Promise<void> {
+        await this.users.moveUserData(fromUser, toUser);
+    }
+
+    /**
      * Renames an existing user.
      * @param {IUser} user User to be renamed.
      */
-    public async renameUser(user: IUser, previousUser: IUser | undefined, newUserName: string): Promise<void> {
-        user.username = newUserName;
-        await this.users.update(user);
-        if (previousUser) {
-            this.users.moveUserPointsLog(previousUser, user);
-        }
+    public async renameUser(user: IUser, newUserName: string): Promise<void> {
+        await this.users.renameUser(user,newUserName);
     }
 
     /**

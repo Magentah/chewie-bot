@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { EventLogService, UserService } from "../../services";
+import { DatabaseService, EventLogService, UserService } from "../../services";
 import { ICommandAlias, IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { PointLogType } from "../../models/pointLog";
@@ -7,11 +7,13 @@ import { PointLogType } from "../../models/pointLog";
 export default class RenameUserCommand extends Command {
     private userService: UserService;
     private eventLog: EventLogService;
-
+    private databaseService: DatabaseService;
+    
     constructor() {
         super();
         this.userService = BotContainer.get(UserService);
         this.eventLog = BotContainer.get(EventLogService);
+        this.databaseService = BotContainer.get(DatabaseService);
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
@@ -34,20 +36,32 @@ export default class RenameUserCommand extends Command {
 
         try {
             const newUser = await this.userService.getUser(newUserName);
-            if (newUser) {
-                // If new user already exists in the database, take any points from this user,
-                // add it to the old user and rename.
-                await this.userService.changeUserPoints(oldUser, newUser.points, PointLogType.Rename);
-                if (!await this.userService.deleteUser(newUser)){
-                    this.twitchService.sendMessage(channel, `Cannot delete existing record for ${newUserName}, renaming not possible.`);
-                    return;
-                }
+
+            try {
+                await this.databaseService.transaction((async trx => {
+                    this.databaseService.useTransaction(trx);
+
+                    if (newUser) {
+                        // If new user already exists in the database, take any points from this user,
+                        // add it to the old user and rename.
+                        await this.userService.changeUserPoints(oldUser, newUser.points, PointLogType.Rename);
+        
+                        await this.userService.moveUserData(newUser, oldUser);
+        
+                        if (!await this.userService.deleteUser(newUser)){
+                            this.twitchService.sendMessage(channel, `Cannot delete existing record for ${newUserName}, renaming not possible.`);
+                            return;
+                        }
+                    }
+        
+                    // Rename existing user.
+                    await this.userService.renameUser(oldUser, newUserName);
+        
+                    this.eventLog.addUserRename(user, oldUserName, newUserName);
+                }));
+            } finally {
+                this.databaseService.useTransaction(undefined);
             }
-
-            // Rename existing user.
-            await this.userService.renameUser(oldUser, newUser, newUserName);
-
-            this.eventLog.addUserRename(user, oldUserName, newUserName);
 
             this.twitchService.sendMessage(channel, `Renamed ${oldUserName} to ${newUserName} successfully.`);
         }  catch (err: any) {
