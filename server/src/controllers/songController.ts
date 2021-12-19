@@ -65,6 +65,30 @@ class SongController {
     }
 
     /**
+     * Searches within all previously requested songs.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async searchRequestHistory(req: Request, res: Response): Promise<void> {
+        if (!req.query.search || typeof(req.query.search) !== "string") {
+            res.status(StatusCodes.OK);
+            res.send([]);
+        } else {
+            const songRequests = await this.eventLogsRepository.searchRequests(req.query.search, 10);
+            const resultSongs = [];
+            for (const event of songRequests) {
+                const eventData = JSON.parse(event.data);
+                const song = eventData.song;
+                if (song) {
+                    resultSongs.push({...song, requestTime: event.time});
+                }
+            }
+            res.status(StatusCodes.OK);
+            res.send(resultSongs);
+        }
+    }
+
+    /**
      * Get the list of songs for a single user.
      * @param req Express HTTP Request
      * @param res Express HTTP Response

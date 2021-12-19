@@ -7,15 +7,17 @@ import { BotContainer } from "../inversify.config";
 const songRouter: express.Router = express.Router();
 const songController: SongController = BotContainer.get(SongController);
 
-songRouter.get("/api/songs", (res, req) => songController.getSongRequests(res, req));
-songRouter.get("/api/playedsongs", (res, req) => songController.getSongHistory(res, req));
+songRouter.get("/api/songs", (req, res) => songController.getSongRequests(req, res));
+songRouter.get("/api/playedsongs", (req, res) => songController.getSongHistory(req, res));
+songRouter.route("/api/songs/history").get((req, res) => songController.searchRequestHistory(req, res));
+
 songRouter
     .route("/api/songs/user/:username")
-    .get((res, req) => songController.getSongsForUser(res, req))
-    .post((res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Moderator), (res, req) => songController.addSongForUser(res, req));
+    .get((req, res) => songController.getSongsForUser(req, res))
+    .post((req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.addSongForUser(req, res));
 
-songRouter.post("/api/songs/delete", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Moderator), (res, req) => songController.removeSong(res, req));
-songRouter.post("/api/songs/movetotop", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Moderator), (res, req) => songController.moveSongToTop(res, req));
-songRouter.post("/api/songs/complete", (res, req, next) => APIHelper.checkUserLevel(res, req, next, UserLevels.Moderator), (res, req) => songController.completeSong(res, req));
+songRouter.post("/api/songs/delete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.removeSong(req, res));
+songRouter.post("/api/songs/movetotop", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.moveSongToTop(req, res));
+songRouter.post("/api/songs/complete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.completeSong(req, res));
 
 export default songRouter;
