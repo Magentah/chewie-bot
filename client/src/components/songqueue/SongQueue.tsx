@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Image } from "react-bootstrap";
-import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab } from "@material-ui/core";
+import
+{
+    Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider,
+    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab, Input, InputLabel
+} from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import IconButton from "@material-ui/core/IconButton";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
@@ -15,6 +19,7 @@ import axios from "axios";
 import MaterialTable, { Action, Column, Options } from "@material-table/core";
 import useSetting from "../../hooks/setting";
 import { UserContext, UserLevels } from "../../contexts/userContext";
+import useDebouncedSearch from "./useDebouncedSearch";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -89,6 +94,14 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     );
 };
 
+const DetailCellHistory: React.FC<{value: SongHistory}> = (props) => {
+    return <span>
+        <Link href={props.value.url} target="_blank" rel="noopener noreferrer">
+            {props.value.title}
+        </Link>
+    </span>;
+}
+
 const RequestUserTimeCell: React.FC<any> = (value: Song) => {
     return (
         <React.Fragment>
@@ -106,9 +119,9 @@ const RequestDateCell: React.FC<any> = (value: Song) => {
     const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
 
     return (
-        <Typography>
+        <span>
             {dateFormat.format(value?.requestTime)}
-        </Typography>
+        </span>
     );
 };
 
@@ -135,6 +148,14 @@ interface Song {
     requestSource: string;
     requestTime: number;
     comments: string;
+}
+
+interface SongHistory {
+    title: string
+    requestedBy: string,
+    requestSource: string,
+    songSource: string
+    url: string
 }
 
 interface OwnRequest {
@@ -234,6 +255,10 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         });
     }, []);
 
+    const searchSongHistoryAsync = async (text: string): Promise<SongHistory[]> => {
+        return (await axios.get("/api/songs/history", { params: { search: text }}))?.data;
+    };
+
     useEffect(updateHistory, []);
 
     useEffect(() => {
@@ -299,6 +324,9 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
         setSelectedTab(newValue);
     };
+
+    const useSearchRequestHistory = () => useDebouncedSearch(text => searchSongHistoryAsync(text));
+    const { inputText, setInputText, searchResults } = useSearchRequestHistory();
 
     // Don't allow selecting songs for deletion without permission.
     const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto", showTitle: false };
@@ -462,54 +490,95 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const elements = [];
 
-    if (selectedTab === 0) {
-        elements.push(ownSongQueue);
-        elements.push(donationLinks);
-        elements.push(<MaterialTable
-            key="full-queue"
-            title = "Song Queue"
-            columns = {queueColumns}
-            options = {tableOptions}
-            data = {songs}
-            components={{
-                Container: p => <Paper {...p} elevation={0} className={classes.table} />
-            }}
-            actions={tableActions}
-        />);
-    }
+    switch (selectedTab) {
+        case 0:
+            elements.push(ownSongQueue);
+            elements.push(donationLinks);
+            elements.push(<MaterialTable
+                key="full-queue"
+                title = "Song Queue"
+                columns = {queueColumns}
+                options = {tableOptions}
+                data = {songs}
+                components={{
+                    Container: p => <Paper {...p} elevation={0} className={classes.table} />
+                }}
+                actions={tableActions}
+            />);
+            break;
 
-    if (selectedTab === 1) {
-        elements.push(<MaterialTable
-            title = "Recently requested and played"
-            columns = {[
-                {
-                    title: "Song Title",
-                    field: "details.title",
-                    render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
-                    sorting: false,
-                    width: "80%"
-                },
-                {
-                     title: "Requested By",
-                     field: "requestedBy",
-                     align: "left",
-                     sorting: false,
-                     width: "10%",
-                },
-                {
-                    title: "Request time",
-                    field: "requestTime",
-                    render: rowData => RequestDateCell(rowData),
-                    sorting: false,
-                    width: "10%"
-                },
-            ]}
-            options = {{...tableOptions, search: false, toolbar: false}}
-            data = {playedSongs}
-            components={{
-                Container: p => <Paper {...p} elevation={0} className={`${classes.requestHistory} ${classes.table}`} />
-            }}
-        />);
+        case 1:
+            elements.push(<MaterialTable
+                title = "Recently requested and played"
+                columns = {[
+                    {
+                        title: "Song Title",
+                        field: "details.title",
+                        render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
+                        sorting: false,
+                        width: "80%"
+                    },
+                    {
+                        title: "Requested By",
+                        field: "requestedBy",
+                        align: "left",
+                        sorting: false,
+                        width: "10%",
+                    },
+                    {
+                        title: "Request date",
+                        field: "requestTime",
+                        render: rowData => RequestDateCell(rowData),
+                        sorting: false,
+                        width: "10%"
+                    },
+                ]}
+                options = {{...tableOptions, search: false, toolbar: false}}
+                data = {playedSongs}
+                components={{
+                    Container: p => <Paper {...p} elevation={0} className={`${classes.requestHistory} ${classes.table}`} />
+                }}
+            />);
+            break;
+
+        case 2:
+            elements.push(<Box mb={2} mt={1} ml={1}><Grid container alignItems="center">
+                <Grid item><InputLabel style={{marginBottom: 0, marginRight: "1em"}}>Search:</InputLabel></Grid>
+                <Grid item><Input id="search-history" value={inputText} onChange={e => setInputText(e.target.value)} /></Grid>
+                {searchResults.loading && <Grid item><Box ml={1}><CircularProgress size={20} /></Box></Grid>}
+                </Grid></Box>);
+            if (!searchResults.loading) {
+                elements.push(
+                <MaterialTable
+                    title = "Song Request History"
+                    columns = {[
+                        {
+                            title: "Song Title",
+                            field: "title",
+                            width: "70%",
+                            render: rowData => DetailCellHistory({value: rowData}),
+                        },
+                        {
+                            title: "Requested By",
+                            field: "requestedBy",
+                            align: "left",
+                            width: "15%",
+                        },
+                        {
+                            title: "Request time",
+                            field: "requestTime",
+                            render: rowData => RequestDateCell(rowData),
+                            width: "15%"
+                        },
+                    ]}
+                    options = {{...tableOptions, search: false, toolbar: false, padding: "dense"}}
+                    data = {searchResults.result as SongHistory[]}
+                    components={{
+                        Container: p => <Paper {...p} elevation={0} className={`${classes.requestHistory} ${classes.table}`} />
+                    }}
+                />);
+            }
+            break;
     }
 
     return (
@@ -521,6 +590,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 onChange={handleTabChange}>
                 <Tab label="Song Queue" />
                 <Tab label="Recently Played" />
+                <Tab label="Request History" />
             </Tabs>
             {elements}
         </Box>
