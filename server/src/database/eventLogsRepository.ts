@@ -22,7 +22,7 @@ export class EventLogsRepository {
         const databaseService = await this.databaseProvider();
         const query = databaseService.getQueryBuilder(DatabaseTables.EventLogs).select()
             .where("type", "=", EventLogType.SongRequest)
-            .andWhere("data", "like", `%${searchTerm}%`)
+            .fulltextSearch(searchTerm, ["data"])
             .orderBy("time", "desc");
         const eventLogs: IEventLog[] = await (count ? query.limit(count) : query);
         return eventLogs;

@@ -94,7 +94,7 @@ export class SonglistRepository {
 
             // Otherwise any result that fits.
             query = databaseService.getQueryBuilder(DatabaseTables.Songlist)
-                .where((bd) => bd.where("album", "like", `%${searchTerm}%`).orWhere("title", "like", `%${searchTerm}%`).orWhere("artist", "like", `%${searchTerm}%`))
+                .where((bd) => bd.fulltextSearch(searchTerm, ["album", "title", "artist"]))
                 .leftJoin(DatabaseTables.SonglistFavorites, (x) => {
                     x.on("songlist.id", "songlistFavorites.songId")
                     .andOnVal("songlistFavorites.userId", "=", filterFavorite?.id ?? 0)

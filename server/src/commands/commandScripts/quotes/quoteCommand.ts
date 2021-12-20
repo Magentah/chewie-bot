@@ -12,17 +12,17 @@ export default class QuoteCommand extends Command {
         this.quotesRepository = BotContainer.get(QuotesRepository);
     }
 
-    public async executeInternal(channel: string, user: IUser, searchTerm: any): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, ...searchTerm: string[]): Promise<void> {
         let quote;
 
         if (!searchTerm) {
             quote = await this.quotesRepository.random();
         } else {
-            const id = parseInt(searchTerm);
+            const id = parseInt(searchTerm[0]);
             if (id) {
-                quote = await this.quotesRepository.getById(searchTerm);
+                quote = await this.quotesRepository.getById(id);
             } else {
-                quote = await this.quotesRepository.getByTextSearch(searchTerm);
+                quote = await this.quotesRepository.getByTextSearch(searchTerm.join(" "));
             }
         }
 

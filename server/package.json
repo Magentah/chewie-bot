@@ -57,7 +57,7 @@
         "inversify": "^5.0.5",
         "jsonwebtoken": "^8.5.1",
         "jwks-rsa": "^2.0.1",
-        "knex": "^0.95.2",
+        "knex": "^0.95.14",
         "moment": "^2.29.1",
         "node-cache": "^5.1.2",
         "node-cron": "^3.0.0",
