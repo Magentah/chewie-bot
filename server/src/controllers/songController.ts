@@ -51,7 +51,7 @@ class SongController {
      * @param res Express HTTP Response
      */
      public async getSongHistory(req: Request, res: Response): Promise<void> {
-        const events = await this.eventLogsRepository.getLast(EventLogType.SongPlayed, 10);
+        const events = await this.eventLogsRepository.getLast(EventLogType.SongPlayed, 20);
         const resultSongs = [];
         for (const event of events) {
             const eventData = JSON.parse(event.data);
