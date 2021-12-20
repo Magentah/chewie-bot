@@ -85,7 +85,7 @@ const SongList: React.FC<any> = (props: any) => {
         } else {
             setSonglistFiltered(fullList.filter(x => x.categoryId === category.id));
         }
-    }, []);
+    }, [TabFavorite.id, TabNew.id]);
 
     useEffect(() => {
         let genres: CategoryData[];

@@ -71,9 +71,11 @@ class SongController {
     public async searchRequestHistory(req: Request, res: Response): Promise<void> {
         if (!req.query.search || typeof(req.query.search) !== "string") {
             res.status(StatusCodes.OK);
-            res.send([]);
+            res.send({count: 0, songs: []});
         } else {
-            const songRequests = await this.eventLogsRepository.searchRequests(req.query.search, 10);
+            const songRequests = await this.eventLogsRepository.searchRequests(req.query.search, parseInt(req.query.limit as string, 10));
+            const songRequestsTotal = await this.eventLogsRepository.searchRequestsCount(req.query.search);
+
             const resultSongs = [];
             for (const event of songRequests) {
                 const eventData = JSON.parse(event.data);
@@ -82,8 +84,9 @@ class SongController {
                     resultSongs.push({...song, requestTime: event.time});
                 }
             }
+
             res.status(StatusCodes.OK);
-            res.send(resultSongs);
+            res.send({count: songRequestsTotal, songs: resultSongs});
         }
     }
 
