@@ -18,7 +18,7 @@ export default class QuoteCommand extends Command {
         if (!searchTerm) {
             quote = await this.quotesRepository.random();
         } else {
-            const id = parseInt(searchTerm[0]);
+            const id = parseInt(searchTerm[0], 10);
             if (id) {
                 quote = await this.quotesRepository.getById(id);
             } else {
@@ -32,11 +32,11 @@ export default class QuoteCommand extends Command {
 
         if (quote) {
             const dateOptions: Intl.DateTimeFormatOptions = {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+                year: "numeric",
+                month: "short",
+                day: "numeric"
             };
-            const date = new Date(quote.dateAdded).toLocaleDateString('en-US', dateOptions);
+            const date = new Date(quote.dateAdded).toLocaleDateString("en-US", dateOptions);
 
             this.twitchService.sendMessage(channel, `» ${quote.text} « (${quote.author} - ${date}, #${quote.id})`);
         }

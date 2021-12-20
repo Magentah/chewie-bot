@@ -55,9 +55,8 @@ class SongController {
         const resultSongs = [];
         for (const event of events) {
             const eventData = JSON.parse(event.data);
-            const song = eventData.song as ISong;
-            if (song) {
-                resultSongs.push(song);
+            if (eventData.song) {
+                resultSongs.push(eventData.song);
             }
         }
         res.status(StatusCodes.OK);
