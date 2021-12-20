@@ -14,10 +14,8 @@ export { default as SongCommand } from "./songCommand";
 export { default as AddVipCommand } from "./addVipCommand";
 export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
 export { default as VipCommand } from "./vipCommand";
-export { default as RandomCommand } from "./randomCommand";
-export { default as RandomFavoriteCommand } from "./randomFavoriteCommand";
-export { default as RandomUserFavoriteCommand } from "./randomUserFavoriteCommand";
 export { default as ExplainCommand } from "./explainCommand";
+export { default as LastRequestCommand } from "./lastRequestCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";
@@ -45,6 +43,12 @@ export { default as RedeemUpgradeCommand } from "./cards/redeemUpgradeCommand";
 export { default as TaxboardCommand } from "./tax/taxboardCommand";
 export { default as TaxStreakCommand } from "./tax/taxStreakCommand";
 export { default as MyTaxCommand } from "./tax/myTaxCommand";
+
+// Songlist
+export { default as RandomCommand } from "./songlist/randomCommand";
+export { default as RandomFavoriteCommand } from "./songlist/randomFavoriteCommand";
+export { default as RandomUserFavoriteCommand } from "./songlist/randomUserFavoriteCommand";
+export { default as HasSongCommand } from "./songlist/hasSongCommand";
 
 export { default as PointsCommand } from "../commandScripts/points/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/points/givePointsCommand";

@@ -44,6 +44,14 @@ export class SonglistRepository {
         return tags as ISonglistTag[];
     }
 
+    public async getBySearchSubject(searchTerm: string): Promise<ISonglistItem[]> {
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.Songlist)
+            .where((bd) => bd.fulltextSearch(searchTerm, ["album", "title", "artist"]))
+            .select();
+        return result;
+    }
+
     public async getRandom(searchTerm: string, filterFavorite?: IUser): Promise<ISonglistItem | undefined> {
         const databaseService = await this.databaseProvider();
 

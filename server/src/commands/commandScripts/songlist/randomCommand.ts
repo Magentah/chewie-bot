@@ -1,7 +1,7 @@
-import { Command } from "../command";
-import { IUser } from "../../models";
-import { BotContainer } from "../../inversify.config";
-import { SonglistRepository } from "../../database";
+import { Command } from "../../command";
+import { IUser } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
+import { SonglistRepository } from "../../../database";
 
 export default class RandomCommand extends Command {
     private songlist: SonglistRepository;

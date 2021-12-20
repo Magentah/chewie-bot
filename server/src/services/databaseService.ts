@@ -76,7 +76,7 @@ export class DatabaseService {
             }
 
             let query = this;
-            const words = value.split(' ');
+            const words = value.split(" ");
             for (const word of words) {
                 query = query.andWhere((b => {
                     for (const col of columns) {

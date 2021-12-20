@@ -18,7 +18,7 @@ export class EventLogsRepository {
         return eventLogs;
     }
 
-    public async searchRequests(searchTerm: string, count: number) {
+    public async searchRequests(searchTerm: string, count: number = 0) {
         const databaseService = await this.databaseProvider();
         const query = databaseService.getQueryBuilder(DatabaseTables.EventLogs).select()
             .where("type", "=", EventLogType.SongRequest)
