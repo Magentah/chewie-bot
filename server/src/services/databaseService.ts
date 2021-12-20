@@ -42,6 +42,15 @@ export enum DatabaseTables {
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
 
+// Already in types/knex/index.d.ts, but does not compile in docker container without having it duplicated here.
+declare module 'knex' {
+  namespace Knex {
+    interface QueryBuilder {
+        fulltextSearch<TRecord, TResult>(value: string, columns: string[]): Knex.QueryBuilder<TRecord, TResult>;
+    }
+  }
+}
+
 @injectable()
 export class DatabaseService {
     constructor() {
@@ -57,6 +66,27 @@ export class DatabaseService {
         }
 
         this.db = knex(this.dbConfig);
+
+        // Searches within multiple columns for the given search subjects. Each
+        // word in the search query must match at least one column (use more search
+        // subjects to narrow down the search).
+        knex.QueryBuilder.extend("fulltextSearch", function(value: string, columns: string[]) {
+            if (!value || columns.length === 0) {
+                return this;
+            }
+
+            let query = this;
+            const words = value.split(' ');
+            for (const word of words) {
+                query = query.andWhere((b => {
+                    for (const col of columns) {
+                        b.orWhere(col, "LIKE", `%${word}%`);
+                    }
+                }));
+            }
+
+            return query;
+        });
     }
 
     private dbConfig: Knex.Config = {

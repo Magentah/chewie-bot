@@ -30,8 +30,7 @@ export class QuotesRepository {
             .getQueryBuilder(DatabaseTables.Quotes)
             .orderByRaw("RANDOM()")
             .first()
-            .where("text", "like", `%${searchTerm}%`)
-            .orWhere("author", "like", `%${searchTerm}%`);
+            .fulltextSearch(searchTerm, ["text", "author"]);
 
         return quote as IQuote;
     }
