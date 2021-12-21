@@ -1,8 +1,8 @@
-import { Command } from "../command";
-import { ICommandAlias, IUser } from "../../models";
-import { BotContainer } from "../../inversify.config";
-import { SonglistRepository } from "../../database";
-import { UserService } from "../../services";
+import { Command } from "../../command";
+import { ICommandAlias, IUser } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
+import { SonglistRepository } from "../../../database";
+import { UserService } from "../../../services";
 
 export default class RandomUserFavoriteCommand extends Command {
     private songlist: SonglistRepository;

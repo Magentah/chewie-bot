@@ -12,17 +12,17 @@ export default class QuoteCommand extends Command {
         this.quotesRepository = BotContainer.get(QuotesRepository);
     }
 
-    public async executeInternal(channel: string, user: IUser, searchTerm: any): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, ...searchTerm: string[]): Promise<void> {
         let quote;
 
         if (!searchTerm) {
             quote = await this.quotesRepository.random();
         } else {
-            const id = parseInt(searchTerm);
+            const id = parseInt(searchTerm[0], 10);
             if (id) {
-                quote = await this.quotesRepository.getById(searchTerm);
+                quote = await this.quotesRepository.getById(id);
             } else {
-                quote = await this.quotesRepository.getByTextSearch(searchTerm);
+                quote = await this.quotesRepository.getByTextSearch(searchTerm.join(" "));
             }
         }
 
@@ -32,11 +32,11 @@ export default class QuoteCommand extends Command {
 
         if (quote) {
             const dateOptions: Intl.DateTimeFormatOptions = {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+                year: "numeric",
+                month: "short",
+                day: "numeric"
             };
-            const date = new Date(quote.dateAdded).toLocaleDateString('en-US', dateOptions);
+            const date = new Date(quote.dateAdded).toLocaleDateString("en-US", dateOptions);
 
             this.twitchService.sendMessage(channel, `» ${quote.text} « (${quote.author} - ${date}, #${quote.id})`);
         }

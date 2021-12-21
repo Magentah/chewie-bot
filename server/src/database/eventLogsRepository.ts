@@ -18,6 +18,26 @@ export class EventLogsRepository {
         return eventLogs;
     }
 
+    public async searchRequests(searchTerm: string, count: number = 0) {
+        const databaseService = await this.databaseProvider();
+        const query = databaseService.getQueryBuilder(DatabaseTables.EventLogs).select()
+            .where("type", "=", EventLogType.SongRequest)
+            .fulltextSearch(searchTerm, ["data"])
+            .orderBy("time", "desc");
+        const eventLogs: IEventLog[] = await (count ? query.limit(count) : query);
+        return eventLogs;
+    }
+
+    public async searchRequestsCount(searchTerm: string) {
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
+            .where("type", "=", EventLogType.SongRequest)
+            .fulltextSearch(searchTerm, ["data"])
+            .count({cnt: "id"})
+            .first();
+        return result?.cnt ?? 0;
+    }
+
     public async getForUser(user: IUser, type: EventLogType[]): Promise<IEventLog[]> {
         const databaseService = await this.databaseProvider();
         const eventLogs: IEventLog[] = await databaseService.getQueryBuilder(DatabaseTables.EventLogs)

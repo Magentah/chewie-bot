@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Image } from "react-bootstrap";
-import { Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider, TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab } from "@material-ui/core";
+import
+{
+    Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider,
+    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab
+} from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import IconButton from "@material-ui/core/IconButton";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
@@ -15,6 +19,9 @@ import axios from "axios";
 import MaterialTable, { Action, Column, Options } from "@material-table/core";
 import useSetting from "../../hooks/setting";
 import { UserContext, UserLevels } from "../../contexts/userContext";
+import SongHistory from "./SongHistory";
+import Song, { SongSource } from "./song";
+import RequestDateCell from "./RequestDateCell";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -44,11 +51,6 @@ const useStyles = makeStyles((theme) => ({
         }
       }
 }));
-
-export enum SongSource {
-    Youtube = "Youtube",
-    Spotify = "Spotify",
-}
 
 const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (props) => {
     const duration = moment.utc(moment.duration(props.value.details.duration).asMilliseconds()).format("HH:mm:ss");
@@ -101,41 +103,6 @@ const RequestUserTimeCell: React.FC<any> = (value: Song) => {
         </React.Fragment>
     );
 };
-
-const RequestDateCell: React.FC<any> = (value: Song) => {
-    const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
-
-    return (
-        <Typography>
-            {dateFormat.format(value?.requestTime)}
-        </Typography>
-    );
-};
-
-interface Song {
-    id: number,
-    previewData: {
-        previewUrl: string,
-        linkUrl: string
-    },
-    details: {
-        title: string;
-        duration: moment.Duration;
-        sourceId: string;
-        source: SongSource;
-    };
-    source: number;
-    sourceId: string;
-    duration: moment.Duration;
-    requestedBy: string;
-    requesterStatus: {
-        viewerStatus: string;
-        vipStatus: string;
-    };
-    requestSource: string;
-    requestTime: number;
-    comments: string;
-}
 
 interface OwnRequest {
     index: number,
@@ -462,54 +429,60 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const elements = [];
 
-    if (selectedTab === 0) {
-        elements.push(ownSongQueue);
-        elements.push(donationLinks);
-        elements.push(<MaterialTable
-            key="full-queue"
-            title = "Song Queue"
-            columns = {queueColumns}
-            options = {tableOptions}
-            data = {songs}
-            components={{
-                Container: p => <Paper {...p} elevation={0} className={classes.table} />
-            }}
-            actions={tableActions}
-        />);
-    }
+    switch (selectedTab) {
+        case 0:
+            elements.push(ownSongQueue);
+            elements.push(donationLinks);
+            elements.push(<MaterialTable
+                key="full-queue"
+                title = "Song Queue"
+                columns = {queueColumns}
+                options = {tableOptions}
+                data = {songs}
+                components={{
+                    Container: p => <Paper {...p} elevation={0} className={classes.table} />
+                }}
+                actions={tableActions}
+            />);
+            break;
 
-    if (selectedTab === 1) {
-        elements.push(<MaterialTable
-            title = "Recently requested and played"
-            columns = {[
-                {
-                    title: "Song Title",
-                    field: "details.title",
-                    render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
-                    sorting: false,
-                    width: "80%"
-                },
-                {
-                     title: "Requested By",
-                     field: "requestedBy",
-                     align: "left",
-                     sorting: false,
-                     width: "10%",
-                },
-                {
-                    title: "Request time",
-                    field: "requestTime",
-                    render: rowData => RequestDateCell(rowData),
-                    sorting: false,
-                    width: "10%"
-                },
-            ]}
-            options = {{...tableOptions, search: false, toolbar: false}}
-            data = {playedSongs}
-            components={{
-                Container: p => <Paper {...p} elevation={0} className={`${classes.requestHistory} ${classes.table}`} />
-            }}
-        />);
+        case 1:
+            elements.push(<MaterialTable
+                title = "Recently requested and played"
+                columns = {[
+                    {
+                        title: "Song Title",
+                        field: "details.title",
+                        render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
+                        sorting: false,
+                        width: "80%"
+                    },
+                    {
+                        title: "Requested By",
+                        field: "requestedBy",
+                        align: "left",
+                        sorting: false,
+                        width: "10%",
+                    },
+                    {
+                        title: "Request date",
+                        field: "requestTime",
+                        render: rowData => RequestDateCell(rowData),
+                        sorting: false,
+                        width: "10%"
+                    },
+                ]}
+                options = {{...tableOptions, paging: true, search: false, toolbar: false, pageSize: 10}}
+                data = {playedSongs}
+                components={{
+                    Container: p => <Paper {...p} elevation={0} className={`${classes.requestHistory} ${classes.table}`} />
+                }}
+            />);
+            break;
+
+        case 2:
+            elements.push(<SongHistory />);
+            break;
     }
 
     return (
@@ -521,6 +494,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 onChange={handleTabChange}>
                 <Tab label="Song Queue" />
                 <Tab label="Recently Played" />
+                <Tab label="Request History" />
             </Tabs>
             {elements}
         </Box>

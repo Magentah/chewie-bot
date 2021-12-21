@@ -51,17 +51,43 @@ class SongController {
      * @param res Express HTTP Response
      */
      public async getSongHistory(req: Request, res: Response): Promise<void> {
-        const events = await this.eventLogsRepository.getLast(EventLogType.SongPlayed, 10);
+        const events = await this.eventLogsRepository.getLast(EventLogType.SongPlayed, 20);
         const resultSongs = [];
         for (const event of events) {
             const eventData = JSON.parse(event.data);
-            const song = eventData.song as ISong;
-            if (song) {
-                resultSongs.push(song);
+            if (eventData.song) {
+                resultSongs.push(eventData.song);
             }
         }
         res.status(StatusCodes.OK);
         res.send(resultSongs);
+    }
+
+    /**
+     * Searches within all previously requested songs.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public async searchRequestHistory(req: Request, res: Response): Promise<void> {
+        if (!req.query.search || typeof(req.query.search) !== "string") {
+            res.status(StatusCodes.OK);
+            res.send({count: 0, songs: []});
+        } else {
+            const songRequests = await this.eventLogsRepository.searchRequests(req.query.search, parseInt(req.query.limit as string, 10));
+            const songRequestsTotal = await this.eventLogsRepository.searchRequestsCount(req.query.search);
+
+            const resultSongs = [];
+            for (const event of songRequests) {
+                const eventData = JSON.parse(event.data);
+                const song = eventData.song;
+                if (song) {
+                    resultSongs.push({...song, requestTime: event.time});
+                }
+            }
+
+            res.status(StatusCodes.OK);
+            res.send({count: songRequestsTotal, songs: resultSongs});
+        }
     }
 
     /**

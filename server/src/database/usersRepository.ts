@@ -247,15 +247,26 @@ export class UsersRepository {
     }
 
     /**
-     * Renames the points log for a given user.
+     * Moves data from one user to the other.
      */
-    public async moveUserPointsLog(oldUser: IUser, newUser: IUser): Promise<void> {
+    public async moveUserData(fromUser: IUser, toUser: IUser): Promise<void> {
         const databaseService = await this.databaseProvider();
 
-        await databaseService
-            .getQueryBuilder(DatabaseTables.PointLogs)
-            .where({ userId: oldUser.id })
-            .update({ userId: newUser.id });
+        await databaseService.getQueryBuilder(DatabaseTables.PointLogs).where({ userId: fromUser.id }).update({ userId: toUser.id });
+        await databaseService.getQueryBuilder(DatabaseTables.ChannelPointRewardHistory).where({ userId: fromUser.id }).update({ userId: toUser.id });
+        await databaseService.getQueryBuilder(DatabaseTables.EventLogs).where({ userId: fromUser.id }).update({ userId: toUser.id });
+        await databaseService.getQueryBuilder(DatabaseTables.Songlist).where({ attributedUserId: fromUser.id }).update({ attributedUserId: toUser.id });
+        await databaseService.getQueryBuilder(DatabaseTables.UserAchievements).where({ userId: fromUser.id }).update({ userId: toUser.id });
+        await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ userId: fromUser.id }).update({ userId: toUser.id });
+        await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).where({ userId: fromUser.id }).update({ userId: toUser.id });
+        
+        // Merge would be better but in practice this is not likely to be needed.
+        await databaseService.getQueryBuilder(DatabaseTables.UserTaxStreak).where({ userId: fromUser.id }).delete();
+
+        // Perform merge (unique key constraint)
+        await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).delete().where({ userId: toUser.id })
+            .whereIn("upgradeCardId", (b) => b.select("upgradeCardId").from(DatabaseTables.CardUpgrades).where({ userId: fromUser.id }));
+        await databaseService.getQueryBuilder(DatabaseTables.CardUpgrades).where({ userId: fromUser.id }).update({ userId: toUser.id });
     }
 
     /**
@@ -275,6 +286,18 @@ export class UsersRepository {
             await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ id: user.id });
         } else {
             await databaseService.getQueryBuilder(DatabaseTables.Users).update(userData).where({ username: user.username });
+        }
+    }
+
+    /**
+     * Renames an existing user.
+     * @param user Updated user
+     */
+    public async renameUser(user: IUser, newUserName: string) {
+        if (user.id) {
+            const databaseService = await this.databaseProvider();
+            await databaseService.getQueryBuilder(DatabaseTables.Users).update({ username: newUserName }).where({ id: user.id });
+            user.username = newUserName;
         }
     }
 

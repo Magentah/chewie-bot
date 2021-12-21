@@ -44,6 +44,14 @@ export class SonglistRepository {
         return tags as ISonglistTag[];
     }
 
+    public async getBySearchSubject(searchTerm: string): Promise<ISonglistItem[]> {
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.Songlist)
+            .where((bd) => bd.fulltextSearch(searchTerm, ["album", "title", "artist"]))
+            .select();
+        return result;
+    }
+
     public async getRandom(searchTerm: string, filterFavorite?: IUser): Promise<ISonglistItem | undefined> {
         const databaseService = await this.databaseProvider();
 
@@ -94,7 +102,7 @@ export class SonglistRepository {
 
             // Otherwise any result that fits.
             query = databaseService.getQueryBuilder(DatabaseTables.Songlist)
-                .where((bd) => bd.where("album", "like", `%${searchTerm}%`).orWhere("title", "like", `%${searchTerm}%`).orWhere("artist", "like", `%${searchTerm}%`))
+                .where((bd) => bd.fulltextSearch(searchTerm, ["album", "title", "artist"]))
                 .leftJoin(DatabaseTables.SonglistFavorites, (x) => {
                     x.on("songlist.id", "songlistFavorites.songId")
                     .andOnVal("songlistFavorites.userId", "=", filterFavorite?.id ?? 0)

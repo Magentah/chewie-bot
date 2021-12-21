@@ -42,6 +42,15 @@ export enum DatabaseTables {
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
 
+// Already in types/knex/index.d.ts, but does not compile in docker container without having it duplicated here.
+declare module 'knex' {
+  namespace Knex {
+    interface QueryBuilder {
+        fulltextSearch<TRecord, TResult>(value: string, columns: string[]): Knex.QueryBuilder<TRecord, TResult>;
+    }
+  }
+}
+
 @injectable()
 export class DatabaseService {
     constructor() {
@@ -57,6 +66,27 @@ export class DatabaseService {
         }
 
         this.db = knex(this.dbConfig);
+
+        // Searches within multiple columns for the given search subjects. Each
+        // word in the search query must match at least one column (use more search
+        // subjects to narrow down the search).
+        knex.QueryBuilder.extend("fulltextSearch", function(value: string, columns: string[]) {
+            if (!value || columns.length === 0) {
+                return this;
+            }
+
+            let query = this;
+            const words = value.split(" ");
+            for (const word of words) {
+                query = query.andWhere((b => {
+                    for (const col of columns) {
+                        b.orWhere(col, "LIKE", `%${word}%`);
+                    }
+                }));
+            }
+
+            return query;
+        });
     }
 
     private dbConfig: Knex.Config = {
@@ -69,6 +99,10 @@ export class DatabaseService {
             tableName: "migrations",
         },
         useNullAsDefault: true,
+        pool: {
+            afterCreate: (conn: any, cb: any) =>
+                conn.run("PRAGMA foreign_keys = ON", cb)
+        },
         log: {
             warn(message: any) {
                 Logger.warn(LogType.Database, "knex.warn", message);
@@ -125,9 +159,10 @@ export class DatabaseService {
                 await this.createSeasonsTable();
                 await this.createPointArchiveTable();
 
+                // Need to add VIP levels first because of foreign key.
+                await this.populateDatabase();
                 await this.addBroadcaster();
                 await this.addDefaultBotSettings();
-                await this.populateDatabase();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -377,7 +412,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.CardStack, (table) => {
             table.integer("id").primary().notNullable();
             table.integer("userId").notNullable().index();
-            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users);
+            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.integer("cardId").notNullable().index();
             table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
             table.dateTime("redemptionDate").notNullable();
@@ -389,7 +424,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.CardUpgrades, (table) => {
             table.integer("id").primary().notNullable();
             table.integer("userId").notNullable();
-            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users);
+            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.integer("upgradedCardId").notNullable();
             table.foreign("upgradedCardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
             table.integer("upgradeCardId").notNullable();
@@ -403,7 +438,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.UserTaxStreak, (table) => {
             table.increments("id").primary().notNullable();
             table.integer("userId").notNullable().unique();
-            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.integer("currentStreak").notNullable();
             table.integer("longestStreak").notNullable();
             table.integer("lastTaxRedemptionId").notNullable();
@@ -416,7 +451,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.integer("userId").notNullable().index();
             table.integer("type").notNullable();
-            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.dateTime("taxRedemptionDate").notNullable().index();
             table.string("channelPointRewardTwitchId");
         });
@@ -441,7 +476,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.ChannelPointRewardHistory, (table) => {
             table.increments("id").primary().notNullable();
             table.integer("userId").notNullable().index();
-            table.foreign("userId").references("id").inTable(DatabaseTables.Users);
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.string("rewardId").notNullable();
             table.string("associatedRedemption").notNullable();
             table.dateTime("dateTimeTriggered").notNullable();
