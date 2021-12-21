@@ -1,4 +1,4 @@
-FROM node:12-alpine AS base
+FROM node:14-alpine AS base
 WORKDIR /usr/src/chewiebot/client
 
 # add `/app/node_modules/.bin` to $PATH
