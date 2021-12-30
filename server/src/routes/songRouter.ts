@@ -19,5 +19,6 @@ songRouter
 songRouter.post("/api/songs/delete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.removeSong(req, res));
 songRouter.post("/api/songs/movetotop", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.moveSongToTop(req, res));
 songRouter.post("/api/songs/complete", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.completeSong(req, res));
+songRouter.post("/api/songs/edit", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator), (req, res) => songController.editSong(req, res));
 
 export default songRouter;

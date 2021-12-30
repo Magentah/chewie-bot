@@ -16,6 +16,7 @@ export enum SocketMessageType {
     SongPlayed = "SONG_PLAYED",
     SongRemoved = "SONG_REMOVED",
     SongMovedToTop = "SONG_MOVEDTOTOP",
+    SongUpdated = "SONG_UPDATED",
     DonationReceived = "DONATION_RECEIVED",
     Subscriber = "SUBSCRIBER",
     AlertTriggered = "ALERT_TRIGGERED",
