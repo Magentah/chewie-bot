@@ -181,6 +181,23 @@ class SongController {
 
         res.sendStatus(StatusCodes.OK);
     }
+
+    /**
+     * Changes the details of a song.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+    public editSong(req: Request, res: Response): void {
+        const newSong = req.body as ISong;
+        if (!newSong) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
+            return;
+        }
+
+        this.songService.updateSong(newSong);
+        res.sendStatus(StatusCodes.OK);
+    }
 }
 
 export default SongController;

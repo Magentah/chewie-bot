@@ -414,6 +414,26 @@ export class SongService {
     }
 
     /**
+     * Updates the details of a song in the queue.
+     * @param newSong New song information.
+     */
+    public updateSong(newSong: ISong) {
+        for (const song of this.songQueue) {
+            if (song.id === newSong.id) {
+                song.details.title = newSong.details.title;
+                song.comments = newSong.comments;
+                song.requestedBy = newSong.requestedBy;
+
+                this.websocketService.send({
+                    type: SocketMessageType.SongUpdated,
+                    message: "Song Updated",
+                    data: song,
+                });
+            }
+        }
+    }
+
+    /**
      * Get the list of songs in the song queue.
      */
     public getSongQueue(): ISong[] {

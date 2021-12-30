@@ -193,14 +193,15 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         moveSongToTop(message.data);
     }, []);
 
-    useEffect(() => {
+    const getSongs = () => {
         axios.get("/api/songs").then((response) => {
             // Returned array might have gaps in index, these will be filled with null objects here.
             // We don't want that, so filter.
             setSongs(response.data.filter((obj: Song, i: number) => obj !== null));
         });
-    }, []);
+    };
 
+    useEffect(getSongs, []);
     useEffect(updateHistory, []);
 
     useEffect(() => {
@@ -413,7 +414,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             title: "Requested With",
             field: "requestSource",
             sorting: false,
-            width: "10%"
+            width: "10%",
+            editable: "never"
         }
     ];
 
@@ -443,6 +445,14 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                     Container: p => <Paper {...p} elevation={0} className={classes.table} />
                 }}
                 actions={tableActions}
+                editable = {
+                    {
+                        isEditable: rowData => true,
+                        onRowUpdate: (newData, oldData) => axios.post("/api/songs/edit", newData).then((result) => {
+                            getSongs();
+                        })
+                    }
+                }
             />);
             break;
 
