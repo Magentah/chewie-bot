@@ -10,7 +10,7 @@ import { EventLogService } from "./eventLogService";
 import EventAggregator from "./eventAggregator";
 import SeasonsRepository from "../database/seasonsRepository";
 import UserService from "./userService";
-
+import { getLinkPreview } from "link-preview-js";
 @injectable()
 export class SongService {
     private songQueue: ISong[] = [];
@@ -57,12 +57,44 @@ export class SongService {
                 song.sourceId = sid;
             } else {
                 // Not a youtube url. Parse other urls in future
-                throw new InvalidSongUrlError("URL is not a valid YouTube URL.");
+                throw new InvalidSongUrlError("URL is not a valid YouTube URL");
             }
         }
 
-        song.id = this.nextSongId++;
         song.sourceUrl = fullurl;
+        return song;
+    }
+
+    /**
+     * Parses any URL and tries to get some info suitable for the song queue.
+     * @param {string} url Video URL to parse
+     */
+     private async parseAnyUrl(url: string): Promise<ISong> {
+        const song: ISong = {} as ISong;
+        const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
+
+        // Gets song details by using Open Graph meta information of the page 
+        // (works on Soundcloud and Bandcamp for example).
+        const data = await getLinkPreview(url);
+
+        song.source = SongSource.Unknown;
+        song.sourceUrl = fullurl;
+
+        if ("title" in data && data.images.length > 0) {
+            song.details = {
+                title: data.title,
+                duration: moment.duration(0),
+                sourceId: song.sourceId,
+                source: song.source,
+            };
+            song.previewData = {
+                linkUrl: song.sourceUrl,
+                previewUrl: data.images[0],
+            };
+        } else {
+            throw new InvalidSongUrlError("URL does not contain any usable information");
+        }
+        
         return song;
     }
 
@@ -86,7 +118,7 @@ export class SongService {
                         previewUrl: this.youtubeService.getSongPreviewUrl(songDetails),
                     };
                 } else {
-                    throw new InvalidSongUrlError("Song details could not be loaded.");
+                    throw new InvalidSongUrlError("Song details could not be loaded");
                 }
                 break;
             }
@@ -104,7 +136,7 @@ export class SongService {
                         previewUrl: this.spotifyService.getSongPreviewUrl(songDetails),
                     };
                 } else {
-                    throw new InvalidSongUrlError("Song details could not be loaded.");
+                    throw new InvalidSongUrlError("Song details could not be loaded");
                 }
                 break;
             }
@@ -120,8 +152,10 @@ export class SongService {
      * @param comments Additional comments/instructions for the song
      */
     public async addSong(url: string, requestSource: RequestSource, username: string, comments: string): Promise<ISong> {
+        let song: ISong;
+
         try {
-            let song = this.parseUrl(url);
+            song = this.parseUrl(url);
 
             const existingSong = Object.values(this.songQueue).filter((s) => {
                 return s.sourceId === song.sourceId && s.source === song.source;
@@ -132,6 +166,21 @@ export class SongService {
             }
 
             song = await this.getSongDetails(song);
+        } catch (err: any) {
+            // We can check for same URL before getting any details here.
+            const existingSong = Object.values(this.songQueue).filter((s) => {
+                return s.sourceUrl === url;
+            })[0];
+
+            if (existingSong) {
+                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
+            }
+
+            song = await this.parseAnyUrl(url);
+        }
+
+        try {
+            song.id = this.nextSongId++;
             this.songQueue.push(song);
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;

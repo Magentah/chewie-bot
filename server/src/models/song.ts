@@ -28,6 +28,7 @@ export interface ISong {
 export enum SongSource {
     Youtube = "Youtube",
     Spotify = "Spotify",
+    Unknown = "Unknown",
 }
 
 export enum RequestSource {
