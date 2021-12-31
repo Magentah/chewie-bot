@@ -42,7 +42,7 @@ const SongHistory: React.FC = (props) => {
     useEffect(() => {
         axios.get("/api/playedsongs").then((response) => {
             const songs: Song[] = response.data;
-            setPlayedSongs(songs.map(x => { return { title: x.details.title, requestedBy: x.requestedBy, requestSource: x.requestSource, url: x.previewData.linkUrl, songSource: x.details.source }}));
+            setPlayedSongs(songs.map(x => { return { title: x.details.title, requestedBy: x.requestedBy, requestSource: x.requestSource, url: x.linkUrl, songSource: x.details.source }}));
         });
     }, []);
 
