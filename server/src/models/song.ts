@@ -5,7 +5,6 @@ export interface ISong {
     details: {
         title: string;
         duration: moment.Duration;
-        sourceId: string,
         source: SongSource
     };
     requestedBy: string;
@@ -17,10 +16,8 @@ export interface ISong {
     source: SongSource;
     sourceId: string;
     sourceUrl: string;
-    previewData: {
-        previewUrl: string,
-        linkUrl: string
-    },
+    previewUrl: string,
+    linkUrl: string,
     requestTime: number,
     comments: string
 }

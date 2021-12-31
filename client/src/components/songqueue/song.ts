@@ -5,14 +5,11 @@ export enum SongSource {
 
 export default interface Song {
     id: number,
-    previewData: {
-        previewUrl: string,
-        linkUrl: string
-    },
+    previewUrl: string,
+    linkUrl: string,
     details: {
         title: string;
         duration: moment.Duration;
-        sourceId: string;
         source: SongSource;
     };
     source: number;

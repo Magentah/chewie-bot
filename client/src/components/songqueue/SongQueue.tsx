@@ -3,7 +3,7 @@ import { Image } from "react-bootstrap";
 import
 {
     Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider,
-    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab
+    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab, Dialog, DialogTitle, DialogActions, DialogContent
 } from "@material-ui/core";
 import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
 import IconButton from "@material-ui/core/IconButton";
@@ -64,8 +64,8 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     return (
         <Grid container direction="row" justify="flex-start" wrap="nowrap">
             <Grid item>
-                <a href={props.value.previewData.linkUrl} target="_blank" rel="noopener noreferrer">
-                    <Image style={{ maxHeight: "100px" }} src={props.value.previewData.previewUrl} thumbnail />
+                <a href={props.value.linkUrl} target="_blank" rel="noopener noreferrer">
+                    <Image style={{ maxHeight: "100px" }} src={props.value.previewUrl} thumbnail />
                 </a>
             </Grid>
             <Grid item xs>
@@ -73,7 +73,7 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
                     <Grid>
                         <Grid item xs={12}>
                             <Typography>
-                                <Link href={props.value.previewData.linkUrl} target="_blank" rel="noopener noreferrer">
+                                <Link href={props.value.linkUrl} target="_blank" rel="noopener noreferrer">
                                     {props.value?.details.title}
                                 </Link>
                             </Typography>
@@ -141,6 +141,11 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const donationLinkUrl = useSetting<string>("song-donation-link");
     const [songRequestState, setSongRequestState] = useState<SongRequestState>();
     const [selectedTab, setSelectedTab] = React.useState(0);
+    const [editingSong, setEditingSong] = useState<Song>();
+    const [editingSongTitle, setEditingSongTitle] = useState<string>("");
+    const [editingSongComment, setEditingSongComment] = useState<string>("");
+    const [editingSongRequester, setEditingSongRequester] = useState<string>("");
+    const [editingSongUrl, setEditingSongUrl] = useState<string>("");
 
     const classes = useStyles();
 
@@ -174,10 +179,21 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     };
 
     const onSongAdded = useCallback((message: ISocketMessage) => {
-        if (message.data && message.data.details && message.data.sourceId) {
-            message.data.details.sourceId = message.data.sourceId;
-        }
         addSong(message.data);
+    }, []);
+
+    const onSongUpdated = useCallback((message: ISocketMessage) => {
+        setSongs((state: Song[]) => {
+            for (let i = 0; i < state.length; i++) {
+                if (state[i].id === message.data.id) {
+                    const newState = [...state];
+                    newState.splice(i, 1, message.data);
+                    return newState;
+                }
+            }
+
+            return state;
+        });
     }, []);
 
     const onSongPlayed = useCallback((message: ISocketMessage) => {
@@ -193,7 +209,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         moveSongToTop(message.data);
     }, []);
 
-    const getSongs = () => {
+    const loadSongs = () => {
         axios.get("/api/songs").then((response) => {
             // Returned array might have gaps in index, these will be filled with null objects here.
             // We don't want that, so filter.
@@ -201,7 +217,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         });
     };
 
-    useEffect(getSongs, []);
+    useEffect(loadSongs, []);
     useEffect(updateHistory, []);
 
     useEffect(() => {
@@ -220,7 +236,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         websocket.current.onMessage(SocketMessageType.SongPlayed, onSongPlayed);
         websocket.current.onMessage(SocketMessageType.SongRemoved, onSongRemoved);
         websocket.current.onMessage(SocketMessageType.SongMovedToTop, onSongMoved);
-    }, [onSongAdded, onSongPlayed, onSongRemoved, onSongMoved]);
+        websocket.current.onMessage(SocketMessageType.SongUpdated, onSongUpdated);
+    }, [onSongAdded, onSongPlayed, onSongRemoved, onSongMoved, onSongUpdated]);
 
     const onSongDeleted = (rowsDeleted: Song[]) => {
         axios.post("/api/songs/delete", { songs: rowsDeleted }).then(() => {
@@ -264,6 +281,19 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         });
     };
 
+    const handleEditSongClose = async (doSave: boolean) => {
+        if (doSave && editingSong) {
+            editingSong.details.title = editingSongTitle;
+            editingSong.comments = editingSongComment;
+            editingSong.requestedBy = editingSongRequester;
+            editingSong.linkUrl = editingSongUrl;
+
+            await axios.post("/api/songs/edit", editingSong);
+            loadSongs();
+        }
+        setEditingSong(undefined);
+    };
+
     const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
         setSelectedTab(newValue);
     };
@@ -289,6 +319,20 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 tooltip: "Remove",
                 icon: "delete",
                 onClick: (evt, data) => (data as Song[]).length ? onSongDeleted(data as Song[]) : onSongDeleted([ data as Song ])
+            },
+            {
+                tooltip: "Edit song",
+                icon: "edit",
+                onClick: (evt, data) => {
+                    const song = data as Song;
+                    if (song !== undefined) {
+                        setEditingSong(song);
+                        setEditingSongComment(song.comments);
+                        setEditingSongRequester(song.requestedBy);
+                        setEditingSongTitle(song.details.title);
+                        setEditingSongUrl(song.linkUrl);
+                    }
+                }
             }
         ];
     }
@@ -355,13 +399,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 <div className={classes.root}>
                    <GridList cellHeight={140} cols={3} className={classes.gridList}>
                        {ownSongs.map((tile) => (
-                           <GridListTile key={tile.song.previewData.previewUrl}>
-                               <img src={tile.song.previewData.previewUrl} alt={tile.song.details.title} />
+                           <GridListTile key={tile.song.previewUrl}>
+                               <img src={tile.song.previewUrl} alt={tile.song.details.title} />
                                <GridListTileBar
                                    title={tile.song.details.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
-                                       <IconButton href={tile.song.previewData.linkUrl} className={classes.icon} target="_blank" rel="noopener noreferrer">
+                                       <IconButton href={tile.song.linkUrl} className={classes.icon} target="_blank" rel="noopener noreferrer">
                                            <OpenInNewIcon />
                                        </IconButton>
                                    }
@@ -374,6 +418,24 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             {addSongrequestsForm}
             <Divider />
         </Box>;
+
+    const editSongDialog = <Dialog open={editingSong !== undefined} onClose={() => handleEditSongClose(false)}>
+        <DialogTitle>Edit Song</DialogTitle>
+        <DialogContent>
+            <TextField autoFocus margin="dense" id="edit-title" label="Title" fullWidth variant="standard"
+                value={editingSongTitle} onChange={(e) => setEditingSongTitle(e.target.value)} />
+            <TextField margin="dense" id="edit-comment" label="Comments" fullWidth variant="standard" multiline
+                value={editingSongComment} rows={4} onChange={(e) => setEditingSongComment(e.target.value)} />
+            <TextField margin="dense" id="edit-requester" label="Requested by" fullWidth variant="standard"
+                value={editingSongRequester} onChange={(e) => setEditingSongRequester(e.target.value)} />
+            <TextField margin="dense" id="edit-url" label="URL" fullWidth variant="standard"
+                value={editingSongUrl} onChange={(e) => setEditingSongUrl(e.target.value)} />
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => handleEditSongClose(true)}>Save</Button>
+            <Button onClick={() => handleEditSongClose(false)}>Cancel</Button>
+        </DialogActions>
+      </Dialog>;
 
     const donationLinks = ownSongs.length === 0 && donationLinkUrl ?
         <Grid container style={{marginTop: "1em"}}>
@@ -435,6 +497,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         case 0:
             elements.push(ownSongQueue);
             elements.push(donationLinks);
+            elements.push(editSongDialog);
             elements.push(<MaterialTable
                 key="full-queue"
                 title = "Song Queue"
@@ -445,14 +508,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                     Container: p => <Paper {...p} elevation={0} className={classes.table} />
                 }}
                 actions={tableActions}
-                editable = {
-                    {
-                        isEditable: rowData => true,
-                        onRowUpdate: (newData, oldData) => axios.post("/api/songs/edit", newData).then((result) => {
-                            getSongs();
-                        })
-                    }
-                }
             />);
             break;
 
@@ -462,24 +517,24 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 columns = {[
                     {
                         title: "Song Title",
-                        field: "details.title",
+                        field: "title",
                         render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
                         sorting: false,
-                        width: "80%"
+                        width: "70%"
                     },
                     {
                         title: "Requested By",
                         field: "requestedBy",
                         align: "left",
                         sorting: false,
-                        width: "10%",
+                        width: "15%",
                     },
                     {
                         title: "Request date",
                         field: "requestTime",
                         render: rowData => RequestDateCell(rowData),
                         sorting: false,
-                        width: "10%"
+                        width: "15%"
                     },
                 ]}
                 options = {{...tableOptions, paging: true, search: false, toolbar: false, pageSize: 10}}
