@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { EventLogType, ISong, IUser, UserLevels } from "../models";
+import { EventLogType, IEventLog, ISong, IUser, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { SongService, UserService } from "../services";
 import { EventLogsRepository } from "../database";
+import { IArchivedSong } from "../models/song";
+import moment = require("moment");
 
 @injectable()
 class SongController {
@@ -46,6 +48,27 @@ class SongController {
     }
 
     /**
+     * Transfers archived song data to a song object.
+     * @param songData Archived song information (some data missing)
+     * @param event Event log entry
+     * @returns ISong object
+     */
+    private static convertFromArchive(songData: IArchivedSong, event: IEventLog): ISong {
+        return {
+            title: songData.title,
+            duration: moment.duration(songData.duration),
+            requestedBy: songData.requestedBy,
+            requestSource: songData.requestSource,
+            source: songData.songSource,
+            sourceId: "",
+            sourceUrl: songData.url,
+            previewUrl: songData.previewUrl,
+            comments: "",
+            requestTime: new Date(event.time ?? 0).getTime()
+        };
+    }
+
+    /**
      * Get the list of played song requests.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
@@ -55,8 +78,9 @@ class SongController {
         const resultSongs = [];
         for (const event of events) {
             const eventData = JSON.parse(event.data);
-            if (eventData.song) {
-                resultSongs.push(eventData.song);
+            const songData = eventData.song as IArchivedSong;
+            if (songData) {
+                resultSongs.push(SongController.convertFromArchive(songData, event));
             }
         }
         res.status(StatusCodes.OK);
@@ -79,9 +103,9 @@ class SongController {
             const resultSongs = [];
             for (const event of songRequests) {
                 const eventData = JSON.parse(event.data);
-                const song = eventData.song;
+                const song = eventData.song as IArchivedSong;
                 if (song) {
-                    resultSongs.push({...song, requestTime: event.time});
+                    resultSongs.push(SongController.convertFromArchive(song, event));
                 }
             }
 
@@ -148,7 +172,9 @@ class SongController {
     public removeSong(req: Request, res: Response): void {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
-            this.songService.removeSong(song.id);
+            if (song.id) {
+                this.songService.removeSong(song.id);
+            }
         });
 
         res.sendStatus(StatusCodes.OK);
@@ -162,7 +188,9 @@ class SongController {
      public completeSong(req: Request, res: Response): void {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
-            this.songService.songPlayed(song.id);
+            if (song.id) {
+                this.songService.songPlayed(song.id);
+            }
         });
 
         res.sendStatus(StatusCodes.OK);
@@ -176,7 +204,9 @@ class SongController {
      public moveSongToTop(req: Request, res: Response): void {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
-            this.songService.moveSongToTop(song.id);
+            if (song.id) {
+                this.songService.moveSongToTop(song.id);
+            }
         });
 
         res.sendStatus(StatusCodes.OK);

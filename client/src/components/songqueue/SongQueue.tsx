@@ -53,9 +53,15 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (props) => {
-    const duration = moment.utc(moment.duration(props.value.details.duration).asMilliseconds()).format("HH:mm:ss");
+    let duration = "";
+    if (props.value.duration) {
+        const ms = moment.duration(props.value.duration).asMilliseconds();
+        if (ms) {
+            duration = moment.utc(ms).format("HH:mm:ss");
+        }
+    }
 
-    const playButton = props.value.details.source === SongSource.Spotify ? (<Grid item>
+    const playButton = props.value.source === SongSource.Spotify ? (<Grid item>
         <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
             <PlayCircleOutlineIcon />
         </IconButton>
@@ -64,7 +70,7 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     return (
         <Grid container direction="row" justify="flex-start" wrap="nowrap">
             <Grid item>
-                <a href={props.value.linkUrl} target="_blank" rel="noopener noreferrer">
+                <a href={props.value.sourceUrl} target="_blank" rel="noopener noreferrer">
                     <Image style={{ maxHeight: "100px" }} src={props.value.previewUrl} thumbnail />
                 </a>
             </Grid>
@@ -73,16 +79,16 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
                     <Grid>
                         <Grid item xs={12}>
                             <Typography>
-                                <Link href={props.value.linkUrl} target="_blank" rel="noopener noreferrer">
-                                    {props.value?.details.title}
+                                <Link href={props.value.sourceUrl} target="_blank" rel="noopener noreferrer">
+                                    {props.value?.title}
                                 </Link>
                             </Typography>
                         </Grid>
-                        <Grid>
+                        {duration && <Grid>
                             <Typography style={{ fontSize: 14, fontStyle: "italic" }}>
                                 Length: {duration}{" "}
                             </Typography>
-                        </Grid>
+                        </Grid>}
                     </Grid>
                     {playButton}
                 </Grid>
@@ -283,10 +289,10 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const handleEditSongClose = async (doSave: boolean) => {
         if (doSave && editingSong) {
-            editingSong.details.title = editingSongTitle;
+            editingSong.title = editingSongTitle;
             editingSong.comments = editingSongComment;
             editingSong.requestedBy = editingSongRequester;
-            editingSong.linkUrl = editingSongUrl;
+            editingSong.sourceUrl = editingSongUrl;
 
             await axios.post("/api/songs/edit", editingSong);
             loadSongs();
@@ -329,8 +335,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                         setEditingSong(song);
                         setEditingSongComment(song.comments);
                         setEditingSongRequester(song.requestedBy);
-                        setEditingSongTitle(song.details.title);
-                        setEditingSongUrl(song.linkUrl);
+                        setEditingSongTitle(song.title);
+                        setEditingSongUrl(song.sourceUrl);
                     }
                 }
             }
@@ -400,12 +406,12 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                    <GridList cellHeight={140} cols={3} className={classes.gridList}>
                        {ownSongs.map((tile) => (
                            <GridListTile key={tile.song.previewUrl}>
-                               <img src={tile.song.previewUrl} alt={tile.song.details.title} />
+                               <img src={tile.song.previewUrl} alt={tile.song.title} />
                                <GridListTileBar
-                                   title={tile.song.details.title}
+                                   title={tile.song.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
-                                       <IconButton href={tile.song.linkUrl} className={classes.icon} target="_blank" rel="noopener noreferrer">
+                                       <IconButton href={tile.song.sourceUrl} className={classes.icon} target="_blank" rel="noopener noreferrer">
                                            <OpenInNewIcon />
                                        </IconButton>
                                    }
@@ -459,7 +465,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const queueColumns: Column<Song>[] = [
         {
             title: "Song Title",
-            field: "details.title",
+            field: "title",
             render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
             sorting: false,
             width: "60%"

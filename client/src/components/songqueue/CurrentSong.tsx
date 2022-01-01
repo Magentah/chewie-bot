@@ -11,7 +11,7 @@ const CurrentSong: React.FC = (props) => {
 
     const loadFirstSong = () => axios.get("/api/songs").then((response) => {
         if (response.data && response.data.length > 0) {
-            setCurrentSongTitle(response.data[0].details.title);
+            setCurrentSongTitle(response.data[0].title);
         } else {
             setCurrentSongTitle("");
         }

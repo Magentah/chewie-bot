@@ -4,23 +4,15 @@ export enum SongSource {
 }
 
 export default interface Song {
-    id: number,
-    previewUrl: string,
-    linkUrl: string,
-    details: {
-        title: string;
-        duration: moment.Duration;
-        source: SongSource;
-    };
-    source: number;
-    sourceId: string;
-    duration: moment.Duration;
+    id: number;
+    title: string;
+    duration: number;
     requestedBy: string;
-    requesterStatus: {
-        viewerStatus: string;
-        vipStatus: string;
-    };
     requestSource: string;
-    requestTime: number;
-    comments: string;
+    source: SongSource;
+    sourceId: string;
+    sourceUrl: string;
+    previewUrl: string,
+    requestTime: number,
+    comments: string
 }
