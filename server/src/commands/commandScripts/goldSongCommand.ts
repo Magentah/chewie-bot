@@ -22,7 +22,7 @@ export class GoldSongCommand extends Command {
             } else {
                 this.twitchService.sendMessage(
                     channel,
-                    `${song.details.title} was added to the song queue by ${song.requestedBy}!`
+                    `${song.title} was added to the song queue by ${song.requestedBy}!`
                 );
             }
         } catch (err) {

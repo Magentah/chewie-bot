@@ -21,13 +21,12 @@ interface SongHistory {
     title: string
     requestedBy: string,
     requestSource: string,
-    songSource: string
-    url: string
+    sourceUrl: string
 }
 
 const DetailCellHistory: React.FC<{value: SongHistory}> = (props) => {
     return <span>
-        <Link href={props.value.url} target="_blank" rel="noopener noreferrer">
+        <Link href={props.value.sourceUrl} target="_blank" rel="noopener noreferrer">
             {props.value.title}
         </Link>
     </span>;
@@ -42,7 +41,7 @@ const SongHistory: React.FC = (props) => {
     useEffect(() => {
         axios.get("/api/playedsongs").then((response) => {
             const songs: Song[] = response.data;
-            setPlayedSongs(songs.map(x => { return { title: x.details.title, requestedBy: x.requestedBy, requestSource: x.requestSource, url: x.linkUrl, songSource: x.details.source }}));
+            setPlayedSongs(songs);
         });
     }, []);
 

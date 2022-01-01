@@ -71,7 +71,7 @@ export class SpotifyService {
 
             return { accessToken: authResponse.data.access_token };
         }
-        
+
         return { accessToken: "" };
     }
 
