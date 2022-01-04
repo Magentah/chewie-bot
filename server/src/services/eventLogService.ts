@@ -14,7 +14,7 @@ export class EventLogService {
         // Always log since needed for achievements.
         const songData: IArchivedSong = {
             title: song.title,
-            duration: song.duration.milliseconds(),
+            duration: song.duration?.milliseconds(),
             requestedBy: song.requestedBy,
             requestSource: song.requestSource,
             songSource: song.source,
@@ -50,7 +50,7 @@ export class EventLogService {
 
         const songData: IArchivedSong = {
             title: song.title,
-            duration: song.duration.milliseconds(),
+            duration: song.duration?.milliseconds(),
             requestedBy: song.requestedBy,
             requestSource: song.requestSource,
             songSource: song.source,
