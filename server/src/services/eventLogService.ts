@@ -1,7 +1,8 @@
 import { inject, injectable } from "inversify";
 import { EventLogsRepository } from "../database/eventLogsRepository";
-import { IEventLog, EventLogType, IUser } from "../models";
+import { IEventLog, EventLogType, IUser, ISong } from "../models";
 import * as Config from "../config.json";
+import { IArchivedSong } from "../models/song";
 
 @injectable()
 export class EventLogService {
@@ -9,8 +10,23 @@ export class EventLogService {
         // Empty
     }
 
-    public async addSongRequest(user: IUser | string, data: object | object[]): Promise<void> {
+    public async addSongRequest(user: IUser | string, song: ISong): Promise<void> {
         // Always log since needed for achievements.
+        const songData: IArchivedSong = {
+            title: song.title,
+            duration: song.duration.milliseconds(),
+            requestedBy: song.requestedBy,
+            requestSource: song.requestSource,
+            songSource: song.source,
+            url: song.sourceUrl,
+            previewUrl: song.previewUrl
+        };
+
+        const data = {
+            message: "Song has been requested.",
+            song: songData
+        };
+
         const log = this.createLog(EventLogType.SongRequest, user, data);
         await this.eventLogs.add(log);
     }
@@ -27,10 +43,26 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addSongPlayed(user: IUser | string, data: object | object[]): Promise<void> {
+    public async addSongPlayed(user: IUser | string, song: ISong): Promise<void> {
         if (!Config.log.enabledEventLogs.song.played) {
             return;
         }
+
+        const songData: IArchivedSong = {
+            title: song.title,
+            duration: song.duration.milliseconds(),
+            requestedBy: song.requestedBy,
+            requestSource: song.requestSource,
+            songSource: song.source,
+            url: song.sourceUrl,
+            previewUrl: song.previewUrl
+        };
+
+        const data = {
+            message: "Song has been played.",
+            song: songData
+        };
+
         const log = this.createLog(EventLogType.SongPlayed, user, data);
         await this.eventLogs.add(log);
     }

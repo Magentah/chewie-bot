@@ -11,7 +11,7 @@ const CurrentSong: React.FC = (props) => {
 
     const loadFirstSong = () => axios.get("/api/songs").then((response) => {
         if (response.data && response.data.length > 0) {
-            setCurrentSongTitle(response.data[0].details.title);
+            setCurrentSongTitle(response.data[0].title);
         } else {
             setCurrentSongTitle("");
         }
@@ -38,6 +38,7 @@ const CurrentSong: React.FC = (props) => {
         websocket.current.onMessage(SocketMessageType.SongRemoved, onSongsChanged);
         websocket.current.onMessage(SocketMessageType.SongPlayed, onSongsChanged);
         websocket.current.onMessage(SocketMessageType.SongMovedToTop, onSongsChanged);
+        websocket.current.onMessage(SocketMessageType.SongUpdated, onSongsChanged);
     }, [onSongsChanged]);
 
     useEffect(() => { loadFirstSong() }, []);

@@ -10,7 +10,7 @@ import { EventLogService } from "./eventLogService";
 import EventAggregator from "./eventAggregator";
 import SeasonsRepository from "../database/seasonsRepository";
 import UserService from "./userService";
-
+import { getLinkPreview } from "link-preview-js";
 @injectable()
 export class SongService {
     private songQueue: ISong[] = [];
@@ -57,12 +57,37 @@ export class SongService {
                 song.sourceId = sid;
             } else {
                 // Not a youtube url. Parse other urls in future
-                throw new InvalidSongUrlError("URL is not a valid YouTube URL.");
+                throw new InvalidSongUrlError("URL is not a valid YouTube URL");
             }
         }
 
-        song.id = this.nextSongId++;
         song.sourceUrl = fullurl;
+        return song;
+    }
+
+    /**
+     * Parses any URL and tries to get some info suitable for the song queue.
+     * @param {string} url Video URL to parse
+     */
+     private async parseAnyUrl(url: string): Promise<ISong> {
+        const song: ISong = {} as ISong;
+        const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
+
+        // Gets song details by using Open Graph meta information of the page
+        // (works on Soundcloud and Bandcamp for example).
+        const data = await getLinkPreview(url);
+
+        song.source = SongSource.Unknown;
+        song.sourceUrl = fullurl;
+
+        if ("title" in data && data.images.length > 0) {
+            song.title = data.title;
+            song.sourceUrl = song.sourceUrl;
+            song.previewUrl = data.images[0];
+        } else {
+            throw new InvalidSongUrlError("URL does not contain any usable information");
+        }
+
         return song;
     }
 
@@ -75,36 +100,24 @@ export class SongService {
             case SongSource.Youtube: {
                 const songDetails = await this.youtubeService.getSongDetails(song.sourceId);
                 if (songDetails) {
-                    song.details = {
-                        title: songDetails.snippet.title,
-                        duration: this.youtubeService.getSongDuration(songDetails),
-                        sourceId: song.sourceId,
-                        source: song.source,
-                    };
-                    song.previewData = {
-                        linkUrl: song.sourceUrl,
-                        previewUrl: this.youtubeService.getSongPreviewUrl(songDetails),
-                    };
+                    song.title = songDetails.snippet.title;
+                    song.duration = this.youtubeService.getSongDuration(songDetails);
+                    song.sourceUrl = song.sourceUrl;
+                    song.previewUrl = this.youtubeService.getSongPreviewUrl(songDetails);
                 } else {
-                    throw new InvalidSongUrlError("Song details could not be loaded.");
+                    throw new InvalidSongUrlError("Song details could not be loaded");
                 }
                 break;
             }
             case SongSource.Spotify: {
                 const songDetails = await this.spotifyService.getSongDetails(song.sourceId);
                 if (songDetails) {
-                    song.details = {
-                        title: songDetails.name,
-                        duration: this.spotifyService.getSongDuration(songDetails),
-                        sourceId: song.sourceId,
-                        source: song.source,
-                    };
-                    song.previewData = {
-                        linkUrl: song.sourceUrl,
-                        previewUrl: this.spotifyService.getSongPreviewUrl(songDetails),
-                    };
+                    song.title = songDetails.name;
+                    song.duration = this.spotifyService.getSongDuration(songDetails);
+                    song.sourceUrl = song.sourceUrl;
+                    song.previewUrl = this.spotifyService.getSongPreviewUrl(songDetails);
                 } else {
-                    throw new InvalidSongUrlError("Song details could not be loaded.");
+                    throw new InvalidSongUrlError("Song details could not be loaded");
                 }
                 break;
             }
@@ -120,18 +133,10 @@ export class SongService {
      * @param comments Additional comments/instructions for the song
      */
     public async addSong(url: string, requestSource: RequestSource, username: string, comments: string): Promise<ISong> {
+        const song: ISong = await this.GetSong(url);
+
         try {
-            let song = this.parseUrl(url);
-
-            const existingSong = Object.values(this.songQueue).filter((s) => {
-                return s.sourceId === song.sourceId && s.source === song.source;
-            })[0];
-
-            if (existingSong) {
-                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
-            }
-
-            song = await this.getSongDetails(song);
+            song.id = this.nextSongId++;
             this.songQueue.push(song);
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;
@@ -147,16 +152,7 @@ export class SongService {
             });
 
             const user = await this.userService.getUser(username);
-            await this.eventLogService.addSongRequest(user ?? username, {
-                message: "Song was requested.",
-                song: {
-                    title: song.details.title,
-                    requestedBy: song.requestedBy,
-                    requestSource: song.requestSource,
-                    songSource: song.source,
-                    url,
-                },
-            });
+            await this.eventLogService.addSongRequest(user ?? username, song);
 
             if (user) {
                 const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
@@ -173,6 +169,40 @@ export class SongService {
             } else {
                 throw err;
             }
+        }
+    }
+
+    /**
+     * Loads the song information from a URL
+     * @param url URL to load
+     * @returns
+     */
+    private async GetSong(url: string) {
+        let song: ISong;
+
+        try {
+            song = this.parseUrl(url);
+
+            const existingSong = Object.values(this.songQueue).filter((s) => {
+                return s.sourceId === song.sourceId && s.source === song.source;
+            })[0];
+
+            if (existingSong) {
+                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
+            }
+
+            return await this.getSongDetails(song);
+        } catch (err: any) {
+            // We can check for same URL before getting any details here.
+            const existingSong = Object.values(this.songQueue).filter((s) => {
+                return s.sourceUrl === url;
+            })[0];
+
+            if (existingSong) {
+                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
+            }
+
+            return await this.parseAnyUrl(url);
         }
     }
 
@@ -235,10 +265,7 @@ export class SongService {
                 this.songQueue.splice(songIndex, 1);
 
                 const user = await this.userService.getUser(songData.requestedBy);
-                this.eventLogService.addSongPlayed(user ?? songData.requestedBy, {
-                    message: "Song has been played.",
-                    song: songData,
-                });
+                this.eventLogService.addSongPlayed(user ?? songData.requestedBy, songData);
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
@@ -254,10 +281,7 @@ export class SongService {
                 const songIndex = this.songQueue.indexOf(songData);
                 this.songQueue.splice(songIndex, 1);
 
-                this.eventLogService.addSongPlayed(song.requestedBy, {
-                    message: "Song has been played.",
-                    song,
-                });
+                this.eventLogService.addSongPlayed(song.requestedBy, songData);
                 this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
@@ -328,7 +352,7 @@ export class SongService {
                 this.eventLogService.addSongRemoved(user ?? songData.requestedBy, {
                     message: "Song has been removed from request queue.",
                     song: {
-                        title: songData.details.title,
+                        title: songData.title,
                         requestedBy: songData.requestedBy,
                     },
                 });
@@ -351,13 +375,50 @@ export class SongService {
                 this.eventLogService.addSongRemoved(song.requestedBy, {
                     message: "Song has been removed from request queue.",
                     song: {
-                        title: song.details.title,
+                        title: song.title,
                         requestedBy: song.requestedBy,
                     },
                 });
                 this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
+                    data: song,
+                });
+            }
+        }
+    }
+
+    /**
+     * Updates the details of a song in the queue.
+     * @param newSong New song information.
+     */
+    public async updateSong(newSong: ISong) {
+        for (const song of this.songQueue) {
+            if (song.id === newSong.id) {
+                const changeTitle = song.title !== newSong.title;
+
+                // Change URL, update information (if possible).
+                if (song.sourceUrl !== newSong.sourceUrl) {
+                    const newSongData = await this.GetSong(newSong.sourceUrl);
+                    song.title = newSongData.title;
+                    song.duration = newSongData.duration;
+                    song.source = newSongData.source;
+                    song.sourceId = newSongData.sourceId;
+                    song.sourceUrl = newSongData.sourceUrl;
+                    song.previewUrl = newSongData.previewUrl;
+                }
+
+                // Override title determined by URL if changed manually.
+                if (changeTitle) {
+                    song.title = newSong.title;
+                }
+
+                song.comments = newSong.comments;
+                song.requestedBy = newSong.requestedBy;
+
+                this.websocketService.send({
+                    type: SocketMessageType.SongUpdated,
+                    message: "Song Updated",
                     data: song,
                 });
             }

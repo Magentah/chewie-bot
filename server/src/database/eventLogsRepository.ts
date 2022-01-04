@@ -21,7 +21,7 @@ export class EventLogsRepository {
     public async searchRequests(searchTerm: string, count: number = 0) {
         const databaseService = await this.databaseProvider();
         const query = databaseService.getQueryBuilder(DatabaseTables.EventLogs).select()
-            .where("type", "=", EventLogType.SongRequest)
+            .where("type", "=", EventLogType.SongPlayed)
             .fulltextSearch(searchTerm, ["data"])
             .orderBy("time", "desc");
         const eventLogs: IEventLog[] = await (count ? query.limit(count) : query);
@@ -31,7 +31,7 @@ export class EventLogsRepository {
     public async searchRequestsCount(searchTerm: string) {
         const databaseService = await this.databaseProvider();
         const result = await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
-            .where("type", "=", EventLogType.SongRequest)
+            .where("type", "=", EventLogType.SongPlayed)
             .fulltextSearch(searchTerm, ["data"])
             .count({cnt: "id"})
             .first();
@@ -72,7 +72,7 @@ export class EventLogsRepository {
         pruneDate.setDate(-pruneDays);
         await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
             .where("time", "<", pruneDate)
-            .whereNotIn("type", [EventLogType.SongRequest, EventLogType.Sudoku, EventLogType.RedeemCommand])
+            .whereNotIn("type", [EventLogType.SongRequest, EventLogType.Sudoku, EventLogType.RedeemCommand, EventLogType.SongPlayed])
             .delete();
     }
 }

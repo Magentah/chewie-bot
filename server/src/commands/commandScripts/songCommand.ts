@@ -15,7 +15,7 @@ export class SongCommand extends Command {
     public executeInternal(channel: string, user: IUser): void {
         const songQueue = this.songService.getSongQueue();
         if (songQueue.length > 0) {
-            this.twitchService.sendMessage(channel, `${songQueue[0].details.title} requested by ${songQueue[0].requestedBy}`);
+            this.twitchService.sendMessage(channel, `${songQueue[0].title} requested by ${songQueue[0].requestedBy}`);
         } else {
             this.twitchService.sendMessage(channel, "There is no song in the queue currently.");
         }
