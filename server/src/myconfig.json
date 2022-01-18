@@ -3,8 +3,6 @@
         "clientId": "",
         "clientSecret": "",
         "redirectUri": "",
-        "username": "",
-        "oauth": "",
         "broadcasterName": "",
         "eventSub": {
             "secret": "",
