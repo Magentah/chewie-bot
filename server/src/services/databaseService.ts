@@ -162,7 +162,6 @@ export class DatabaseService {
                 // Need to add VIP levels first because of foreign key.
                 await this.populateDatabase();
                 await this.addBroadcaster();
-                await this.addDefaultBotSettings();
                 Logger.info(LogType.Database, "Database init finished.");
                 this.inSetup = false;
                 this.isInit = true;
@@ -579,29 +578,6 @@ export class DatabaseService {
 
                 await this.db(DatabaseTables.Users).insert(user);
             }
-            resolve();
-        });
-    }
-
-    /**
-     * Adds bot settings for config.json to the database if they exist.
-     */
-    private async addDefaultBotSettings(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            if (Config.twitch.username && Config.twitch.username.length > 0 && Config.twitch.oauth && Config.twitch.oauth.length > 0) {
-                if (!(await this.db(DatabaseTables.BotSettings).first().where("key", BotSettings.BotUsername))) {
-                    await this.db(DatabaseTables.BotSettings).insert({
-                        key: BotSettings.BotUsername,
-                        value: Config.twitch.username,
-                    });
-
-                    await this.db(DatabaseTables.BotSettings).insert({
-                        key: BotSettings.BotUserAuth,
-                        value: Config.twitch.oauth,
-                    });
-                }
-            }
-
             resolve();
         });
     }

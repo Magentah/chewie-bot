@@ -172,8 +172,10 @@ export default class TwitchEventService {
                 );
             }
         }
+
         // Set reward status to fulfilled.
-        await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+        // TODO: Only works if the reward has been created by the bot (client-id). Might have to implement reward config some time.
+        // await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
     }
 
     /**
