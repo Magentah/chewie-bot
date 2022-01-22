@@ -3,19 +3,25 @@ export { default as AddCmdCommand } from "./addCmdCommand";
 export { default as EditCmdCommand } from "./editCmdCommand";
 export { default as TextCommand } from "./textCommand";
 export { default as DelCmdCommand } from "./delCmdCommand";
-export { default as AddSongCommand } from "./addSongCommand";
 export { default as GoldSongCommand } from "./goldSongCommand";
 export { default as AddAliasCommand } from "./addAliasCommand";
 export { default as DelAliasCommand } from "./delAliasCommand";
 export { default as AddQuoteCommand } from "./quotes/addQuoteCommand";
 export { default as DelQuoteCommand } from "./quotes/delQuoteCommand";
 export { default as QuoteCommand } from "./quotes/quoteCommand";
-export { default as SongCommand } from "./songCommand";
 export { default as AddVipCommand } from "./addVipCommand";
 export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
 export { default as VipCommand } from "./vipCommand";
 export { default as ExplainCommand } from "./explainCommand";
-export { default as LastRequestCommand } from "./lastRequestCommand";
+export { default as MyStatsCommand } from "./myStatsCommand";
+
+// Songs
+export { default as AddSongCommand } from "./songs/addSongCommand";
+export { default as SongCommand } from "./songs/songCommand";
+export { default as LastSongCommand } from "./songs/lastSongCommand";
+export { default as PlayedTodayCommand } from "./songs/playedTodayCommand";
+export { default as MyQueueCommand } from "./songs/myQueueCommand";
+export { default as LastRequestCommand } from "./songs/lastRequestCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";

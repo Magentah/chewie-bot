@@ -1,7 +1,8 @@
-import { Command } from "../command";
-import { IUser } from "../../models";
-import { BotContainer } from "../../inversify.config";
-import { EventLogsRepository } from "../../database";
+import { Command } from "../../command";
+import { IUser } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
+import { EventLogsRepository } from "../../../database";
+import { IArchivedSong } from "../../../models/song";
 
 export default class LastRequestCommand extends Command {
     private eventLogs: EventLogsRepository;
@@ -24,13 +25,13 @@ export default class LastRequestCommand extends Command {
         const songQueue = await this.eventLogs.searchRequests(searchSubject);
         if (songQueue.length > 0 && songQueue[0].time) {
             const eventData = JSON.parse(songQueue[0].data);
-            const song = eventData.song;
+            const song = eventData.song as IArchivedSong;
             if (song) {
                 // Check how many times this exact song has been requested.
                 let counter = 0;
                 for (const otherSong of songQueue) {
                     const data = JSON.parse(otherSong.data);
-                    if (data.song.title === song.title) {
+                    if (data.song.title === song.title || data.song.url === song.url) {
                         counter++;
                     }
                 }

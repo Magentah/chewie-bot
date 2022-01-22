@@ -61,6 +61,13 @@ export class EventLogsRepository {
         return count;
     }
 
+    public async getCountTotal(type: EventLogType, sinceDate: Date = new Date(0)): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
+            .select().where({ type }).andWhere("time", ">=", sinceDate).count("id as cnt").first()).cnt;
+        return count;
+    }
+
     public async add(log: IEventLog): Promise<void> {
         const databaseService = await this.databaseProvider();
         log.time = moment().utc().toDate();
