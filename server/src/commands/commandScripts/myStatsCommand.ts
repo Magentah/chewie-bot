@@ -34,6 +34,6 @@ export default class MyStatsCommand extends Command {
     }
 
     public getDescription(): string {
-        return `Outputs the number of times an event has been caused by the current user. Usage: !myStats <SongRequest|Sudoku|Redeem|SongPlayed|Songlist>`;
+        return `Outputs the number of times an event has been caused by the user. Usage: !myStats <SongRequest|Sudoku|Redeem|SongPlayed|Songlist|Cards>`;
     }
 }
