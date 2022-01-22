@@ -1,7 +1,7 @@
-import { IUser, RequestSource, UserLevels } from "../../models/";
-import { SongService, TwitchService } from "../../services";
-import { Command } from "../command";
-import { BotContainer } from "../../inversify.config";
+import { IUser, RequestSource, UserLevels } from "../../../models";
+import { SongService, TwitchService } from "../../../services";
+import { Command } from "../../command";
+import { BotContainer } from "../../../inversify.config";
 
 export class AddSongCommand extends Command {
     private songService: SongService;
