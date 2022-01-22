@@ -1,7 +1,7 @@
-import { Command } from "../command";
-import { SongService } from "../../services";
-import { ICommandAlias, IUser } from "../../models";
-import { BotContainer } from "../../inversify.config";
+import { Command } from "../../command";
+import { SongService } from "../../../services";
+import { ICommandAlias, IUser } from "../../../models";
+import { BotContainer } from "../../../inversify.config";
 
 export class SongCommand extends Command {
     private songService: SongService;
