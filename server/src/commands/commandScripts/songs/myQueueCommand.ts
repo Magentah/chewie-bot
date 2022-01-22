@@ -44,7 +44,7 @@ export default class MyQueueCommand extends Command {
     }
 
     public getAliases(): ICommandAlias[] {
-        return [{ alias: "mq", commandName: "MyQueue" }];
+        return [{ alias: "mq", commandName: "MyQueue" }, { alias: "when", commandName: "MyQueue" }];
     }
 
     public getDescription(): string {
