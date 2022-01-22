@@ -13,7 +13,7 @@ export { default as AddVipCommand } from "./addVipCommand";
 export { default as AddPermanentVipCommand } from "./addPermanentVipCommand";
 export { default as VipCommand } from "./vipCommand";
 export { default as ExplainCommand } from "./explainCommand";
-export { default as LastRequestCommand } from "./songs/lastRequestCommand";
+export { default as MyStatsCommand } from "./myStatsCommand";
 
 // Songs
 export { default as AddSongCommand } from "./songs/addSongCommand";
@@ -21,6 +21,7 @@ export { default as SongCommand } from "./songs/songCommand";
 export { default as LastSongCommand } from "./songs/lastSongCommand";
 export { default as PlayedTodayCommand } from "./songs/playedTodayCommand";
 export { default as MyQueueCommand } from "./songs/myQueueCommand";
+export { default as LastRequestCommand } from "./songs/lastRequestCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";
