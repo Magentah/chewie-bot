@@ -1,10 +1,5 @@
 import * as Crypto from "crypto";
-import * as jwks from "jwks-rsa";
 import * as Config from "../config.json";
-import Constants from "../constants";
-import { verify, VerifyErrors } from "jsonwebtoken";
-import { CertSigningKey, RsaSigningKey } from "jwks-rsa";
-import { ITwitchIDToken } from "../models";
 
 export class CryptoHelper {
     private static algorithm: string = "aes-256-cbc";
@@ -66,40 +61,6 @@ export class CryptoHelper {
         const cipherText = text.slice(this.nonceSize);
         const cipher = Crypto.createDecipheriv(this.algorithm, key, nonce);
         return Buffer.concat([cipher.update(cipherText), cipher.final()]);
-    }
-
-    /**
-     * Verifies a Twitch.tv OAuth ID Token and returns the decoded token object.
-     * @param token Twitch.tv OAuth ID token to verify and decode.
-     */
-    public static async verifyTwitchJWT(token: string, nonce: string): Promise<ITwitchIDToken> {
-        return new Promise<ITwitchIDToken>((resolve, reject) => {
-            const jwksClient = jwks({
-                jwksUri: Constants.TwitchJWKUri,
-            });
-
-            function getKey(header: any, callback: any) {
-                jwksClient.getSigningKey(header.kid, (err, key: CertSigningKey | RsaSigningKey) => {
-                    if ("publicKey" in key) {
-                        callback(undefined, (key as CertSigningKey).publicKey);
-                    } else if ("rsaPublicKey" in key) {
-                        callback(undefined, (key as RsaSigningKey).rsaPublicKey);
-                    }
-                });
-            }
-            verify(token, getKey, undefined, (err: VerifyErrors | null, decoded: object | undefined) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    const parsedToken = decoded as ITwitchIDToken;
-                    if (parsedToken.aud !== Config.twitch.clientId && parsedToken.nonce !== nonce) {
-                        reject("ID Token failed verification.");
-                    } else {
-                        resolve(decoded as ITwitchIDToken);
-                    }
-                }
-            });
-        });
     }
 }
 
