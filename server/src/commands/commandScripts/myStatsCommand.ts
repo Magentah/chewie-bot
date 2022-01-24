@@ -7,6 +7,7 @@ export default class MyStatsCommand extends Command {
     private eventLogsRepository: EventLogsRepository;
     private songlistRepository: SonglistRepository;
     private cardsRepository: CardsRepository;
+    private readonly Arguments = "SongRequest|Sudoku|Redeem|SongPlayed|Songlist|Cards"; 
 
     constructor() {
         super();
@@ -16,6 +17,11 @@ export default class MyStatsCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, eventTypeArgument: string): Promise<void> {
+        if (!eventTypeArgument) {
+            this.twitchService.sendMessage(channel, `No event type specified (options: ${this.Arguments})`);
+            return;
+        }
+
         const eventType = eventTypeArgument.toLowerCase();
 
         if (Object.values(EventLogType).includes(eventType as EventLogType)) {
@@ -34,6 +40,6 @@ export default class MyStatsCommand extends Command {
     }
 
     public getDescription(): string {
-        return `Outputs the number of times an event has been caused by the user. Usage: !myStats <SongRequest|Sudoku|Redeem|SongPlayed|Songlist|Cards>`;
+        return `Outputs the number of times an event has been caused by the user. Usage: !myStats <${this.Arguments}>`;
     }
 }

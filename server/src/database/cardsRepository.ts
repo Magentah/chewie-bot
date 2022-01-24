@@ -50,7 +50,11 @@ export default class CardsRepository {
 
     public async getCountByCard(user: IUser, card: IUserCard): Promise<number> {
         const databaseService = await this.databaseProvider();
-        return (await databaseService.getQueryBuilder(DatabaseTables.CardStack).where("cardId", card.id).andWhere("userId", user.id).count("id AS cardCount").first()).cardCount;
+        return (await databaseService.getQueryBuilder(DatabaseTables.CardStack)
+            .where("cardId", card.id)
+            .andWhere("userId", user.id)
+            .andWhere("deleted", false)
+            .count("id AS cardCount").first()).cardCount;
     }
 
     public async getCountByUser(user: IUser): Promise<number> {
