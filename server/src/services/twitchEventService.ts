@@ -189,7 +189,7 @@ export default class TwitchEventService {
     private channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): void {
         Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
 
-        const dateTimeOnline = new Date();
+        const dateTimeOnline = new Date(notificationEvent.started_at);
         this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
 
         this.discord.sendStreamOnline();
