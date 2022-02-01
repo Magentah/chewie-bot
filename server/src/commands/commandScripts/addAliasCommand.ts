@@ -24,15 +24,15 @@ export default class AddAliasCommand extends Command {
             return;
         }
 
+        // Remove all preceding exclamation marks if present.
+        if (newAlias.startsWith("!")) {
+            newAlias = newAlias.substring(1);
+        }
+
         let alias = await this.commandAliases.get(newAlias);
         if (!alias) {
-            // Remove all preceding exclamation marks if present.
-            if (newAlias.startsWith("!")) {
-                newAlias = newAlias.substr(1);
-            }
-
             if (command.startsWith("!")) {
-                command = command.substr(1);
+                command = command.substring(1);
             }
 
             alias = {
@@ -42,7 +42,9 @@ export default class AddAliasCommand extends Command {
             };
 
             await this.commandAliases.add(alias);
-            await this.twitchService.sendMessage(channel, `!${newAlias} has been added!`);
+            this.twitchService.sendMessage(channel, `!${newAlias} has been added.`);
+        } else {
+            this.twitchService.sendMessage(channel, `!${newAlias} already exists.`);
         }
     }
 
