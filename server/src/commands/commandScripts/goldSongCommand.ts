@@ -13,6 +13,11 @@ export class GoldSongCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, url: string, ...args: string[]) {
+        if (!url) {
+            this.twitchService.sendMessage(channel, `${user.username}, please provide a URL for your song request.`);
+            return;
+        }
+
         try {
             const comments = args.join(" ");
 
