@@ -19,9 +19,16 @@ export class DelAliasCommand extends Command {
             return;
         }
 
+        // Remove all preceding exclamation marks if present.
+        if (alias.startsWith("!")) {
+            alias = alias.substring(1);
+        }
+
         const deleted = await this.commandAliases.delete(alias);
         if (deleted) {
-            await this.twitchService.sendMessage(channel, `!${alias} has been removed!`);
+            await this.twitchService.sendMessage(channel, `!${alias} has been removed.`);
+        } else {
+            await this.twitchService.sendMessage(channel, `!${alias} does not exist.`);
         }
     }
 
