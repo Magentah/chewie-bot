@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import Logger, { LogType } from "../logger";
+import { EventTypes, IUser } from "../models";
 import { IDBUserTaxHistory, IDBUserTaxStreak, TaxType } from "../models/taxHistory";
 import { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
@@ -107,6 +107,16 @@ export default class UserTaxHistoryRepository {
             .groupBy("userId")
             .select(["userId", databaseService.raw("COUNT(*) AS taxCount")]);
         return taxHistoryCount as {userId: number, taxCount: number}[];
+    }
+
+    public async getTaxAudit(user: IUser): Promise<{date: number, event: "tax" | EventTypes.StreamOnline, id: number}[]> {
+        const databaseService = await this.databaseProvider();
+        const taxAudit = await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory)
+            .select("taxRedemptionDate AS date", databaseService.raw("\"tax\" AS event"), "id")
+            .where({type: TaxType.ChannelPoints, userId: user.id})
+            .union(b => b.from(DatabaseTables.StreamActivity).select("dateTimeTriggered AS date", "event", "id").where("event", EventTypes.StreamOnline))
+            .orderBy("date");
+        return taxAudit;
     }
 
     public async add(userId: number, channelPointRewardId: string | undefined, type: TaxType): Promise<IDBUserTaxHistory> {
