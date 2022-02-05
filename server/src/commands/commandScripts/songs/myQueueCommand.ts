@@ -16,6 +16,7 @@ export default class MyQueueCommand extends Command {
         const songQueue = this.songService.getSongQueue();
         let result = "";
 
+        username = username?.startsWith("@") ? username.substring(1) : username;
         const forUser = username ? username : user.username;
 
         for (let i = 0; i < songQueue.length; i++) {
