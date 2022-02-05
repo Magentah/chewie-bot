@@ -20,11 +20,11 @@ export default class MyQueueCommand extends Command {
         const forUser = username ? username : user.username;
 
         for (let i = 0; i < songQueue.length; i++) {
-            if (result !== "") {
-                result += ", "
-            }
-
             if (songQueue[i].requestedBy.toLowerCase() === forUser.toLowerCase()) {
+                if (result !== "") {
+                    result += ", "
+                }
+
                 result += `${songQueue[i].title} at position ${i + 1}`;
             }
         }
