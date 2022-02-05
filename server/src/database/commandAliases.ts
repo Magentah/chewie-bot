@@ -48,7 +48,7 @@ export class CommandAliasesRepository {
             .update({ alias: alias.alias, commandName: alias.commandName, commandArguments })
             .where({ id: alias.id });
     }
-    
+
     public async delete(alias: ICommandAlias | string): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         if (typeof alias === "string") {

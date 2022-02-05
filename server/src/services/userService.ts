@@ -203,7 +203,7 @@ export class UserService {
      * @param {string} username The username of the user to get.
      */
     public async getUser(username: string): Promise<IUser | undefined> {
-        const name = username.startsWith("@") ? username.substr(1) : username;
+        const name = username.startsWith("@") ? username.substring(1) : username;
         return await this.users.get(name);
     }
 
