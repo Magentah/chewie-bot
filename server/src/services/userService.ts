@@ -108,6 +108,7 @@ export class UserService {
      * @param {points} points Number of points to add or remove (if negative)
      */
     public async changeUserPoints(user: IUser, points: number, eventType: PointLogType | string, reason = PointLogReason.None): Promise<void> {
+        points = Math.round(points);
         user.points += points;
         await this.users.incrementPoints(user, points, eventType, reason);
 
