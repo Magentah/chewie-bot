@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import axios from "axios";
-import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop } from "@material-ui/core";
+import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop, Select, MenuItem } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import useSetting from "../../hooks/setting";
 import Sparkles from "../common/sparkle";
@@ -61,8 +61,14 @@ type RowData = {
     cardCount: number, upgradedName: string, upgradedImagId: string, upgradedMimeType: string
 };
 
+type SelectorData = {
+    setName: string, cardCount: number, collectedCardCount: number
+};
+
 const UserCardStackList: React.FC<any> = (props: any) => {
     const [cardlist, setCardlist] = useState([] as RowData[]);
+    const [selector, setSelector] = useState<SelectorData[]>();
+    const [selectedSeason, setSelectedSeason] = useState("");
     const [cardcount, setCardcount] = useState(0);
     const [resetDialogOpen, setResetDialogOpen] = useState(false);
     const [redeemInfoResultMsg, setRedeemInfoResultMsg] = useState("");
@@ -72,13 +78,21 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const classes = useStyles();
     const userContext = useContext(UserContext);
 
-    const updateCards = useCallback(() => {
-        axios.get("/api/mycards").then((response) => {
-            if (response) {
-                setCardlist(response.data.cards);
-                setCardcount(response.data.count);
+    const updateCards = useCallback(async () => {
+        const selectorResponse = await axios.get("/api/mycards/selector");
+        if (selectorResponse) {
+            const data: SelectorData[] = selectorResponse.data;
+            setSelector(data);
+            if (data.length > 0) {
+                setSelectedSeason(data[0].setName);
             }
-        });
+        }
+
+        const response = await axios.get("/api/mycards");
+        if (response) {
+            setCardlist(response.data.cards);
+            setCardcount(response.data.count);
+        }
     }, []);
 
     const handleCloseReset = (redeemCard: boolean) => {
@@ -98,20 +112,17 @@ const UserCardStackList: React.FC<any> = (props: any) => {
         }
     };
 
-    useEffect(() => updateCards(), [updateCards]);
+    const handleChange = (event: any) => {
+        setSelectedSeason(event.target.value);
+    };
+
+    useEffect(() => { updateCards() }, [updateCards]);
 
     function PaperComponent(paperProps: PaperProps) {
         return (
           <Paper {...paperProps} style={{overflow: "visible", paddingLeft: "4em", paddingRight: "1em", paddingBottom: "0.5em", minWidth: "30em"}} />
         );
     }
-
-    // Group cards by set
-    const groupedResult = cardlist.reduce((r, a) => {
-        r[a.setName] = r[a.setName] || [];
-        r[a.setName].push(a);
-        return r;
-    }, Object.create(null));
 
     return <Card>
             <Backdrop className={classes.backdrop} open={cardViewUrl !== ""} onClick={() => setCardViewUrl("")}>
@@ -177,37 +188,44 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                 </Grid> : undefined}
                             </Grid>
                         </Box> :
-                        Object.keys(groupedResult).map((group) => (
-                            <Grid>
-                                {Object.keys(groupedResult).length > 1 && group ?
-                                <Grid item>
-                                    <Typography variant="h6" className={classes.uppercase}>{group}</Typography>
-                                </Grid> : undefined}
-                                <Grid item>
-                                    <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
-                                        {groupedResult[group].map((tile: RowData) => (
-                                            <Box m={1}>
-                                                <Grid key={tile.name}>
-                                                    <Grid item>
-                                                        <Box display="flex" justifyContent="center">
-                                                            <Box className={classes.individualCardCounter}>
-                                                                <Typography className={classes.individualCardCounterText} align="center">× {tile.cardCount}</Typography>
-                                                            </Box>
+                        <Grid>
+                            {selector && selector.length ?
+                            <Grid item>
+                                <Box mt={2}>
+                                    <Select
+                                        id="season-selector"
+                                        value={selectedSeason}
+                                        label="Set"
+                                        onChange={handleChange}>
+                                        {selector.map((set) => <MenuItem key={"set-" + set.setName} value={set.setName}>{`${set.setName} (${set.collectedCardCount} / ${set.cardCount} collected)`}</MenuItem>)}
+                                    </Select>
+                                </Box>
+                            </Grid> : undefined}
+                            <Grid item>
+                                <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
+                                    {cardlist.filter(x => !selectedSeason || x.setName === selectedSeason).map((tile: RowData) => (
+                                        <Box m={1} key={tile.name}>
+                                            <Grid>
+                                                <Grid item>
+                                                    <Box display="flex" justifyContent="center">
+                                                        <Box className={classes.individualCardCounter}>
+                                                            <Typography className={classes.individualCardCounterText} align="center">× {tile.cardCount}</Typography>
                                                         </Box>
-                                                    </Grid>
-                                                    <Grid item>
-                                                        {tile.upgradedName ?
-                                                        <Sparkles>
-                                                            <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
-                                                        </Sparkles> :
-                                                        <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />}
-                                                    </Grid>
+                                                    </Box>
                                                 </Grid>
-                                            </Box>))}
-                                    </Box>
-                                </Grid>
-                            </Grid>))}
-                        </Grid>
+                                                <Grid item>
+                                                    {tile.upgradedName ?
+                                                    <Sparkles>
+                                                        <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
+                                                    </Sparkles> :
+                                                    <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />}
+                                                </Grid>
+                                            </Grid>
+                                        </Box>))}
+                                </Box>
+                            </Grid>
+                        </Grid>}
+                    </Grid>
                 </Box>
             </Grid>
     </Card>;
