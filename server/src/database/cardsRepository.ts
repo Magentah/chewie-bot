@@ -132,7 +132,8 @@ export default class CardsRepository {
                 .andOnVal("userCardStack.userId", "=", user.id ?? 0)
             })
             .where("isUpgrade", false)
-            .groupBy("setName");
+            .groupBy("setName")
+            .orderBy("setName");
         return cards;
     }
 
