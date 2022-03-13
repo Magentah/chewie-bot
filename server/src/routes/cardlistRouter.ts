@@ -8,6 +8,7 @@ const cardlistRouter: express.Router = express.Router();
 const cardlistController: CardlistController = BotContainer.get(CardlistController);
 
 cardlistRouter.get("/api/cards", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin), (req, res) => cardlistController.getCardlist(req, res));
+cardlistRouter.get("/api/mycards/selector", (req, res) => cardlistController.getCardSelector(req, res));
 cardlistRouter.get("/api/mycards", (req, res) => cardlistController.getCardStack(req, res));
 cardlistRouter.post("/api/redeemcard", (req, res) => cardlistController.redeemCard(req, res));
 cardlistRouter.post("/api/cards/add", (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin), (req, res) => cardlistController.addCard(req, res));
