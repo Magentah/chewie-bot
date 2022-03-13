@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { fab } from "@fortawesome/free-brands-svg-icons";
 import CssBaseLine from "@material-ui/core/CssBaseline";
 
 import Dashboard from "./views/dashboard/Dashboard";
@@ -10,9 +8,6 @@ import Alert from "./components/twitch/Alert";
 
 import axios from "axios";
 import UserContextProvider from "./contexts/userContext";
-
-// initialize brand icons
-library.add(fab);
 
 const App: React.FC<{}> = (props) => {
     const [isLoaded, setIsLoaded] = useState(false);

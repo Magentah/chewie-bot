@@ -121,6 +121,22 @@ export default class CardsRepository {
         return cards;
     }
 
+    public async getCardSelector(user: IUser): Promise<{setName: string, cardCount: number, collectedCardCount: number}[]> {
+        const databaseService = await this.databaseProvider();
+        const cards = await databaseService.getQueryBuilder(DatabaseTables.Cards)
+            .select("setName")
+            .countDistinct("usercards.id AS cardCount")
+            .countDistinct("cardId AS collectedCardCount")
+            .leftJoin(DatabaseTables.CardStack, (x) => {
+                x.on("usercards.id ", "cardId")
+                .andOnVal("userCardStack.userId", "=", user.id ?? 0)
+            })
+            .where("isUpgrade", false)
+            .groupBy("setName")
+            .orderBy("setName");
+        return cards;
+    }
+
     public async getUniqueCardsCount(user: IUser): Promise<number> {
         const databaseService = await this.databaseProvider();
         const count = (await databaseService.getQueryBuilder(DatabaseTables.CardStack)

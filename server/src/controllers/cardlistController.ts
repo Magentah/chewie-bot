@@ -39,6 +39,24 @@ class CardlistController {
     }
 
     /**
+     * Gets a list of available sets and number of collected cards.
+     * @param req Express HTTP Request
+     * @param res Express HTTP Response
+     */
+     public async getCardSelector(req: Request, res: Response): Promise<void> {
+        const user = req.user as IUser;
+        if (!user) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "User not logged in."));
+            return;
+        }
+
+        const selector = await this.cardRepository.getCardSelector(user);
+        res.status(StatusCodes.OK);
+        res.send(selector);
+    }
+
+    /**
      * Gets the user's personal card stack.
      * @param req Express HTTP Request
      * @param res Express HTTP Response
@@ -276,8 +294,8 @@ class CardlistController {
 
     private addCardOnStackUrl(x: IUserCardOnStackInfo): any {
         return {
-            ...x, 
-            url: x.upgradedImagId ? 
+            ...x,
+            url: x.upgradedImagId ?
                 `/img/${x.upgradedImagId}.${this.cardRepository.getFileExt(x.upgradedMimeType ?? "")}` :
                 `/img/${x.imageId}.${this.cardRepository.getFileExt(x.mimetype ?? "")}`
         };
