@@ -134,8 +134,13 @@ class AchievementsController {
             return;
         }
 
-        await this.achievementService.redeemAchievement(user, achievement);
-        res.sendStatus(StatusCodes.OK);
+        try {
+            await this.achievementService.redeemAchievement(user, achievement);
+            res.sendStatus(StatusCodes.OK);
+        } catch (error: any) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, error));
+        }
     }
 
     /**

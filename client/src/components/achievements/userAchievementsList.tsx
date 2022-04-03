@@ -4,6 +4,7 @@ import axios from "axios";
 import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, PaperProps, Paper, Icon } from "@material-ui/core";
 import { Image } from "react-bootstrap";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import useSetting from "../../hooks/setting";
 
 const useStyles = makeStyles((theme) => ({
     collectionHeader: {
@@ -56,6 +57,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
     const [achievementToRedeem, setAchievementToRedeem] = useState<RowData>();
 
     const classes = useStyles();
+    const readonlyMode = useSetting<number>("readonly-mode");
 
     const updateAchievements = useCallback(() => {
         axios.get("/api/myachievements").then((response) => {
@@ -134,7 +136,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
                                             {tile.pointRedemption && tile.date && !tile.redemptionDate ?
                                             <React.Fragment>
                                                 <Icon className={classes.redeemIcon}>paid</Icon>
-                                                <Button className={`redeem-button ${classes.redeemButtonOverlay}`} variant="contained" color="primary" onClick={() => setAchievementToRedeem(tile)}>
+                                                <Button disabled={readonlyMode ? true : false} className={`redeem-button ${classes.redeemButtonOverlay}`} variant="contained" color="primary" onClick={() => setAchievementToRedeem(tile)}>
                                                     Redeem {tile.pointRedemption}
                                                 </Button>
                                             </React.Fragment> : undefined}

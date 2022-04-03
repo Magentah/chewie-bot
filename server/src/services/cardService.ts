@@ -22,6 +22,10 @@ export default class CardService {
             return undefined;
         }
 
+        if (await this.settingsService.getBoolValue(BotSettings.ReadonlyMode)) {
+            return Lang.get("cards.readonlymode");
+        }
+
         const cost = parseInt(await this.settingsService.getValue(BotSettings.CardRedeemCost), 10);
         if (cost > user.points) {
             return Lang.get("cards.insufficientpoints", user.username);

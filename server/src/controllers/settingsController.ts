@@ -75,6 +75,7 @@ class SettingsController {
             switch (setting) {
                 case BotSettings.CardRedeemCost:
                 case BotSettings.SongDonationLink:
+                case BotSettings.ReadonlyMode:
                     const value = await this.settingsService.getValue(setting);
                     res.status(StatusCodes.OK);
                     res.send(value.toString());

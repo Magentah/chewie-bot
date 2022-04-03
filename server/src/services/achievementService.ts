@@ -12,6 +12,7 @@ import UsersRepository from "../database/usersRepository";
 import { TaxType } from "../models/taxHistory";
 import { UserService } from ".";
 import { PointLogType } from "../models/pointLog";
+import BotSettingsService, { BotSettings } from "./botSettingsService";
 
 @injectable()
 export default class AchievementService {
@@ -23,6 +24,7 @@ export default class AchievementService {
         @inject(TwitchService) private twitchService: TwitchService,
         @inject(UsersRepository) private usersRepository: UsersRepository,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
+        @inject(BotSettingsService) private settingsService: BotSettingsService,
     ) {
     }
 
@@ -147,9 +149,13 @@ export default class AchievementService {
      * Redeems an achievement for points. Regular achievements can only be redeemed once, sesonal achievements once each season.
      * @param user User who redeems
      * @param achievement Achievment to be redeemed (ID is userAchievement.id here)
-     * @returns true if successfull
+     * @returns true if successful
      */
     public async redeemAchievement(user: IUser, achievement: IAchievement): Promise<boolean> {
+        if (await this.settingsService.getBoolValue(BotSettings.ReadonlyMode)) {
+            throw new Error("Read-only mode enabled.");
+        }
+
         if (await this.repository.redeemForPoints(user, achievement)) {
             await this.userService.changeUserPoints(user, achievement.pointRedemption, PointLogType.Achievement);
             return true;
