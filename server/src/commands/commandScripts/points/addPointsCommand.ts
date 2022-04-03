@@ -15,6 +15,10 @@ export default class AddPointsCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, targetUsername: string, points: number) {
+        if (!await this.checkReadOnly(channel)) {
+            return;
+        }
+
         if (!targetUsername || !points || !Number.isInteger(points)) {
             this.twitchService.sendMessage(channel, Lang.get("points.add.wrongarguments", user.username));
             return;

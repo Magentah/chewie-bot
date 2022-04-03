@@ -32,6 +32,10 @@ export default class DuelCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, usernameOrWager: string, wager: number): Promise<void> {
+        if (!await this.checkReadOnly(channel)) {
+            return;
+        }
+
         let target;
         let wagerValue;
 
@@ -69,7 +73,7 @@ export default class DuelCommand extends Command {
             }
         }
 
-        const duel = new DuelEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, this.pointLogsRepository, 
+        const duel = new DuelEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, this.pointLogsRepository,
             this.seasonsRepository, this.eventAggregator, user, targetUser, wagerValue);
         duel.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 

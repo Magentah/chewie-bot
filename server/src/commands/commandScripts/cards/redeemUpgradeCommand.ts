@@ -1,6 +1,5 @@
 import { Command } from "../../command";
 import { CardsRepository } from "./../../../database";
-import { BotSettingsService } from "./../../../services";
 import { IUser } from "../../../models";
 import { BotContainer } from "../../../inversify.config";
 import { BotSettings } from "../../../services/botSettingsService";
@@ -11,13 +10,11 @@ import { Lang } from "../../../lang";
  */
 export default class RedeemUpgradeCommand extends Command {
     private cardsRepository: CardsRepository;
-    private settingsService: BotSettingsService;
 
     constructor() {
         super();
 
         this.cardsRepository = BotContainer.get(CardsRepository);
-        this.settingsService = BotContainer.get(BotSettingsService);
     }
 
     public async executeInternal(channel: string, user: IUser, cardName: string): Promise<void> {

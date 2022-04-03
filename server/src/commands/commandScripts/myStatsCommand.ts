@@ -7,7 +7,7 @@ export default class MyStatsCommand extends Command {
     private eventLogsRepository: EventLogsRepository;
     private songlistRepository: SonglistRepository;
     private cardsRepository: CardsRepository;
-    private readonly Arguments = "SongRequest|Sudoku|Redeem|SongPlayed|Songlist|Cards"; 
+    private readonly Arguments = "SongRequest|Sudoku|Redeem|SongPlayed|Songlist|Cards";
 
     constructor() {
         super();
