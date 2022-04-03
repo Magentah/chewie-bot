@@ -61,7 +61,7 @@ export default class RewardService {
 
         if (user) {
             const pointsPerBits = parseInt(await this.settings.getValue(BotSettings.PointsPerBit), 10);
-            if (pointsPerBits) {
+            if (pointsPerBits && !await this.settings.getBoolValue(BotSettings.ReadonlyMode)) {
                 await this.userService.changeUserPoints(user, pointsPerBits * bits.amount, PointLogType.Bits);
             }
 
@@ -132,11 +132,17 @@ export default class RewardService {
     private async addUserPoints(user: IUser | undefined, donation: IDonationMessage) {
         if (user) {
             const pointsPerDollar = parseInt(await this.settings.getValue(BotSettings.DonationPointsPerDollar), 10);
-            await this.userService.changeUserPoints(user, pointsPerDollar * donation.amount, PointLogType.Donation);
+            if (pointsPerDollar && !await this.settings.getBoolValue(BotSettings.ReadonlyMode)) {
+                await this.userService.changeUserPoints(user, pointsPerDollar * donation.amount, PointLogType.Donation);
+            }
         }
     }
 
     private async addSubUserPoints(user: IUser, totalMonthsSubbed: number, logType: PointLogType, plan: SubscriptionPlan, isSubGifter: boolean) {
+        if (await this.settings.getBoolValue(BotSettings.ReadonlyMode)) {
+            return;
+        }
+
         let pointsPerSub;
         switch (plan) {
             case SubscriptionPlan.Tier2:

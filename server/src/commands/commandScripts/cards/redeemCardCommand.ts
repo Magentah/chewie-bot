@@ -17,10 +17,6 @@ export default class RedeemCardCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser): Promise<void> {
-        if (!await this.checkReadOnly(channel)) {
-            return;
-        }
-
         const result = await this.cardService.redeemRandomCard(user.username);
         if (typeof result === "string") {
             await this.twitchService.sendMessage(channel, result);

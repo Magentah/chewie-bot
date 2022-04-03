@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
  * Custom hook for accessing public bot settings.
  * @returns Value of the setting when loaded (or undefined).
  */
-function useSetting<S>(setting: string): S | undefined {
+function useSetting<S>(setting: "card-redeem-cost" | "readonly-mode" | "song-donation-link"): S | undefined {
     const [value, setValue] = useState<S>();
 
     useEffect(() => {
