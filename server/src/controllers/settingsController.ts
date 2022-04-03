@@ -31,6 +31,7 @@ class SettingsController {
         [BotSettings.CardsRequiredForUpgrade]: { title: "Number of cards required for redeeming an upgrade", readonly: false },
         [BotSettings.CommandCooldownInSeconds]: { title: "Cooldown for regular text commands (in seconds)", readonly: false },
         [BotSettings.GoldWeeksPerT3Sub]: { title: "Amount of VIP gold weeks per T3 sub", readonly: false },
+        [BotSettings.ReadonlyMode]: { title: "Read-only mode for points", readonly: false },
     };
 
     constructor(

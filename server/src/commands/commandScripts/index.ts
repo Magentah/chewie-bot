@@ -63,6 +63,7 @@ export { default as AddPointsCommand } from "../commandScripts/points/addPointsC
 export { default as RemovePointsCommand } from "../commandScripts/points/removePointsCommand";
 export { default as RenameUserCommand } from "../commandScripts/renameUserCommand";
 export { default as TopCommand } from "../commandScripts/points/topCommand";
+export { default as SetReadonlyCommand } from "./points/setReadonlyCommand";
 export { default as CheckLossesCommand } from "../commandScripts/checklossesCommand";
 
 export { default as RedeemCommand } from "../commandScripts/redeemCommand";
