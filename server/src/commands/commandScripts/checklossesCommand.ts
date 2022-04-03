@@ -18,8 +18,8 @@ export default class CheckLossesCommand extends Command {
 
         // Display just games by default.
         if (!eventType || eventType.startsWith("game")) {
-            const stats = await this.pointsLog.getGameStats(user);
-            this.outputGameResults(channel, user, stats, "in any game");
+            const gameStats = await this.pointsLog.getGameStats(user);
+            this.outputGameResults(channel, user, gameStats, "in any game");
             return;
         }
 

@@ -60,6 +60,10 @@ export default class BotSettingsService {
         // Empty
     }
 
+    public async getBoolValue(key: BotSettings): Promise<boolean> {
+        return await this.getValue(key) === "1";
+    }
+
     public async getValue(key: BotSettings): Promise<string> {
         if (this.settingCache[key]) {
             return this.settingCache[key];
