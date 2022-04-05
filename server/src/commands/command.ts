@@ -23,12 +23,12 @@ export abstract class Command {
         }
     }
 
-    protected async checkReadOnly(channel: string): Promise<boolean> {
+    protected async isReadOnly(channel: string): Promise<boolean> {
         if (await this.settingsService.getBoolValue(BotSettings.ReadonlyMode)) {
             this.twitchService.sendMessage(channel, "Command disabled because of read-only mode.");
-            return false;
-        } else {
             return true;
+        } else {
+            return false;
         }
     }
 

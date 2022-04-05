@@ -18,7 +18,7 @@ export default class RenameUserCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, oldUserName: string, newUserName: string) {
-        if (!await this.checkReadOnly(channel)) {
+        if (await this.isReadOnly(channel)) {
             return;
         }
 

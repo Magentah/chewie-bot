@@ -44,7 +44,7 @@ export default class AuctionCommand extends Command {
                 return;
             }
 
-            if (!await this.checkReadOnly(channel)) {
+            if (await this.isReadOnly(channel)) {
                 return;
             }
 

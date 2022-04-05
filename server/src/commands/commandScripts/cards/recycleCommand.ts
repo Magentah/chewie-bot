@@ -22,7 +22,7 @@ export default class RecycleCardCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, cardName: string, count: number): Promise<void> {
-        if (!await this.checkReadOnly(channel)) {
+        if (await this.isReadOnly(channel)) {
             return;
         }
 
