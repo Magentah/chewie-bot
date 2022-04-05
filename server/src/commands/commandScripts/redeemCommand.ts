@@ -41,7 +41,7 @@ export default class RedeemCommand extends Command {
 
         const cost = parseInt(await this.settingsService.getValue(BotSettings.RedeemCost), 10);
         if (cost) {
-            if (!await this.checkReadOnly(channel)) {
+            if (await this.isReadOnly(channel)) {
                 return;
             }
         }

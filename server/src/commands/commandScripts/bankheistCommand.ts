@@ -39,7 +39,7 @@ export class BankheistCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, wager: number): Promise<void> {
-        if (!await this.checkReadOnly(channel)) {
+        if (await this.isReadOnly(channel)) {
             return;
         }
 

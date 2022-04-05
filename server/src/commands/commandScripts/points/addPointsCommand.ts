@@ -15,7 +15,7 @@ export default class AddPointsCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, targetUsername: string, points: number) {
-        if (!await this.checkReadOnly(channel)) {
+        if (await this.isReadOnly(channel)) {
             return;
         }
 
