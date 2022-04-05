@@ -24,13 +24,7 @@ export default class AuctionCommand extends Command {
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
-    public async executeInternal(
-        channel: string,
-        user: IUser,
-        minAmountOrAction: string,
-        item: string,
-        durationInMinutes: number
-    ): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, minAmountOrAction: string, item: string, durationInMinutes: number): Promise<void> {
         if (minAmountOrAction === "close") {
             // Close existing auction
             for (const auctionInProgress of this.eventService.getEvents(AuctionEvent)) {
@@ -47,6 +41,10 @@ export default class AuctionCommand extends Command {
 
             if (!item) {
                 this.twitchService.sendMessage(channel, Lang.get("auction.noitem", user.username));
+                return;
+            }
+
+            if (await this.isReadOnly(channel)) {
                 return;
             }
 

@@ -15,6 +15,10 @@ export default class RemovePointsCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, targetUsername: string, points: number) {
+        if (await this.isReadOnly(channel)) {
+            return;
+        }
+
         if (!targetUsername || !points || !Number.isInteger(points)) {
             this.twitchService.sendMessage(channel, Lang.get("points.remove.wrongarguments", user.username));
             return;

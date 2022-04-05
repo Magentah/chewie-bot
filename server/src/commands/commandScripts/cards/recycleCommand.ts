@@ -12,7 +12,6 @@ import { PointLogType } from "../../../models/pointLog";
  */
 export default class RecycleCardCommand extends Command {
     private cardsRepository: CardsRepository;
-    private settingsService: BotSettingsService;
     private userService: UserService;
 
     constructor() {
@@ -20,10 +19,13 @@ export default class RecycleCardCommand extends Command {
 
         this.userService = BotContainer.get(UserService);
         this.cardsRepository = BotContainer.get(CardsRepository);
-        this.settingsService = BotContainer.get(BotSettingsService);
     }
 
     public async executeInternal(channel: string, user: IUser, cardName: string, count: number): Promise<void> {
+        if (await this.isReadOnly(channel)) {
+            return;
+        }
+
         // Determine number of cards to recycle (at least one).
         const numberToTake = count && Number.isInteger(count) ? Math.max(1, count) : 1;
 

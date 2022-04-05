@@ -8,7 +8,7 @@ export default class RenameUserCommand extends Command {
     private userService: UserService;
     private eventLog: EventLogService;
     private databaseService: DatabaseService;
-    
+
     constructor() {
         super();
         this.userService = BotContainer.get(UserService);
@@ -18,6 +18,10 @@ export default class RenameUserCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, oldUserName: string, newUserName: string) {
+        if (await this.isReadOnly(channel)) {
+            return;
+        }
+
         if (!oldUserName || !newUserName) {
             this.twitchService.sendMessage(channel, "Use !renameuser <olduser> <newuser> to rename.");
             return;
@@ -45,18 +49,18 @@ export default class RenameUserCommand extends Command {
                         // If new user already exists in the database, take any points from this user,
                         // add it to the old user and rename.
                         await this.userService.changeUserPoints(oldUser, newUser.points, PointLogType.Rename);
-        
+
                         await this.userService.moveUserData(newUser, oldUser);
-        
+
                         if (!await this.userService.deleteUser(newUser)){
                             this.twitchService.sendMessage(channel, `Cannot delete existing record for ${newUserName}, renaming not possible.`);
                             return;
                         }
                     }
-        
+
                     // Rename existing user.
                     await this.userService.renameUser(oldUser, newUserName);
-        
+
                     this.eventLog.addUserRename(user, oldUserName, newUserName);
                 }));
             } finally {

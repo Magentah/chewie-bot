@@ -165,6 +165,7 @@ export default class TwitchEventService {
 
             const redemptionType = await this.channelPointRewardService.getRedemptionType(notificationEvent.reward.id);
             if (redemptionType === ChannelPointRedemption.Points) {
+                // Check for read-only mode here if we ever implement redemptions that can be set to CANCELLED by the bot.
                 await this.users.changeUserPoints(
                     user,
                     notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,

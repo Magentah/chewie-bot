@@ -15,7 +15,6 @@ enum RedeemVariation {
 
 export default class RedeemCommand extends Command {
     private userService: UserService;
-    private settingsService: BotSettingsService;
     private eventLogService: EventLogService;
     private eventAggregator: EventAggregator;
     private seasonsRepository: SeasonsRepository;
@@ -29,7 +28,6 @@ export default class RedeemCommand extends Command {
     constructor() {
         super();
         this.userService = BotContainer.get(UserService);
-        this.settingsService = BotContainer.get(BotSettingsService);
         this.eventLogService = BotContainer.get(EventLogService);
         this.eventAggregator = BotContainer.get(EventAggregator);
         this.seasonsRepository = BotContainer.get(SeasonsRepository);
@@ -42,6 +40,11 @@ export default class RedeemCommand extends Command {
         }
 
         const cost = parseInt(await this.settingsService.getValue(BotSettings.RedeemCost), 10);
+        if (cost) {
+            if (await this.isReadOnly(channel)) {
+                return;
+            }
+        }
 
         if (user.points >= cost) {
             await this.userService.changeUserPoints(user, -cost, `${PointLogType.Redeem}-${variation}`);

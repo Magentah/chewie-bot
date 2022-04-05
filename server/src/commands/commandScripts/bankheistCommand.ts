@@ -39,6 +39,10 @@ export class BankheistCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, wager: number): Promise<void> {
+        if (await this.isReadOnly(channel)) {
+            return;
+        }
+
         const result = EventHelper.validatePoints(user, wager);
         if (!result[0]) {
             this.twitchService.sendMessage(channel, result[1]);

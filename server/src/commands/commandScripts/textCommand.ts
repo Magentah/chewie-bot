@@ -13,7 +13,6 @@ export class TextCommand extends Command {
     private readonly cooldowns: { [name: string] : boolean; } = {};
 
     private commands: TextCommandsRepository;
-    private settingsService: BotSettingsService;
     private streamActivityRepository: StreamActivityRepository;
 
     constructor() {
@@ -21,7 +20,6 @@ export class TextCommand extends Command {
 
         this.isInternalCommand = true;
         this.commands = BotContainer.get(TextCommandsRepository);
-        this.settingsService = BotContainer.get(BotSettingsService);
         this.streamActivityRepository = BotContainer.get(StreamActivityRepository);
     }
 
@@ -142,7 +140,7 @@ export class TextCommand extends Command {
             return `${minutes} minutes`;
         }
     }
-    
+
     public getDescription(): string {
         return `Displays a message in chat.`;
     }

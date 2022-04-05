@@ -32,6 +32,10 @@ export default class StartArenaCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, wager: number): Promise<void> {
+        if (await this.isReadOnly(channel)) {
+            return;
+        }
+
         if (!wager || wager <= 0) {
             this.twitchService.sendMessage(channel, Lang.get("arena.nofeespecified", user.username));
             return;
