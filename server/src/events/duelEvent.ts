@@ -51,7 +51,6 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         }
 
         this.wager = wager;
-        this.sendMessage = (x) => undefined;
     }
 
     public start() {
