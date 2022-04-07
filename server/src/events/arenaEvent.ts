@@ -114,13 +114,15 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         const arenasWonSeasonal = await this.pointLogsRepository.getWinCount(winners[0].user, PointLogType.Arena, PointLogReason.FirstPlace, currentSeasonStart);
         this.eventAggregator.publishAchievement({user: winners[0].user, type: AchievementType.ArenaWon, count: arenasWon, seasonalCount: arenasWonSeasonal });
 
-        this.sendMessage(
+        await this.sendMessage(
             Lang.get("arena.result3rd", numberOfWinsNeeded - 1, winners[2].points, winners[2].user.username)
         );
-        this.sendMessage(
+        await this.delay(3000);
+        await this.sendMessage(
             Lang.get("arena.result2nd", numberOfWinsNeeded - 1, winners[1].points, winners[1].user.username)
         );
-        this.sendMessage(Lang.get("arena.result1st", numberOfWinsNeeded, winners[0].points, winners[0].user.username));
+        await this.delay(3000);
+        await this.sendMessage(Lang.get("arena.result1st", numberOfWinsNeeded, winners[0].points, winners[0].user.username));
 
         this.eventService.stopEventStartCooldown(this);
     }
