@@ -305,6 +305,14 @@ export class SonglistRepository {
             .leftJoin(DatabaseTables.Users, "userId", "users.id")
             .select("userId", "username");
     }
+
+    public async countFavorites(userId: number) {
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.SonglistFavorites)
+            .where("userId", userId)
+            .count("id AS cnt").first();
+        return result.cnt;
+    }
 }
 
 export default SonglistRepository;
