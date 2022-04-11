@@ -4,7 +4,6 @@ import moment = require("moment");
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
 import { IUser, UserLevels } from "../models";
-import { BotSettings } from "./botSettingsService";
 import { exec } from "child_process";
 
 export enum DatabaseTables {
@@ -236,7 +235,7 @@ export class DatabaseService {
             table.integer("vipLevelKey").unsigned();
             table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
             table.integer("userLevel").unsigned().notNullable().defaultTo(UserLevels.Viewer);
-            table.string("username").notNullable().unique();
+            table.string("username").notNullable();
             table.string("refreshToken");
             table.string("accessToken");
             table.string("idToken");
@@ -253,6 +252,7 @@ export class DatabaseService {
             table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
             table.string("dropboxAccessToken");
             table.string("dropboxRefreshToken");
+            table.unique(this.raw("username COLLATE NOCASE"));
         });
     }
 
