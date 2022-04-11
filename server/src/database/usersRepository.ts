@@ -97,8 +97,9 @@ export class UsersRepository {
 
         const userResult = await databaseService
             .getQueryBuilder(DatabaseTables.Users)
-            .innerJoin(DatabaseTables.EventLogs, "eventLogs.username", "users.username")
+            .innerJoin(DatabaseTables.EventLogs, "eventLogs.userId", "users.id")
             .where("eventLogs.type", "=", EventLogType.SongRequest)
+            .orderBy("users.username")
             .select([
                 "users.username",
                 "users.id"
