@@ -21,7 +21,11 @@ export default class RedeemCardCommand extends Command {
         if (typeof result === "string") {
             await this.twitchService.sendMessage(channel, result);
         } else if (result) {
-            await this.twitchService.sendMessage(channel, Lang.get("cards.cardredeemed", user.username, result.name));
+            if (result.pullsLeft === undefined) {
+                await this.twitchService.sendMessage(channel, Lang.get("cards.cardredeemed", user.username, result.card.name));
+            } else {
+                await this.twitchService.sendMessage(channel, Lang.get("cards.cardredeemedpulls", user.username, result.card.name, result.pullsLeft === 0 ? "no" : result.pullsLeft));
+            }
         }
     }
 
