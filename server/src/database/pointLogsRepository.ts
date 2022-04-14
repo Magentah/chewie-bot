@@ -53,6 +53,16 @@ export class PointLogsRepository {
         return won;
     }
 
+    public async getCount(user: IUser, type: PointLogType, reason: PointLogReason, sinceDate: Date = new Date(0)): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        const won = (await databaseService.getQueryBuilder(DatabaseTables.PointLogs)
+            .where({ eventType: type, userId: user.id, reason })
+            .andWhere("time", ">=", sinceDate)
+            .count("id AS cnt")
+            .first()).cnt ?? 0;
+        return won;
+    }
+
     public async add(log: IPointLog): Promise<void> {
         const databaseService = await this.databaseProvider();
         log.time = moment().utc().toDate();

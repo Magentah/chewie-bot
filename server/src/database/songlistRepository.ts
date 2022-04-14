@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 import { ISonglistCategory, ISonglistItem, IUser } from "../models";
-import { ISonglistTag } from "src/models/songlistItem";
+import { ISonglistTag } from "../models/songlistItem";
 
 @injectable()
 export class SonglistRepository {
@@ -286,6 +286,32 @@ export class SonglistRepository {
     public async unmarkFavorite(user: IUser, id: number | undefined) {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.SonglistFavorites).delete().where({userId: user.id, songId: id});
+    }
+
+    public async getTopFavorites(songCount: number): Promise<{numFavorites: number, title: string, artist: string}[]> {
+        const databaseService = await this.databaseProvider();
+        return await databaseService.getQueryBuilder(DatabaseTables.SonglistFavorites)
+            .select(databaseService.raw("count(songlistFavorites.id) AS numFavorites"), "songlist.title", "songlist.artist")
+            .leftJoin(DatabaseTables.Songlist, "songlistFavorites.songid", "songlist.id")
+            .groupBy("songId")
+            .orderBy("numFavorites", "desc")
+            .limit(songCount);
+    }
+
+    public async getFavorites(songId: number): Promise<{userId: number, username: string}[]> {
+        const databaseService = await this.databaseProvider();
+        return await databaseService.getQueryBuilder(DatabaseTables.SonglistFavorites)
+            .where("songId", songId)
+            .leftJoin(DatabaseTables.Users, "userId", "users.id")
+            .select("userId", "username");
+    }
+
+    public async countFavorites(userId: number) {
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.SonglistFavorites)
+            .where("userId", userId)
+            .count("id AS cnt").first();
+        return result.cnt;
     }
 }
 

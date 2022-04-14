@@ -78,13 +78,15 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const classes = useStyles();
     const userContext = useContext(UserContext);
 
-    const updateCards = useCallback(async () => {
+    const updateCards = useCallback(async (currentSeason: string) => {
         const selectorResponse = await axios.get("/api/mycards/selector");
         if (selectorResponse) {
             const data: SelectorData[] = selectorResponse.data;
             setSelector(data);
-            if (data.length > 0) {
+            if (data.length > 0 && currentSeason === "") {
                 setSelectedSeason(data[0].setName);
+            } else {
+                setSelectedSeason(currentSeason);
             }
         }
 
@@ -104,8 +106,8 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                     if (typeof result.data === "string") {
                         setRedeemInfoResultMsg(result.data);
                     } else {
-                        setRedeemInfoResultMsg(`You got ${result.data.name}!`);
-                        updateCards();
+                        setRedeemInfoResultMsg(`You got ${result.data.card.name}!`);
+                        updateCards(selectedSeason);
                     }
                 }
             })
@@ -116,7 +118,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
         setSelectedSeason(event.target.value);
     };
 
-    useEffect(() => { updateCards() }, [updateCards]);
+    useEffect(() => { updateCards(selectedSeason) }, [updateCards]);
 
     function PaperComponent(paperProps: PaperProps) {
         return (
