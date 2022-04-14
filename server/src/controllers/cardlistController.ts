@@ -91,8 +91,8 @@ class CardlistController {
         const result = await this.cardService.redeemRandomCard(user.username);
 
         // Post upgrades in chat when redeemed from UI
-        if (result && typeof(result) !== "string" && result.isUpgrade) {
-            await this.twitchService.sendMessage(Config.twitch.broadcasterName, Lang.get("cards.cardredeemed", user.username, result.name));
+        if (result && typeof(result) !== "string" && result.card.isUpgrade) {
+            await this.twitchService.sendMessage(Config.twitch.broadcasterName, Lang.get("cards.cardredeemed", user.username, result.card.name));
         }
 
         res.status(StatusCodes.OK);

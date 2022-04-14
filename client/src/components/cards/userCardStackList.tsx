@@ -106,7 +106,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                     if (typeof result.data === "string") {
                         setRedeemInfoResultMsg(result.data);
                     } else {
-                        setRedeemInfoResultMsg(`You got ${result.data.name}!`);
+                        setRedeemInfoResultMsg(`You got ${result.data.card.name}!`);
                         updateCards(selectedSeason);
                     }
                 }

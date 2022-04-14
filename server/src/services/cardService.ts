@@ -16,7 +16,7 @@ export default class CardService {
     ) {
     }
 
-    public async redeemRandomCard(username: string): Promise<IUserCard | string | undefined> {
+    public async redeemRandomCard(username: string): Promise<{card: IUserCard, pullsLeft: number | undefined} | string | undefined> {
         const user = await this.userService.getUser(username);
         if (!user) {
             return undefined;
@@ -32,9 +32,11 @@ export default class CardService {
         }
 
         // Check if user already has redeemed too many cards this week.
+        let pullsLeft;
         const cardsPerWeek = parseInt(await this.settingsService.getValue(BotSettings.CardRedeemPerWeek), 10);
         if (cardsPerWeek > 0) {
             const cardsRedeemed = await this.cardsRepository.getRedeemedCardCount(user, new Date());
+            pullsLeft = cardsPerWeek - cardsRedeemed - 1;
             if (cardsRedeemed >= cardsPerWeek) {
                 return Lang.get("cards.redeemlimitexceeded", user.username, cardsRedeemed);
             }
@@ -63,7 +65,7 @@ export default class CardService {
 
             await this.cardsRepository.saveCardRedemption(user, cardToSave);
             await this.userService.changeUserPoints(user, -cost, PointLogType.RedeemCard);
-            return card;
+            return {card, pullsLeft };
         }
 
         return undefined;
