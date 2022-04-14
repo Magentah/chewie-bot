@@ -14,3 +14,4 @@ export { default as StreamActivityRepository } from "./streamActivityRepository"
 export { default as UserTaxHistoryRepository } from "./userTaxHistoryRepository";
 export { default as UserTaxStreakRepository } from "./userTaxStreakRepository";
 export { default as SeasonsRepository } from "./seasonsRepository";
+export { default as PointLogsRepository } from "./pointLogsRepository";

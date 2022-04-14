@@ -56,6 +56,9 @@ export { default as RandomCommand } from "./songlist/randomCommand";
 export { default as RandomFavoriteCommand } from "./songlist/randomFavoriteCommand";
 export { default as RandomUserFavoriteCommand } from "./songlist/randomUserFavoriteCommand";
 export { default as HasSongCommand } from "./songlist/hasSongCommand";
+export { default as TopFavoritesCommand } from "./songlist/topFavoritesCommand";
+export { default as SongStatsCommand } from "./songlist/songStatsCommand";
+export { default as FavoriteCountCommand } from "./songlist/favoriteCountCommand";
 
 export { default as PointsCommand } from "../commandScripts/points/pointsCommand";
 export { default as GivePointsCommand } from "../commandScripts/points/givePointsCommand";

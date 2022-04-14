@@ -124,7 +124,7 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
     /**
      * Callback for sending messages to the chat.
      */
-    public sendMessage: (msg: string) => void = () => undefined;
+    public sendMessage: (msg: string) => Promise<any> = async () => undefined;
 
     /**
      * Called when the cooldown has completed.
