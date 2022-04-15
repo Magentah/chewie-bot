@@ -18,7 +18,7 @@ const UserStatusLog: React.FC<{ profile: UserProfile }> = ({ profile }) => {
             <TableBody>
             {profile.goldLogs.map((row: any) => (
                 <TableRow key={row.name}>
-                    <TableCell component="th" scope="row">
+                    <TableCell scope="row">
                         {dateFormatShort.format(new Date(row.time))}
                     </TableCell>
                     <TableCell>{row.event}</TableCell>

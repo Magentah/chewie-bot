@@ -58,15 +58,15 @@ const UserProfileView: React.FC<any> = (props: any) => {
                 <Table >
                     <TableBody>
                         <TableRow>
-                            <TableCell component="th" scope="row">VIP expiry:</TableCell>
+                            <TableCell scope="row">VIP expiry:</TableCell>
                             <TableCell align="right">{tryFormat(fullUserProfile.user.vipExpiry)} {fullUserProfile.timezone}</TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell component="th" scope="row">VIP permanent requests:</TableCell>
+                            <TableCell scope="row">VIP permanent requests:</TableCell>
                             <TableCell align="right">{fullUserProfile.user.vipPermanentRequests}</TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell component="th" scope="row">Last song request:</TableCell>
+                            <TableCell scope="row">Last song request:</TableCell>
                             <TableCell align="right">{fullUserProfile.user.vipLastRequest ? tryFormat(fullUserProfile.user.vipLastRequest) + " " + fullUserProfile.timezone: "(None)"}</TableCell>
                         </TableRow>
                     </TableBody>
