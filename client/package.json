@@ -61,5 +61,8 @@
         "react-bootstrap": {
             "@types/react": "17.0.30"
         }
+    },
+    "resolutions": {
+        "@types/react": "^17.0.38"
     }
 }

@@ -257,7 +257,7 @@ const SongList: React.FC<any> = (props: any) => {
                         <TableBody>
                         {songlistFiltered.map((row) => (
                             <TableRow key={row.id}>
-                                {hasOrigin ? <TableCell component="th" scope="row">{lastOrigin === row.album ? "" : (lastOrigin = row.album)}</TableCell> : undefined}
+                                {hasOrigin ? <TableCell scope="row">{lastOrigin === row.album ? "" : (lastOrigin = row.album)}</TableCell> : undefined}
                                 <TableCell>{row.title}</TableCell>
                                 <TableCell>{row.artist}</TableCell>
                                 {showGenre ? <TableCell>{row.genre}</TableCell> : undefined}
