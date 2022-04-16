@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon } from "@material-ui/core";
 
@@ -32,12 +32,12 @@ const useStyles = makeStyles((theme) => {
 const SideBar: React.FC<any> = (props: any) => {
     const isOpened: boolean = true;
     const location = useLocation();
-    const history = useHistory();
+    const history = useNavigate();
     const classes = useStyles();
     const userContext = useContext(UserContext);
 
     const reroute = (path: string) => {
-        history.push(path);
+        history(path);
     };
     const renderRoutes = (routes: Route[]) => {
         const listItems = routes.map((r: Route, i: number) => {

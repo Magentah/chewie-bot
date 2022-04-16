@@ -156,7 +156,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                     state: "failed",
                     message: error.response.data.error.message
             })});
-        } catch (error) {
+        } catch (error: any) {
             setAchievementListState({
                 state: "failed",
                 message: error.message

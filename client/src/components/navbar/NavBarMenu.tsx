@@ -15,7 +15,7 @@ import {
 
 import { Face, ExitToApp } from "@material-ui/icons";
 import { OverridableComponent } from "@material-ui/core/OverridableComponent";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../contexts/userContext";
 
 type NavMenuItem = {
@@ -44,11 +44,11 @@ const useStyles = makeStyles((theme) => ({
 
 const NavBarMenu: React.FC<any> = (props: any) => {
     const classes = useStyles();
-    const history = useHistory();
+    const history = useNavigate();
     const [anchor, setAnchor] = useState<undefined | HTMLElement>(undefined);
     const userContext = useContext(UserContext);
     const navMenuItems: NavMenuItem[] = [
-        { name: "Profile", iconComponent: Face, action: () => history.push("profile") },
+        { name: "Profile", iconComponent: Face, action: () => history("profile") },
         { name: "Log Out", iconComponent: ExitToApp, action: () => window.location.href = "/api/logout" },
     ];
 

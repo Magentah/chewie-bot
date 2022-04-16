@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Route, Switch } from "react-router-dom";
+import { HashRouter as Router, Route, Routes } from "react-router-dom";
 import CssBaseLine from "@material-ui/core/CssBaseline";
 
 import Dashboard from "./views/dashboard/Dashboard";
@@ -32,17 +32,11 @@ const App: React.FC<{}> = (props) => {
         <Router>
             <CssBaseLine />
             <UserContextProvider>
-                <Switch>
-                    <Route path="/currentsong">
-                        <CurrentSong />
-                    </Route>
-                    <Route path="/alerts/:timeout">
-                        <Alert />
-                    </Route>
-                    <Route exact path="*">
-                        <Dashboard />
-                    </Route>
-                </Switch>
+                <Routes>
+                    <Route path="/currentsong" element={<CurrentSong/>} />
+                    <Route path="/alerts/:timeout" element={<Alert />} />
+                    <Route path="*" element={<Dashboard />} />
+                </Routes>
             </UserContextProvider>
         </Router>
     );
