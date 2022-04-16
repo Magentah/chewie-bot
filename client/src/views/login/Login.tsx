@@ -4,7 +4,7 @@ import { Box, Button, Card, CardContent, Divider, Grid, Typography } from "@mate
 import { makeStyles } from "@material-ui/core/styles";
 import React, { useContext } from "react";
 import { Image } from "react-bootstrap";
-import * as Cookie from "js-cookie";
+import Cookies from "js-cookie";
 import { UserContext } from "../../contexts/userContext";
 
 type LoginProps = {};
@@ -83,7 +83,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
 
     const userContext = useContext(UserContext);
 
-    const requireBroadcasterAuth = Cookie.get("broadcaster_user") === "1";
+    const requireBroadcasterAuth = Cookies.get("broadcaster_user") === "1";
 
     let loginHeader : JSX.Element | undefined;
     let loginButton : JSX.Element | undefined;

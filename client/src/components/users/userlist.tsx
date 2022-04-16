@@ -132,7 +132,7 @@ const UserList: React.FC<any> = (props: any) => {
             }
 
             setPopupAnchor(undefined);
-        } catch (error) {
+        } catch (error: any) {
             setAddVipState({
                 state: "failed",
                 message: error.message

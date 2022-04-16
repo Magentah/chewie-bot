@@ -270,7 +270,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             await axios.post(`/api/songs/user/${userContext.user.username}`, { url: songRequestUrl, requestSource: "Bot UI" });
             setSongRequestState({state: "success"});
             setSongRequestUrl("");
-        } catch (error) {
+        } catch (error: any) {
             setSongRequestState({
                 state: "failed",
                 message: error.response.data.error.message
