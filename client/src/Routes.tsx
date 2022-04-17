@@ -1,10 +1,10 @@
 import React from "react";
-import { SvgIconTypeMap } from "@material-ui/core";
-import { OverridableComponent } from "@material-ui/core/OverridableComponent";
-import { Typography } from "@material-ui/core";
+import { SvgIconTypeMap } from "@mui/material";
+import { OverridableComponent } from "@mui/material/OverridableComponent";
+import { Typography } from "@mui/material";
 
 // Icons
-import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Event, ChatBubbleOutline, Lens as DefaultIcon } from "@material-ui/icons";
+import { LibraryMusic, QueueMusic, SupervisorAccount, Home, Payment, Build, Message, Extension, EmojiEvents, Event, ChatBubbleOutline, Lens as DefaultIcon } from "@mui/icons-material";
 
 // Business Components
 import TwitchCard from "./components/twitch/TwitchCard";

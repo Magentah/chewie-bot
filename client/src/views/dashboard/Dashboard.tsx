@@ -1,13 +1,13 @@
 import React, { useContext } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { makeStyles } from "@material-ui/core/styles";
-import { Grid, Typography, Divider } from "@material-ui/core";
+import { makeStyles } from "makeStyles";
+import { Grid, Typography, Divider, Theme } from "@mui/material";
 import SideBar from "../../components/sidebar/SideBar";
 import NavBar from "../../components/navbar/NavBar";
 import { Route as RouteType, DashboardRoutes, NotFoundRoute } from "../../Routes";
 import { UserContext } from "../../contexts/userContext";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     root: {
         display: "flex",
     },
@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
     },
     content: {
         flexGrow: 1,
-        padding: theme.spacing(3),
+        padding: theme.spacing(3)
     },
 }));
 
@@ -38,7 +38,7 @@ const createRouteMap = (routes: RouteType[]): ((x: string) => RouteType) => {
 };
 
 const Dashboard: React.FC<{}> = (props) => {
-    const classes = useStyles();
+    const { classes } = useStyles();
     const location = useLocation();
     const getRoute = createRouteMap(DashboardRoutes);
     const userContext = useContext(UserContext);

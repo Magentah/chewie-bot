@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 import { UserLevel } from "../common/userLevel";
-import { Grid } from "@material-ui/core";
-import { Launch, Chat, Settings } from "@material-ui/icons";
+import { Grid } from "@mui/material";
+import { Launch, Chat, Settings } from "@mui/icons-material";
 import { UserContext, UserLevels } from "../../contexts/userContext";
 
 enum CommandType {

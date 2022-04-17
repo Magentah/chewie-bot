@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "tss-react/mui";
 import {
     Avatar,
     IconButton,
@@ -11,10 +11,11 @@ import {
     SvgIconTypeMap,
     Grid,
     Box,
-} from "@material-ui/core";
+    Theme
+} from "@mui/material";
 
-import { Face, ExitToApp } from "@material-ui/icons";
-import { OverridableComponent } from "@material-ui/core/OverridableComponent";
+import { Face, ExitToApp } from "@mui/icons-material";
+import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../contexts/userContext";
 
@@ -24,7 +25,7 @@ type NavMenuItem = {
     iconComponent: OverridableComponent<SvgIconTypeMap<{}, "svg">>;
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     root: {
         color: "white",
         ":hover": {
@@ -43,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const NavBarMenu: React.FC<any> = (props: any) => {
-    const classes = useStyles();
+    const { classes } = useStyles();
     const history = useNavigate();
     const [anchor, setAnchor] = useState<undefined | HTMLElement>(undefined);
     const userContext = useContext(UserContext);
@@ -56,7 +57,7 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         setAnchor(e.currentTarget);
     };
 
-    const onClose = () => {
+    const onClose = (e: any) => {
         setAnchor(undefined);
     };
 
@@ -66,7 +67,7 @@ const NavBarMenu: React.FC<any> = (props: any) => {
 
     const renderNavMenuItems = (navItems: NavMenuItem[]) => {
         return navItems.map((item) => (
-            <MenuItem button onClick={onClose} key={item.name}>
+            <MenuItem onClick={onClose} key={item.name}>
                 <ListItemIcon>
                     <item.iconComponent />
                 </ListItemIcon>
@@ -84,7 +85,6 @@ const NavBarMenu: React.FC<any> = (props: any) => {
             anchorEl={anchor}
             anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
             transformOrigin={{ vertical: "top", horizontal: "center" }}
-            getContentAnchorEl={undefined}
             open={isMenuOpened()}
             onClose={onClose}>
         {renderNavMenuItems(navMenuItems)}

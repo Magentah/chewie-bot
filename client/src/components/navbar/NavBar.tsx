@@ -1,20 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import { AppBar, Toolbar, IconButton, Typography, Button } from "@material-ui/core";
+import { makeStyles } from "tss-react/mui";
+import { AppBar, Toolbar, IconButton, Typography, Button, Theme } from "@mui/material";
 import { Image } from "react-bootstrap";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
-import { green, red } from "@material-ui/core/colors";
+import { green, red } from "@mui/material/colors";
 import { UserContext, UserLevels } from "../../contexts/userContext";
 
 type NavBarProps = {};
-const sidebarWidth = 230;
-const useStyles = makeStyles((theme) => ({
-    appBar: {
-        width: `calc(100% - ${sidebarWidth}px)`,
-        marginLeft: sidebarWidth,
-        backgroundColor: "#282C34",
-    },
+
+const useStyles = makeStyles()((theme: Theme) => ({
     rightMenu: {
         marginLeft: "auto",
         marginRight: -12,
@@ -48,7 +43,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const [botConnected, setBotConnected] = useState(false);
     const userContext = useContext(UserContext);
 
-    const classes = useStyles();
+    const { classes } = useStyles();
     const watchChewie = () => {
         window.open("https://www.twitch.tv/chewiemelodies", "_blank");
     };
@@ -88,7 +83,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         </Button>;
 
     return (
-        <AppBar position="fixed" className={classes.appBar}>
+        <AppBar position="fixed">
             <Toolbar>
                 <Typography variant="h6">Chewie Melodies</Typography>
                 <div className={classes.rightMenu}>

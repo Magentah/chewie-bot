@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent, Box } from "@material-ui/core";
+import { Card, CardContent, Box } from "@mui/material";
 import SongQueue from "../../components/songqueue/SongQueue";
 import SongPlayer from "../../components/songqueue/SongPlayer";
 
