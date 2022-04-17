@@ -1,13 +1,13 @@
 import React, { useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { makeStyles } from "@material-ui/core/styles";
-import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon } from "@material-ui/core";
+import { makeStyles } from "tss-react/mui";
+import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon, Theme } from "@mui/material";
 
 import { Route, DashboardRoutes } from "../../Routes";
 import { UserContext } from "../../contexts/userContext";
 
 const width = 235;
-const useStyles = makeStyles((theme) => {
+const useStyles = makeStyles()((theme: Theme) => {
     return {
         root: {
             backgroundColor: theme.palette.background.paper,
@@ -33,7 +33,7 @@ const SideBar: React.FC<any> = (props: any) => {
     const isOpened: boolean = true;
     const location = useLocation();
     const history = useNavigate();
-    const classes = useStyles();
+    const { classes } = useStyles();
     const userContext = useContext(UserContext);
 
     const reroute = (path: string) => {

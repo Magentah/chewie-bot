@@ -1,13 +1,13 @@
-import { Card, Typography, Grid, Avatar, Box, CardContent, createStyles, makeStyles, Theme, TableContainer, Table, TableRow, TableCell, TableBody } from "@material-ui/core";
+import { Card, Typography, Grid, Avatar, Box, CardContent, Theme, TableContainer, Table, TableRow, TableCell, TableBody } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import React, { useContext, useEffect, useState } from "react";
-import Paper from "@material-ui/core/Paper";
+import Paper from "@mui/material/Paper";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
 import { UserContext } from "../../contexts/userContext";
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
+const useStyles = makeStyles()((theme: Theme) => ({
     small: {
       width: theme.spacing(3),
       height: theme.spacing(3),
@@ -26,7 +26,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
     const userContext = useContext(UserContext);
     const [fullUserProfile, setFullUserProfile] = useState<UserProfile>();
 
-    const classes = useStyles();
+    const { classes } = useStyles();
 
     useEffect(() => {
         if (userContext.user.username) {

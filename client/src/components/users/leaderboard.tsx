@@ -1,14 +1,14 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Image } from "react-bootstrap";
-import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
+import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem, Theme } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 import { UserContext } from "../../contexts/userContext";
 
 type RowData = { username: string, points: number, rank: number };
 type SeasonData = { id: number, startDate: Date, endDate: Date, plannedEndDate: string, description: string };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     flexBox: {
         borderRadius: "2.5em",
         justifyContent: "center",
@@ -52,7 +52,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
     const [seasons, setSeasons] = useState([] as SeasonData[]);
     const [currentSeasonId, setCurrentSeasonId] = useState<number>(0);
 
-    const classes = useStyles();
+    const { classes } = useStyles();
     const numberFormat = new Intl.NumberFormat();
     const rankingColors = ["#FF9B00", "#083963", "#965119", "#7ABFBC", "#4FA3A9", "#8BADDC", "#8BADDC", "#478BCA", "#5871B6", "#6353A0", "transparent" ];
 
@@ -97,7 +97,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
     let leaderboardList;
     if (userlist.length >= 3) {
         leaderboardList = <Grid xs>
-            <Grid item container alignItems="flex-end" justify="center" direction="row">
+            <Grid item container alignItems="flex-end" justifyContent="center" direction="row">
                 <Grid item xs={1} />
                 <Grid item xs>
                     <Grid container direction="column" alignItems="center">
@@ -172,7 +172,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
             </Grid>
         </Box>
         <Box marginTop={2}>
-            <Grid container xs justify="center" direction="row">
+            <Grid container xs justifyContent="center" direction="row">
                 <Grid item xs={1}></Grid>
                 <Grid item xs>
                     <Grid container direction="column" alignItems="center">

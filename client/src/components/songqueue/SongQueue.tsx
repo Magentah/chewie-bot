@@ -2,17 +2,18 @@ import React, { useState, useEffect, useRef, useCallback, useContext } from "rea
 import { Image } from "react-bootstrap";
 import
 {
-    Grid, Typography, Box, makeStyles, GridList, GridListTile, GridListTileBar, Divider,
-    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab, Dialog, DialogTitle, DialogActions, DialogContent
-} from "@material-ui/core";
-import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
-import IconButton from "@material-ui/core/IconButton";
-import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
-import OpenInNewIcon from "@material-ui/icons/OpenInNew";
-import AddIcon from "@material-ui/icons/Add";
-import VerticalAlignTopIcon from "@material-ui/icons/VerticalAlignTop";
-import CheckIcon from "@material-ui/icons/Check";
-import AttachMoneyIcon from "@material-ui/icons/AttachMoney";
+    Grid, Typography, Box, ImageList, ImageListItem, ImageListItemBar, Divider,
+    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab, Dialog, DialogTitle, DialogActions, DialogContent, Theme, SnackbarCloseReason
+} from "@mui/material";
+import { makeStyles } from "tss-react/mui";
+import { Alert, AlertProps } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import AddIcon from "@mui/icons-material/Add";
+import VerticalAlignTopIcon from "@mui/icons-material/VerticalAlignTop";
+import CheckIcon from "@mui/icons-material/Check";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
@@ -23,7 +24,7 @@ import SongHistory from "./SongHistory";
 import Song, { SongSource } from "./song";
 import RequestDateCell from "./RequestDateCell";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     root: {
       display: "flex",
       flexWrap: "wrap",
@@ -68,7 +69,7 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
     </Grid>) : undefined;
 
     return (
-        <Grid container direction="row" justify="flex-start" wrap="nowrap">
+        <Grid container direction="row" justifyContent="flex-start" wrap="nowrap">
             <Grid item>
                 <a href={props.value.sourceUrl} target="_blank" rel="noopener noreferrer">
                     <Image style={{ maxHeight: "100px" }} src={props.value.previewUrl} thumbnail />
@@ -134,8 +135,8 @@ type FailedSongRequestState = {
 
 type SongRequestState = NoSongRequestState | AddedSongRequestState | AddingSongRequestState | FailedSongRequestState;
 
-function Alert(props: AlertProps) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
+function FilledAlert(props: AlertProps) {
+    return <Alert elevation={6} variant="filled" {...props} />;
 }
 
 const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
@@ -153,7 +154,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [editingSongRequester, setEditingSongRequester] = useState<string>("");
     const [editingSongUrl, setEditingSongUrl] = useState<string>("");
 
-    const classes = useStyles();
+    const { classes } = useStyles();
 
     const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
 
@@ -278,7 +279,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     };
 
-    const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
+    const handleClose = (event: any, reason: SnackbarCloseReason) => {
         if (reason === "clickaway") {
             return;
         }
@@ -357,7 +358,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const addSongrequestsForm = (userContext.user.userLevel >= UserLevels.Moderator)
         ? <Grid item xs={12}>
             <form onSubmit={submitSongRequest}>
-                <Grid container spacing={2} justify="flex-start">
+                <Grid container spacing={2} justifyContent="flex-start">
                     <Grid item xs={12} sm={4}>
                         <TextField
                             id="song-url"
@@ -381,15 +382,15 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 </Grid>
             </form>
             <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="success">
+                <FilledAlert onClose={(e) => handleClose(e, "clickaway")} severity="success">
                     Song request added.
-                </Alert>
+                </FilledAlert>
             </Snackbar>
             { songRequestState?.state === "failed" ?
             <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="error">
+                <FilledAlert onClose={(e) => handleClose(e, "clickaway")} severity="error">
                     Song request could not be added: {songRequestState.message}
-                </Alert>
+                </FilledAlert>
             </Snackbar> : undefined}
         </Grid>
         : undefined;
@@ -403,11 +404,11 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                     Your requests
                 </Typography>
                 <div className={classes.root}>
-                   <GridList cellHeight={140} cols={3} className={classes.gridList}>
+                   <ImageList rowHeight={140} cols={3} className={classes.gridList}>
                        {ownSongs.map((tile) => (
-                           <GridListTile key={tile.song.previewUrl}>
+                           <ImageListItem key={tile.song.previewUrl}>
                                <img src={tile.song.previewUrl} alt={tile.song.title} />
-                               <GridListTileBar
+                               <ImageListItemBar
                                    title={tile.song.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
@@ -416,9 +417,9 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                                        </IconButton>
                                    }
                                />
-                           </GridListTile>
+                           </ImageListItem>
                        ))}
-                   </GridList>
+                   </ImageList >
                 </div>
             </Box> : undefined}
             {addSongrequestsForm}

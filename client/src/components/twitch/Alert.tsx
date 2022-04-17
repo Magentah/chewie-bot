@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
-import { Fade } from "@material-ui/core";
+import { Fade } from "@mui/material";
 import { useParams } from "react-router";
 
 interface IAlertData {

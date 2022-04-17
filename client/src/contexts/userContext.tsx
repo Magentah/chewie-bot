@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
-import { useContextFactory } from "./contextFactory";
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 export enum UserLevels {
@@ -19,8 +18,6 @@ const defaultUser: any = {
 };
 
 export const UserContext = createContext({user: defaultUser, loadUser: () => {}});
-
-export const useUserContext = useContextFactory("UserContext", UserContext);
 
 const UserContextProvider = (props: any) => {
     const [user, setUser] = useState<any>(defaultUser);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Popover, Box, Grid, Button, TextField, MenuItem, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from "@material-ui/core";
-import { Add, Save, Delete } from "@material-ui/icons";
+import { Popover, Box, Grid, Button, TextField, MenuItem, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from "@mui/material";
+import { Add, Save, Delete } from "@mui/icons-material";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 
@@ -103,7 +103,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
             }}>
                 <Box py={1} px={2}>
                     <form>
-                        <Grid container spacing={2} justify="flex-start" wrap={"nowrap"} alignItems="center">
+                        <Grid container spacing={2} justifyContent="flex-start" wrap={"nowrap"} alignItems="center">
                             <Grid item>
                                 <TextField
                                     select

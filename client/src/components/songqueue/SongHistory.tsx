@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Box, CircularProgress, Grid, Input, InputLabel, Link, makeStyles, Paper } from "@material-ui/core";
+import { Box, CircularProgress, Grid, Input, InputLabel, Link, Paper, Theme } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 import useDebouncedSearch from "./useDebouncedSearch";
 import RequestDateCell from "./RequestDateCell";
 import Song from "./song";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     requestHistory: {
         margin: theme.spacing(0),
     },
@@ -17,14 +18,14 @@ const useStyles = makeStyles((theme) => ({
       }
 }));
 
-interface SongHistory {
+interface ISongHistory {
     title: string
     requestedBy: string,
     requestSource: string,
     sourceUrl: string
 }
 
-const DetailCellHistory: React.FC<{value: SongHistory}> = (props) => {
+const DetailCellHistory: React.FC<{value: ISongHistory}> = (props) => {
     return <span>
         <Link href={props.value.sourceUrl} target="_blank" rel="noopener noreferrer">
             {props.value.title}
@@ -33,9 +34,9 @@ const DetailCellHistory: React.FC<{value: SongHistory}> = (props) => {
 }
 
 const SongHistory: React.FC = (props) => {
-    const classes = useStyles();
+    const { classes } = useStyles();
 
-    const [playedSongs, setPlayedSongs] = useState<SongHistory[]>([]);
+    const [playedSongs, setPlayedSongs] = useState<ISongHistory[]>([]);
     const [totalResults, setTotalResults] = useState<number>(0);
 
     useEffect(() => {
@@ -45,7 +46,7 @@ const SongHistory: React.FC = (props) => {
         });
     }, []);
 
-    const searchSongHistoryAsync = async (text: string): Promise<SongHistory[]> => {
+    const searchSongHistoryAsync = async (text: string): Promise<ISongHistory[]> => {
         const result = (await axios.get("/api/songs/history", { params: { search: text, limit: 20 }}))?.data;
         setTotalResults(result.count);
         return result.songs;
@@ -85,7 +86,7 @@ const SongHistory: React.FC = (props) => {
                         },
                     ]}
                     options = {{tableLayout: "auto", showTitle: false, search: false, toolbar: false, padding: "dense", pageSize: 10}}
-                    data = {inputText && searchResults.result ? searchResults.result as SongHistory[] : playedSongs}
+                    data = {inputText && searchResults.result ? searchResults.result as ISongHistory[] : playedSongs}
                     components={{
                         Container: p => <Paper {...p} elevation={0} className={`${classes.requestHistory} ${classes.table}`} />
                     }}

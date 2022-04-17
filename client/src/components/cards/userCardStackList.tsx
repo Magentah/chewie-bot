@@ -1,13 +1,13 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
-import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop, Select, MenuItem } from "@material-ui/core";
+import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop, Select, MenuItem, Theme } from "@mui/material";
 import { Image } from "react-bootstrap";
 import useSetting from "../../hooks/setting";
 import Sparkles from "../common/sparkle";
 import { UserContext } from "../../contexts/userContext";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     cardsCountBox: {
         textTransform: "uppercase",
         fontWeight: "bold",
@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
     },
     individualCardCounterText: {
         fontSize: "0.9em",
-        color: theme.palette.text.hint
+        color: theme.palette.text.secondary
     },
     noCardsText: {
         textTransform: "uppercase"
@@ -75,7 +75,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
     const [cardViewUrl, setCardViewUrl] = useState("");
     const cardCost = useSetting<number>("card-redeem-cost");
 
-    const classes = useStyles();
+    const { classes } = useStyles();
     const userContext = useContext(UserContext);
 
     const updateCards = useCallback(async (currentSeason: string) => {
@@ -118,7 +118,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
         setSelectedSeason(event.target.value);
     };
 
-    useEffect(() => { updateCards(selectedSeason) }, [updateCards]);
+    useEffect(() => { updateCards(selectedSeason) }, [updateCards, selectedSeason]);
 
     function PaperComponent(paperProps: PaperProps) {
         return (

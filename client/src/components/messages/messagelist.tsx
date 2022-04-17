@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
-import { Typography } from "@material-ui/core";
+import { Typography } from "@mui/material";
 
 const MessageList: React.FC<any> = (props: any) => {
     type RowData = { id?: number, type: string, text: string, eventType: string };

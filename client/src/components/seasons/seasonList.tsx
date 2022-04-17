@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress } from "@material-ui/core";
+import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, CircularProgress } from "@mui/material";
 import MaterialTable from "@material-table/core";
-import { Alert } from "@material-ui/lab";
+import { Alert } from "@mui/material";
 import { AddToListState } from "../common/addToListState";
 
 const DateCell: React.FC<any> = (date: number) => {

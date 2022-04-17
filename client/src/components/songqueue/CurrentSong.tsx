@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
-import { Typography } from "@material-ui/core";
+import { Typography } from "@mui/material";
 import axios from "axios";
 
 const CurrentSong: React.FC = (props) => {

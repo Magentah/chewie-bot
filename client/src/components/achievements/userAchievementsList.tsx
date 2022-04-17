@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
-import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, PaperProps, Paper, Icon } from "@material-ui/core";
+import { Box, Typography, Grid, Card, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, PaperProps, Paper, Icon, Theme } from "@mui/material";
 import { Image } from "react-bootstrap";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import useSetting from "../../hooks/setting";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     collectionHeader: {
         marginTop: theme.spacing(2)
     },
@@ -56,7 +56,7 @@ const UserAchievementList: React.FC<any> = (props: any) => {
     const [achievementList, setAchievementList] = useState([] as RowData[]);
     const [achievementToRedeem, setAchievementToRedeem] = useState<RowData>();
 
-    const classes = useStyles();
+    const { classes } = useStyles();
     const readonlyMode = useSetting<number>("readonly-mode");
 
     const updateAchievements = useCallback(() => {

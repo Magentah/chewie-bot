@@ -1,7 +1,7 @@
 import { faDiscord, faPatreon, faSpotify, faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Box, Button, Card, CardContent, Divider, Grid, Typography } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
+import { Box, Button, Card, CardContent, Divider, Grid, Typography, Theme } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 import React, { useContext } from "react";
 import { Image } from "react-bootstrap";
 import Cookies from "js-cookie";
@@ -49,7 +49,7 @@ const stubLinks: AffiliateLink[] = [
     },
 ];
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     card: {
         textAlign: "center",
     },
@@ -63,8 +63,9 @@ const useStyles = makeStyles((theme) => ({
         width: 300,
     },
 }));
+
 const Login: React.FC<LoginProps> = (props: LoginProps) => {
-    const classes = useStyles();
+    const { classes } = useStyles();
     const renderLinks = (links: AffiliateLink[]) => {
         return links.map((link: AffiliateLink, i: number) => (
             <Grid item xs={12} style={{ paddingBottom: i === links.length - 1 ? 20 : 0 }} key={i}>

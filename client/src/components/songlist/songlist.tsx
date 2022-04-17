@@ -1,17 +1,17 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import {
     Grid, TextField, Box, Card, Accordion, AccordionSummary, Typography, AccordionDetails,
-    Icon, Tabs, Tab, Paper, InputAdornment, LinearProgress, TableContainer, Table, TableCell, TableRow, TableHead, TableBody, IconButton
-} from "@material-ui/core";
-import Search from "@material-ui/icons/Search";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import StarIcon from "@material-ui/icons/Star";
-import StarOutlineIcon from "@material-ui/icons/StarOutline";
+    Icon, Tabs, Tab, Paper, InputAdornment, LinearProgress, TableContainer, Table, TableCell, TableRow, TableHead, TableBody, IconButton, Theme
+} from "@mui/material";
+import Search from "@mui/icons-material/Search";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import StarIcon from "@mui/icons-material/Star";
+import StarOutlineIcon from "@mui/icons-material/StarOutline";
 import { UserContext } from "../../contexts/userContext";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     categoryTab: {
         minWidth: 0
     },
@@ -61,7 +61,7 @@ const SongList: React.FC<any> = (props: any) => {
     };
     type CategoryData = { id: number, name?: string, sortOrder?: number };
 
-    const classes = useStyles();
+    const { classes } = useStyles();
     const userContext = useContext(UserContext);
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [songlistNew, setSonglistNew] = useState([] as RowData[]);
@@ -262,7 +262,7 @@ const SongList: React.FC<any> = (props: any) => {
                                 <TableCell>{row.artist}</TableCell>
                                 {showGenre ? <TableCell>{row.genre}</TableCell> : undefined}
                                 <TableCell align="right">
-                                    <Grid justify="flex-end" container wrap={"nowrap"}>
+                                    <Grid justifyContent="flex-end" container wrap={"nowrap"}>
                                         <IconButton onClick={() => handleCopyClick(row)} color="primary" aria-label="Copy to clipboard" component="span" style={{padding: 0}}>
                                             <Icon>content_copy</Icon>
                                         </IconButton>
