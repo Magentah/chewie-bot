@@ -6,7 +6,7 @@ import
     TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab, Dialog, DialogTitle, DialogActions, DialogContent, Theme, SnackbarCloseReason
 } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
-import { Alert, AlertProps } from "@mui/material";
+import { Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -135,16 +135,12 @@ type FailedSongRequestState = {
 
 type SongRequestState = NoSongRequestState | AddedSongRequestState | AddingSongRequestState | FailedSongRequestState;
 
-function FilledAlert(props: AlertProps) {
-    return <Alert elevation={6} variant="filled" {...props} />;
-}
-
 const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [songs, setSongs] = useState<Song[]>([]);
     const [playedSongs, setPlayedSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const userContext = useContext(UserContext);
-    const [songRequestUrl, setSongRequestUrl] = useState<string>();
+    const [songRequestUrl, setSongRequestUrl] = useState<string>("");
     const donationLinkUrl = useSetting<string>("song-donation-link");
     const [songRequestState, setSongRequestState] = useState<SongRequestState>();
     const [selectedTab, setSelectedTab] = React.useState(0);
@@ -280,9 +276,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     };
 
     const handleClose = (event: any, reason: SnackbarCloseReason) => {
-        if (reason === "clickaway") {
-            return;
-        }
         setSongRequestState({
             state: undefined
         });
@@ -382,15 +375,15 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 </Grid>
             </form>
             <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
-                <FilledAlert onClose={(e) => handleClose(e, "clickaway")} severity="success">
+                <Alert onClose={(e) => handleClose(e, "clickaway")} severity="success">
                     Song request added.
-                </FilledAlert>
+                </Alert>
             </Snackbar>
             { songRequestState?.state === "failed" ?
             <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
-                <FilledAlert onClose={(e) => handleClose(e, "clickaway")} severity="error">
+                <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
                     Song request could not be added: {songRequestState.message}
-                </FilledAlert>
+                </Alert>
             </Snackbar> : undefined}
         </Grid>
         : undefined;
@@ -407,7 +400,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                    <ImageList rowHeight={140} cols={3} className={classes.gridList}>
                        {ownSongs.map((tile) => (
                            <ImageListItem key={tile.song.previewUrl}>
-                               <img src={tile.song.previewUrl} alt={tile.song.title} />
+                               <img src={tile.song.previewUrl} alt={tile.song.title} style={{height: "100%"}} />
                                <ImageListItemBar
                                    title={tile.song.title}
                                    subtitle={<span>Position: {tile.index + 1}</span>}

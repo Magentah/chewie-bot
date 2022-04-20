@@ -3,7 +3,7 @@ import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox,
-    Typography, Dialog, DialogTitle, DialogContent, DialogActions, Theme, SelectChangeEvent } from "@mui/material";
+    Typography, Dialog, DialogTitle, DialogContent, DialogActions, Theme, SelectChangeEvent, DialogContentText } from "@mui/material";
 import { Image } from "react-bootstrap";
 import { DropzoneArea, DropzoneDialog, FileObject } from "mui-file-dropzone";
 import { AddToListState } from "../common/addToListState";
@@ -277,16 +277,17 @@ const AchievementsList: React.FC<any> = (props: any) => {
             <Dialog open={usersWithAchievement !== undefined} onClose={() => setUsersWithAchievement(undefined)}>
                 <DialogTitle>Users with this achievement</DialogTitle>
                 <DialogContent>
-                <TextField
-                    label={`Users: ${usersWithAchievement?.length}`}
-                    multiline
-                    variant="outlined"
-                    minRows={5}
-                    InputProps={{
-                        readOnly: true,
-                    }}
-                    value={usersWithAchievement?.join("\r\n")}
-                    />
+                    <DialogContentText>{`Users: ${usersWithAchievement?.length}`}</DialogContentText>
+                    <TextField
+                        label=""
+                        multiline
+                        variant="outlined"
+                        minRows={5}
+                        InputProps={{
+                            readOnly: true,
+                        }}
+                        value={usersWithAchievement?.join("\r\n")}
+                        />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setUsersWithAchievement(undefined)}>Close</Button>

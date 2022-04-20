@@ -116,15 +116,15 @@ const SongList: React.FC<any> = (props: any) => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography>Rules when requesting songs</Typography>
             </AccordionSummary>
-            <AccordionDetails>
-            <div>
+            <AccordionDetails style={{ paddingTop: 0 }}>
+            <Box>
                 <ul>
                     <li>Songs can be requested during medleys or song suggestion sections (usually after live-learns are done). </li>
                     <li>To suggest, just post the title in chat (no links please). You can copy to clipboard using the <Icon fontSize={"small"}>content_copy</Icon> icon in each row.</li>
                     <li>Feel free to ask multiple times if your song is not played, but don't spam.</li>
                     <li>If Chewie continues to ignore your suggestion during medley, he might have forgotten how to play it temporarily. Try again another time!</li>
                 </ul>
-            </div>
+            </Box>
             </AccordionDetails>
         </Accordion>
     </Box>);

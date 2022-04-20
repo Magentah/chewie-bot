@@ -10,7 +10,6 @@ const width = 235;
 const useStyles = makeStyles()((theme: Theme) => {
     return {
         root: {
-            backgroundColor: theme.palette.background.paper,
             flexShrink: 0,
             width,
         },

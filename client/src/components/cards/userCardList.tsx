@@ -7,7 +7,7 @@ import { Image } from "react-bootstrap";
 import { DropzoneArea, DropzoneDialog, FileObject } from "mui-file-dropzone";
 import { AddToListState } from "../common/addToListState";
 import AddIcon from "@mui/icons-material/Add";
-import { Alert, AlertProps, Autocomplete } from "@mui/material";
+import { Alert, Autocomplete } from "@mui/material";
 
 const useStyles = makeStyles()((theme: Theme) => ({
     addButton: {
@@ -64,10 +64,6 @@ const ImageCell: React.FC<{value: RowData}> = ({value}) => {
                 />
             </Grid>
         </Grid>;
-}
-
-function FilledAlert(props: AlertProps) {
-    return <Alert elevation={6} variant="filled" {...props} />;
 }
 
 const UserCardList: React.FC<any> = (props: any) => {
@@ -131,9 +127,6 @@ const UserCardList: React.FC<any> = (props: any) => {
     };
 
     const handleClose = (event: Event | SyntheticEvent<any, Event>, reason: SnackbarCloseReason) => {
-        if (reason === "clickaway") {
-            return;
-        }
         setCardListState({
             state: undefined
         });
@@ -231,9 +224,9 @@ const UserCardList: React.FC<any> = (props: any) => {
             </Box>
             {cardListState?.state === "failed" ?
             <Snackbar open={cardListState?.state === "failed"} autoHideDuration={8000} onClose={handleClose}>
-                <FilledAlert onClose={(e) => handleClose(e, "clickaway")} severity="error">
+                <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
                     Card cannot be added: {cardListState.message}
-                </FilledAlert>
+                </Alert>
             </Snackbar> : undefined}
             </Card>
         </Box>;

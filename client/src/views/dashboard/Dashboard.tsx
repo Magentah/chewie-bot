@@ -55,14 +55,14 @@ const Dashboard: React.FC<{}> = (props) => {
 
         const routeJsx = DashboardRoutes.map((route: RouteType) => (
              (userContext.user.userLevel >= route.minUserLevel) ?
-                <Route path={route.path} key={route.name + route.minUserLevel} element={<route.component />} />
+                <Route path={route.path} key={route.name + route.minUserLevel} element={<route.Component />} />
                 : undefined
         ));
 
         return (
             <Routes>
                 {routeJsx}{" "}
-                <Route path="*" element={<NotFoundRoute.component />} />
+                <Route path="*" element={<NotFoundRoute.Component />} />
             </Routes>
         );
     };

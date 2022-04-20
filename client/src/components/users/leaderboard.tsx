@@ -10,6 +10,7 @@ type SeasonData = { id: number, startDate: Date, endDate: Date, plannedEndDate: 
 
 const useStyles = makeStyles()((theme: Theme) => ({
     flexBox: {
+        fontSize: "0.9em",
         borderRadius: "2.5em",
         justifyContent: "center",
         alignItems: "center",
@@ -42,7 +43,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
     prizeNote: {
         color: "#FF213B",
         textAlign: "center",
-        fontSize: "0.9em",
+        fontSize: "0.8em",
         marginTop: "0.5em"
     }
 }));
@@ -141,11 +142,13 @@ const Leaderboard: React.FC<any> = (props: any) => {
                 <Grid item xs={1} />
             </Grid>
             <Box marginTop={4}>
-                <Grid xs={12}>
-                    {userlist.slice(3).map(x => (<Grid item container spacing={2}>
-                        <Grid item>
-                            <Box className={x.username === userContext.user.username ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}` :`${classes.flexBox} ${classes.flexBoxNumber}`}
-                                 style={{ background: rankingColors[x.rank - 1] }}>
+                <Grid container rowSpacing={1} columnSpacing={2}>
+                    {userlist.slice(3).map(x => (<React.Fragment >
+                        <Grid item xs="auto">
+                        <Box className={x.username === userContext.user.username
+                             ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}`
+                             : `${classes.flexBox} ${classes.flexBoxNumber}`}
+                             style={{ background: rankingColors[x.rank - 1] }}>
                                 {x.rank}
                             </Box>
                         </Grid>
@@ -158,7 +161,8 @@ const Leaderboard: React.FC<any> = (props: any) => {
                                 </Grid>
                             </Box>
                         </Grid>
-                    </Grid>))}
+                        <Box width="100%"/>
+                    </React.Fragment>))}
                 </Grid>
             </Box>
         </Grid>;
@@ -242,7 +246,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
                 <Box marginBottom={4} display="flex" justifyContent="center">
                     {seasons.length <= 1 ?
                     <Box className={classes.prizeHeader}><span style={{ fontWeight: "bold" }}>{seasons[0].description}</span></Box> :
-                    <FormControl>
+                    <FormControl variant="standard">
                         <InputLabel id="season-label">Season</InputLabel>
                         <Select
                             labelId="season-label"
