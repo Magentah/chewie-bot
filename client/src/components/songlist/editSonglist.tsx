@@ -12,7 +12,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 
 // Use "condensed" display for rows
-const condensedTheme = createTheme({
+const createCondensedTheme = (theme: any) => createTheme(theme, {
     components: {
         MuiTableCell: {
             styleOverrides: {
@@ -396,7 +396,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
     return <Box>
             {attributionPopover}
             <Card>
-                <ThemeProvider theme={condensedTheme}>
+                <ThemeProvider theme={(theme) => createCondensedTheme(theme)}>
                     <Tabs value={selectedTab}
                           indicatorColor="primary"
                           textColor="primary"

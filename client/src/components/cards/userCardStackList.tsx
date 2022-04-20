@@ -11,6 +11,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
     cardsCountBox: {
         textTransform: "uppercase",
         fontWeight: "bold",
+        fontSize: "0.9em"
     },
     cardsCountFont: {
         fontSize: theme.typography.h5.fontSize,

@@ -8,43 +8,14 @@ import Alert from "./components/twitch/Alert";
 
 import axios from "axios";
 import UserContextProvider from "./contexts/userContext";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
-
-const SidebarWidth = 230;
+import { theme } from "./defaultTheme";
 
 const muiCache = createCache({
     key: "mui", // all material ui classes start with 'css' instead of 'mui' even with this here
     prepend: true,
-});
-
-const theme = createTheme({
-    palette: {
-        background: { default: "#FAFAFA" }
-    },
-    components: {
-        MuiAppBar: {
-            styleOverrides: {
-                root: {
-                    backgroundColor: "#282c34",
-                    color: "white",
-                    width: `calc(100% - ${SidebarWidth}px)`,
-                    marginLeft: SidebarWidth
-                },
-            },
-        },
-        MuiLink: {
-            styleOverrides: {
-                root: {
-                    textDecoration: "none",
-                    "&:hover": {
-                        textDecoration: "underline",
-                    },
-                }
-            }
-        }
-    },
 });
 
 const App: React.FC<{}> = (props) => {

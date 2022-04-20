@@ -25,7 +25,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Image } from "react-bootstrap";
 import { Save, Visibility, VisibilityOff, Check, Clear } from "@mui/icons-material";
 import AuthService from "../../services/authService";
-import { Alert, AlertProps } from "@mui/material";
+import { Alert } from "@mui/material";
 import MaterialTable from "@material-table/core";
 import { blue } from "@mui/material/colors";
 import { UserContext } from "../../contexts/userContext";
@@ -99,10 +99,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
     },
 }));
 
-function FilledAlert(props: AlertProps) {
-    return <Alert elevation={6} variant="filled" {...props} />;
-}
-
 type SettingData = { key: string; value: string; description: string; readonly: boolean };
 
 const TwitchCard: React.FC<any> = (props: any) => {
@@ -147,9 +143,6 @@ const TwitchCard: React.FC<any> = (props: any) => {
     };
 
     const handleClose = (event: Event | React.SyntheticEvent, reason: SnackbarCloseReason) => {
-        if (reason === "clickaway") {
-            return;
-        }
         setSaved(false);
         setSaveFailed(false);
     };
@@ -179,10 +172,6 @@ const TwitchCard: React.FC<any> = (props: any) => {
     };
 
     const handleBackupStatusClose = async (event: Event | React.SyntheticEvent, reason: SnackbarCloseReason) => {
-        if (reason === "clickaway") {
-            return;
-        }
-
         setBackupStatusOpen(false);
     };
 
@@ -378,14 +367,14 @@ const TwitchCard: React.FC<any> = (props: any) => {
                             </Grid>
                         </form>
                         <Snackbar open={saved} autoHideDuration={4000} onClose={handleClose}>
-                            <FilledAlert onClose={(e) => handleClose(e, "clickaway")} severity="success">
+                            <Alert onClose={(e) => handleClose(e, "clickaway")} severity="success">
                                 Bot settings saved.
-                            </FilledAlert>
+                            </Alert>
                         </Snackbar>
                         <Snackbar open={saveFailed} autoHideDuration={4000} onClose={handleClose}>
-                            <FilledAlert onClose={(e) => handleClose(e, "clickaway")} severity="error">
+                            <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
                                 Bot settings failed to save.
-                            </FilledAlert>
+                            </Alert>
                         </Snackbar>
                     </Grid>
                 </Grid>
