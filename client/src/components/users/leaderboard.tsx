@@ -1,15 +1,16 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Image } from "react-bootstrap";
-import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem } from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
+import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem, Theme } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 import { UserContext } from "../../contexts/userContext";
 
 type RowData = { username: string, points: number, rank: number };
 type SeasonData = { id: number, startDate: Date, endDate: Date, plannedEndDate: string, description: string };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     flexBox: {
+        fontSize: "0.9em",
         borderRadius: "2.5em",
         justifyContent: "center",
         alignItems: "center",
@@ -42,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
     prizeNote: {
         color: "#FF213B",
         textAlign: "center",
-        fontSize: "0.9em",
+        fontSize: "0.8em",
         marginTop: "0.5em"
     }
 }));
@@ -52,7 +53,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
     const [seasons, setSeasons] = useState([] as SeasonData[]);
     const [currentSeasonId, setCurrentSeasonId] = useState<number>(0);
 
-    const classes = useStyles();
+    const { classes } = useStyles();
     const numberFormat = new Intl.NumberFormat();
     const rankingColors = ["#FF9B00", "#083963", "#965119", "#7ABFBC", "#4FA3A9", "#8BADDC", "#8BADDC", "#478BCA", "#5871B6", "#6353A0", "transparent" ];
 
@@ -97,7 +98,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
     let leaderboardList;
     if (userlist.length >= 3) {
         leaderboardList = <Grid xs>
-            <Grid item container alignItems="flex-end" justify="center" direction="row">
+            <Grid item container alignItems="flex-end" justifyContent="center" direction="row">
                 <Grid item xs={1} />
                 <Grid item xs>
                     <Grid container direction="column" alignItems="center">
@@ -141,11 +142,13 @@ const Leaderboard: React.FC<any> = (props: any) => {
                 <Grid item xs={1} />
             </Grid>
             <Box marginTop={4}>
-                <Grid xs={12}>
-                    {userlist.slice(3).map(x => (<Grid item container spacing={2}>
-                        <Grid item>
-                            <Box className={x.username === userContext.user.username ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}` :`${classes.flexBox} ${classes.flexBoxNumber}`}
-                                 style={{ background: rankingColors[x.rank - 1] }}>
+                <Grid container rowSpacing={1} columnSpacing={2}>
+                    {userlist.slice(3).map(x => (<React.Fragment >
+                        <Grid item xs="auto">
+                        <Box className={x.username === userContext.user.username
+                             ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}`
+                             : `${classes.flexBox} ${classes.flexBoxNumber}`}
+                             style={{ background: rankingColors[x.rank - 1] }}>
                                 {x.rank}
                             </Box>
                         </Grid>
@@ -158,7 +161,8 @@ const Leaderboard: React.FC<any> = (props: any) => {
                                 </Grid>
                             </Box>
                         </Grid>
-                    </Grid>))}
+                        <Box width="100%"/>
+                    </React.Fragment>))}
                 </Grid>
             </Box>
         </Grid>;
@@ -172,7 +176,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
             </Grid>
         </Box>
         <Box marginTop={2}>
-            <Grid container xs justify="center" direction="row">
+            <Grid container xs justifyContent="center" direction="row">
                 <Grid item xs={1}></Grid>
                 <Grid item xs>
                     <Grid container direction="column" alignItems="center">
@@ -242,7 +246,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
                 <Box marginBottom={4} display="flex" justifyContent="center">
                     {seasons.length <= 1 ?
                     <Box className={classes.prizeHeader}><span style={{ fontWeight: "bold" }}>{seasons[0].description}</span></Box> :
-                    <FormControl>
+                    <FormControl variant="standard">
                         <InputLabel id="season-label">Season</InputLabel>
                         <Select
                             labelId="season-label"

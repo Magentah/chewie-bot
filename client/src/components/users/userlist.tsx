@@ -1,19 +1,19 @@
 import React, { useContext, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
-import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from "@material-ui/core";
-import { Star, SettingsBackupRestore } from "@material-ui/icons";
+import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Theme } from "@mui/material";
+import { Star, SettingsBackupRestore } from "@mui/icons-material";
 import { AddToListState } from "../common/addToListState";
 import { UserLevel } from "../common/userLevel";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
 import { UserContext, UserLevels } from "../../contexts/userContext";
 
 type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     addButton: {
         margin: theme.spacing(2, 0, 2),
     }
@@ -87,7 +87,7 @@ const UserList: React.FC<any> = (props: any) => {
         }
     };
 
-    const classes = useStyles();
+    const { classes } = useStyles();
 
     useEffect(() => {
         axios.get("/api/userlist").then((response) => {
@@ -132,7 +132,7 @@ const UserList: React.FC<any> = (props: any) => {
             }
 
             setPopupAnchor(undefined);
-        } catch (error) {
+        } catch (error: any) {
             setAddVipState({
                 state: "failed",
                 message: error.message
@@ -160,7 +160,7 @@ const UserList: React.FC<any> = (props: any) => {
                     }}>
                     <Box py={1} px={2}>
                         <form>
-                            <Grid container spacing={2} justify="flex-start" wrap={"nowrap"} alignItems="center">
+                            <Grid container spacing={2} justifyContent="flex-start" wrap={"nowrap"} alignItems="center">
                                 <Grid item>
                                     <TextField
                                         label="Add gold VIP"

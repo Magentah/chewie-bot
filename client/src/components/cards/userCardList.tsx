@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import React, { ReactNode, SyntheticEvent, useEffect, useState } from "react";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
-import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
-import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Snackbar } from "@material-ui/core";
+import { Box, Button, Typography, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox, Snackbar, Theme, SelectChangeEvent, SnackbarCloseReason } from "@mui/material";
 import { Image } from "react-bootstrap";
-import { DropzoneArea, DropzoneDialog } from "material-ui-dropzone";
+import { DropzoneArea, DropzoneDialog, FileObject } from "mui-file-dropzone";
 import { AddToListState } from "../common/addToListState";
-import { Autocomplete } from "@material-ui/lab";
-import AddIcon from "@material-ui/icons/Add";
+import AddIcon from "@mui/icons-material/Add";
+import { Alert, Autocomplete } from "@mui/material";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     addButton: {
         margin: theme.spacing(2, 0, 2),
     },
@@ -23,6 +22,7 @@ const FileTypes = ["image/jpeg", "image/png"];
 const ImageCell: React.FC<{value: RowData}> = ({value}) => {
     const [currentFile, setCurrentFile] = useState({ url: value.url});
     const [open, setOpen] = React.useState(false);
+    const fileObjects: FileObject[] = [];
 
     const handleSave = async (files: File[]) => {
         for (const file of files) {
@@ -60,13 +60,10 @@ const ImageCell: React.FC<{value: RowData}> = ({value}) => {
                     showPreviews={true}
                     showFileNamesInPreview={false}
                     filesLimit={1}
+                    fileObjects={fileObjects}
                 />
             </Grid>
         </Grid>;
-}
-
-function Alert(props: AlertProps) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 const UserCardList: React.FC<any> = (props: any) => {
@@ -80,7 +77,8 @@ const UserCardList: React.FC<any> = (props: any) => {
     const [cardUpgrade, setCardUpgrade] = useState<boolean>(false);
     const [cardFile, setCardFile] = useState<File>();
 
-    const classes = useStyles();
+    const { classes } = useStyles();
+    const fileObjects: FileObject[] = [];
 
     useEffect(() => {
         axios.get("/api/cards").then((response) => {
@@ -120,7 +118,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                     state: "failed",
                     message: error.response.data.error.message
                 })});
-        } catch (error) {
+        } catch (error: any) {
             setCardListState({
                 state: "failed",
                 message: error.message
@@ -128,10 +126,7 @@ const UserCardList: React.FC<any> = (props: any) => {
         }
     };
 
-    const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
-        if (reason === "clickaway") {
-            return;
-        }
+    const handleClose = (event: Event | SyntheticEvent<any, Event>, reason: SnackbarCloseReason) => {
         setCardListState({
             state: undefined
         });
@@ -185,7 +180,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                                         <InputLabel>Rarity</InputLabel>
                                         <Select
                                             value={cardRarity}
-                                            onChange={(event: React.ChangeEvent<{ name?: string | undefined; value: unknown; }>) => setCardRarity(event.target.value as number ?? 0)}>
+                                            onChange={(event: SelectChangeEvent<number>, child: ReactNode) => setCardRarity(event.target.value as number ?? 0)}>
                                             <MenuItem value={0}>Common</MenuItem>
                                             <MenuItem value={1}>Uncommon</MenuItem>
                                             <MenuItem value={2}>Rare</MenuItem>
@@ -220,7 +215,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                         </Grid>
                         <Grid item xs={6}>
                             <Box ml={2}>
-                                <DropzoneArea maxFileSize={MaxFileSize} acceptedFiles={FileTypes} filesLimit={1}
+                                <DropzoneArea maxFileSize={MaxFileSize} acceptedFiles={FileTypes} filesLimit={1} fileObjects={fileObjects}
                                     onChange={(files) => setCardFile(files.length === 0 ? undefined : files[0])} initialFiles={cardFile ? [cardFile] : undefined} />
                             </Box>
                         </Grid>
@@ -229,7 +224,7 @@ const UserCardList: React.FC<any> = (props: any) => {
             </Box>
             {cardListState?.state === "failed" ?
             <Snackbar open={cardListState?.state === "failed"} autoHideDuration={8000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="error">
+                <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
                     Card cannot be added: {cardListState.message}
                 </Alert>
             </Snackbar> : undefined}

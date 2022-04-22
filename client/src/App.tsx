@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { HashRouter as Router, Route, Switch } from "react-router-dom";
-import CssBaseLine from "@material-ui/core/CssBaseline";
+import { HashRouter as Router, Route, Routes } from "react-router-dom";
+import CssBaseLine from "@mui/material/CssBaseline";
 
 import Dashboard from "./views/dashboard/Dashboard";
 import CurrentSong from "./components/songqueue/CurrentSong";
@@ -8,6 +8,15 @@ import Alert from "./components/twitch/Alert";
 
 import axios from "axios";
 import UserContextProvider from "./contexts/userContext";
+import { ThemeProvider } from "@mui/material/styles";
+import createCache from "@emotion/cache";
+import { CacheProvider } from "@emotion/react";
+import { theme } from "./defaultTheme";
+
+const muiCache = createCache({
+    key: "mui", // all material ui classes start with 'css' instead of 'mui' even with this here
+    prepend: true,
+});
 
 const App: React.FC<{}> = (props) => {
     const [isLoaded, setIsLoaded] = useState(false);
@@ -30,20 +39,18 @@ const App: React.FC<{}> = (props) => {
 
     return (
         <Router>
-            <CssBaseLine />
-            <UserContextProvider>
-                <Switch>
-                    <Route path="/currentsong">
-                        <CurrentSong />
-                    </Route>
-                    <Route path="/alerts/:timeout">
-                        <Alert />
-                    </Route>
-                    <Route exact path="*">
-                        <Dashboard />
-                    </Route>
-                </Switch>
-            </UserContextProvider>
+            <CacheProvider value={muiCache}>
+                <ThemeProvider theme={theme}>
+                    <CssBaseLine />
+                    <UserContextProvider>
+                        <Routes>
+                            <Route path="/currentsong" element={<CurrentSong/>} />
+                            <Route path="/alerts/:timeout" element={<Alert />} />
+                            <Route path="*" element={<Dashboard />} />
+                        </Routes>
+                    </UserContextProvider>
+                </ThemeProvider>
+            </CacheProvider>
         </Router>
     );
 };

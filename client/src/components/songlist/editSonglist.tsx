@@ -1,38 +1,44 @@
 import React, { useEffect, useState } from "react";
-import { makeStyles, createTheme } from "@material-ui/core/styles";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 import {
     Grid, TextField, Button, Box, Card,
-    Popover, Paper, ThemeProvider, Tabs, Tab, Chip
-} from "@material-ui/core";
-import Autocomplete, { AutocompleteInputChangeReason } from "@material-ui/lab/Autocomplete";
-import SaveIcon from "@material-ui/icons/Save";
-import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
-import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+    Popover, Paper, ThemeProvider, Tabs, Tab, Chip, Theme, createTheme
+} from "@mui/material";
+import { Autocomplete, AutocompleteInputChangeReason } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 
 // Use "condensed" display for rows
-const condensedTheme = createTheme({
-    overrides: {
-      MuiTableCell: {
-        root: {
-          padding: "0 16px",
+const createCondensedTheme = (theme: any) => createTheme(theme, {
+    components: {
+        MuiTableCell: {
+            styleOverrides: {
+                root: {
+                    padding: "0 16px",
+                }
+            }
+        },
+        MuiIconButton: {
+            styleOverrides: {
+                root: {
+                    padding: "6px 8px",
+                }
+            }
+        },
+        MuiInputBase: {
+            styleOverrides: {
+                root: {
+                    fontSize: "13px",
+                }
+            }
         }
-      },
-      MuiIconButton: {
-        root: {
-          padding: "6px 8px",
-        }
-      },
-      MuiInputBase: {
-        root: {
-            fontSize: "13px",
-          }
-      }
     }
 });
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     addButton: {
         margin: theme.spacing(2, 0, 2),
     },
@@ -59,7 +65,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
     type TagData = { id: number, name: string };
     type AutocompleteUser = { username: string, id: number };
 
-    const classes = useStyles();
+    const { classes } = useStyles();
     const [songlist, setSonglist] = useState([] as RowData[]);
     const [categories, setCategories] = useState([] as CategoryData[]);
     const [tags, setTags] = useState([] as TagData[]);
@@ -166,7 +172,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
         }}>
             <Box py={1} px={2}>
                 <form>
-                    <Grid container spacing={2} justify="flex-start" wrap={"nowrap"} alignItems="center">
+                    <Grid container spacing={2} justifyContent="flex-start" wrap={"nowrap"} alignItems="center">
                         <Grid item>
                             <Autocomplete
                                 id="set-user"
@@ -390,7 +396,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
     return <Box>
             {attributionPopover}
             <Card>
-                <ThemeProvider theme={condensedTheme}>
+                <ThemeProvider theme={(theme) => createCondensedTheme(theme)}>
                     <Tabs value={selectedTab}
                           indicatorColor="primary"
                           textColor="primary"

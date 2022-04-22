@@ -1,10 +1,10 @@
 import React from "react";
-import { Grid, Typography, Box, CircularProgress, Card } from "@material-ui/core";
-import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
-import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
-import ErrorIcon from '@material-ui/icons/Error';
-import IconButton from "@material-ui/core/IconButton";
-import Slider from "@material-ui/core/Slider";
+import { Grid, Typography, Box, CircularProgress, Card } from "@mui/material";
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
+import ErrorIcon from '@mui/icons-material/Error';
+import IconButton from "@mui/material/IconButton";
+import Slider from "@mui/material/Slider";
 
 import {
     SpotifyPlayerCallback,

@@ -15,20 +15,22 @@ import {
     IconButton,
     Paper,
     ButtonGroup,
-} from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
-import { darken } from "@material-ui/core/styles/colorManipulator";
+    Theme,
+    SnackbarCloseReason
+} from "@mui/material";
+import { darken } from "@mui/material/styles";
+import { makeStyles } from "tss-react/mui";
 import axios, { AxiosResponse } from "axios";
 import React, { useContext, useEffect, useState } from "react";
 import { Image } from "react-bootstrap";
-import { Save, Visibility, VisibilityOff, Check, Clear } from "@material-ui/icons";
+import { Save, Visibility, VisibilityOff, Check, Clear } from "@mui/icons-material";
 import AuthService from "../../services/authService";
-import MuiAlert, { AlertProps } from "@material-ui/lab/Alert";
+import { Alert } from "@mui/material";
 import MaterialTable from "@material-table/core";
-import { blue } from "@material-ui/core/colors";
+import { blue } from "@mui/material/colors";
 import { UserContext } from "../../contexts/userContext";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     title: {
         fontSize: 24,
     },
@@ -97,14 +99,10 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function Alert(props: AlertProps) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 type SettingData = { key: string; value: string; description: string; readonly: boolean };
 
 const TwitchCard: React.FC<any> = (props: any) => {
-    const classes = useStyles();
+    const { classes } = useStyles();
     const userContext = useContext(UserContext);
     const [botUsername, setBotUsername] = useState("");
     const [botOAuth, setBotOAuth] = useState("");
@@ -144,10 +142,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
         }
     };
 
-    const handleClose = (event?: React.SyntheticEvent, reason?: string) => {
-        if (reason === "clickaway") {
-            return;
-        }
+    const handleClose = (event: Event | React.SyntheticEvent, reason: SnackbarCloseReason) => {
         setSaved(false);
         setSaveFailed(false);
     };
@@ -176,11 +171,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
         }
     };
 
-    const handleBackupStatusClose = async (event?: React.SyntheticEvent, reason?: string) => {
-        if (reason === "clickaway") {
-            return;
-        }
-
+    const handleBackupStatusClose = async (event: Event | React.SyntheticEvent, reason: SnackbarCloseReason) => {
         setBackupStatusOpen(false);
     };
 
@@ -376,12 +367,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                             </Grid>
                         </form>
                         <Snackbar open={saved} autoHideDuration={4000} onClose={handleClose}>
-                            <Alert onClose={handleClose} severity="success">
+                            <Alert onClose={(e) => handleClose(e, "clickaway")} severity="success">
                                 Bot settings saved.
                             </Alert>
                         </Snackbar>
                         <Snackbar open={saveFailed} autoHideDuration={4000} onClose={handleClose}>
-                            <Alert onClose={handleClose} severity="error">
+                            <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
                                 Bot settings failed to save.
                             </Alert>
                         </Snackbar>

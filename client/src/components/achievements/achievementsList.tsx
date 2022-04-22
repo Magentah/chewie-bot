@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import React, { ReactNode, useCallback, useEffect, useState } from "react";
+import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 import { Box, Button, Grid, Card, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Checkbox,
-    Typography, Dialog, DialogTitle, DialogContent, DialogActions } from "@material-ui/core";
+    Typography, Dialog, DialogTitle, DialogContent, DialogActions, Theme, SelectChangeEvent, DialogContentText } from "@mui/material";
 import { Image } from "react-bootstrap";
-import { DropzoneArea, DropzoneDialog } from "material-ui-dropzone";
+import { DropzoneArea, DropzoneDialog, FileObject } from "mui-file-dropzone";
 import { AddToListState } from "../common/addToListState";
-import AddIcon from "@material-ui/icons/Add";
-import GroupIcon from "@material-ui/icons/Group";
+import AddIcon from "@mui/icons-material/Add";
+import GroupIcon from "@mui/icons-material/Group";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     addButton: {
         margin: theme.spacing(0, 0, 2),
     },
@@ -23,6 +23,7 @@ const FileTypes = ["image/jpeg", "image/png"];
 const ImageCell: React.FC<{value: RowData}> = ({value}) => {
     const [currentFile, setCurrentFile] = useState({ url: value.url});
     const [open, setOpen] = React.useState(false);
+    const fileObjects: FileObject[] = [];
 
     const handleSave = async (files: File[]) => {
         for (const file of files) {
@@ -60,6 +61,7 @@ const ImageCell: React.FC<{value: RowData}> = ({value}) => {
                     showPreviews={true}
                     showFileNamesInPreview={false}
                     filesLimit={1}
+                    fileObjects={fileObjects}
                 />
             </Grid>
         </Grid>;
@@ -79,7 +81,8 @@ const AchievementsList: React.FC<any> = (props: any) => {
     const [achievementAmountIsNumberOfStreams, setAchievementAmountIsNumberOfStreams] = useState<boolean>(false);
     const [achievementFile, setAchievementFile] = useState<File>();
 
-    const classes = useStyles();
+    const { classes } = useStyles();
+    const fileObjects: FileObject[] = [];
 
     const achievementTypes = {
         0: "Songs requested",
@@ -156,7 +159,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                     state: "failed",
                     message: error.response.data.error.message
             })});
-        } catch (error) {
+        } catch (error: any) {
             setAchievementListState({
                 state: "failed",
                 message: error.message
@@ -174,7 +177,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                     <InputLabel>Type</InputLabel>
                                     <Select
                                         value={achievementType}
-                                        onChange={(event: React.ChangeEvent<{ name?: string | undefined; value: unknown; }>) => setAchievementType(event.target.value as number ?? 0)}>
+                                        onChange={(event: SelectChangeEvent<number>, child: ReactNode) => setAchievementType(event.target.value as number ?? 0)}>
                                         {achievementTypesSorted.map(([key, value]) => <MenuItem value={key}>{value}</MenuItem>)}
                                     </Select>
                                 </FormControl>
@@ -260,7 +263,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                         </Grid>
                         <Grid item xs={6}>
                             <Box ml={2}>
-                                <DropzoneArea maxFileSize={MaxFileSize} acceptedFiles={FileTypes} filesLimit={1}
+                                <DropzoneArea maxFileSize={MaxFileSize} acceptedFiles={FileTypes} filesLimit={1} fileObjects={fileObjects}
                                     onChange={(files) => setAchievementFile(files.length === 0 ? undefined : files[0])} initialFiles={achievementFile ? [achievementFile] : undefined} />
                             </Box>
                         </Grid>
@@ -274,16 +277,17 @@ const AchievementsList: React.FC<any> = (props: any) => {
             <Dialog open={usersWithAchievement !== undefined} onClose={() => setUsersWithAchievement(undefined)}>
                 <DialogTitle>Users with this achievement</DialogTitle>
                 <DialogContent>
-                <TextField
-                    label={`Users: ${usersWithAchievement?.length}`}
-                    multiline
-                    variant="outlined"
-                    minRows={5}
-                    InputProps={{
-                        readOnly: true,
-                    }}
-                    value={usersWithAchievement?.join("\r\n")}
-                    />
+                    <DialogContentText>{`Users: ${usersWithAchievement?.length}`}</DialogContentText>
+                    <TextField
+                        label=""
+                        multiline
+                        variant="outlined"
+                        minRows={5}
+                        InputProps={{
+                            readOnly: true,
+                        }}
+                        value={usersWithAchievement?.join("\r\n")}
+                        />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setUsersWithAchievement(undefined)}>Close</Button>
@@ -301,7 +305,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                         title: "Amount", field: "amount", type: "numeric",
                         render: rowData => <Typography>{rowData.amount === -1 ? "Every stream in season" : rowData.amount}</Typography>,
                         editComponent: editProps => (
-                            <Grid container justify="flex-end">
+                            <Grid container justifyContent="flex-end">
                                 <Grid item>
                                     <TextField style={{width: "8em"}}
                                         type="number"

@@ -1,13 +1,13 @@
 import React, { useContext } from "react";
-import { Switch, Route, useLocation } from "react-router-dom";
-import { makeStyles } from "@material-ui/core/styles";
-import { Grid, Typography, Divider } from "@material-ui/core";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { makeStyles } from "makeStyles";
+import { Grid, Typography, Divider, Theme } from "@mui/material";
 import SideBar from "../../components/sidebar/SideBar";
 import NavBar from "../../components/navbar/NavBar";
 import { Route as RouteType, DashboardRoutes, NotFoundRoute } from "../../Routes";
 import { UserContext } from "../../contexts/userContext";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme: Theme) => ({
     root: {
         display: "flex",
     },
@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
     },
     content: {
         flexGrow: 1,
-        padding: theme.spacing(3),
+        padding: theme.spacing(3)
     },
 }));
 
@@ -38,7 +38,7 @@ const createRouteMap = (routes: RouteType[]): ((x: string) => RouteType) => {
 };
 
 const Dashboard: React.FC<{}> = (props) => {
-    const classes = useStyles();
+    const { classes } = useStyles();
     const location = useLocation();
     const getRoute = createRouteMap(DashboardRoutes);
     const userContext = useContext(UserContext);
@@ -55,19 +55,15 @@ const Dashboard: React.FC<{}> = (props) => {
 
         const routeJsx = DashboardRoutes.map((route: RouteType) => (
              (userContext.user.userLevel >= route.minUserLevel) ?
-                <Route exact path={route.path} key={route.name + route.minUserLevel}>
-                    <route.component />
-                </Route>
+                <Route path={route.path} key={route.name + route.minUserLevel} element={<route.Component />} />
                 : undefined
         ));
 
         return (
-            <Switch>
+            <Routes>
                 {routeJsx}{" "}
-                <Route path="*">
-                    <NotFoundRoute.component />
-                </Route>
-            </Switch>
+                <Route path="*" element={<NotFoundRoute.Component />} />
+            </Routes>
         );
     };
 
