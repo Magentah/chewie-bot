@@ -16,8 +16,8 @@ export default class RedeemCardCommand extends Command {
         this.cardService = BotContainer.get(CardService);
     }
 
-    public async executeInternal(channel: string, user: IUser, numberOfUsers: number): Promise<void> {
-        const cardCount = numberOfUsers && Number.isInteger(numberOfUsers) ? numberOfUsers : 1;
+    public async executeInternal(channel: string, user: IUser, numberOfPulls: number): Promise<void> {
+        const cardCount = numberOfPulls && Number.isInteger(numberOfPulls) ? numberOfPulls : 1;
         let cardsRedeemed = 0;
         const cardResults = new Map<string, number>();
         let lastResult : { card: IUserCard; pullsLeft: number | undefined; } | undefined = undefined;
