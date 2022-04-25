@@ -3,6 +3,8 @@ import { Lang } from "../lang";
 Lang.register("cards.insufficientpoints", "$1, you don't have enough chews to redeem a card!");
 Lang.register("cards.cardredeemed", "$1 got the card \"$2\"!");
 Lang.register("cards.cardredeemedpulls", "$1 got the card \"$2\" ($3 pulls left this week).");
+Lang.register("cards.cardredeemedmultiple", "$1 got the cards: $2");
+Lang.register("cards.cardredeemedmultiplepulls", "$1 got the cards: $2 ($3 pulls left this week)");
 Lang.register("cards.redeemlimitexceeded", "$1, you have already redeemed $2 cards this week!");
 Lang.register("cards.cardrecycled", "$1, you got $3 chews for recycling the card \"$2\"!");
 Lang.register("cards.readonlymode", "Cannot currently redeem cards because read-only mode is enabled!");
