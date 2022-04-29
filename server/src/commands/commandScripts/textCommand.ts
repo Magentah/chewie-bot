@@ -3,8 +3,8 @@ import { EventTypes, IUser, UserLevels } from "../../models";
 import Logger, { LogType } from "../../logger";
 import { BotContainer } from "../../inversify.config";
 import { StreamActivityRepository, TextCommandsRepository } from "../../database";
-import { BotSettingsService } from "../../services";
 import { BotSettings } from "../../services/botSettingsService";
+import moment = require("moment");
 
 // I think it's better to have a "command" to handle all text commands instead of having the
 // command service directly call the twitchservice.sendmessage with the text command.
@@ -88,7 +88,7 @@ export class TextCommand extends Command {
             let uptime = "(Offline)";
             if (lastOnline) {
                 if (lastOffline === undefined || lastOffline.dateTimeTriggered < lastOnline.dateTimeTriggered) {
-                    uptime = this.formatDuration((new Date().getTime() - new Date(lastOnline.dateTimeTriggered).getTime()) / 1000);
+                    uptime = this.formatUptimeDuration((new Date().getTime() - new Date(lastOnline.dateTimeTriggered).getTime()) / 1000);
                 }
             }
 
@@ -126,19 +126,56 @@ export class TextCommand extends Command {
             message = message.replace(/\{userlaststreaming\}/ig, lastStreaming);
         }
 
+        if (message.indexOf("{userfollowage}") !== -1) {
+            let followingSince = "(never)";
+            try {
+                const followDate = await this.twitchService.getFollowInfo(userFromParams ? userFromParams : user.username);
+                if (followDate) {
+                    followingSince = this.formatFollowDuration(moment.duration(moment(new Date()).diff(followDate)));
+                }
+            } catch (error: any) {
+                Logger.err(LogType.Command, error);
+            }
+
+            message = message.replace(/\{userfollowage\}/ig, followingSince);
+        }
+
         return message;
     }
 
-    private formatDuration(durationInSeconds: number): string {
+    private formatUptimeDuration(durationInSeconds: number): string {
         const hours   = Math.floor(durationInSeconds / 3600);
         const minutes = Math.floor((durationInSeconds - (hours * 3600)) / 60);
-        const seconds = durationInSeconds - (hours * 3600) - (minutes * 60);
 
         if (hours > 0) {
             return `${hours} hours ${minutes} minutes`;
         } else {
             return `${minutes} minutes`;
         }
+    }
+
+    private formatFollowDuration(duration: moment.Duration): string {
+        const parts = [];
+
+        // return nothing when the duration is invalid or not correctly parsed (P0D)
+        if (!duration || duration.toISOString() === "P0D") return "";
+
+        if (duration.years() >= 1) {
+            const years = Math.floor(duration.years());
+            parts.push(years + " " + (years > 1 ? "years" : "year"));
+        }
+
+        if (duration.months() >= 1) {
+            const months = Math.floor(duration.months());
+            parts.push(months + " " + (months > 1 ? "months" : "month"));
+        }
+
+        if (duration.days() >= 1) {
+            const days = Math.floor(duration.days());
+            parts.push(days + " " + (days > 1 ? "days" : "day"));
+        }
+
+        return parts.join(", ");
     }
 
     public getDescription(): string {
