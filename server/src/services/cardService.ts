@@ -26,11 +26,6 @@ export default class CardService {
             return Lang.get("cards.readonlymode");
         }
 
-        const cost = parseInt(await this.settingsService.getValue(BotSettings.CardRedeemCost), 10);
-        if (cost > user.points) {
-            return Lang.get("cards.insufficientpoints", user.username);
-        }
-
         // Check if user already has redeemed too many cards this week.
         let pullsLeft;
         const cardsPerWeek = parseInt(await this.settingsService.getValue(BotSettings.CardRedeemPerWeek), 10);
@@ -40,6 +35,12 @@ export default class CardService {
             if (cardsRedeemed >= cardsPerWeek) {
                 return Lang.get("cards.redeemlimitexceeded", user.username, cardsRedeemed);
             }
+        }
+
+        // Check for user points
+        const cost = parseInt(await this.settingsService.getValue(BotSettings.CardRedeemCost), 10);
+        if (cost > user.points) {
+            return Lang.get("cards.insufficientpoints", user.username);
         }
 
         const lastCard = await this.cardsRepository.getLastRedeemedCard(user);
