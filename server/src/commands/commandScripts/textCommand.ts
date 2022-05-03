@@ -110,6 +110,7 @@ export class TextCommand extends Command {
         }
 
         message = message.replace(/\{userfromargument\}/ig, userFromParams);
+        message = message.replace(/\{useroruserfromargument\}/ig, userFromParams ? userFromParams : user.username);
 
         if (message.indexOf("{userlaststreaming}") !== -1 && userFromParams) {
             let lastStreaming = "(unknown)";
