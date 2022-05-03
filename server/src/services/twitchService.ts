@@ -187,6 +187,28 @@ export class TwitchService {
         return data.data[0].game_name;
     }
 
+    public async getFollowInfo(username: string): Promise<string> {
+        const accessDetails = await this.authService.getClientAccessTokenWithScopes(Constants.TwitchBroadcasterScopes);
+        const options = {
+            headers: {
+                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
+                "Client-Id": accessDetails.clientId,
+            },
+        };
+
+        const userData = await axios.get(`${Constants.TwitchAPIEndpoint}/users?login=${username}&login=${Config.twitch.broadcasterName}`, options);
+        if (!userData?.data?.data[0]?.id || !userData?.data?.data[1]?.id) {
+            return "";
+        }
+
+        const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/users/follows?from_id=${userData.data.data[0].id}&to_id=${userData?.data?.data[1]?.id}`, options);
+        if (!data?.data) {
+            return "";
+        }
+
+        return data.data[0].followed_at;
+    }
+
     public async userExistsInChat(channel: string, username: string): Promise<boolean> {
         const chatters = (await this.getChatListFromTwitch(channel)).chatters;
         let exists: boolean = false;
