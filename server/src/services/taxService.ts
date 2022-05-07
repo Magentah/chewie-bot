@@ -95,7 +95,7 @@ export default class TaxService {
             }
         }
 
-        let lastOnlineDate: Date | undefined;
+        let lastOnlineDate: number | undefined;
         if (lastOnlineEvent) {
             lastOnlineDate = lastOnlineEvent.dateTimeTriggered;
         }
@@ -104,7 +104,7 @@ export default class TaxService {
         // Last Online Date is the online time of the previous stream before the current one that is online.
         if (lastOnlineDate) {
             // Get all users who have paid tax since the last time the stream was online and update their streak.
-            const usersPaidTax = await this.userTaxHistoryRepository.getSinceDate(lastOnlineDate);
+            const usersPaidTax = await this.userTaxHistoryRepository.getSinceDate(new Date(lastOnlineDate));
             for (const taxEvent of usersPaidTax) {
                 const currentStreakData = await this.userTaxStreakRepository.get(taxEvent.userId);
                 let currentStreak = 0;
@@ -141,8 +141,8 @@ export default class TaxService {
         // Get all users who haven't paid tax since the last online date.
         if (lastOnlineEvents.length === 2) {
             const usersNotPaidTax = await this.userTaxHistoryRepository.getUsersNotPaidTax(
-                lastOnlineEvents[1].dateTimeTriggered,
-                lastOnlineEvents[0].dateTimeTriggered
+                new Date(lastOnlineEvents[1].dateTimeTriggered),
+                new Date(lastOnlineEvents[0].dateTimeTriggered)
             );
 
             // Update all users who have not paid tax since the last stream to set current streak to 0.

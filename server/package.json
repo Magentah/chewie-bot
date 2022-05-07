@@ -54,7 +54,7 @@
         "guid-typescript": "^1.0.9",
         "http-status-codes": "^2.2.0",
         "inversify": "^5.0.5",
-        "knex": "^0.95.15",
+        "knex": "^2.0.0",
         "link-preview-js": "^2.1.10",
         "moment": "^2.29.1",
         "node-cache": "^5.1.2",

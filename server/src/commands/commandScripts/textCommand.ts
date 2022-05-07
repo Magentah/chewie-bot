@@ -110,6 +110,7 @@ export class TextCommand extends Command {
         }
 
         message = message.replace(/\{userfromargument\}/ig, userFromParams);
+        message = message.replace(/\{useroruserfromargument\}/ig, userFromParams ? userFromParams : user.username);
 
         if (message.indexOf("{userlaststreaming}") !== -1 && userFromParams) {
             let lastStreaming = "(unknown)";
@@ -140,7 +141,61 @@ export class TextCommand extends Command {
             message = message.replace(/\{userfollowage\}/ig, followingSince);
         }
 
+        // Calculate average length of streams for last X days
+        if (message.indexOf("{streamaverage7}") !== -1) {
+            const resultLength = await this.getStreamAverage(7);
+            message = message.replace(/\{streamaverage7\}/ig, resultLength);
+        }
+        if (message.indexOf("{streamaverage30}") !== -1) {
+            const resultLength = await this.getStreamAverage(30);
+            message = message.replace(/\{streamaverage30\}/ig, resultLength);
+        }
+
+        if (message.indexOf("{streamtotal7}") !== -1) {
+            const data = await this.getStreamData(7);
+            message = message.replace(/\{streamtotal7\}/ig, this.formatUptimeDuration(data.total / 1000));
+        }
+        if (message.indexOf("{streamtotal30}") !== -1) {
+            const data = await this.getStreamData(30);
+            message = message.replace(/\{streamtotal30\}/ig, this.formatUptimeDuration(data.total / 1000));
+        }
+
         return message;
+    }
+
+    private async getStreamAverage(days: number): Promise<string> {
+        const data = await this.getStreamData(days);
+
+        if (data.count) {
+            const averageLength = data.total / data.count;
+            return this.formatUptimeDuration(averageLength / 1000);
+        } else {
+            return "(No streams)";
+        }
+    }
+
+    private async getStreamData(days: number): Promise<{ count: number, total: number }> {
+        const start = new Date();
+        start.setDate(start.getDate() - days);
+        const end = new Date();
+        end.setUTCHours(0,0,0,0);
+
+        let streamStart = 0;
+        let totalStreamTime = 0;
+        let streamCount = 0;
+        for (const event of await this.streamActivityRepository.getEventsInRange(start, end)) {
+            if (event.event === EventTypes.StreamOnline) {
+                streamStart = event.dateTimeTriggered;
+            } else if (event.event === EventTypes.StreamOffline) {
+                if (streamStart) {
+                    totalStreamTime += event.dateTimeTriggered - streamStart;
+                    streamStart = 0;
+                    streamCount++;
+                }
+            }
+        }
+
+        return { count: streamCount, total: totalStreamTime };
     }
 
     private formatUptimeDuration(durationInSeconds: number): string {
