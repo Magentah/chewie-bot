@@ -150,10 +150,30 @@ export class TextCommand extends Command {
             message = message.replace(/\{streamaverage30\}/ig, resultLength);
         }
 
+        if (message.indexOf("{streamtotal7}") !== -1) {
+            const data = await this.getStreamData(7);
+            message = message.replace(/\{streamtotal7\}/ig, this.formatUptimeDuration(data.total / 1000));
+        }
+        if (message.indexOf("{streamtotal30}") !== -1) {
+            const data = await this.getStreamData(30);
+            message = message.replace(/\{streamtotal30\}/ig, this.formatUptimeDuration(data.total / 1000));
+        }
+
         return message;
     }
 
     private async getStreamAverage(days: number): Promise<string> {
+        const data = await this.getStreamData(days);
+
+        if (data.count) {
+            const averageLength = data.total / data.count;
+            return this.formatUptimeDuration(averageLength / 1000);
+        } else {
+            return "(No streams)";
+        }
+    }
+
+    private async getStreamData(days: number): Promise<{ count: number, total: number }> {
         const start = new Date();
         start.setDate(start.getDate() - days);
         const end = new Date();
@@ -174,12 +194,7 @@ export class TextCommand extends Command {
             }
         }
 
-        if (streamCount) {
-            const averageLength = totalStreamTime / streamCount;
-            return this.formatUptimeDuration(averageLength / 1000);
-        } else {
-            return "(No streams)";
-        }
+        return { count: streamCount, total: totalStreamTime };
     }
 
     private formatUptimeDuration(durationInSeconds: number): string {
