@@ -91,8 +91,8 @@ export default class AchievementService {
         let eventCount = 0;
         let lastEventDate;
         for (const e of events) {
-            if (e.dateTimeTriggered >= dateFrom && e.dateTimeTriggered <= dateUntil) {
-                const dateTriggered = new Date(e.dateTimeTriggered);
+            const dateTriggered = new Date(e.dateTimeTriggered);
+            if (dateTriggered >= dateFrom && dateTriggered <= dateUntil) {
                 if (lastEventDate) {
                     const hours = Math.abs(dateTriggered.getTime() - lastEventDate.getTime()) / (60 * 60 * 1000);
                     // Ignore streams in quick succession (stream restarts for example).
