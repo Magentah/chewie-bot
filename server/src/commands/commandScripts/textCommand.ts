@@ -140,7 +140,46 @@ export class TextCommand extends Command {
             message = message.replace(/\{userfollowage\}/ig, followingSince);
         }
 
+        // Calculate average length of streams for last X days
+        if (message.indexOf("{streamaverage7}") !== -1) {
+            const resultLength = await this.getStreamAverage(7);
+            message = message.replace(/\{streamaverage7\}/ig, resultLength);
+        }
+        if (message.indexOf("{streamaverage30}") !== -1) {
+            const resultLength = await this.getStreamAverage(30);
+            message = message.replace(/\{streamaverage30\}/ig, resultLength);
+        }
+
         return message;
+    }
+
+    private async getStreamAverage(days: number): Promise<string> {
+        const start = new Date();
+        start.setDate(start.getDate() - days);
+        const end = new Date();
+        end.setUTCHours(0,0,0,0);
+
+        let streamStart = 0;
+        let totalStreamTime = 0;
+        let streamCount = 0;
+        for (const event of await this.streamActivityRepository.getEventsInRange(start, end)) {
+            if (event.event === EventTypes.StreamOnline) {
+                streamStart = event.dateTimeTriggered;
+            } else if (event.event === EventTypes.StreamOffline) {
+                if (streamStart) {
+                    totalStreamTime += event.dateTimeTriggered - streamStart;
+                    streamStart = 0;
+                    streamCount++;
+                }
+            }
+        }
+
+        if (streamCount) {
+            const averageLength = totalStreamTime / streamCount;
+            return this.formatUptimeDuration(averageLength / 1000);
+        } else {
+            return "(No streams)";
+        }
     }
 
     private formatUptimeDuration(durationInSeconds: number): string {

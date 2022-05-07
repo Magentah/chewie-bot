@@ -16,7 +16,7 @@ export default class PlayedTodayCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser): Promise<void> {
         const lastOnline = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
-        const lastPlayedCount = await this.eventLogsRepository.getCountTotal(EventLogType.SongPlayed, lastOnline?.dateTimeTriggered);
+        const lastPlayedCount = await this.eventLogsRepository.getCountTotal(EventLogType.SongPlayed, new Date(lastOnline?.dateTimeTriggered ?? 0));
         if (lastPlayedCount > 0) {
             this.twitchService.sendMessage(channel, `${lastPlayedCount} songs have been played this stream.`);
         } else {

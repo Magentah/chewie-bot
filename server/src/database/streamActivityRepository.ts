@@ -1,11 +1,10 @@
 import { inject, injectable } from "inversify";
-import { Database } from "sqlite3";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
 
 export interface IDBStreamActivity {
     id?: number;
     event: string;
-    dateTimeTriggered: Date;
+    dateTimeTriggered: number;
 }
 
 @injectable()
@@ -63,6 +62,23 @@ export default class StreamActivityRepository {
             .where("event", "like", eventType)
             .orderBy("dateTimeTriggered", sortOrder)
             .limit(count);
+
+        return lastEvents as IDBStreamActivity[];
+    }
+
+    /**
+     * Gets all events in a certain date range in ascending order.
+     * @param start Inclusive start date
+     * @param end Inclusive end date
+     */
+    public async getEventsInRange(start: Date, end: Date): Promise<IDBStreamActivity[]> {
+        const databaseService = await this.databaseProvider();
+        const lastEvents = await databaseService
+            .getQueryBuilder(DatabaseTables.StreamActivity)
+            .select("*")
+            .where("dateTimeTriggered", ">=", start)
+            .andWhere("dateTimeTriggered", "<=", end)
+            .orderBy("dateTimeTriggered", "asc");
 
         return lastEvents as IDBStreamActivity[];
     }
