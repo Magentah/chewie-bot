@@ -54,12 +54,13 @@ export default class StreamActivityRepository {
      * @param sortOrder The order to sort the result. "asc" or "desc".
      * @returns An array of events that were triggered matching the eventType passed, in the sort order provided.
      */
-    public async getLastEvents(eventType: string, count: number, sortOrder: "asc" | "desc"): Promise<IDBStreamActivity[]> {
+    public async getLastEvents(eventType: string, count: number, sortOrder: "asc" | "desc", start: Date = new Date(0)): Promise<IDBStreamActivity[]> {
         const databaseService = await this.databaseProvider();
         const lastEvents = await databaseService
             .getQueryBuilder(DatabaseTables.StreamActivity)
             .select("*")
             .where("event", "like", eventType)
+            .andWhere("dateTimeTriggered", ">=", start)
             .orderBy("dateTimeTriggered", sortOrder)
             .limit(count);
 
