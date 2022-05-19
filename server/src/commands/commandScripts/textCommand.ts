@@ -176,6 +176,7 @@ export class TextCommand extends Command {
 
     private async getStreamData(days: number): Promise<{ count: number, total: number }> {
         const start = new Date();
+        start.setUTCHours(0,0,0,0);
         start.setDate(start.getDate() - days);
         const end = new Date();
         end.setUTCHours(0,0,0,0);
@@ -183,7 +184,16 @@ export class TextCommand extends Command {
         let streamStart = 0;
         let totalStreamTime = 0;
         let streamCount = 0;
-        for (const event of await this.streamActivityRepository.getEventsInRange(start, end)) {
+        const events = await this.streamActivityRepository.getEventsInRange(start, end);
+        if (events.length > 0 && events[events.length - 1].event === EventTypes.StreamOnline) {
+            // Find last corresponding stream offline if needed
+            const lastOfflineEvents = await this.streamActivityRepository.getLastEvents(EventTypes.StreamOffline, 1, "asc", new Date(events[events.length - 1].dateTimeTriggered));
+            if (lastOfflineEvents.length) {
+                events.push(lastOfflineEvents[0]);
+            }
+        }
+
+        for (const event of events) {
             if (event.event === EventTypes.StreamOnline) {
                 streamStart = event.dateTimeTriggered;
             } else if (event.event === EventTypes.StreamOffline) {
