@@ -57,7 +57,7 @@ export class CommandAliasesRepository {
                 await databaseService.getQueryBuilder(DatabaseTables.CommandAliases).delete().where({ id: toDelete.id });
                 return true;
             }
-        } else if (alias.id && this.get(alias.commandName)) {
+        } else if (alias.id) {
             await databaseService.getQueryBuilder(DatabaseTables.CommandAliases).delete().where({ id: alias.id });
             return true;
         }
