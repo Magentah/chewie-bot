@@ -264,7 +264,7 @@ export class SonglistRepository {
                 await this.deleteUnusedTags();
                 return true;
             }
-        } else if (item.id && this.get(item.id)) {
+        } else if (item.id) {
             await databaseService.getQueryBuilder(DatabaseTables.Songlist).delete().where({ id: item.id });
             await this.deleteUnusedTags();
             return true;

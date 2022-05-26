@@ -71,7 +71,7 @@ export class TextCommandsRepository {
                 await databaseService.getQueryBuilder(DatabaseTables.TextCommands).delete().where({ id: toDelete.id });
                 return true;
             }
-        } else if (command.id && this.get(command.commandName)) {
+        } else if (command.id) {
             await databaseService.getQueryBuilder(DatabaseTables.TextCommands).delete().where({ id: command.id });
             return true;
         }
