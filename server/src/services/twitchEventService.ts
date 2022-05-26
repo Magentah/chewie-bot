@@ -11,10 +11,12 @@ import EventLogService from "./eventLogService";
 import StreamActivityRepository from "../database/streamActivityRepository";
 import ChannelPointRewardService from "./channelPointRewardService";
 import * as EventSub from "../models";
-import { EventTypes, ChannelPointRedemption, ITwitchChannelReward } from "../models";
+import { EventTypes, ChannelPointRedemption, ITwitchChannelReward, RequestSource } from "../models";
 import { TwitchAuthService } from ".";
 import { PointLogType } from "../models/pointLog";
 import { TwitchWebService } from "./twitchWebService";
+import { SongService } from "./songService";
+import TwitchService from "./twitchService";
 
 @injectable()
 export default class TwitchEventService {
@@ -37,7 +39,9 @@ export default class TwitchEventService {
         @inject(TwitchWebService) private twitchWebService: TwitchWebService,
         @inject(EventLogService) private eventLogService: EventLogService,
         @inject(ChannelPointRewardService) private channelPointRewardService: ChannelPointRewardService,
-        @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository
+        @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
+        @inject(SongService) private songService: SongService,
+        @inject(TwitchService) private twitchService: TwitchService,
     ) {
         this.accessToken = {
             token: "",
@@ -164,13 +168,32 @@ export default class TwitchEventService {
             await this.channelPointRewardService.channelPointRewardRedemptionTriggered(notificationEvent.reward as ITwitchChannelReward, user.id);
 
             const redemptionType = await this.channelPointRewardService.getRedemptionType(notificationEvent.reward.id);
-            if (redemptionType === ChannelPointRedemption.Points) {
-                // Check for read-only mode here if we ever implement redemptions that can be set to CANCELLED by the bot.
-                await this.users.changeUserPoints(
-                    user,
-                    notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
-                    PointLogType.PointRewardRedemption
-                );
+            switch (redemptionType) {
+                case ChannelPointRedemption.Points:
+                    // Check for read-only mode here if we ever implement redemptions that can be set to CANCELLED by the bot.
+                    await this.users.changeUserPoints(
+                        user,
+                        notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+                        PointLogType.PointRewardRedemption
+                    );
+                    break;
+
+                case ChannelPointRedemption.SongRequest:
+                    try {
+                        const song = await this.songService.addSong(notificationEvent.user_input, RequestSource.ChannelPoints, user.username, "");
+                        if (song) {
+                            this.twitchService.sendMessage(
+                                notificationEvent.broadcaster_user_login,
+                                `${song.title} was added to the song queue by ${song.requestedBy} at position ${this.songService.getSongQueue().indexOf(song) + 1}!`
+                            );
+                        }
+                    } catch (err) {
+                        this.twitchService.sendMessage(
+                            notificationEvent.broadcaster_user_login,
+                            `${user.username}, the song could not be added to the queue (${err}).`
+                        );
+                    }
+                    break;
             }
         }
 
