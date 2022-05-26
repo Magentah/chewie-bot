@@ -38,12 +38,17 @@ export class BankheistCommand extends Command {
         this.seasonsRepository = BotContainer.get(SeasonsRepository);
     }
 
-    public async executeInternal(channel: string, user: IUser, wager: number): Promise<void> {
+    public async executeInternal(channel: string, user: IUser, wager: number | string): Promise<void> {
         if (await this.isReadOnly(channel)) {
             return;
         }
 
-        const result = EventHelper.validatePoints(user, wager);
+        let wagerNumeric = Number(wager);
+        if (wager.toString().toLowerCase() === "all") {
+            wagerNumeric = user.points;
+        }
+
+        const result = EventHelper.validatePoints(user, wagerNumeric);
         if (!result[0]) {
             this.twitchService.sendMessage(channel, result[1]);
             return;
@@ -52,7 +57,7 @@ export class BankheistCommand extends Command {
         // Bankheist in progress? Join existing event.
         for (const heistInProgress of this.eventService.getEvents(BankheistEvent)) {
             if (heistInProgress.state === EventState.Open) {
-                if (!await heistInProgress.addParticipant(new EventParticipant(user, wager))) {
+                if (!await heistInProgress.addParticipant(new EventParticipant(user, wagerNumeric))) {
                     this.twitchService.sendMessage(channel, Lang.get("bankheist.alreadyjoined", user.username));
                 }
                 return;
@@ -60,7 +65,7 @@ export class BankheistCommand extends Command {
         }
 
         const bankheist = new BankheistEvent(this.twitchService, this.userService, this.eventService, this.eventLogService, this.messages,
-            this.pointsLog, this.seasonsRepository, this.eventAggregator, user, wager);
+            this.pointsLog, this.seasonsRepository, this.eventAggregator, user, wagerNumeric);
         bankheist.sendMessage = (msg) => this.twitchService.sendMessage(channel, msg);
 
         function isEvent(event: string | BankheistEvent): event is BankheistEvent {
