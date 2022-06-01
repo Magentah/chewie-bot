@@ -177,6 +177,11 @@ export default class CardsRepository {
         }
     }
 
+    public async  renameBaseCard(oldName: string, newName: string) {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ baseCardName: oldName }).update({ baseCardName: newName });
+    }
+
     public async delete(card: IUserCard): Promise<boolean> {
         const databaseService = await this.databaseProvider();
         if (card.id) {

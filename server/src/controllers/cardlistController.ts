@@ -112,13 +112,13 @@ class CardlistController {
             return;
         }
 
-        const cardData = await this.cardRepository.get(card);
-        if (!cardData) {
+        const existingCard = await this.cardRepository.get(card);
+        if (!existingCard) {
             return;
         }
 
         try {
-            await this.cardRepository.addOrUpdate({...cardData,
+            await this.cardRepository.addOrUpdate({...existingCard,
                 name: card.name,
                 setName: card.setName,
                 baseCardName: card.baseCardName,
@@ -126,6 +126,13 @@ class CardlistController {
                 isUpgrade: card.isUpgrade,
                 isEnabled: card.isEnabled
             });
+
+            // Card has been renamed, update base card references.
+            // Preferably in the future: Store actual ID of card instead to prevent issues.
+            if (existingCard.name !== card.name) {
+                await this.cardRepository.renameBaseCard(existingCard.name, card.name);
+            }
+
             res.status(StatusCodes.OK);
             res.send(card);
         } catch (err: any) {
