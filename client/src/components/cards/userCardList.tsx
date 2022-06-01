@@ -258,7 +258,9 @@ const UserCardList: React.FC<any> = (props: any) => {
                     { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} />, editable: "never" }
                 ]}
                 options = {{
-                    paging: false,
+                    paging: true,
+                    pageSize: 25,
+                    pageSizeOptions: [25, 50, 100, 200],
                     actionsColumnIndex: 7,
                     showTitle: false,
                     addRowPosition: "first",

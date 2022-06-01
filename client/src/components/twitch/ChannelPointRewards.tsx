@@ -40,11 +40,9 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
                     { title: "Redemption", field: "associatedRedemption", lookup: Object.fromEntries(redemptions.map(x => [x, x])), editable: "always" }
                 ]}
                 options = {{
-                    paging: true,
+                    paging: false,
                     showTitle: true,
-                    actionsColumnIndex: 3,
-                    pageSize: 10,
-                    pageSizeOptions: [10, 50, 100, 200]
+                    actionsColumnIndex: 3
                 }}
                 data = {channelPointRewards}
                 editable = {{
