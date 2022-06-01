@@ -127,6 +127,8 @@ const UserCardStackList: React.FC<any> = (props: any) => {
         );
     }
 
+    const filteredCardList = cardlist.filter(x => !selectedSeason || x.setName === selectedSeason);
+
     return <Card>
             <Backdrop className={classes.backdrop} open={cardViewUrl !== ""} onClick={() => setCardViewUrl("")}>
                 <Image src={cardViewUrl} alt={""} onClick={() => setCardViewUrl("")} style={{maxWidth: "90%", maxHeight: "90%"}} />
@@ -205,27 +207,39 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                 </Box>
                             </Grid> : undefined}
                             <Grid item>
+                                {filteredCardList.length === 0 ?
+                                <Box className={classes.noCardsGrid} padding={15}>
+                                    <Grid>
+                                        <Grid item>
+                                            <Typography align="center" variant="h6" className={classes.noCardsText} style={{marginBottom: "2em"}}>{`You don't have any ${selectedSeason} cards yet`}</Typography>
+                                        </Grid>
+                                        {cardCost ?
+                                        <Grid item>
+                                            <Typography align="center" className={classes.noCardsText}>You can trade {cardCost} chews for a random dango card!</Typography>
+                                        </Grid> : undefined}
+                                    </Grid>
+                                </Box> :
                                 <Box flexWrap="wrap" display="flex" className={classes.cardsGrid}>
-                                    {cardlist.filter(x => !selectedSeason || x.setName === selectedSeason).map((tile: RowData) => (
-                                        <Box m={1} key={tile.name}>
-                                            <Grid>
-                                                <Grid item>
-                                                    <Box display="flex" justifyContent="center">
-                                                        <Box className={classes.individualCardCounter}>
-                                                            <Typography className={classes.individualCardCounterText} align="center">× {tile.cardCount}</Typography>
-                                                        </Box>
+                                    {filteredCardList.map((tile: RowData) => (
+                                    <Box m={1} key={tile.name}>
+                                        <Grid>
+                                            <Grid item>
+                                                <Box display="flex" justifyContent="center">
+                                                    <Box className={classes.individualCardCounter}>
+                                                        <Typography className={classes.individualCardCounterText} align="center">× {tile.cardCount}</Typography>
                                                     </Box>
-                                                </Grid>
-                                                <Grid item>
-                                                    {tile.upgradedName ?
-                                                    <Sparkles>
-                                                        <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
-                                                    </Sparkles> :
-                                                    <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />}
-                                                </Grid>
+                                                </Box>
                                             </Grid>
-                                        </Box>))}
-                                </Box>
+                                            <Grid item>
+                                                {tile.upgradedName ?
+                                                <Sparkles>
+                                                    <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />
+                                                </Sparkles> :
+                                                <Image title={tile.name} height={250} src={tile.url} alt={tile.name} onClick={() => setCardViewUrl(tile.url)} style={{ cursor: "pointer" }} />}
+                                            </Grid>
+                                        </Grid>
+                                    </Box>))}
+                                </Box>}
                             </Grid>
                         </Grid>}
                     </Grid>
