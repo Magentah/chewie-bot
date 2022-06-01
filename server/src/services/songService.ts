@@ -443,6 +443,19 @@ export class SongService {
         return userSongs;
     }
 
+    /**
+     * Extracts URLs from a string.
+     */
+    public static getSongsForQueue(message: string): string[] {
+        const urlRegex: RegExp = /(https?:\/\/[^\s]+)/gi;
+        const result = urlRegex.exec(message);
+        if (!result) {
+            return /(www.+)/gi.exec(message) ?? [];
+        } else {
+            return result;
+        }
+    }
+
     private getDayStartingAtMonday(date: Date): number {
         const day = date.getDay();
         return day === 0 ? 6 : day -1;
