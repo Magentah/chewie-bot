@@ -180,12 +180,18 @@ export default class TwitchEventService {
 
                 case ChannelPointRedemption.SongRequest:
                     try {
-                        const song = await this.songService.addSong(notificationEvent.user_input, RequestSource.ChannelPoints, user.username, "");
-                        if (song) {
-                            this.twitchService.sendMessage(
-                                notificationEvent.broadcaster_user_login,
-                                `${song.title} was added to the song queue by ${song.requestedBy} at position ${this.songService.getSongQueue().indexOf(song) + 1}!`
-                            );
+                        for (const match of SongService.getSongsForQueue(notificationEvent.user_input)) {
+                            const comments = notificationEvent.user_input.replace(match, "");
+                            const song = await this.songService.addSong(match, RequestSource.ChannelPoints, user.username, comments);
+                            if (song) {
+                                this.twitchService.sendMessage(
+                                    notificationEvent.broadcaster_user_login,
+                                    `${song.title} was added to the song queue by ${song.requestedBy} at position ${this.songService.getSongQueue().indexOf(song) + 1}!`
+                                );
+                            }
+
+                            // Only one song allowed.
+                            break;
                         }
                     } catch (err) {
                         this.twitchService.sendMessage(

@@ -38,7 +38,7 @@ export default class RewardService {
 
         if ((await this.addGoldStatus(user, donation)) && user) {
             // Use goldsong for queue if possible
-            const matches = this.getSongsForQueue(donation.message);
+            const matches = SongService.getSongsForQueue(donation.message);
             for (const match of matches) {
                 try {
                     const comments = donation.message.replace(match, "");
@@ -200,21 +200,11 @@ export default class RewardService {
         }
     }
 
-    private getSongsForQueue(message: string): string[] {
-        const urlRegex: RegExp = /(https?:\/\/[^\s]+)/gi;
-        const result = urlRegex.exec(message);
-        if (!result) {
-            return /(www.+)/gi.exec(message) ?? [];
-        } else {
-            return result;
-        }
-    }
-
     private async addSongsToQueue(donation: IDonationMessage) {
         const amountRequired = parseFloat(await this.settings.getValue(BotSettings.SongRequestDonationAmount));
 
         if (donation.amount >= amountRequired) {
-            const matches = this.getSongsForQueue(donation.message);
+            const matches = SongService.getSongsForQueue(donation.message);
             for (const match of matches) {
                 try {
                     const comments = donation.message.replace(match, "");
