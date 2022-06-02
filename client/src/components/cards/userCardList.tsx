@@ -163,7 +163,6 @@ const UserCardList: React.FC<any> = (props: any) => {
                             <Grid item>
                                 <Autocomplete
                                     id="card-basecard"
-                                    freeSolo
                                     fullWidth
                                     inputValue={cardBaseCardName}
                                     /* Use unique values for autocomplete */
@@ -241,7 +240,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                         defaultSort: "asc",
                     },
                     { title: "Set name", field: "setName" },
-                    { title: "Base card name", field: "baseCardName" },
+                    { title: "Base card name", field: "baseCardName", lookup: Object.fromEntries(cardlist.sort((a,b) => a.name > b.name ? 1 : -1).map(e => [e.name, e.name])) },
                     {
                         title: "Rarity", field: "rarity",
                         initialEditValue: 0,
@@ -258,7 +257,9 @@ const UserCardList: React.FC<any> = (props: any) => {
                     { title: "Image", field: "image", render: rowData => <ImageCell value={rowData} />, editable: "never" }
                 ]}
                 options = {{
-                    paging: false,
+                    paging: true,
+                    pageSize: 25,
+                    pageSizeOptions: [25, 50, 100, 200],
                     actionsColumnIndex: 7,
                     showTitle: false,
                     addRowPosition: "first",
