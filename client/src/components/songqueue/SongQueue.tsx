@@ -476,8 +476,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             title: "Requested With",
             field: "requestSource",
             sorting: false,
-            width: "10%",
-            editable: "never"
+            width: "10%"
         }
     ];
 

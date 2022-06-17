@@ -1,10 +1,14 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { ReactNode, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 import { UserLevel } from "../common/userLevel";
-import { Grid } from "@mui/material";
+import {
+    Alert, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, Grid, 
+    InputAdornment, InputLabel, MenuItem, Select, SelectChangeEvent, Snackbar, SnackbarCloseReason, TextField }
+from "@mui/material";
 import { Launch, Chat, Settings } from "@mui/icons-material";
 import { UserContext, UserLevels } from "../../contexts/userContext";
+import { AddToListState } from "../common/addToListState";
 
 enum CommandType {
     Text,
@@ -34,6 +38,8 @@ const CommandNameCell: React.FC<any> = (value: RowData) => {
 
 const CommandList: React.FC<any> = (props: any) => {
     const [commandlist, setCommandlist] = useState([] as RowData[]);
+    const [editingCommand, setEditingCommand] = useState<RowData>();
+    const [editCommandState, setEditCommandState] = useState<AddToListState>();
     const [userLevels, setUserLevels] = useState([] as UserLevel[]);
     const userContext = useContext(UserContext);
 
@@ -49,8 +55,106 @@ const CommandList: React.FC<any> = (props: any) => {
         });
     }, []);
 
+    const handleEditCommandClose = async (doSave: boolean) => {
+        if (doSave && editingCommand) {
+            setEditCommandState({state: "progress"});
+
+            try {
+                if (editingCommand.id) {
+                    // Edit existing command
+                    await axios.post("/api/commandlist", editingCommand);
+                    const newList = [...commandlist];
+
+                    const target = newList.find((el) => el.id === editingCommand.id);
+                    if (target) {
+                        const index = newList.indexOf(target);
+                        newList[index] = editingCommand;
+                        setCommandlist([...newList]);
+                    }
+                } else {
+                    // Add new command
+                    const result = await axios.post("/api/commandlist/add", editingCommand);
+                    const newList = [...commandlist, result.data as RowData];
+                    setCommandlist(newList);
+                }
+
+                setEditingCommand(undefined);
+                setEditCommandState({state: "success"});
+            } catch (error: any) {
+                setEditCommandState({
+                    state: "failed",
+                    message: error.response.data.error.message
+                });
+            }
+        } else {
+            setEditingCommand(undefined);
+        }
+    };
+
+    const handleClose = (event: any, reason: SnackbarCloseReason) => {
+        setEditCommandState({state: undefined});
+    };
+
+    let editSongDialog;
+    let songRequestStatusBar;
+    if (editingCommand !== undefined) {
+        songRequestStatusBar = <Grid item xs={12}>
+            <Snackbar open={editCommandState?.state === "success"} autoHideDuration={4000} onClose={handleClose} key="edit-command-alert">
+                <Alert onClose={(e) => handleClose(e, "clickaway")} severity="success">
+                    Command saved successfully.
+                </Alert>
+            </Snackbar>
+            { editCommandState?.state === "failed" ?
+            <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
+                <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
+                    Command could not be saved: {editCommandState.message}
+                </Alert>
+            </Snackbar> : undefined}
+        </Grid>;
+
+        editSongDialog = <Dialog open={true} onClose={() => handleEditCommandClose(false)} key="command-edit-dialog">
+            <form onSubmit={(event) => {event.preventDefault(); handleEditCommandClose(true);}}>
+                <DialogTitle>{editingCommand?.id ? "Edit Command" : "Add Command"}</DialogTitle>
+                <DialogContent>
+                    <TextField autoFocus margin="dense" id="edit-title" label="Name" fullWidth variant="standard"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">{"!"}</InputAdornment>
+                            )}}
+                        value={editingCommand?.commandName ?? ""} onChange={(e) => setEditingCommand({...editingCommand, commandName: e.target.value})} />
+                    <TextField margin="dense" id="edit-content" label="Content" fullWidth variant="standard" multiline
+                        value={editingCommand?.content ?? ""} rows={4} onChange={(e) => setEditingCommand({...editingCommand, content: e.target.value})} />
+                    <TextField disabled={editingCommand?.type === CommandType.Alias} margin="dense" type="number" id="edit-count" label="Use count" fullWidth variant="standard"
+                        value={editingCommand?.useCount ?? 0} onChange={(e) => setEditingCommand({...editingCommand, useCount: Number(e.target.value)})} />
+                    <FormControlLabel style={{marginTop: "1.5em"}}
+                        control={
+                            <Checkbox id="edit-cooldown" checked={editingCommand?.useCooldown ? true : false}
+                            disabled={editingCommand?.type === CommandType.Alias}
+                            onChange={(e) => setEditingCommand({...editingCommand, useCooldown: e.target.checked})} />}
+                        label="Cooldown enabled"
+                    />
+                    <FormControl fullWidth style={{ marginTop: 15 }}>
+                        <InputLabel>Permissions required</InputLabel>
+                        <Select
+                            value={editingCommand?.minUserLevel ?? UserLevels.Viewer}
+                            disabled={editingCommand?.type === CommandType.Alias}
+                            onChange={(e: SelectChangeEvent<number>, child: ReactNode) => setEditingCommand({...editingCommand, minUserLevel: e.target.value as number})}>
+                            {userLevels.map(e => <MenuItem key={`edit-level-item-${e.rank}`} value={e.rank}>{e.name}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <Button disabled={!editingCommand?.commandName} onClick={() => handleEditCommandClose(true)}>Save</Button>
+                    <Button onClick={() => handleEditCommandClose(false)}>Cancel</Button>
+                </DialogActions>
+            </form>
+        </Dialog>;
+    }
+
     return <div>
-            <MaterialTable
+            {editSongDialog}
+            {songRequestStatusBar}
+            <MaterialTable key="command-edit-list"
                 columns = {[
                     {
                         title: "Command", field: "commandName", defaultSort: "asc", filtering: false,
@@ -77,36 +181,33 @@ const CommandList: React.FC<any> = (props: any) => {
                     addRowPosition: "first",
                     padding: "dense"
                 }}
+                actions = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
+                    [
+                        {
+                            icon: "add",
+                            tooltip: "Add command",
+                            isFreeAction: true,
+                            onClick: (evt, data) => {
+                                const newCommand = { type: CommandType.Text } as RowData;
+                                setEditingCommand(newCommand);
+                            }
+                        },
+                        rowData => ({
+                            tooltip: "Edit command",
+                            icon: "edit",
+                            disabled: rowData.type === CommandType.System,
+                            onClick: (evt, data) => {
+                                const command = data as RowData;
+                                if (command !== undefined) {
+                                    setEditingCommand(command);
+                                }
+                        }})
+                    ]}
                 data = {commandlist}
                 editable = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
                     {
                         isEditable: rowData => rowData.type !== CommandType.System,
                         isDeletable: rowData => rowData.type !== CommandType.System,
-                        onRowAdd: (newData) => {
-                            const command: RowData = {
-                                commandName: newData.commandName,
-                                content: newData.content,
-                                // Material-table changes datatype to string after selecting from the dropdown for no apparent reason.
-                                type: parseInt(newData.type.toString(), 10),
-                                minUserLevel: 0,
-                                useCount: newData.useCount,
-                                useCooldown: true
-                            };
-                            return axios.post("/api/commandlist/add", command).then((result) => {
-                                const newList = [...commandlist, result.data as RowData];
-                                setCommandlist(newList);
-                            })
-                        },
-                        onRowUpdate: (newData, oldData) => axios.post("/api/commandlist", newData).then((result) => {
-                            const newList = [...commandlist];
-                            // @ts-ignore
-                            const target = newList.find((el) => el.id === oldData.tableData.id);
-                            if (target) {
-                                const index = newList.indexOf(target);
-                                newList[index] = newData;
-                                setCommandlist([...newList]);
-                            }
-                        }),
                         onRowDelete: oldData => axios.post("/api/commandlist/delete", oldData).then((result) => {
                             const newList = [...commandlist];
                             // @ts-ignore
