@@ -131,19 +131,27 @@ class SongController {
      * @param res Express HTTP Response
      */
     public async addSongForUser(req: Request, res: Response): Promise<void> {
-      if (req.body.url === undefined || req.body.url.length === 0) {
+        const newSong = req.body as ISong;
+        if (!newSong) {
             res.status(StatusCodes.BAD_REQUEST);
-            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a valid URL."));
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a song object."));
             return;
         }
-        if (req.body.requestSource === undefined || req.body.requestSource.length === 0) {
+
+        if (!newSong.sourceUrl) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "No URL has been provided."));
+            return;
+        }
+
+        if (!newSong.requestSource) {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a valid request source."));
             return;
         }
 
         try {
-            const song = await this.songService.addSong(req.body.url, req.body.requestSource, req.params.username, "");
+            const song = await this.songService.addSong(newSong.sourceUrl, newSong.requestSource, newSong.requestedBy ?? req.params.username, newSong.comments);
 
             if (song === undefined) {
                 res.status(StatusCodes.INTERNAL_SERVER_ERROR);

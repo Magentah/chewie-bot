@@ -61,6 +61,12 @@ class CommandlistController {
             return;
         }
 
+        if (!commandInfo.commandName) {
+            res.status(StatusCodes.BAD_REQUEST);
+            res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Command name cannot be empty."));
+            return;
+        }
+
         try {
             switch (commandInfo.type) {
                 case CommandType.Alias:
@@ -93,7 +99,7 @@ class CommandlistController {
                 case CommandType.Text:
                     await this.textCommandsRepository.add({
                         commandName: commandInfo.commandName,
-                        message: commandInfo.content,
+                        message: commandInfo.content ?? "",
                         useCount: commandInfo.useCount ?? 0,
                         useCooldown: commandInfo.useCooldown ?? true,
                         minimumUserLevel: commandInfo.minUserLevel ? commandInfo.minUserLevel : UserLevels.Viewer
@@ -108,9 +114,14 @@ class CommandlistController {
                     res.sendStatus(StatusCodes.NOT_IMPLEMENTED);
                     return;
             }
-        } catch (err) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR);
-            res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to add the command."));
+        } catch (err: any) {
+            if (err.code === "SQLITE_CONSTRAINT") {
+                res.status(StatusCodes.BAD_REQUEST);
+                res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Command with same name already exists."));
+            } else {
+                res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+                res.send(APIHelper.error(StatusCodes.INTERNAL_SERVER_ERROR, "There was an error when attempting to add the command."));
+            }
         }
     }
 

@@ -10,7 +10,6 @@ import { Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import AddIcon from "@mui/icons-material/Add";
 import VerticalAlignTopIcon from "@mui/icons-material/VerticalAlignTop";
 import CheckIcon from "@mui/icons-material/Check";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
@@ -140,7 +139,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [playedSongs, setPlayedSongs] = useState<Song[]>([]);
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const userContext = useContext(UserContext);
-    const [songRequestUrl, setSongRequestUrl] = useState<string>("");
     const donationLinkUrl = useSetting<string>("song-donation-link");
     const [songRequestState, setSongRequestState] = useState<SongRequestState>();
     const [selectedTab, setSelectedTab] = React.useState(0);
@@ -152,7 +150,14 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
 
     const { classes } = useStyles();
 
-    const addSong = (newSong: Song) => setSongs((state: Song[]) => [...state, newSong]);
+    const addSong = (newSong: Song) => setSongs((state: Song[]) => {
+        for (const song of state) {
+            if (song.id === newSong.id) {
+                return state;
+            }
+        }
+        return [...state, newSong];
+    });
 
     // For comparisons, compare by internal ID since object equality is not ensured
     // (song comments will be removed for regular users).
@@ -260,21 +265,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         });
     };
 
-    const submitSongRequest = async () => {
-        try {
-            setSongRequestState({state: "progress"});
-
-            await axios.post(`/api/songs/user/${userContext.user.username}`, { url: songRequestUrl, requestSource: "Bot UI" });
-            setSongRequestState({state: "success"});
-            setSongRequestUrl("");
-        } catch (error: any) {
-            setSongRequestState({
-                state: "failed",
-                message: error.response.data.error.message
-            });
-        }
-    };
-
     const handleClose = (event: any, reason: SnackbarCloseReason) => {
         setSongRequestState({
             state: undefined
@@ -288,10 +278,29 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             editingSong.requestedBy = editingSongRequester;
             editingSong.sourceUrl = editingSongUrl;
 
-            await axios.post("/api/songs/edit", editingSong);
-            loadSongs();
+            setSongRequestState({state: "progress"});
+
+            try {
+                if (editingSong.id) {
+                    await axios.post("/api/songs/edit", editingSong);
+                } else {
+                    const user = editingSongRequester ? editingSongRequester : userContext.user.username;
+                    editingSong.requestSource = "Bot UI";
+                    await axios.post(`/api/songs/user/${user}`, editingSong);
+                }
+                setSongRequestState({state: "success"});
+                loadSongs();
+                setEditingSong(undefined);
+            } catch (error :any) {
+                // Keep dialog open here to allow for corrections
+                setSongRequestState({
+                    state: "failed",
+                    message: error.response.data.error.message
+                });
+            }
+        } else {
+            setEditingSong(undefined);
         }
-        setEditingSong(undefined);
     };
 
     const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -303,6 +312,19 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     let tableActions: (Action<Song> | ((rowData: Song) => Action<Song>))[] = [];
     if (userContext.user.userLevel >= UserLevels.Moderator) {
         tableActions = [
+            {
+                icon: "add",
+                tooltip: "Add song",
+                isFreeAction: true,
+                onClick: (evt, data) => {
+                    const newSong = {} as Song;
+                    setEditingSong(newSong);
+                    setEditingSongComment("");
+                    setEditingSongRequester("");
+                    setEditingSongTitle("");
+                    setEditingSongUrl("");
+                }
+            },
             rowData => ({
                 icon: VerticalAlignTopIcon,
                 tooltip: "Move to top",
@@ -348,32 +370,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         }
     }
 
-    const addSongrequestsForm = (userContext.user.userLevel >= UserLevels.Moderator)
-        ? <Grid item xs={12}>
-            <form onSubmit={submitSongRequest}>
-                <Grid container spacing={2} justifyContent="flex-start">
-                    <Grid item xs={12} sm={4}>
-                        <TextField
-                            id="song-url"
-                            label="Add song request (URL)"
-                            fullWidth
-                            value={songRequestUrl}
-                            onChange={(e) => setSongRequestUrl(e.target.value)}
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={2}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            startIcon={songRequestState?.state === "progress" ? <CircularProgress size={15} /> : <AddIcon />}
-                            onClick={submitSongRequest}
-                            className={classes.addButton}
-                            disabled={songRequestState?.state === "progress"}>
-                            Add
-                        </Button>
-                    </Grid>
-                </Grid>
-            </form>
+    const songRequestStatusBar = <Grid item xs={12}>
             <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
                 <Alert onClose={(e) => handleClose(e, "clickaway")} severity="success">
                     Song request added.
@@ -385,8 +382,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                     Song request could not be added: {songRequestState.message}
                 </Alert>
             </Snackbar> : undefined}
-        </Grid>
-        : undefined;
+        </Grid>;
 
     // Display only for known users, we can't indentify requests otherwise.
     const ownSongQueue = !userContext.user.username ? undefined :
@@ -415,26 +411,32 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                    </ImageList >
                 </div>
             </Box> : undefined}
-            {addSongrequestsForm}
+            {songRequestStatusBar}
             <Divider />
         </Box>;
 
-    const editSongDialog = <Dialog open={editingSong !== undefined} onClose={() => handleEditSongClose(false)}>
-        <DialogTitle>Edit Song</DialogTitle>
-        <DialogContent>
-            <TextField autoFocus margin="dense" id="edit-title" label="Title" fullWidth variant="standard"
-                value={editingSongTitle} onChange={(e) => setEditingSongTitle(e.target.value)} />
-            <TextField margin="dense" id="edit-comment" label="Comments" fullWidth variant="standard" multiline
-                value={editingSongComment} rows={4} onChange={(e) => setEditingSongComment(e.target.value)} />
-            <TextField margin="dense" id="edit-requester" label="Requested by" fullWidth variant="standard"
-                value={editingSongRequester} onChange={(e) => setEditingSongRequester(e.target.value)} />
-            <TextField margin="dense" id="edit-url" label="URL" fullWidth variant="standard"
-                value={editingSongUrl} onChange={(e) => setEditingSongUrl(e.target.value)} />
-        </DialogContent>
-        <DialogActions>
-            <Button onClick={() => handleEditSongClose(true)}>Save</Button>
-            <Button onClick={() => handleEditSongClose(false)}>Cancel</Button>
-        </DialogActions>
+    const editSongDialog = <Dialog open={editingSong !== undefined} onClose={() => handleEditSongClose(false)} key="edit-dialog">
+        <form onSubmit={(event) => {event.preventDefault(); handleEditSongClose(true);}}>
+            <DialogTitle>{editingSong?.id ? "Edit Song" : "Add Song"}</DialogTitle>
+            <DialogContent>
+                <TextField autoFocus margin="dense" id="edit-title" label="Title" fullWidth variant="standard"
+                    value={editingSongTitle} onChange={(e) => setEditingSongTitle(e.target.value)} />
+                <TextField margin="dense" id="edit-comment" label="Comments" fullWidth variant="standard" multiline
+                    value={editingSongComment} rows={4} onChange={(e) => setEditingSongComment(e.target.value)} />
+                <TextField margin="dense" id="edit-requester" label="Requested by" fullWidth variant="standard"
+                    value={editingSongRequester} onChange={(e) => setEditingSongRequester(e.target.value)} />
+                <TextField margin="dense" id="edit-url" label="URL" fullWidth variant="standard"
+                    value={editingSongUrl} onChange={(e) => setEditingSongUrl(e.target.value)} />
+            </DialogContent>
+            <DialogActions>
+                <Button type="submit"
+                    startIcon={songRequestState?.state === "progress" ? <CircularProgress size={15} /> : undefined}
+                    disabled={songRequestState?.state === "progress"}>
+                    {songRequestState?.state === "progress" ? "" : "Save"}
+                </Button>
+                <Button onClick={() => handleEditSongClose(false)}>Cancel</Button>
+            </DialogActions>
+        </form>
       </Dialog>;
 
     const donationLinks = ownSongs.length === 0 && donationLinkUrl ?
@@ -476,8 +478,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             title: "Requested With",
             field: "requestSource",
             sorting: false,
-            width: "10%",
-            editable: "never"
+            width: "10%"
         }
     ];
 
