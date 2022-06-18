@@ -164,7 +164,9 @@ class BotServer extends Server {
             }
         });
         this.app.get("/api/logout", (req, res) => {
-            req.logOut();
+            req.logOut((err) => {
+                Logger.err(LogType.Server, err);
+            });
             res.redirect("/");
         });
         // Allow setting custom user levels for debug purposes.
