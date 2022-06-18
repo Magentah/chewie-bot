@@ -198,7 +198,9 @@ authRouter.get(
                 user.refreshToken = "";
                 await BotContainer.get(UserService).updateUser(user);
                 await BotContainer.get(TwitchService).disconnect();
-                req.logout();
+                req.logOut((err) => {
+                    Logger.err(LogType.Server, err);
+                });
             }
 
             res.sendStatus(StatusCodes.OK);
