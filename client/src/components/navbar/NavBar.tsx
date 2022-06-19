@@ -4,8 +4,10 @@ import { AppBar, Toolbar, IconButton, Typography, Button, Theme } from "@mui/mat
 import { Image } from "react-bootstrap";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
-import { green, red } from "@mui/material/colors";
+import { green, red, grey } from "@mui/material/colors";
 import { UserContext, UserLevels } from "../../contexts/userContext";
+import CheckIcon from '@mui/icons-material/Check';
+import ClearIcon from '@mui/icons-material/Clear';
 
 type NavBarProps = {};
 
@@ -37,10 +39,19 @@ const useStyles = makeStyles()((theme: Theme) => ({
         },
         marginRight: "12px"
     },
+    loadingButton: {
+        color: theme.palette.getContrastText(grey[500]),
+        backgroundColor: grey[500],
+        "&:hover": {
+          backgroundColor: grey[700],
+        },
+        marginRight: "12px"
+    },
 }));
 
 const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
-    const [botConnected, setBotConnected] = useState(false);
+    const [botConnected, setBotConnected] = useState<boolean | undefined>(undefined);
+    const [hasBroadcasterAuth, setHasBroadcasterAuth] = useState<boolean | undefined>(undefined);
     const userContext = useContext(UserContext);
 
     const { classes } = useStyles();
@@ -67,18 +78,25 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
 
     useEffect(() => {
         axios.get("/api/twitch/status").then((response) => {
-            if (response?.data.data.state === "OPEN") {
-                setBotConnected(true);
-            } else {
-                setBotConnected(false);
-            }
+            setBotConnected(response?.data.status === "OPEN");
+            setHasBroadcasterAuth(response?.data.hasBroadcasterAuth);
         });
     }, []);
 
-    const connectBotButton = (userContext.user.userLevel < UserLevels.Admin) ? undefined :
-        <Button className={botConnected ? classes.connectedButton: classes.disconnectedButton} onClick={connectBot} variant="contained">
+    const getStyle = (v: boolean | undefined) => v === undefined ? classes.loadingButton : v ? classes.connectedButton: classes.disconnectedButton;
+    const getIcon = (v: boolean | undefined) => v === undefined ? undefined : v ? <CheckIcon />: <ClearIcon />;
+
+    const connectBroadcasterButton = (userContext.user.userLevel < UserLevels.Admin) ? undefined :
+        <Button className={getStyle(hasBroadcasterAuth)} href="/api/auth/twitch/broadcaster" variant="contained" startIcon={getIcon(hasBroadcasterAuth)}>
             <Typography variant="caption">
-                {botConnected ? "Bot is connected" : "Bot is not connected"}
+                {hasBroadcasterAuth ? "Broastcaster permissions" : "Permissions required"}
+            </Typography>
+        </Button>;
+
+    const connectBotButton = (userContext.user.userLevel < UserLevels.Admin) ? undefined :
+        <Button className={getStyle(botConnected)} onClick={connectBot} variant="contained" startIcon={getIcon(botConnected)}>
+            <Typography variant="caption">
+                {botConnected === undefined ? "Checking status..." : botConnected ? "Bot connected" : "Bot not connected"}
             </Typography>
         </Button>;
 
@@ -87,6 +105,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
             <Toolbar>
                 <Typography variant="h6">Chewie Melodies</Typography>
                 <div className={classes.rightMenu}>
+                    {hasBroadcasterAuth !== undefined ? connectBroadcasterButton : undefined}
                     {connectBotButton}
                     <IconButton
                         color="inherit"

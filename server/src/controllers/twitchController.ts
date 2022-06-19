@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
 import { ResponseStatus } from "../models";
 import { Logger, LogType } from "../logger";
-import { TwitchServiceProvider, BotSettingsService, TwitchEventService, StreamlabsService } from "../services";
+import { TwitchServiceProvider, BotSettingsService, TwitchEventService, StreamlabsService, TwitchWebService } from "../services";
 import { ITwitchProfile } from "../strategy/twitchStrategy";
 import { BotSettings } from "../services/botSettingsService";
 
@@ -19,19 +19,22 @@ class TwitchController {
         @inject("TwitchServiceProvider") private twitchProvider: TwitchServiceProvider,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
         @inject(TwitchEventService) private twitchEventService: TwitchEventService,
-        @inject(StreamlabsService) private streamlabsService: StreamlabsService
+        @inject(StreamlabsService) private streamlabsService: StreamlabsService,
+        @inject(TwitchWebService) private twitchWebService: TwitchWebService
     ) {
         // Empty
     }
     public async getStatus(req: Request, res: Response): Promise<void> {
         const twitchService = await this.twitchProvider();
-        res.status(StatusCodes.OK).send(twitchService.getStatus());
+        const status = twitchService.getStatus();
+        const hasBroadcasterAuth = (await this.twitchWebService.fetchModerators()) !== undefined;
+        res.status(StatusCodes.OK).send({ status: status.data.state, hasBroadcasterAuth });
     }
 
     public async connect(req: Request, res: Response): Promise<void> {
         try {
             const twitchService = await this.twitchProvider();
-            twitchService.connect();
+            await twitchService.connect();
 
             // Attempts to connect to the streamlabs socket on bot connection.
             // TODO: Might be a good idea to change this? Maybe have the bot just connect to the websocket on
@@ -50,7 +53,7 @@ class TwitchController {
     public async disconnect(req: Request, res: Response): Promise<void> {
         try {
             const twitchService = await this.twitchProvider();
-            twitchService.disconnect();
+            await twitchService.disconnect();
             this.streamlabsService.disconnect();
             res.sendStatus(StatusCodes.OK);
         } catch (error) {
