@@ -38,7 +38,6 @@ const RedisStore = connectRedis(expressSession);
 
 class BotServer extends Server {
     private readonly SERVER_START_MESSAGE = "Server started on port: ";
-    private readonly DEV_MESSAGE = "Express Server is running in development mode." + "No front-end is being served";
     private socket: WebsocketService;
     private commands: CommandService;
     private taxService: TaxService;
@@ -85,11 +84,6 @@ class BotServer extends Server {
                 console.debug(this.SERVER_START_MESSAGE + port);
             }
         });
-
-        // Test things
-        /* const youtubeService = this.container.get<YoutubeService>(YoutubeService);
-        Logger.Info('Testing Youtube API');
-        youtubeService.getSongDetails('https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1'); */
     }
 
     private setupApp(): void {
@@ -141,7 +135,7 @@ class BotServer extends Server {
                     maxAge: 14 * 24 * 60 * 60 * 1000
                 },
                 name: "chewiebot.sid",
-                store: new RedisStore({ client: redisClient as any }),
+                store: new RedisStore({ client: redisClient }),
             })
         );
         this.app.use(passport.initialize());
