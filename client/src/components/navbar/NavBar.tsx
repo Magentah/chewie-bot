@@ -83,8 +83,8 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         });
     }, []);
 
-    const getStyle = (v: boolean | undefined) => v === undefined ? classes.loadingButton : v ? classes.connectedButton: classes.disconnectedButton;
-    const getIcon = (v: boolean | undefined) => v === undefined ? undefined : v ? <CheckIcon />: <ClearIcon />;
+    const getStyle = (v: boolean | undefined) => v === undefined ? classes.loadingButton : v ? classes.connectedButton : classes.disconnectedButton;
+    const getIcon = (v: boolean | undefined) => v === undefined ? undefined : v ? <CheckIcon /> : <ClearIcon />;
 
     const connectBroadcasterButton = (userContext.user.userLevel < UserLevels.Admin) ? undefined :
         <Button className={getStyle(hasBroadcasterAuth)} href="/api/auth/twitch/broadcaster" variant="contained" startIcon={getIcon(hasBroadcasterAuth)}>
