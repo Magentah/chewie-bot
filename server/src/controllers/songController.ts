@@ -12,8 +12,8 @@ import moment = require("moment");
 @injectable()
 class SongController {
     constructor(@inject(SongService) private songService: SongService,
-                @inject(EventLogsRepository) private eventLogsRepository: EventLogsRepository,
-                @inject(UserService) private userService: UserService) {
+        @inject(EventLogsRepository) private eventLogsRepository: EventLogsRepository,
+        @inject(UserService) private userService: UserService) {
         Logger.info(
             LogType.ServerInfo,
             `SongController constructor. SongService exists: ${this.songService !== undefined}`
@@ -73,7 +73,7 @@ class SongController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-     public async getSongHistory(req: Request, res: Response): Promise<void> {
+    public async getSongHistory(req: Request, res: Response): Promise<void> {
         const events = await this.eventLogsRepository.getLast(EventLogType.SongPlayed, 20);
         const resultSongs = [];
         for (const event of events) {
@@ -151,7 +151,7 @@ class SongController {
         }
 
         try {
-            const song = await this.songService.addSong(newSong.sourceUrl, newSong.requestSource, newSong.requestedBy ?? req.params.username, newSong.comments);
+            const song = await this.songService.addSong(newSong.sourceUrl, newSong.requestSource, newSong.requestedBy ?? req.params.username, newSong.comments, newSong.title);
 
             if (song === undefined) {
                 res.status(StatusCodes.INTERNAL_SERVER_ERROR);
@@ -193,7 +193,7 @@ class SongController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-     public completeSong(req: Request, res: Response): void {
+    public completeSong(req: Request, res: Response): void {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
             if (song.id) {
@@ -209,7 +209,7 @@ class SongController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-     public moveSongToTop(req: Request, res: Response): void {
+    public moveSongToTop(req: Request, res: Response): void {
         const songIds = Array.from<ISong>(req.body.songs);
         songIds.forEach((song) => {
             if (song.id) {
@@ -225,7 +225,7 @@ class SongController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public editSong(req: Request, res: Response): void {
+    public async editSong(req: Request, res: Response): Promise<void> {
         const newSong = req.body as ISong;
         if (!newSong) {
             res.status(StatusCodes.BAD_REQUEST);
@@ -233,7 +233,7 @@ class SongController {
             return;
         }
 
-        this.songService.updateSong(newSong);
+        await this.songService.updateSong(newSong);
         res.sendStatus(StatusCodes.OK);
     }
 }

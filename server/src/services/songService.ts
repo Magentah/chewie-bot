@@ -11,10 +11,11 @@ import EventAggregator from "./eventAggregator";
 import SeasonsRepository from "../database/seasonsRepository";
 import UserService from "./userService";
 import { getLinkPreview } from "link-preview-js";
+
 @injectable()
 export class SongService {
     private songQueue: ISong[] = [];
-    private nextSongId: number = 1;
+    private nextSongId = 1;
 
     constructor(
         @inject(YoutubeService) private youtubeService: YoutubeService,
@@ -69,7 +70,7 @@ export class SongService {
      * Parses any URL and tries to get some info suitable for the song queue.
      * @param {string} url Video URL to parse
      */
-     private async parseAnyUrl(url: string): Promise<ISong> {
+    private async parseAnyUrl(url: string): Promise<ISong> {
         const song: ISong = {} as ISong;
         const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
 
@@ -132,11 +133,15 @@ export class SongService {
      * @param username The username that is requesting the song to be added.
      * @param comments Additional comments/instructions for the song
      */
-    public async addSong(url: string, requestSource: RequestSource, username: string, comments: string): Promise<ISong> {
-        const song: ISong = await this.GetSong(url);
+    public async addSong(url: string, requestSource: RequestSource, username: string, comments: string, title = ""): Promise<ISong> {
+        const song: ISong = await this.getSong(url);
 
         try {
             song.id = this.nextSongId++;
+            if (title) {
+                song.title = title;
+            }
+
             this.songQueue.push(song);
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;
@@ -144,7 +149,7 @@ export class SongService {
             song.requestTime = moment.now();
             song.comments = comments;
 
-            this.websocketService.send({
+            void this.websocketService.send({
                 type: SocketMessageType.SongAdded,
                 message: "Song Added",
                 data: song,
@@ -177,7 +182,7 @@ export class SongService {
      * @param url URL to load
      * @returns
      */
-    private async GetSong(url: string) {
+    private async getSong(url: string) {
         let song: ISong;
 
         try {
@@ -244,7 +249,7 @@ export class SongService {
             user.vipPermanentRequests--;
         }
 
-        this.userService.updateUser(user);
+        await this.userService.updateUser(user);
         return song;
     }
 
@@ -252,8 +257,7 @@ export class SongService {
      * Set a song in the queue to Played status.
      * @param song The song or song id to update.
      */
-    public async songPlayed(song: ISong | number): Promise<void>;
-    public async songPlayed(song: any): Promise<void> {
+    public async songPlayed(song: ISong | number): Promise<void> {
         if (typeof song === "number") {
             const songToChange =
                 this.songQueue.filter((item) => {
@@ -265,14 +269,14 @@ export class SongService {
                 this.songQueue.splice(songIndex, 1);
 
                 const user = await this.userService.getUser(songData.requestedBy);
-                this.eventLogService.addSongPlayed(user ?? songData.requestedBy, songData);
-                this.websocketService.send({
+                void this.eventLogService.addSongPlayed(user ?? songData.requestedBy, songData);
+                void this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
                     data: songData,
                 });
             }
-        } else if (typeof song === "object" && song.type === "isong") {
+        } else {
             const songData =
                 this.songQueue.filter((item) => {
                     return item.id === song.id;
@@ -281,8 +285,8 @@ export class SongService {
                 const songIndex = this.songQueue.indexOf(songData);
                 this.songQueue.splice(songIndex, 1);
 
-                this.eventLogService.addSongPlayed(song.requestedBy, songData);
-                this.websocketService.send({
+                void this.eventLogService.addSongPlayed(song.requestedBy, songData);
+                void this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
                     data: song,
@@ -295,8 +299,7 @@ export class SongService {
      * Moves a song to the top of the song queue.
      * @param song The song or song id to remove.
      */
-    public moveSongToTop(song: ISong | number): void;
-    public moveSongToTop(song: any): void {
+    public moveSongToTop(song: ISong | number): void {
         if (typeof song === "number") {
             const songToMove =
                 this.songQueue.filter((item) => {
@@ -307,7 +310,7 @@ export class SongService {
                 this.songQueue.splice(songIndex, 1);
                 this.songQueue.splice(0, 0, songToMove);
 
-                this.websocketService.send({
+                void this.websocketService.send({
                     type: SocketMessageType.SongMovedToTop,
                     message: "Song moved to top",
                     data: songToMove,
@@ -323,7 +326,7 @@ export class SongService {
                 this.songQueue.splice(index, 1);
                 this.songQueue.splice(0, 0, song);
 
-                this.websocketService.send({
+                void this.websocketService.send({
                     type: SocketMessageType.SongMovedToTop,
                     message: "Song moved to top",
                     data: song,
@@ -336,8 +339,7 @@ export class SongService {
      * Remove a song from the song queue.
      * @param song The song or song id to remove.
      */
-    public async removeSong(song: ISong | number): Promise<void>;
-    public async removeSong(song: any): Promise<void> {
+    public async removeSong(song: ISong | number): Promise<void> {
         if (typeof song === "number") {
             const songToDelete =
                 this.songQueue.filter((item) => {
@@ -349,7 +351,7 @@ export class SongService {
                 this.songQueue.splice(songIndex, 1);
 
                 const user = await this.userService.getUser(songData.requestedBy);
-                this.eventLogService.addSongRemoved(user ?? songData.requestedBy, {
+                await this.eventLogService.addSongRemoved(user ?? songData.requestedBy, {
                     message: "Song has been removed from request queue.",
                     song: {
                         title: songData.title,
@@ -357,7 +359,7 @@ export class SongService {
                     },
                 });
 
-                this.websocketService.send({
+                void this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
                     data: songData,
@@ -372,14 +374,14 @@ export class SongService {
                 const index = this.songQueue.indexOf(songData);
                 this.songQueue.splice(index, 1);
 
-                this.eventLogService.addSongRemoved(song.requestedBy, {
+                await this.eventLogService.addSongRemoved(song.requestedBy, {
                     message: "Song has been removed from request queue.",
                     song: {
                         title: song.title,
                         requestedBy: song.requestedBy,
                     },
                 });
-                this.websocketService.send({
+                void this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
                     data: song,
@@ -399,7 +401,7 @@ export class SongService {
 
                 // Change URL, update information (if possible).
                 if (song.sourceUrl !== newSong.sourceUrl) {
-                    const newSongData = await this.GetSong(newSong.sourceUrl);
+                    const newSongData = await this.getSong(newSong.sourceUrl);
                     song.title = newSongData.title;
                     song.duration = newSongData.duration;
                     song.source = newSongData.source;
@@ -416,7 +418,7 @@ export class SongService {
                 song.comments = newSong.comments;
                 song.requestedBy = newSong.requestedBy;
 
-                this.websocketService.send({
+                void this.websocketService.send({
                     type: SocketMessageType.SongUpdated,
                     message: "Song Updated",
                     data: song,
@@ -447,7 +449,7 @@ export class SongService {
      * Extracts URLs from a string.
      */
     public static getSongsForQueue(message: string): string[] {
-        const urlRegex: RegExp = /(https?:\/\/[^\s]+)/gi;
+        const urlRegex = /(https?:\/\/[^\s]+)/gi;
         const result = urlRegex.exec(message);
         if (!result) {
             return /(www.+)/gi.exec(message) ?? [];
