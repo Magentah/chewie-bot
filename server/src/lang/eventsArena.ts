@@ -4,7 +4,7 @@ Lang.register("arena.start", "Duke $1 is announcing a grand Tournament Arena. Th
 Lang.register("arena.insufficientparticipants", "Not enough participants have entered the tournament, at least 4 are required. The grand tournament has been called off.");
 Lang.register("arena.justfinished", "A tournament has just finished $1. Please wait while we clean up the battleground.");
 Lang.register("arena.toolate", "Sorry $1, you are too late. The tournament is already in progress.");
-Lang.register("arena.inprogress", "A tournament is currently in progress, use !joinarena <wager> to join!");
+Lang.register("arena.inprogress", "A tournament is currently in progress, use !joinarena to join!");
 Lang.register("arena.started", "$1 fighters have entered the grand tournament. The weak shall wither, the strong shall prevail, only the best will walk away with riches and glory. Let the battles begin!");
 Lang.register("arena.result3rd", "What a jaw dropping show of valor! In 3rd place with $1 victories and $2 Chews in winnings is $3.");
 Lang.register("arena.result2nd", "Coming in 2nd place with $1 victories taking away $2 Chews is $3.");

@@ -9,7 +9,10 @@ const twitchRouter: express.Router = express.Router();
 const twitchController: TwitchController = BotContainer.get(TwitchController);
 const pointRewardController: ChannelPointRewardController = BotContainer.get(ChannelPointRewardController);
 
-twitchRouter.get("/api/twitch/status", (req, res) => twitchController.getStatus(req, res));
+twitchRouter.get(
+    "/api/twitch/status",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin),
+    (req, res) => twitchController.getStatus(req, res));
 twitchRouter.get(
     "/api/twitch/connect",
     (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin),

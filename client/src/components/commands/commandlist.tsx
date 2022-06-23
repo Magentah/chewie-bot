@@ -189,7 +189,7 @@ const CommandList: React.FC<any> = (props: any) => {
                             tooltip: "Add command",
                             isFreeAction: true,
                             onClick: (evt, data) => {
-                                const newCommand = { type: CommandType.Text } as RowData;
+                                const newCommand = { type: CommandType.Text, useCooldown: true } as RowData;
                                 setEditingCommand(newCommand);
                             }
                         },
