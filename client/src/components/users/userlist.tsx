@@ -116,21 +116,13 @@ const UserList: React.FC<any> = (props: any) => {
 
             const data = useWeeks ? { weeks: addVipAmount } : { amount: addVipAmount };
             const result = await axios.post(`/api/userlist/addVip/${currentUserForAction.username}`, data, { validateStatus: (status) => true });
-            if (result.status === 200) {
-                setAddVipState({state: "success"});
-                const newUserlist = [...userlist];
-                const index = userlist.indexOf(currentUserForAction);
-                newUserlist.splice(index, 1, result.data as RowData);
-                setUserlist(newUserlist);
+            setAddVipState({state: "success"});
+            const newUserlist = [...userlist];
+            const index = userlist.indexOf(currentUserForAction);
+            newUserlist.splice(index, 1, result.data as RowData);
+            setUserlist(newUserlist);
 
-                setAddVipAmount(0);
-            } else {
-                setAddVipState({
-                    state: "failed",
-                    message: result.data.error.message
-                });
-            }
-
+            setAddVipAmount(0);
             setPopupAnchor(undefined);
         } catch (error: any) {
             setAddVipState({
@@ -179,7 +171,7 @@ const UserList: React.FC<any> = (props: any) => {
                                         startIcon={addVipState?.state === "progress" && addVipType === "weeks" ? <CircularProgress size={15} /> : <AddIcon />}
                                         onClick={() => submitVipGold(true)}
                                         className={classes.addButton}
-                                        disabled={addVipState?.state === "progress"}>
+                                        disabled={addVipState?.state === "progress" || addVipAmount === 0}>
                                         Add weeks
                                     </Button>
                                 </Grid>
@@ -190,7 +182,7 @@ const UserList: React.FC<any> = (props: any) => {
                                         startIcon={addVipState?.state === "progress" && addVipType === "permanent" ? <CircularProgress size={15} /> : <AddIcon />}
                                         onClick={() => submitVipGold(false)}
                                         className={classes.addButton}
-                                        disabled={addVipState?.state === "progress"}>
+                                        disabled={addVipState?.state === "progress" || addVipAmount === 0}>
                                         Add requests
                                     </Button>
                                 </Grid>

@@ -173,7 +173,7 @@ class UserlistController {
 
                 res.status(StatusCodes.OK);
                 res.send(this.userRepository.mapUserToDetailsUserData(userData));
-            } else {
+            } else if (req.body.amount) {
                 const vipGoldRequests = parseInt(req.body.amount, 10);
                 if (vipGoldRequests === 0) {
                     // Nothing to do.
@@ -183,6 +183,9 @@ class UserlistController {
 
                 await this.userService.addPermanentVip(userData, vipGoldRequests, `Added by ${sessionUser.username}`);
 
+                res.status(StatusCodes.OK);
+                res.send(this.userRepository.mapUserToDetailsUserData(userData));
+            } else {
                 res.status(StatusCodes.OK);
                 res.send(this.userRepository.mapUserToDetailsUserData(userData));
             }

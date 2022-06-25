@@ -139,7 +139,7 @@ export class UserService {
      */
     public async addVipGoldWeeks(user: IUser, goldWeeks: number, reason: string) {
         if (isNaN(goldWeeks)) {
-            throw new RangeError("Invalid number of VIP gold months provided.");
+            throw new RangeError("Invalid number of VIP gold weeks provided.");
         }
 
         if (goldWeeks === 0) {
