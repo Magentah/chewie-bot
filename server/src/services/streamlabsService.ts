@@ -1,6 +1,5 @@
 import { injectable, inject } from "inversify";
 import { UserService } from "../services";
-import { ITwitchProfile } from "../strategy/twitchStrategy";
 import Constants from "../constants";
 import * as io from "socket.io-client";
 import { Logger, LogType } from "../logger";
