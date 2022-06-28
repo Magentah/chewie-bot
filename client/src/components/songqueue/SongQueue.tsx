@@ -373,13 +373,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const songRequestStatusBar = <Grid item xs={12}>
             <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
                 <Alert onClose={(e) => handleClose(e, "clickaway")} severity="success">
-                    Song request added.
+                    Song request saved.
                 </Alert>
             </Snackbar>
             { songRequestState?.state === "failed" ?
             <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
                 <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
-                    Song request could not be added: {songRequestState.message}
+                    Song request cannot be saved: {songRequestState.message}
                 </Alert>
             </Snackbar> : undefined}
         </Grid>;
