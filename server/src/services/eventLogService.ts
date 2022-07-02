@@ -153,6 +153,11 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
+    public async addDebug(data: object | object[]): Promise<void> {
+        const log = this.createLog(EventLogType.Debug, "", data);
+        await this.eventLogs.add(log);
+    }
+
     public async getCount(type: EventLogType, user: IUser, sinceDate: Date = new Date(0)) : Promise<number> {
         return await this.eventLogs.getCount(type, user, sinceDate);
     }

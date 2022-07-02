@@ -3,16 +3,11 @@ import { Image } from "react-bootstrap";
 import
 {
     Grid, Typography, Box, ImageList, ImageListItem, ImageListItemBar, Divider,
-    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab, Dialog, DialogTitle, DialogActions, DialogContent, Theme, SnackbarCloseReason
+    TextField, Button, Snackbar, CircularProgress, Paper, Link, Tabs, Tab, Dialog, DialogTitle, DialogActions, DialogContent, Theme, SnackbarCloseReason,
 } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 import { Alert } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
-import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import VerticalAlignTopIcon from "@mui/icons-material/VerticalAlignTop";
-import CheckIcon from "@mui/icons-material/Check";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import moment from "moment";
 import axios from "axios";
@@ -22,6 +17,7 @@ import { UserContext, UserLevels } from "../../contexts/userContext";
 import SongHistory from "./SongHistory";
 import Song, { SongSource } from "./song";
 import RequestDateCell from "./RequestDateCell";
+import { Delete, OpenInNew, PlayCircleOutline, VerticalAlignTop, Check, AttachMoney } from "@mui/icons-material";
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -63,7 +59,7 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
 
     const playButton = props.value.source === SongSource.Spotify ? (<Grid item>
         <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
-            <PlayCircleOutlineIcon />
+            <PlayCircleOutline />
         </IconButton>
     </Grid>) : undefined;
 
@@ -147,6 +143,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [editingSongComment, setEditingSongComment] = useState<string>("");
     const [editingSongRequester, setEditingSongRequester] = useState<string>("");
     const [editingSongUrl, setEditingSongUrl] = useState<string>("");
+    const [songToDelete, setSongToDelete] = useState<Song | Song[] | undefined>();
 
     const { classes } = useStyles();
 
@@ -307,6 +304,29 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
         setSelectedTab(newValue);
     };
 
+    const handleDeleteConfirm = (doDelete: boolean) => {
+        if (doDelete) {
+            if ((songToDelete as Song[]).length)  {
+                onSongDeleted(songToDelete as Song[])
+             } else {
+                onSongDeleted([ songToDelete as Song ]);
+             }
+        }
+        setSongToDelete(undefined);
+    };
+
+    const confirmDeleteDialog = <Dialog open={songToDelete !== undefined} onClose={() => handleDeleteConfirm(false)}>
+        <DialogTitle id="confirm-delete-dialog">
+            {"Delete song request?"}
+        </DialogTitle>
+        <DialogActions>
+            <Button variant="contained" startIcon={<Delete />} onClick={() => handleDeleteConfirm(true)}>Delete</Button>
+            <Button onClick={() => handleDeleteConfirm(false)} autoFocus>
+            Cancel
+            </Button>
+        </DialogActions>
+    </Dialog>;
+
     // Don't allow selecting songs for deletion without permission.
     const tableOptions: Options<Song> = { paging: false, actionsColumnIndex: 5, tableLayout: "auto", showTitle: false };
     let tableActions: (Action<Song> | ((rowData: Song) => Action<Song>))[] = [];
@@ -326,13 +346,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 }
             },
             rowData => ({
-                icon: VerticalAlignTopIcon,
+                icon: VerticalAlignTop,
                 tooltip: "Move to top",
                 hidden: songs.length > 0 && songs[0].id === rowData.id,
                 onClick: (event, data) => (data as Song[]).length ? onSongMovedToTop(data as Song[]) : onSongMovedToTop([ data as Song ])
             }),
             rowData => ({
-                icon: CheckIcon,
+                icon: Check,
                 tooltip: "Complete",
                 hidden: songs.length > 0 && songs[0].id !== rowData.id,
                 onClick: (evt, data) => (data as Song[]).length ? onSongCompleted(data as Song[]) : onSongCompleted([ data as Song ])
@@ -340,7 +360,9 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             {
                 tooltip: "Remove",
                 icon: "delete",
-                onClick: (evt, data) => (data as Song[]).length ? onSongDeleted(data as Song[]) : onSongDeleted([ data as Song ])
+                onClick: (evt, data) => {
+                    setSongToDelete(data);
+                }
             },
             {
                 tooltip: "Edit song",
@@ -373,13 +395,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const songRequestStatusBar = <Grid item xs={12}>
             <Snackbar open={songRequestState?.state === "success"} autoHideDuration={4000} onClose={handleClose}>
                 <Alert onClose={(e) => handleClose(e, "clickaway")} severity="success">
-                    Song request added.
+                    Song request saved.
                 </Alert>
             </Snackbar>
             { songRequestState?.state === "failed" ?
             <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
                 <Alert onClose={(e) => handleClose(e, "clickaway")} severity="error">
-                    Song request could not be added: {songRequestState.message}
+                    Song request cannot be saved: {songRequestState.message}
                 </Alert>
             </Snackbar> : undefined}
         </Grid>;
@@ -402,7 +424,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                                    subtitle={<span>Position: {tile.index + 1}</span>}
                                    actionIcon={
                                        <IconButton href={tile.song.sourceUrl} className={classes.icon} target="_blank" rel="noopener noreferrer">
-                                           <OpenInNewIcon />
+                                           <OpenInNew />
                                        </IconButton>
                                    }
                                />
@@ -444,14 +466,14 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
            <Grid item>
                <Typography>
                    <Link href={donationLinkUrl} target="_blank" rel="noopener noreferrer">
-                       <AttachMoneyIcon /> Donate for your song request
+                       <AttachMoney /> Donate for your song request
                    </Link>
                </Typography>
            </Grid>
            <Grid item>
                <Typography style={{marginLeft: "1em"}}>
                    <Link href={"https://rally.io/creator/CHEWS/"} target="_blank" rel="noopener noreferrer">
-                       <AttachMoneyIcon /> Donate using $CHEWS
+                       <AttachMoney /> Donate using $CHEWS
                    </Link>
                </Typography>
            </Grid>
@@ -499,6 +521,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             elements.push(ownSongQueue);
             elements.push(donationLinks);
             elements.push(editSongDialog);
+            elements.push(confirmDeleteDialog);
             elements.push(<MaterialTable
                 key="full-queue"
                 title = "Song Queue"

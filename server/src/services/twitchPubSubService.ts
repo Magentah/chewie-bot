@@ -7,6 +7,7 @@ import { CryptoHelper } from "../helpers";
 import * as Config from "../config.json";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { Logger, LogType } from "../logger";
+import WebSocket = require("ws");
 
 @injectable()
 export default class TwitchPubSubService {
@@ -20,52 +21,65 @@ export default class TwitchPubSubService {
         @inject(UserService) private users: UserService,
         @inject(TwitchAuthService) private authService: TwitchAuthService,
         @inject(EventLogService) private eventLogService: EventLogService
-    ) {}
+    ) {
+        // Only injection
+    }
 
     /**
      * Connects to the Twitch PubSub service.
      * @returns
      */
-    public async connect(): Promise<void> {
-        if (this.websocket !== undefined || this.websocket !== null) return;
+    public connect(): void {
+        if (this.websocket === undefined) {
+            this.websocket = new WebSocket(Constants.TwitchPubSubUrl);
 
-        this.websocket = new WebSocket(Constants.TwitchPubSubUrl);
-
-        this.websocket.onopen = (ev: Event) => this.onOpen(ev);
-        this.websocket.onclose = (ev: CloseEvent) => this.onClose(ev);
-        this.websocket.onmessage = (ev: MessageEvent) => this.onMessage(ev);
-        this.websocket.onerror = (ev: Event) => this.onError(ev);
+            this.websocket.onopen = () => this.onOpen();
+            this.websocket.onclose = (ev: WebSocket.CloseEvent) => this.onClose(ev);
+            this.websocket.onmessage = (ev: WebSocket.MessageEvent) => this.onMessage(ev);
+            this.websocket.onerror = (ev: WebSocket.ErrorEvent) => this.onError(ev);
+        }
     }
 
     /**
      * Called when the websocket connection is opened.
      * @param event The open event message from the websocket.
      */
-    private onOpen(event: Event): void {
+    private onOpen(): void {
         Logger.info(LogType.TwitchPubSub, "Connected to Twitch PubSub service.");
         this.heartbeat();
-        this.heartbeatHandle = setInterval(this.heartbeat, this.HeartbeatInterval);
-        this.listen("channel-subscribe-events-v1");
+        this.heartbeatHandle = setInterval(() => this.heartbeat(), this.HeartbeatInterval);
+        void this.listen("channel-subscribe-events-v1");
     }
 
     /**
      * Called when the websocket is closed.
      * @param event The close event message from the websocket.
      */
-    private onClose(event: CloseEvent): void {
+    private onClose(event: WebSocket.CloseEvent): void {
         Logger.info(LogType.TwitchPubSub, "Connection to Twitch PubSub closed. Reconnecting...", event);
         clearInterval(this.heartbeatHandle);
-        setTimeout(this.connect, this.ReconnectInterval);
+        setTimeout(() => this.connect(), this.ReconnectInterval);
     }
 
     /**
      * Called when the websocket receives a message.
      * @param event The message event from the websocket.
      */
-    private onMessage(event: MessageEvent): void {
+    private onMessage(event: WebSocket.MessageEvent): void {
         // For now just log the event.
-        if (event.data?.type != "PONG") {
-            Logger.info(LogType.TwitchPubSub, "Received message from Twitch PubSub.", event);
+        if (event.type !== "PONG") {
+            if (typeof(event.data) === "string") {
+                const data = JSON.parse(event.data) as { topic: string, message: string };
+                void this.eventLogService.addDebug(data);
+                /* Further processing probably like this.
+                    if (data.topic === "channel-subscribe-events-v1") {
+                        const message = JSON.parse(data.message) as { data: any };
+                        void this.eventLogService.addStreamlabsEventReceived(message.data.user_name, EventLogType.Sub, message);
+                    }
+                */
+            } else {
+                Logger.debug(LogType.TwitchPubSub, `Message data type not string but ${typeof(event.data)}`, event);
+            }
         }
     }
 
@@ -73,7 +87,7 @@ export default class TwitchPubSubService {
      * Called when the websocket receives an error.
      * @param event The error event message from the websocket.
      */
-    private onError(event: Event): void {
+    private onError(event: WebSocket.ErrorEvent): void {
         Logger.err(LogType.TwitchPubSub, "Received error from Twitch PubSub", event);
     }
 
