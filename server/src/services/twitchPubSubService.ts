@@ -21,7 +21,9 @@ export default class TwitchPubSubService {
         @inject(UserService) private users: UserService,
         @inject(TwitchAuthService) private authService: TwitchAuthService,
         @inject(EventLogService) private eventLogService: EventLogService
-    ) {}
+    ) {
+        // Only injection
+    }
 
     /**
      * Connects to the Twitch PubSub service.
@@ -66,7 +68,18 @@ export default class TwitchPubSubService {
     private onMessage(event: WebSocket.MessageEvent): void {
         // For now just log the event.
         if (event.type !== "PONG") {
-            Logger.info(LogType.TwitchPubSub, "Received message from Twitch PubSub.", event);
+            if (typeof(event.data) === "string") {
+                const data = JSON.parse(event.data) as { topic: string, message: string };
+                void this.eventLogService.addDebug(data);
+                /* Further processing probably like this.
+                    if (data.topic === "channel-subscribe-events-v1") {
+                        const message = JSON.parse(data.message) as { data: any };
+                        void this.eventLogService.addStreamlabsEventReceived(message.data.user_name, EventLogType.Sub, message);
+                    }
+                */
+            } else {
+                Logger.debug(LogType.TwitchPubSub, `Message data type not string but ${typeof(event.data)}`, event);
+            }
         }
     }
 
