@@ -1,5 +1,5 @@
 import { Command } from "../command";
-import { BotSettingsService, EventLogService, UserService } from "../../services";
+import { EventLogService, UserService } from "../../services";
 import { AchievementType, EventLogType, ICommandAlias, IUser } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { PointLogType } from "../../models/pointLog";
@@ -10,7 +10,8 @@ import EventAggregator from "../../services/eventAggregator";
 enum RedeemVariation {
     Catjam = "catjam",
     Clap = "clap",
-    Comfy = "comfy"
+    Comfy = "comfy",
+    River = "river"
 }
 
 export default class RedeemCommand extends Command {
@@ -23,6 +24,7 @@ export default class RedeemCommand extends Command {
         [RedeemVariation.Clap]: {emote: "chewieClap", url: "https://i.imgur.com/yCfzpSf.gif"},
         [RedeemVariation.Catjam]: {emote: "catJAM", url: "https://i.imgur.com/Yhp8rDt.gif"},
         [RedeemVariation.Comfy]: {emote: "chewieMmm", url: "https://i.imgur.com/Kwrb7nS.gif"},
+        [RedeemVariation.River]: {emote: "chewieRiver ", url: "https://i.imgur.com/nbpE58Y.gif"},
     };
 
     constructor() {
@@ -49,7 +51,7 @@ export default class RedeemCommand extends Command {
         if (user.points >= cost) {
             await this.userService.changeUserPoints(user, -cost, `${PointLogType.Redeem}-${variation}`);
             await this.twitchService.triggerAlert("redeem", variation, data.url);
-            await this.twitchService.sendMessage(channel, `${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote}`);
+            await this.twitchService.sendMessage(channel, `${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote}`);
 
             // Check for achievements
             await this.eventLogService.addRedeem(user, variation);
@@ -67,10 +69,11 @@ export default class RedeemCommand extends Command {
             { alias: "redeemclap", commandName: "redeem", commandArguments: RedeemVariation.Clap },
             { alias: "redeemcatjam", commandName: "redeem", commandArguments: RedeemVariation.Catjam },
             { alias: "redeemcomfy", commandName: "redeem", commandArguments: RedeemVariation.Comfy },
+            { alias: "redeemriver", commandName: "redeem", commandArguments: RedeemVariation.River },
         ];
     }
 
     public getDescription(): string {
-        return `Triggers an animation in return for points. Usage: !redeemclap | !redeemcatjam | !redeemcomfy`;
+        return "Triggers an animation in return for points. Usage: !redeemclap | !redeemcatjam | !redeemcomfy | !redeemriver";
     }
 }
