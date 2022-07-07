@@ -115,7 +115,7 @@ const UserList: React.FC<any> = (props: any) => {
             setAddVipType(useWeeks ? "weeks" : "permanent");
 
             const data = useWeeks ? { weeks: addVipAmount } : { amount: addVipAmount };
-            const result = await axios.post(`/api/userlist/addVip/${currentUserForAction.username}`, data, { validateStatus: (status) => true });
+            const result = await axios.post(`/api/userlist/addVip/${currentUserForAction.username}`, data);
             setAddVipState({state: "success"});
             const newUserlist = [...userlist];
             const index = userlist.indexOf(currentUserForAction);
