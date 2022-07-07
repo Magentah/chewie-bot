@@ -19,8 +19,7 @@ export default class ChannelPointRewardService {
      * @returns A list of the Twitch Channel Point Rewards.
      */
     public async getChannelRewardsForBroadcaster(): Promise<ITwitchChannelReward[]> {
-        const rewards = await this.twitchWebService.getChannelRewards();
-        return rewards;
+        return await this.twitchWebService.getChannelRewards();
     }
 
     /**

@@ -5,7 +5,7 @@ import { UserService } from "./userService";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
-import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, IChannelPointReward, ITwitchChannelRewardRequest, ITwitchChannelReward } from "../models";
+import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, ITwitchChannelRewardRequest, ITwitchChannelReward } from "../models";
 import TwitchAuthService from "./twitchAuthService";
 import { Logger, LogType } from "../logger";
 import HttpStatusCodes from "http-status-codes";
@@ -45,7 +45,7 @@ export class TwitchWebService {
      * @returns The user profile if it exists. Undefined it there is no profile or there is an error.
      */
     public async fetchUserProfile(user: string): Promise<ITwitchUserProfile | undefined> {
-        const header: any = await this.buildHeaderFromClientId();
+        const header = await this.buildHeaderFromClientId();
         if (!header) {
             Logger.err(LogType.Twitch, "Unable to create authentication headers for fetchUserProfile");
             return undefined;
@@ -142,10 +142,7 @@ export class TwitchWebService {
 
         const response: AxiosResponse = await executor.executeFunction(HttpMethods.GET, channelRewardsUrl);
         const parsedResponse = this.parseResponse("GetChannelRewards", response);
-        if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
-            Logger.err(LogType.Twitch, "Failed to get channel rewards.");
-            return [];
-        }
+
         const channelRewards: ITwitchChannelReward[] = parsedResponse.data;
         return channelRewards;
     }
@@ -294,7 +291,7 @@ export class TwitchWebService {
             return;
         }
 
-        const header: any = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
+        const header = await this.buildHeaderFromUserPrincipal(broadcasterCtx);
         if (!header) {
             Logger.err(LogType.Twitch, "Unable to create broadcaster authentication headers.");
             return;
@@ -307,7 +304,7 @@ export class TwitchWebService {
         };
     }
 
-    private async buildHeaderFromUserPrincipal(ctx: IUserPrincipal): Promise<any> {
+    private async buildHeaderFromUserPrincipal(ctx: IUserPrincipal): Promise<{"Authorization": string, "Client-ID": string} | undefined> {
         if (ctx.accessToken === undefined || ctx.accessToken === "") {
             Logger.err(LogType.Twitch, "No access token for user in buildHeaderFromUserPrincipal", ctx);
             return undefined;
@@ -319,7 +316,7 @@ export class TwitchWebService {
         if (user) {
             user.accessToken = auth.accessToken.token;
             user.refreshToken = auth.refreshToken;
-            this.userService.updateUser(user);
+            await this.userService.updateUser(user);
         }
 
         return {
@@ -328,7 +325,7 @@ export class TwitchWebService {
         };
     }
 
-    private async buildHeaderFromClientId(): Promise<any> {
+    private async buildHeaderFromClientId(): Promise<{"Authorization": string, "Client-ID": string} | undefined> {
         if (Config.twitch.clientId === undefined || Config.twitch.clientId === "") {
             Logger.err(LogType.Twitch, "No twitch client id is configured.");
             return undefined;
@@ -352,15 +349,6 @@ export class TwitchWebService {
      * @returns An object with the statusCode of the request, and data returned from the request.
      */
     private parseResponse(functionName: string, response: AxiosResponse): IParsedResponse {
-        if (response === undefined) {
-            // Broadcaster has not given full authorization, user list cannot be fetched.
-            Logger.warn(LogType.Twitch, `Response was undefined from function call ${functionName}.`);
-            return {
-                statusCode: 0,
-                data: undefined,
-            };
-        }
-
         if (response.data === undefined) {
             Logger.err(LogType.Twitch, `Data was malformed in response from function call ${functionName}`);
             return {

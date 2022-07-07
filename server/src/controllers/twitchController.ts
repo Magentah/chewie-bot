@@ -24,10 +24,17 @@ class TwitchController {
     ) {
         // Empty
     }
+
     public async getStatus(req: Request, res: Response): Promise<void> {
         const twitchService = await this.twitchProvider();
         const status = twitchService.getStatus();
-        const hasBroadcasterAuth = (await this.twitchWebService.fetchModerators()) !== undefined;
+        let hasBroadcasterAuth = false;
+        try {
+            hasBroadcasterAuth = (await this.twitchWebService.fetchModerators()) !== undefined;
+        } catch (error : any) {
+            // Leave empty
+        }
+
         res.status(StatusCodes.OK).send({ status: status.data.state, hasBroadcasterAuth });
     }
 

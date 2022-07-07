@@ -37,7 +37,7 @@ export class HttpClient {
         }
 
         const execute = (method: HttpMethods, apiPath: string, body?: any) => {
-            const future: Promise<AxiosResponse> = client({
+            const future = client.request({
                 url: apiPath,
                 method,
                 data: body
@@ -59,6 +59,8 @@ export class HttpClient {
             Logger.info(LogType.Http, `${config.method} ${config.baseURL} ${config.url}`);
             Logger.info(LogType.Http, JSON.stringify(config.headers));
             return config;
+        }, function (error) {
+            return Promise.reject(error);
         });
     }
 
@@ -69,6 +71,7 @@ export class HttpClient {
             return response;
         }, (error: any) => {
             Logger.err(LogType.Http, JSON.stringify(error));
+            return Promise.reject(error);
         });
     }
 }
