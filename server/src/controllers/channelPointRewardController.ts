@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import HttpStatusCodes from "http-status-codes";
 import { ChannelPointRewardService } from "../services";
 import { Logger, LogType } from "../logger";
-import { ChannelPointRedemption } from "../models";
+import { ChannelPointRedemption, ITwitchChannelReward } from "../models";
 
 @injectable()
 export default class ChannelPointRewardController {
@@ -96,6 +96,16 @@ export default class ChannelPointRewardController {
             res.sendStatus(HttpStatusCodes.OK);
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error in deleteAssociation", error);
+            res.sendStatus(HttpStatusCodes.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public async addChannelReward(req: Request, res: Response): Promise<void> {
+        try {
+            const channelReward = await this.channelPointRewardService.createChannelReward(req.body.title, req.body.cost);
+            res.status(HttpStatusCodes.OK).send(channelReward);
+        } catch (error: any) {
+            Logger.err(LogType.Twitch, "Error in addChannelReward", error);
             res.sendStatus(HttpStatusCodes.INTERNAL_SERVER_ERROR);
         }
     }

@@ -5,7 +5,7 @@ import { UserService } from "./userService";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
-import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, ITwitchChannelRewardRequest, ITwitchChannelReward } from "../models";
+import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, ITwitchChannelRewardRequest, ITwitchChannelReward, ITwitchAddChannelReward } from "../models";
 import TwitchAuthService from "./twitchAuthService";
 import { Logger, LogType } from "../logger";
 import HttpStatusCodes from "http-status-codes";
@@ -179,10 +179,10 @@ export class TwitchWebService {
      * @param reward The reward to create.
      * @returns The created rewards if successful, an empty array if creation failed.
      */
-    public async createChannelReward(reward: ITwitchChannelRewardRequest): Promise<ITwitchChannelReward[]> {
+    public async createChannelReward(reward: ITwitchAddChannelReward): Promise<ITwitchChannelReward | undefined> {
         const executor = await this.getBroadcasterExecutor();
         if (!executor) {
-            return [];
+            return undefined;
         }
 
         const createChannelRewardUrl = `${this.getChannelRewardsUrl}?broadcaster_id=${executor.broadcasterId}`;
@@ -191,10 +191,10 @@ export class TwitchWebService {
         const parsedResponse = this.parseResponse("CreateChannelReward", response);
         if (parsedResponse.statusCode !== HttpStatusCodes.OK) {
             Logger.err(LogType.Twitch, "Failed to create channel reward.");
-            return [];
+            return undefined;
         }
 
-        const createdChannelRewards: ITwitchChannelReward[] = parsedResponse.data;
+        const createdChannelRewards: ITwitchChannelReward = parsedResponse.data;
         return createdChannelRewards;
     }
 
