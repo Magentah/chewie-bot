@@ -68,6 +68,11 @@ twitchRouter.get(
     (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
     (req, res) => pointRewardController.getChannelRewards(req, res)
 );
+twitchRouter.post(
+    "/api/twitch/channelrewards",
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),
+    (req, res) => pointRewardController.addChannelReward(req, res)
+);
 twitchRouter.get(
     "/api/twitch/channelrewards/redemptions",
     (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Moderator),

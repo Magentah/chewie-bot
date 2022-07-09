@@ -35,9 +35,9 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
             <MaterialTable
                 title = {"Channel Point Rewards"}
                 columns = {[
-                    { title: "Channel Point Reward Title", field: "title", editable: "never" },
-                    { title: "Cost", field: "cost", editable: "never" },
-                    { title: "Redemption", field: "associatedRedemption", lookup: Object.fromEntries(redemptions.map(x => [x, x])), editable: "always" }
+                    { title: "Channel Point Reward Title", field: "title", editable: "onAdd" },
+                    { title: "Cost", field: "cost", editable: "onAdd" },
+                    { title: "Redemption", field: "associatedRedemption", lookup: Object.fromEntries(redemptions.map(x => [x, x])), editable: "onUpdate" }
                 ]}
                 options = {{
                     paging: false,
@@ -48,6 +48,10 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
                 editable = {{
                     isEditable: rowData => true,
                     isDeletable: rowData => false,
+                    onRowAdd: (newData) => axios.post("/api/twitch/channelrewards", newData).then((result) => {
+                        const newList = [...channelPointRewards, result.data as RowData];
+                        setChannelPointRewards(newList);
+                    }),
                     onRowUpdate: (newData, oldData) => {
                         const postData = {
                             rewardEvent: oldData,
