@@ -79,7 +79,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
         }
 
         userProfileContent = <Grid alignItems="flex-start">
-            <Grid item container alignItems="center">
+            <Grid item container alignItems="center" id="user-status-log-table">
                 <Grid item>
                     <Avatar className={classes.large} src={userContext.user.twitchUserProfile.profileImageUrl} />
                 </Grid>
@@ -106,7 +106,7 @@ const UserProfileView: React.FC<any> = (props: any) => {
             </Grid>
             {vipLogTable ? <Grid item>
                 <Box mt={2} mb={1}>
-                    <Typography variant="h6">VIP status log</Typography>
+                    <Typography variant="h6">VIP status and song request log</Typography>
                 </Box>
             </Grid> : undefined}
             <Grid item>
