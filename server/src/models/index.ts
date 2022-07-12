@@ -45,6 +45,7 @@ export { default as ICommandInfo } from "./commandInfo";
 export { default as IUserCard, CardRarity } from "./userCard";
 export {
     default as ITwitchChannelReward,
+    ITwitchAddChannelReward,
     ITwitchChannelRewardRequest,
     IChannelRewardImage,
     IMaxPerStream,

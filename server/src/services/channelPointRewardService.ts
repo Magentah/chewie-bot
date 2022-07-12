@@ -1,6 +1,6 @@
-import { inject, injectable, LazyServiceIdentifer } from "inversify";
+import { inject, injectable } from "inversify";
 import TwitchWebService from "./twitchWebService";
-import { IChannelPointReward, ChannelPointRedemption, ITwitchChannelReward, IChannelPointRewardHistory } from "../models";
+import { IChannelPointReward, ChannelPointRedemption, ITwitchChannelReward, IChannelPointRewardHistory, ITwitchAddChannelReward } from "../models";
 import ChannelPointRewardRepository from "../database/channelPointRewardRepository";
 import ChannelPointRewardHistoryRepository from "../database/channelPointRewardHistoryRepository";
 
@@ -19,8 +19,7 @@ export default class ChannelPointRewardService {
      * @returns A list of the Twitch Channel Point Rewards.
      */
     public async getChannelRewardsForBroadcaster(): Promise<ITwitchChannelReward[]> {
-        const rewards = await this.twitchWebService.getChannelRewards();
-        return rewards;
+        return await this.twitchWebService.getChannelRewards();
     }
 
     /**
@@ -43,6 +42,32 @@ export default class ChannelPointRewardService {
         };
 
         await this.channelPointRewardRepository.add(newChannelRewardRedemption);
+    }
+
+    /**
+     * Creates a new channel point reward for the broadcaster.
+     * @returns Created channel point reward
+     */
+    public async createChannelReward(title: string, cost: number): Promise<ITwitchChannelReward | undefined> {
+        const reward: ITwitchAddChannelReward = {
+            title,
+            cost
+        };
+        const resultAward = await this.twitchWebService.createChannelReward(reward);
+        if (resultAward) {
+            await this.channelPointRewardRepository.add({
+                twitchRewardId: resultAward.id ?? "",
+                title: resultAward.title,
+                cost: resultAward.cost,
+                isEnabled : resultAward.is_enabled ?? true,
+                isGlobalCooldownEnabled: resultAward.global_cooldown_setting?.is_enabled ?? false,
+                globalCooldown: resultAward.global_cooldown_setting?.global_cooldown_seconds ?? 0,
+                shouldSkipRequestQueue: resultAward.should_redemptions_skip_request_queue ?? false,
+                isDeleted: false
+            });
+        }
+
+        return resultAward;
     }
 
     /**
