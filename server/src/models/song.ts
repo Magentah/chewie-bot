@@ -1,4 +1,5 @@
 import moment = require("moment");
+import { IRewardRedemeptionEvent } from "./twitchEventSubEvents";
 
 export interface ISong {
     id?: number;
@@ -11,7 +12,8 @@ export interface ISong {
     sourceUrl: string;
     previewUrl: string,
     requestTime: number,
-    comments: string
+    comments: string,
+    rewardEvent?: IRewardRedemeptionEvent,
 }
 
 export interface IArchivedSong {

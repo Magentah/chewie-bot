@@ -30,7 +30,7 @@ export default class TwitchEventService {
         EventSub.EventTypes.StreamOnline,
         EventSub.EventTypes.StreamOffline,
     ];
-    private broadcasterUserId: number = 0;
+    private broadcasterUserId = 0;
     private eventCallbacks: { [key: string]: Function[] } = {};
 
     constructor(
@@ -109,7 +109,7 @@ export default class TwitchEventService {
                 break;
             }
             case EventSub.EventTypes.ChannelFollow: {
-                Logger.info(LogType.TwitchEvents, `Received event`, notification);
+                Logger.info(LogType.TwitchEvents, "Received event", notification);
                 break;
             }
             default: {
@@ -190,6 +190,11 @@ export default class TwitchEventService {
                         for (const match of SongService.getSongsForQueue(notificationEvent.user_input)) {
                             const comments = notificationEvent.user_input.replace(match, "");
                             const song = await this.songService.addSong(match, RequestSource.ChannelPoints, user.username, comments);
+                            if (reward.hasOwnership) {
+                                // Attach redemption event for future processing (fulfill or cancel).
+                                song.rewardEvent = notificationEvent;
+                            }
+
                             if (song) {
                                 await this.twitchService.sendMessage(
                                     notificationEvent.broadcaster_user_login,
