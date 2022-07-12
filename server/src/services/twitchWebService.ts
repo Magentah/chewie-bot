@@ -5,7 +5,7 @@ import { UserService } from "./userService";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { HttpClient, HttpMethods } from "../helpers/httpClient";
 import { AxiosResponse } from "axios";
-import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, ITwitchChannelRewardRequest, ITwitchChannelReward, ITwitchAddChannelReward } from "../models";
+import { ITwitchUserProfile, ITwitchSubscription, ITwitchUser, ITwitchChannelRewardUpdateRequest, ITwitchChannelReward, ITwitchAddChannelReward } from "../models";
 import TwitchAuthService from "./twitchAuthService";
 import { Logger, LogType } from "../logger";
 import HttpStatusCodes from "http-status-codes";
@@ -155,7 +155,7 @@ export class TwitchWebService {
      * @param reward The updated values for the reward.
      * @returns True if the update succeeded, false if the update failed.
      */
-    public async updateChannelReward(rewardId: string, reward: ITwitchChannelRewardRequest): Promise<boolean> {
+    public async updateChannelReward(rewardId: string, reward: ITwitchChannelRewardUpdateRequest): Promise<boolean> {
         const executor = await this.getBroadcasterExecutor();
         if (!executor) {
             return false;
@@ -164,7 +164,7 @@ export class TwitchWebService {
         const updateChannelRewardsUrl = `${this.getChannelRewardsUrl}?broadcaster_id=${executor.broadcasterId}&id=${rewardId}`;
 
         const result: AxiosResponse = await executor.executeFunction(HttpMethods.PATCH, updateChannelRewardsUrl, reward);
-        if (result.status != HttpStatusCodes.OK) {
+        if (result.status !== HttpStatusCodes.OK) {
             Logger.warn(LogType.Twitch, `Failed to update channel reward ${rewardId}. Error Code: ${result.status}.`);
             return false;
         }
@@ -194,8 +194,8 @@ export class TwitchWebService {
             return undefined;
         }
 
-        const createdChannelRewards: ITwitchChannelReward = parsedResponse.data;
-        return createdChannelRewards;
+        const createdChannelRewards: ITwitchChannelReward[] = parsedResponse.data;
+        return createdChannelRewards[0];
     }
 
     /**

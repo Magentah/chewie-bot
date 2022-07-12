@@ -32,6 +32,7 @@ class SettingsController {
         [BotSettings.CommandCooldownInSeconds]: { title: "Cooldown for regular text commands (in seconds)", readonly: false },
         [BotSettings.GoldWeeksPerT3Sub]: { title: "Amount of VIP gold weeks per T3 sub", readonly: false },
         [BotSettings.ReadonlyMode]: { title: "Read-only mode for points", readonly: false },
+        [BotSettings.MaxSongRequestRedemptionsInQueue]: { title: "Maximum number of song requests through channel rewards in queue", readonly: false },
     };
 
     constructor(

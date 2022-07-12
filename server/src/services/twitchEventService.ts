@@ -13,6 +13,7 @@ import ChannelPointRewardService from "./channelPointRewardService";
 import * as EventSub from "../models";
 import { EventTypes, ChannelPointRedemption, ITwitchChannelReward, RequestSource } from "../models";
 import { TwitchAuthService } from ".";
+import BotSettingsService, { BotSettings } from "./botSettingsService";
 import { PointLogType } from "../models/pointLog";
 import { TwitchWebService } from "./twitchWebService";
 import { SongService } from "./songService";
@@ -42,6 +43,7 @@ export default class TwitchEventService {
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(SongService) private songService: SongService,
         @inject(TwitchService) private twitchService: TwitchService,
+        @inject(BotSettingsService) private settingsService: BotSettingsService,
     ) {
         this.accessToken = {
             token: "",
@@ -165,10 +167,15 @@ export default class TwitchEventService {
         // This should always have an id at this point, but TypeScript doesn't like if you don't actually check for it.
         if (user.id) {
             // If there is a reward redemption associated with a twitch channel reward, this will add it to the history with the associated redemption.
-            await this.channelPointRewardService.channelPointRewardRedemptionTriggered(notificationEvent.reward as ITwitchChannelReward, user.id);
+            const twitchReward = notificationEvent.reward as ITwitchChannelReward;
+            const reward = await this.channelPointRewardService.getChannelReward(twitchReward);
+            if (!reward) {
+                return;
+            }
 
-            const redemptionType = await this.channelPointRewardService.getRedemptionType(notificationEvent.reward.id);
-            switch (redemptionType) {
+            await this.channelPointRewardService.channelPointRewardRedemptionTriggered(reward, user.id);
+
+            switch (reward?.associatedRedemption) {
                 case ChannelPointRedemption.Points:
                     // Check for read-only mode here if we ever implement redemptions that can be set to CANCELLED by the bot.
                     await this.users.changeUserPoints(
@@ -184,17 +191,38 @@ export default class TwitchEventService {
                             const comments = notificationEvent.user_input.replace(match, "");
                             const song = await this.songService.addSong(match, RequestSource.ChannelPoints, user.username, comments);
                             if (song) {
-                                this.twitchService.sendMessage(
+                                await this.twitchService.sendMessage(
                                     notificationEvent.broadcaster_user_login,
                                     `${song.title} was added to the song queue by ${song.requestedBy} at position ${this.songService.getSongQueue().indexOf(song) + 1}!`
                                 );
+
+                                // Pause redemptions after a certain amount of songs.
+                                if (reward.hasOwnership) {
+                                    const maxSongs = await this.settingsService.getIntValue(BotSettings.MaxSongRequestRedemptionsInQueue);
+                                    if (maxSongs > 0) {
+                                        let countInQueue = 0;
+                                        for (const inQueue of this.songService.getSongQueue()) {
+                                            if (inQueue.requestSource === RequestSource.ChannelPoints) {
+                                                countInQueue++;
+                                            }
+                                        }
+
+                                        if (countInQueue >= maxSongs) {
+                                            await this.twitchWebService.updateChannelReward(notificationEvent.reward.id, { is_paused: true });
+                                        }
+                                    }
+                                }
                             }
 
                             // Only one song allowed.
                             break;
                         }
                     } catch (err) {
-                        this.twitchService.sendMessage(
+                        if (reward.hasOwnership) {
+                            await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELLED");
+                        }
+
+                        await this.twitchService.sendMessage(
                             notificationEvent.broadcaster_user_login,
                             `${user.username}, the song could not be added to the queue (${err}).`
                         );
