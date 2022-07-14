@@ -45,10 +45,10 @@ export interface ITwitchAddChannelReward {
     cooldown_expires_at?: string | null;
 }
 
-export interface ITwitchChannelRewardRequest {
-    title: string;
+export interface ITwitchChannelRewardUpdateRequest {
+    title?: string;
     prompt?: string;
-    cost: number;
+    cost?: number;
     is_enabled?: boolean;
     background_color?: string;
     is_user_input_required?: boolean;
@@ -59,6 +59,7 @@ export interface ITwitchChannelRewardRequest {
     is_global_cooldown_enabled?: boolean;
     global_cooldown_seconds?: number;
     should_redemptions_skip_request_queue?: boolean;
+    is_paused?: boolean;
 }
 
 export interface IChannelRewardImage {

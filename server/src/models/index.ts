@@ -46,7 +46,7 @@ export { default as IUserCard, CardRarity } from "./userCard";
 export {
     default as ITwitchChannelReward,
     ITwitchAddChannelReward,
-    ITwitchChannelRewardRequest,
+    ITwitchChannelRewardUpdateRequest,
     IChannelRewardImage,
     IMaxPerStream,
     IMaxPerUserPerStream,

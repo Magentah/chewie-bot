@@ -24,7 +24,8 @@ export enum BotSettings {
     SongDonationLink = "song-donation-link",
     CommandCooldownInSeconds = "command-timeout",
     GoldWeeksPerT3Sub = "gold-weeks-per-sub-t3",
-    ReadonlyMode = "readonly-mode"
+    ReadonlyMode = "readonly-mode",
+    MaxSongRequestRedemptionsInQueue = "max-songrequest-redemptions-in-queue",
 }
 
 @injectable()
@@ -52,6 +53,7 @@ export default class BotSettingsService {
         [BotSettings.CommandCooldownInSeconds]: 10,
         [BotSettings.GoldWeeksPerT3Sub]: 1,
         [BotSettings.ReadonlyMode]: 0,
+        [BotSettings.MaxSongRequestRedemptionsInQueue]: 0,
     };
 
     private readonly settingCache: { [name: string] : any; } = {};
@@ -62,6 +64,10 @@ export default class BotSettingsService {
 
     public async getBoolValue(key: BotSettings): Promise<boolean> {
         return await this.getValue(key) === "1";
+    }
+
+    public async getIntValue(key: BotSettings): Promise<number> {
+        return parseInt(await this.getValue(key), 10);
     }
 
     public async getValue(key: BotSettings): Promise<string> {
