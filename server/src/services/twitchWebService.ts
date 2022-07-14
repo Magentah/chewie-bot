@@ -117,6 +117,23 @@ export class TwitchWebService {
     }
 
     /**
+     * Update the status of a Channel Reward Redemption.
+     *
+     * Status can be FULFILLED or CANCELLED. Should only be used to update UNFULFILLED reward redemptions.
+     *
+     * @param channelRewardId The id of the channel reward.
+     * @param redemptionRewardId The id of the channel reward redemption.
+     * @param status The status to set the redemption to. FULFILLED or CANCELLED.
+     */
+    public async tryUpdateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELLED"): Promise<void> {
+        try {
+            await this.updateChannelRewardStatus(channelRewardId, redemptionRewardId, status);
+        } catch (error: any) {
+            Logger.err(LogType.Twitch, "Failed to update channel reward status.", error);
+        }
+    }
+
+    /**
      * Gets a list of all custom channel rewards for a broadcaster.
      * https://dev.twitch.tv/docs/api/reference#get-custom-reward
      *

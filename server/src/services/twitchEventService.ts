@@ -224,7 +224,7 @@ export default class TwitchEventService {
                         }
                     } catch (err) {
                         if (reward.hasOwnership) {
-                            await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELLED");
+                            await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELLED");
                         }
 
                         await this.twitchService.sendMessage(
@@ -238,7 +238,7 @@ export default class TwitchEventService {
 
         // Set reward status to fulfilled.
         // TODO: Only works if the reward has been created by the bot (client-id). Might have to implement reward config some time.
-        // await this.twitchWebService.updateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+        // await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
     }
 
     /**

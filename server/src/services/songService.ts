@@ -270,7 +270,7 @@ export class SongService {
                 const user = await this.userService.getUser(songData.requestedBy);
                 void this.eventLogService.addSongPlayed(user ?? songData.requestedBy, songData);
                 if (songData.rewardEvent) {
-                    await this.twitchWebService.updateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "FULFILLED");
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "FULFILLED");
                 }
 
                 void this.websocketService.send({
@@ -287,7 +287,7 @@ export class SongService {
 
                 void this.eventLogService.addSongPlayed(song.requestedBy, songData);
                 if (songData.rewardEvent) {
-                    await this.twitchWebService.updateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "FULFILLED");
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "FULFILLED");
                 }
 
                 void this.websocketService.send({
@@ -361,7 +361,7 @@ export class SongService {
                 });
 
                 if (songData.rewardEvent) {
-                    await this.twitchWebService.updateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
                 }
 
                 void this.websocketService.send({
@@ -385,7 +385,7 @@ export class SongService {
                 });
 
                 if (songData.rewardEvent) {
-                    await this.twitchWebService.updateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
                 }
 
                 void this.websocketService.send({
