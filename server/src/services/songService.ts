@@ -361,7 +361,7 @@ export class SongService {
                 });
 
                 if (songData.rewardEvent) {
-                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELED");
                 }
 
                 void this.websocketService.send({
@@ -385,7 +385,7 @@ export class SongService {
                 });
 
                 if (songData.rewardEvent) {
-                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELED");
                 }
 
                 void this.websocketService.send({

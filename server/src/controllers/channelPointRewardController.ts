@@ -102,8 +102,9 @@ export default class ChannelPointRewardController {
 
     public async addChannelReward(req: Request, res: Response): Promise<void> {
         try {
-            const channelReward = await this.channelPointRewardService.createChannelReward(req.body.title, req.body.cost, req.body.associatedRedemption);
-            res.status(HttpStatusCodes.OK).send(channelReward);
+            const redemption = req.body.associatedRedemption as string;
+            const channelReward = await this.channelPointRewardService.createChannelReward(req.body.title, req.body.cost, redemption);
+            res.status(HttpStatusCodes.OK).send({...channelReward, redemption});
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error in addChannelReward", error);
             res.sendStatus(HttpStatusCodes.INTERNAL_SERVER_ERROR);

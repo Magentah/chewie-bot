@@ -104,5 +104,5 @@ export enum SubscriptionStatus {
 export enum ChannelPointRedemptionStatus {
     Unfulfilled = "unfulfilled",
     Fulfilled = "fulfilled",
-    Cancelled = "cancelled",
+    Cancelled = "canceled",
 }
