@@ -1,7 +1,7 @@
 import * as Winston from "winston";
-import winston = require("winston/lib/winston/config");
 import "winston-daily-rotate-file";
 import * as Config from "./config.json";
+import { AxiosError } from "axios";
 
 const { combine, timestamp, label, prettyPrint, printf, colorize } = Winston.format;
 
@@ -100,19 +100,30 @@ export class Logger {
      * @param level The log severity.
      * @param message Message to log. Can also be an Error object.
      */
-    private static log(type: LogType, level: LogLevel, message: string | Error, obj?: object) {
+    private static log(type: LogType, level: LogLevel, message: string | Error, obj?: any) {
         if (this.logger !== undefined) {
             if (this.logger.has(type) && this.logTypeEnabled(type)) {
                 const logger = this.logger.get(type) as Winston.Logger;
+
+                let meta;
+                if (obj) {
+                    meta = { ...obj };
+
+                    const axiosError = obj as AxiosError;
+                    if (axiosError?.response) {
+                        meta = { ...axiosError.config, response: axiosError.response?.data };
+                    }
+                }
+
                 if (typeof message === "string" || message instanceof String) {
-                    logger.log(level, message as string, { type, meta: { ...obj } });
+                    logger.log(level, message as string, { type, meta });
                 } else {
-                    const err = message as Error;
+                    const err = message;
                     logger.log(level, err.message, {
                         type,
                         name: err.name,
                         stack: err.stack,
-                        meta: { ...obj },
+                        meta,
                     });
                 }
             }
@@ -133,7 +144,7 @@ export class Logger {
         this.log(type, LogLevel.Critical, message, obj);
     }
 
-    public static err(type: LogType, message: string | Error, obj?: object) {
+    public static err(type: LogType, message: string | Error, obj?: any) {
         this.log(type, LogLevel.Error, message, obj);
     }
 
