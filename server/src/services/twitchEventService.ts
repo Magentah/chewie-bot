@@ -177,7 +177,7 @@ export default class TwitchEventService {
 
             switch (reward?.associatedRedemption) {
                 case ChannelPointRedemption.Points:
-                    // Check for read-only mode here if we ever implement redemptions that can be set to CANCELLED by the bot.
+                    // Check for read-only mode here if we ever implement redemptions that can be set to CANCELED by the bot.
                     await this.users.changeUserPoints(
                         user,
                         notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
@@ -224,7 +224,7 @@ export default class TwitchEventService {
                         }
                     } catch (err) {
                         if (reward.hasOwnership) {
-                            await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELLED");
+                            await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");
                         }
 
                         await this.twitchService.sendMessage(
@@ -242,7 +242,7 @@ export default class TwitchEventService {
     }
 
     /**
-     * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELLED.
+     * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELED.
      * @param notificationEvent
      */
     private async channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): Promise<void> {

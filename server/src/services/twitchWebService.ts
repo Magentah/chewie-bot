@@ -80,13 +80,13 @@ export class TwitchWebService {
     /**
      * Update the status of a Channel Reward Redemption.
      *
-     * Status can be FULFILLED or CANCELLED. Should only be used to update UNFULFILLED reward redemptions.
+     * Status can be FULFILLED or CANCELED. Should only be used to update UNFULFILLED reward redemptions.
      *
      * @param channelRewardId The id of the channel reward.
      * @param redemptionRewardId The id of the channel reward redemption.
-     * @param status The status to set the redemption to. FULFILLED or CANCELLED.
+     * @param status The status to set the redemption to. FULFILLED or CANCELED.
      */
-    public async updateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELLED"): Promise<void> {
+    public async updateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELED"): Promise<void> {
         const executor = await this.getBroadcasterExecutor();
         if (!executor) {
             return;
@@ -119,13 +119,13 @@ export class TwitchWebService {
     /**
      * Update the status of a Channel Reward Redemption.
      *
-     * Status can be FULFILLED or CANCELLED. Should only be used to update UNFULFILLED reward redemptions.
+     * Status can be FULFILLED or CANCELED. Should only be used to update UNFULFILLED reward redemptions.
      *
      * @param channelRewardId The id of the channel reward.
      * @param redemptionRewardId The id of the channel reward redemption.
-     * @param status The status to set the redemption to. FULFILLED or CANCELLED.
+     * @param status The status to set the redemption to. FULFILLED or CANCELED.
      */
-    public async tryUpdateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELLED"): Promise<void> {
+    public async tryUpdateChannelRewardStatus(channelRewardId: string, redemptionRewardId: string, status: "FULFILLED" | "CANCELED"): Promise<void> {
         try {
             await this.updateChannelRewardStatus(channelRewardId, redemptionRewardId, status);
         } catch (error: any) {
