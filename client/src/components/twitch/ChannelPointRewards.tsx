@@ -28,7 +28,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
         axios.get("/api/twitch/channelrewards/redemptions").then((result) => {
             setRedemptions(result.data);
         });
-    }, [redemptions]);
+    }, []);
 
     return (
         <div>
@@ -37,7 +37,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
                 columns = {[
                     { title: "Channel Point Reward Title", field: "title", editable: "onAdd" },
                     { title: "Cost", field: "cost", editable: "onAdd" },
-                    { title: "Redemption", field: "associatedRedemption", lookup: Object.fromEntries(redemptions.map(x => [x, x])), editable: "onUpdate" }
+                    { title: "Redemption", field: "associatedRedemption", lookup: Object.fromEntries(redemptions.map(x => [x, x])), editable: "always", initialEditValue: "None" }
                 ]}
                 options = {{
                     paging: false,

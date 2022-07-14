@@ -66,10 +66,16 @@ export default class TwitchPubSubService {
      * @param event The message event from the websocket.
      */
     private onMessage(event: WebSocket.MessageEvent): void {
-        // For now just log the event.
-        if (event.type !== "PONG") {
-            if (typeof(event.data) === "string") {
-                const data = JSON.parse(event.data) as { topic: string, message: string };
+        if (typeof(event.data) === "string") {
+            // Type definition of WebSocket.MessageEvent is a bit misleading, not sure what the
+            // "type" member is supposed to do since the needed information is in event.data.type and not event.type.
+            const msg = JSON.parse(event.data) as { type: string, data: any };
+
+            // Ignore RESPONSE, PONG etc.
+            if (msg.type === "MESSAGE") {
+                const data = msg.data as { topic: string, message: string };
+
+                // For now just log the event.
                 void this.eventLogService.addDebug(data);
                 /* Further processing probably like this.
                     if (data.topic === "channel-subscribe-events-v1") {
@@ -77,9 +83,9 @@ export default class TwitchPubSubService {
                         void this.eventLogService.addStreamlabsEventReceived(message.data.user_name, EventLogType.Sub, message);
                     }
                 */
-            } else {
-                Logger.debug(LogType.TwitchPubSub, `Message data type not string but ${typeof(event.data)}`, event);
             }
+        } else {
+            Logger.debug(LogType.TwitchPubSub, `Message data type not string but ${typeof(event.data)}`, event);
         }
     }
 

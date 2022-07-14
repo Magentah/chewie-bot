@@ -16,6 +16,7 @@ export default interface IChannelPointReward {
     shouldSkipRequestQueue: boolean;
     associatedRedemption?: string;
     isDeleted: boolean;
+    hasOwnership?: boolean;
 }
 
 export interface IChannelPointRewardHistory {

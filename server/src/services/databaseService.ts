@@ -468,6 +468,7 @@ export class DatabaseService {
             table.boolean("shouldSkipRequestQueue").notNullable().defaultTo(false);
             table.string("associatedRedemption");
             table.boolean("isDeleted").notNullable().defaultTo(false);
+            table.boolean("hasOwnership").notNullable().defaultTo(false);
         });
     }
 

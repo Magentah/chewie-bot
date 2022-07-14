@@ -48,7 +48,7 @@ export default class ChannelPointRewardService {
      * Creates a new channel point reward for the broadcaster.
      * @returns Created channel point reward
      */
-    public async createChannelReward(title: string, cost: number): Promise<ITwitchChannelReward | undefined> {
+    public async createChannelReward(title: string, cost: number, associatedRedemption: string): Promise<ITwitchChannelReward | undefined> {
         const reward: ITwitchAddChannelReward = {
             title,
             cost
@@ -63,7 +63,9 @@ export default class ChannelPointRewardService {
                 isGlobalCooldownEnabled: resultAward.global_cooldown_setting?.is_enabled ?? false,
                 globalCooldown: resultAward.global_cooldown_setting?.global_cooldown_seconds ?? 0,
                 shouldSkipRequestQueue: resultAward.should_redemptions_skip_request_queue ?? false,
-                isDeleted: false
+                isDeleted: false,
+                hasOwnership: true,
+                associatedRedemption
             });
         }
 
@@ -110,13 +112,12 @@ export default class ChannelPointRewardService {
      * @param channelPointReward The Twitch Channel Point Reward that was triggered.
      * @param userId The id of the user that triggered the reward.
      */
-    public async channelPointRewardRedemptionTriggered(channelPointReward: ITwitchChannelReward, userId: number): Promise<void> {
-        const reward = await this.getChannelReward(channelPointReward);
+    public async channelPointRewardRedemptionTriggered(reward: IChannelPointReward, userId: number): Promise<void> {
         if (reward?.associatedRedemption) {
             const now = new Date();
             const channelPointRewardHistoryEntry: IChannelPointRewardHistory = {
                 associatedRedemption: reward?.associatedRedemption,
-                rewardId: channelPointReward.id,
+                rewardId: reward.twitchRewardId,
                 dateTimeTriggered: now,
                 userId,
             };

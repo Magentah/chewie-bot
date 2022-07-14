@@ -7,6 +7,7 @@ import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
 import { EventLogService } from "./eventLogService";
+import { TwitchWebService } from "./twitchWebService";
 import EventAggregator from "./eventAggregator";
 import SeasonsRepository from "../database/seasonsRepository";
 import UserService from "./userService";
@@ -25,6 +26,7 @@ export class SongService {
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(UserService) private userService: UserService,
         @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
+        @inject(TwitchWebService) private twitchWebService: TwitchWebService,
     ) {
         //
     }
@@ -259,10 +261,7 @@ export class SongService {
      */
     public async songPlayed(song: ISong | number): Promise<void> {
         if (typeof song === "number") {
-            const songToChange =
-                this.songQueue.filter((item) => {
-                    return item.id === song;
-                })[0] || undefined;
+            const songToChange = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
             if (songToChange) {
                 const songIndex = this.songQueue.indexOf(songToChange);
                 const songData = this.songQueue[songIndex];
@@ -270,6 +269,10 @@ export class SongService {
 
                 const user = await this.userService.getUser(songData.requestedBy);
                 void this.eventLogService.addSongPlayed(user ?? songData.requestedBy, songData);
+                if (songData.rewardEvent) {
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "FULFILLED");
+                }
+
                 void this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
@@ -277,15 +280,16 @@ export class SongService {
                 });
             }
         } else {
-            const songData =
-                this.songQueue.filter((item) => {
-                    return item.id === song.id;
-                })[0] || undefined;
+            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
             if (songData) {
                 const songIndex = this.songQueue.indexOf(songData);
                 this.songQueue.splice(songIndex, 1);
 
                 void this.eventLogService.addSongPlayed(song.requestedBy, songData);
+                if (songData.rewardEvent) {
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "FULFILLED");
+                }
+
                 void this.websocketService.send({
                     type: SocketMessageType.SongPlayed,
                     message: "Song Played",
@@ -341,10 +345,7 @@ export class SongService {
      */
     public async removeSong(song: ISong | number): Promise<void> {
         if (typeof song === "number") {
-            const songToDelete =
-                this.songQueue.filter((item) => {
-                    return item.id === song;
-                })[0] || undefined;
+            const songToDelete = this.songQueue.filter((item) => { return item.id === song; })[0] || undefined;
             if (songToDelete) {
                 const songIndex = this.songQueue.indexOf(songToDelete);
                 const songData = this.songQueue[songIndex];
@@ -359,6 +360,10 @@ export class SongService {
                     },
                 });
 
+                if (songData.rewardEvent) {
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
+                }
+
                 void this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
@@ -366,10 +371,7 @@ export class SongService {
                 });
             }
         } else if (this.isSong(song)) {
-            const songData =
-                this.songQueue.filter((item) => {
-                    return item.id === song.id;
-                })[0] || undefined;
+            const songData = this.songQueue.filter((item) => { return item.id === song.id; })[0] || undefined;
             if (songData) {
                 const index = this.songQueue.indexOf(songData);
                 this.songQueue.splice(index, 1);
@@ -381,6 +383,11 @@ export class SongService {
                         requestedBy: song.requestedBy,
                     },
                 });
+
+                if (songData.rewardEvent) {
+                    await this.twitchWebService.tryUpdateChannelRewardStatus(songData.rewardEvent.reward.id, songData.rewardEvent.id, "CANCELLED");
+                }
+
                 void this.websocketService.send({
                     type: SocketMessageType.SongRemoved,
                     message: "Song Removed",
