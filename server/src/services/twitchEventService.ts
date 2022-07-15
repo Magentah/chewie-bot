@@ -132,9 +132,6 @@ export default class TwitchEventService {
         if (this.eventCallbacks[notification.subscription.type]) {
             this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
         }
-
-        switch (notification.subscription.type) {
-        }
     }
 
     /**

@@ -1,5 +1,5 @@
 import { inject, injectable, LazyServiceIdentifer } from "inversify";
-import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, AchievementType, IUser } from "../models";
+import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, AchievementType, IUser, ITwitchChannelReward } from "../models";
 import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
 import StreamActivityRepository, { IDBStreamActivity } from "../database/streamActivityRepository";
@@ -10,6 +10,7 @@ import TwitchEventService from "./twitchEventService";
 import EventAggregator from "./eventAggregator";
 import { TaxType } from "../models/taxHistory";
 import { Logger, LogType } from "../logger";
+import TwitchWebService from "./twitchWebService";
 
 @injectable()
 export default class TaxService {
@@ -18,6 +19,7 @@ export default class TaxService {
         @inject(UserTaxHistoryRepository) private userTaxHistoryRepository: UserTaxHistoryRepository,
         @inject(UserTaxStreakRepository) private userTaxStreakRepository: UserTaxStreakRepository,
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
+        @inject(TwitchWebService) private twitchWebService: TwitchWebService,
         @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
@@ -32,18 +34,25 @@ export default class TaxService {
      * @param notification The channel point redemption notification.
      */
     private async channelPointsRedeemed(notification: IEventSubNotification): Promise<void> {
-        Logger.info(LogType.TwitchEvents, `TaxService Channel Point Redemption`, notification);
-        const taxChannelReward = await this.channelPointRewardService.getChannelRewardForRedemption(ChannelPointRedemption.Tax);
+        Logger.info(LogType.TwitchEvents, "TaxService Channel Point Redemption", notification);
 
-        Logger.info(
-            LogType.TwitchEvents,
-            `TaxChannelReward Title: ${taxChannelReward?.title} -- Notified Reward Title: ${(notification.event as IRewardRedemeptionEvent).reward.title}`
-        );
-        if (taxChannelReward && (notification.event as IRewardRedemeptionEvent).reward.title === taxChannelReward.title) {
-            const user = await this.userService.getUser((notification.event as IRewardRedemeptionEvent).user_login);
-            Logger.info(LogType.TwitchEvents, "User for reward redemption", user);
-            if (user) {
-                this.logDailyTax(user, (notification.event as IRewardRedemeptionEvent).reward.id);
+        const notificationEvent = notification.event as IRewardRedemeptionEvent;
+        const taxChannelReward = await this.channelPointRewardService.getChannelReward(notificationEvent.reward as ITwitchChannelReward);
+
+        if (taxChannelReward?.associatedRedemption === ChannelPointRedemption.Tax) {
+            const user = await this.userService.addUser(notificationEvent.user_login);
+            let redemptionState: "FULFILLED" | "CANCELED" = "FULFILLED";
+            try {
+                if (user) {
+                    await this.logDailyTax(user, notificationEvent.reward.id);
+                }
+            } catch (error: any) {
+                Logger.err(LogType.Twitch, "Could not process daily tax", error);
+                redemptionState = "CANCELED";
+            }
+
+            if (taxChannelReward.hasOwnership) {
+                await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, redemptionState);
             }
         }
     }
