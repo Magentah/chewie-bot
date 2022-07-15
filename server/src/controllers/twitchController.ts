@@ -122,8 +122,6 @@ class TwitchController {
     }
 
     public async eventsubCallback(req: Request, res: Response): Promise<void> {
-        Logger.info(LogType.Twitch, req.body);
-
         const type = this.getTwitchEventMessageType(req);
 
         switch (type) {
@@ -132,7 +130,7 @@ class TwitchController {
                 break;
             }
             case TwitchEventMessageType.Notification: {
-                this.twitchEventService.handleNotification(req.body);
+                await this.twitchEventService.handleNotification(req.body);
                 res.sendStatus(StatusCodes.ACCEPTED);
                 break;
             }

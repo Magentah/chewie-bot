@@ -81,7 +81,7 @@ export default class TwitchEventService {
         this.activeEventTypes.forEach(async (type) => {
             if (!existingSubscriptionTypes.find((existingType) => type === existingType)) {
                 const data = this.getSubscriptionData(type, this.broadcasterUserId.toString());
-                const result = await this.createSubscription(data);
+                await this.createSubscription(data);
             }
         });
     }
@@ -229,7 +229,7 @@ export default class TwitchEventService {
                             // Only one song allowed.
                             break;
                         }
-                    } catch (err) {
+                    } catch (err: any) {
                         if (reward.hasOwnership) {
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");
                         }
@@ -248,26 +248,26 @@ export default class TwitchEventService {
      * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELED.
      * @param notificationEvent
      */
-    private async channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): Promise<void> {
+    private channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): void {
         Logger.info(LogType.TwitchEvents, "Channel Points Redeemed Update", notificationEvent);
     }
 
-    private channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): void {
+    private async channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): Promise<void> {
         Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
 
         const dateTimeOnline = new Date(notificationEvent.started_at);
-        this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
+        await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
 
-        this.discord.sendStreamOnline();
+        await this.discord.sendStreamOnline();
     }
 
-    private channelOfflineEvent(notificationEvent: EventSub.IStreamOfflineEvent): void {
+    private async channelOfflineEvent(notificationEvent: EventSub.IStreamOfflineEvent): Promise<void> {
         Logger.info(LogType.Twitch, "Channel Offline", notificationEvent);
 
         const dateTimeOffline = new Date();
-        this.streamActivityRepository.add(EventTypes.StreamOffline, dateTimeOffline);
+        await this.streamActivityRepository.add(EventTypes.StreamOffline, dateTimeOffline);
 
-        this.discord.sendStreamOffline();
+        await this.discord.sendStreamOffline();
     }
 
     public async createEventSubscription(event: EventSub.EventTypes, userId: string): Promise<void> {
@@ -278,22 +278,22 @@ export default class TwitchEventService {
 
     public async createStreamOnlineSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.StreamOnline, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     public async createStreamOfflineSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.StreamOffline, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     public async createPointsRedeemedSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.ChannelPointsRedeemed, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     public async createPointsRedeemedUpdateSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.ChannelPointsRedeemedUpdate, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     private getSubscriptionData(type: EventSub.EventTypes, userId: any): EventSub.ISubscriptionData {
@@ -320,7 +320,6 @@ export default class TwitchEventService {
         }
 
         const result = (await axios.get(url, options)).data;
-        Logger.info(LogType.Twitch, result.data);
         return result.data as EventSub.ISubscriptionData[];
     }
 
@@ -349,7 +348,7 @@ export default class TwitchEventService {
 
     private async deleteSubscription(id: string): Promise<void> {
         const options = await this.getOptions();
-        const result = await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
+        await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
     }
 
     private async createSubscription(data: EventSub.ISubscriptionData): Promise<EventSub.ISubscriptionResponse | undefined> {
