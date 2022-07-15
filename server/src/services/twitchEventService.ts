@@ -158,7 +158,7 @@ export default class TwitchEventService {
         // We only update points if the redemption was fulfilled. If it's cancelled, we don't.
         Logger.info(LogType.Twitch, "Channel Points Redeemed Add", notificationEvent);
         const user = await this.users.addUser(notificationEvent.user_login);
-        this.eventLogService.addChannelPointRedemption(user, {
+        await this.eventLogService.addChannelPointRedemption(user, {
             message: `${user.username} has redeemed ${notificationEvent.reward.title} with cost ${notificationEvent.reward.cost}`,
             event: notificationEvent,
             pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
@@ -178,11 +178,21 @@ export default class TwitchEventService {
             switch (reward?.associatedRedemption) {
                 case ChannelPointRedemption.Points:
                     // Check for read-only mode here if we ever implement redemptions that can be set to CANCELED by the bot.
-                    await this.users.changeUserPoints(
-                        user,
-                        notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
-                        PointLogType.PointRewardRedemption
-                    );
+                    let redemptionState: "FULFILLED" | "CANCELED" = "FULFILLED";
+                    try {
+                        await this.users.changeUserPoints(
+                            user,
+                            notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+                            PointLogType.PointRewardRedemption
+                        );
+                    } catch (err) {
+                        Logger.err(LogType.TwitchEvents, "Could not convert channel points.", err);
+                        redemptionState = "CANCELED";
+                    }
+
+                    if (reward.hasOwnership) {
+                        await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, redemptionState);
+                    }
                     break;
 
                 case ChannelPointRedemption.SongRequest:
@@ -235,10 +245,6 @@ export default class TwitchEventService {
                     break;
             }
         }
-
-        // Set reward status to fulfilled.
-        // TODO: Only works if the reward has been created by the bot (client-id). Might have to implement reward config some time.
-        // await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
     }
 
     /**
