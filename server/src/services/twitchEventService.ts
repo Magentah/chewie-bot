@@ -78,12 +78,12 @@ export default class TwitchEventService {
         });
 
         // If there's any subscriptions that don't exist that we want, create them again.
-        this.activeEventTypes.forEach(async (type) => {
+        for (const type of this.activeEventTypes) {
             if (!existingSubscriptionTypes.find((existingType) => type === existingType)) {
                 const data = this.getSubscriptionData(type, this.broadcasterUserId.toString());
                 await this.createSubscription(data);
             }
-        });
+        };
     }
 
     public async handleNotification(notification: EventSub.IEventSubNotification): Promise<void> {
@@ -93,7 +93,7 @@ export default class TwitchEventService {
 
         switch (notification.subscription.type) {
             case EventSub.EventTypes.ChannelPointsRedeemed: {
-                this.channelPointsRedeemedEvent(notification.event);
+                await this.channelPointsRedeemedEvent(notification.event);
                 break;
             }
             case EventSub.EventTypes.ChannelPointsRedeemedUpdate: {
@@ -101,11 +101,11 @@ export default class TwitchEventService {
                 break;
             }
             case EventSub.EventTypes.StreamOnline: {
-                this.channelOnlineEvent(notification.event);
+                await this.channelOnlineEvent(notification.event);
                 break;
             }
             case EventSub.EventTypes.StreamOffline: {
-                this.channelOfflineEvent(notification.event);
+                await this.channelOfflineEvent(notification.event);
                 break;
             }
             case EventSub.EventTypes.ChannelFollow: {
@@ -172,16 +172,22 @@ export default class TwitchEventService {
 
             await this.channelPointRewardService.channelPointRewardRedemptionTriggered(reward, user.id);
 
-            switch (reward?.associatedRedemption) {
+            switch (reward.associatedRedemption) {
                 case ChannelPointRedemption.Points:
                     // Check for read-only mode here if we ever implement redemptions that can be set to CANCELED by the bot.
                     let redemptionState: "FULFILLED" | "CANCELED" = "FULFILLED";
                     try {
-                        await this.users.changeUserPoints(
-                            user,
-                            notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
-                            PointLogType.PointRewardRedemption
-                        );
+                        if (reward.hasOwnership && await this.settingsService.getBoolValue(BotSettings.ReadonlyMode)) {
+                            // It should not be possible to redeem in this state, just making sure to check
+                            // here if the states ever gets out of sync.
+                            redemptionState = "CANCELED";
+                        } else {
+                            await this.users.changeUserPoints(
+                                user,
+                                notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+                                PointLogType.PointRewardRedemption
+                            );
+                        }
                     } catch (err) {
                         Logger.err(LogType.TwitchEvents, "Could not convert channel points.", err);
                         redemptionState = "CANCELED";
@@ -323,27 +329,27 @@ export default class TwitchEventService {
         return result.data as EventSub.ISubscriptionData[];
     }
 
-    public async setBaseCallbackUrl(url: string): Promise<void> {
+    public setBaseCallbackUrl(url: string): void {
         this.baseCallbackUrl = url;
         Logger.info(LogType.Twitch, `Set Base EventSub Callback URL to ${url}`);
     }
 
     public async deleteAllSubscriptions(): Promise<void> {
         const subscriptions = await this.getSubscriptions();
-        subscriptions.forEach(async (value) => {
+        for (const value of subscriptions) {
             if (value.id) {
                 await this.deleteSubscription(value.id);
             }
-        });
+        };
     }
 
     public async deleteInactiveSubscriptions(): Promise<void> {
         const subscriptions = await this.getSubscriptions();
-        subscriptions.forEach(async (value) => {
+        for (const value of subscriptions) {
             if (value.status !== "enabled" && value.id) {
                 await this.deleteSubscription(value.id);
             }
-        });
+        }
     }
 
     private async deleteSubscription(id: string): Promise<void> {
