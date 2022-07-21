@@ -176,27 +176,7 @@ export class UserService {
      */
     public async addPermanentVip(user: IUser, amount: number, reason: string) {
         user.vipPermanentRequests = user.vipPermanentRequests ? (user.vipPermanentRequests + amount) : amount;
-        this.addVipGoldWeeks(user, amount, reason);
-    }
-
-    /**
-     * Add users from the chatlist to the database if they do not already exist.
-     * @param {ITwitchChatList} chatList A ITwitchChatList object containing the chatlist for a channel.
-     */
-    public async addUsersFromChatList(chatList: ITwitchChatList): Promise<boolean> {
-        // Create a single array of all usernames combined from the various usertypes on the twitch chat list type
-        if (!chatList.chatters) {
-            return false;
-        }
-        const combinedChatList = Object.keys(chatList.chatters).reduce((chatterList, key) => {
-            const chatters = (chatList.chatters as any)[key] as string[];
-            chatters.forEach((user: string) => {
-                chatterList.push(user);
-            });
-            return chatterList;
-        }, Array<string>());
-
-        return (await this.addUsers(combinedChatList)) > 0;
+        await this.addVipGoldWeeks(user, amount, reason);
     }
 
     /**

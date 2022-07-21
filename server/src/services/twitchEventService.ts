@@ -78,12 +78,12 @@ export default class TwitchEventService {
         });
 
         // If there's any subscriptions that don't exist that we want, create them again.
-        this.activeEventTypes.forEach(async (type) => {
+        for (const type of this.activeEventTypes) {
             if (!existingSubscriptionTypes.find((existingType) => type === existingType)) {
                 const data = this.getSubscriptionData(type, this.broadcasterUserId.toString());
-                const result = await this.createSubscription(data);
+                await this.createSubscription(data);
             }
-        });
+        };
     }
 
     public async handleNotification(notification: EventSub.IEventSubNotification): Promise<void> {
@@ -93,7 +93,7 @@ export default class TwitchEventService {
 
         switch (notification.subscription.type) {
             case EventSub.EventTypes.ChannelPointsRedeemed: {
-                this.channelPointsRedeemedEvent(notification.event);
+                await this.channelPointsRedeemedEvent(notification.event);
                 break;
             }
             case EventSub.EventTypes.ChannelPointsRedeemedUpdate: {
@@ -101,11 +101,11 @@ export default class TwitchEventService {
                 break;
             }
             case EventSub.EventTypes.StreamOnline: {
-                this.channelOnlineEvent(notification.event);
+                await this.channelOnlineEvent(notification.event);
                 break;
             }
             case EventSub.EventTypes.StreamOffline: {
-                this.channelOfflineEvent(notification.event);
+                await this.channelOfflineEvent(notification.event);
                 break;
             }
             case EventSub.EventTypes.ChannelFollow: {
@@ -132,9 +132,6 @@ export default class TwitchEventService {
         if (this.eventCallbacks[notification.subscription.type]) {
             this.eventCallbacks[notification.subscription.type].forEach((callback) => callback(notification));
         }
-
-        switch (notification.subscription.type) {
-        }
     }
 
     /**
@@ -158,7 +155,7 @@ export default class TwitchEventService {
         // We only update points if the redemption was fulfilled. If it's cancelled, we don't.
         Logger.info(LogType.Twitch, "Channel Points Redeemed Add", notificationEvent);
         const user = await this.users.addUser(notificationEvent.user_login);
-        this.eventLogService.addChannelPointRedemption(user, {
+        await this.eventLogService.addChannelPointRedemption(user, {
             message: `${user.username} has redeemed ${notificationEvent.reward.title} with cost ${notificationEvent.reward.cost}`,
             event: notificationEvent,
             pointsAdded: notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
@@ -175,14 +172,30 @@ export default class TwitchEventService {
 
             await this.channelPointRewardService.channelPointRewardRedemptionTriggered(reward, user.id);
 
-            switch (reward?.associatedRedemption) {
+            switch (reward.associatedRedemption) {
                 case ChannelPointRedemption.Points:
                     // Check for read-only mode here if we ever implement redemptions that can be set to CANCELED by the bot.
-                    await this.users.changeUserPoints(
-                        user,
-                        notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
-                        PointLogType.PointRewardRedemption
-                    );
+                    let redemptionState: "FULFILLED" | "CANCELED" = "FULFILLED";
+                    try {
+                        if (reward.hasOwnership && await this.settingsService.getBoolValue(BotSettings.ReadonlyMode)) {
+                            // It should not be possible to redeem in this state, just making sure to check
+                            // here if the states ever gets out of sync.
+                            redemptionState = "CANCELED";
+                        } else {
+                            await this.users.changeUserPoints(
+                                user,
+                                notificationEvent.reward.cost * Config.twitch.pointRewardMultiplier,
+                                PointLogType.PointRewardRedemption
+                            );
+                        }
+                    } catch (err) {
+                        Logger.err(LogType.TwitchEvents, "Could not convert channel points.", err);
+                        redemptionState = "CANCELED";
+                    }
+
+                    if (reward.hasOwnership) {
+                        await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, redemptionState);
+                    }
                     break;
 
                 case ChannelPointRedemption.SongRequest:
@@ -222,7 +235,7 @@ export default class TwitchEventService {
                             // Only one song allowed.
                             break;
                         }
-                    } catch (err) {
+                    } catch (err: any) {
                         if (reward.hasOwnership) {
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");
                         }
@@ -235,36 +248,32 @@ export default class TwitchEventService {
                     break;
             }
         }
-
-        // Set reward status to fulfilled.
-        // TODO: Only works if the reward has been created by the bot (client-id). Might have to implement reward config some time.
-        // await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
     }
 
     /**
      * Notification for when a user redemption for a channel point reward updates its status to FULFILLED or CANCELED.
      * @param notificationEvent
      */
-    private async channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): Promise<void> {
+    private channelPointsRedeemedUpdateEvent(notificationEvent: EventSub.IRewardRedemeptionEvent): void {
         Logger.info(LogType.TwitchEvents, "Channel Points Redeemed Update", notificationEvent);
     }
 
-    private channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): void {
+    private async channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): Promise<void> {
         Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
 
         const dateTimeOnline = new Date(notificationEvent.started_at);
-        this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
+        await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
 
-        this.discord.sendStreamOnline();
+        await this.discord.sendStreamOnline();
     }
 
-    private channelOfflineEvent(notificationEvent: EventSub.IStreamOfflineEvent): void {
+    private async channelOfflineEvent(notificationEvent: EventSub.IStreamOfflineEvent): Promise<void> {
         Logger.info(LogType.Twitch, "Channel Offline", notificationEvent);
 
         const dateTimeOffline = new Date();
-        this.streamActivityRepository.add(EventTypes.StreamOffline, dateTimeOffline);
+        await this.streamActivityRepository.add(EventTypes.StreamOffline, dateTimeOffline);
 
-        this.discord.sendStreamOffline();
+        await this.discord.sendStreamOffline();
     }
 
     public async createEventSubscription(event: EventSub.EventTypes, userId: string): Promise<void> {
@@ -275,22 +284,22 @@ export default class TwitchEventService {
 
     public async createStreamOnlineSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.StreamOnline, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     public async createStreamOfflineSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.StreamOffline, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     public async createPointsRedeemedSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.ChannelPointsRedeemed, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     public async createPointsRedeemedUpdateSubscription(userId: string): Promise<void> {
         const data = this.getSubscriptionData(EventSub.EventTypes.ChannelPointsRedeemedUpdate, userId);
-        const result = await this.createSubscription(data);
+        await this.createSubscription(data);
     }
 
     private getSubscriptionData(type: EventSub.EventTypes, userId: any): EventSub.ISubscriptionData {
@@ -317,36 +326,35 @@ export default class TwitchEventService {
         }
 
         const result = (await axios.get(url, options)).data;
-        Logger.info(LogType.Twitch, result.data);
         return result.data as EventSub.ISubscriptionData[];
     }
 
-    public async setBaseCallbackUrl(url: string): Promise<void> {
+    public setBaseCallbackUrl(url: string): void {
         this.baseCallbackUrl = url;
         Logger.info(LogType.Twitch, `Set Base EventSub Callback URL to ${url}`);
     }
 
     public async deleteAllSubscriptions(): Promise<void> {
         const subscriptions = await this.getSubscriptions();
-        subscriptions.forEach(async (value) => {
+        for (const value of subscriptions) {
             if (value.id) {
                 await this.deleteSubscription(value.id);
             }
-        });
+        };
     }
 
     public async deleteInactiveSubscriptions(): Promise<void> {
         const subscriptions = await this.getSubscriptions();
-        subscriptions.forEach(async (value) => {
+        for (const value of subscriptions) {
             if (value.status !== "enabled" && value.id) {
                 await this.deleteSubscription(value.id);
             }
-        });
+        }
     }
 
     private async deleteSubscription(id: string): Promise<void> {
         const options = await this.getOptions();
-        const result = await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
+        await axios.delete(`${Constants.TwitchEventSubEndpoint}?id=${id}`, options);
     }
 
     private async createSubscription(data: EventSub.ISubscriptionData): Promise<EventSub.ISubscriptionResponse | undefined> {

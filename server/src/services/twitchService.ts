@@ -231,15 +231,6 @@ export class TwitchService {
         return exists;
     }
 
-    /**
-     * Get the chat list for a channel.
-     * @param channel The channel name to get the chat list for.
-     */
-    private async getChatList(channel: string): Promise<void> {
-        const data = await this.getChatListFromTwitch(channel);
-        await this.users.addUsersFromChatList(data);
-    }
-
     private async getChatListFromTwitch(channel: string): Promise<ITwitchChatList> {
         // https://tmi.twitch.tv/group/user/:channel_name/chatters
 
@@ -428,9 +419,6 @@ export class TwitchService {
 
     private joinEventHandler(channel: string, username: string, self: boolean) {
         Logger.debug(LogType.Twitch, `Channel:: ${channel} - JOIN:: ${username}`);
-        if (self) {
-            this.getChatList(channel);
-        }
     }
 
     private logonEventHandler() {

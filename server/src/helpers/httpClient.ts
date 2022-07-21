@@ -1,4 +1,4 @@
-import axios, {AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
+import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
 import { Logger, LogType } from "../logger";
 
 export enum HttpMethods {
@@ -69,8 +69,9 @@ export class HttpClient {
             Logger.info(LogType.Http, "======= RESPONSE =======");
             Logger.info(LogType.Http, `${response.config.method} ${response.config.baseURL} ${response.config.url} -- STATUS: ${response.status}`);
             return response;
-        }, (error: any) => {
-            Logger.err(LogType.Http, JSON.stringify(error));
+        }, (error: AxiosError) => {
+            const meta = { ...error.config, response: error.response?.data };
+            Logger.err(LogType.Http, JSON.stringify(meta));
             return Promise.reject(error);
         });
     }
