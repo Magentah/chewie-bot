@@ -24,6 +24,7 @@ export default class RewardService {
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
+        // TODO: Consider switching to Twitch Pub Sub events and removing this dependency.
         this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>
             this.processGiftSub(username, giftedMonths, plan)
         );
@@ -32,9 +33,9 @@ export default class RewardService {
     }
 
     public async processDonation(donation: IDonationMessage) {
-        const user = await this.getUserForEvent(donation.from);
+        const user = await this.getUserForEventIfValid(donation.from);
 
-        this.addUserPoints(user, donation);
+        await this.addUserPoints(user, donation);
 
         if ((await this.addGoldStatus(user, donation)) && user) {
             // Use goldsong for queue if possible
@@ -52,12 +53,12 @@ export default class RewardService {
                 }
             }
         } else {
-            this.addSongsToQueue(donation);
+            await this.addSongsToQueue(donation);
         }
     }
 
     public async processBits(bits: IBitsMessage) {
-        const user = await this.getUserForEvent(bits.name);
+        const user = await this.userService.addUser(bits.name);
 
         if (user) {
             const pointsPerBits = parseInt(await this.settings.getValue(BotSettings.PointsPerBit), 10);
@@ -67,43 +68,43 @@ export default class RewardService {
 
             const dailyTax = parseInt(await this.settings.getValue(BotSettings.DailyTaxBitAmount), 10);
             if (dailyTax > 0) {
-                this.taxService.logDailyBitTax(user);
+                await this.taxService.logDailyBitTax(user);
             }
         }
     }
 
     public async processSub(sub: ISubscriptionMessage) {
-        const user = await this.getUserForEvent(sub.name);
+        const user = await this.userService.addUser(sub.name);
         if (!user) {
             return;
         }
 
         // sub.months is always total months subbed ever. Use this number for giving anniversary bonus.
         // Other than that, this event will be called for each individual sub month.
-        this.addSubUserPoints(user, sub.months, sub.sub_type === SubType.Resub ? PointLogType.Resub : PointLogType.Sub, sub.sub_plan, false);
+        await this.addSubUserPoints(user, sub.months, sub.sub_type === SubType.Resub ? PointLogType.Resub : PointLogType.Sub, sub.sub_plan, false);
 
         if (sub.sub_plan === SubscriptionPlan.Tier3) {
             const goldWeeksT3 = parseInt(await this.settings.getValue(BotSettings.GoldWeeksPerT3Sub), 10);
-            this.userService.addVipGoldWeeks(user, goldWeeksT3, "T3 Resub");
+            await this.userService.addVipGoldWeeks(user, goldWeeksT3, "T3 Resub");
         }
     }
 
     public async processGiftSub(username: string, giftedMonths: number, plan: string | undefined) {
-        const giftingUser = await this.getUserForEvent(username);
+        const giftingUser = await this.userService.addUser(username);
         if (giftingUser) {
-            this.addSubUserPoints(giftingUser, giftedMonths, PointLogType.GiftSubGiver, plan as SubscriptionPlan, true);
+            await this.addSubUserPoints(giftingUser, giftedMonths, PointLogType.GiftSubGiver, plan as SubscriptionPlan, true);
 
             if (plan === SubscriptionPlan.Tier3) {
                 // Both gifter and receiver gets half the amount of VIP gold.
                 // We assume that the user on the receiving end will be covered by a streamlabs event.
                 if (giftingUser) {
-                    this.userService.addVipGoldWeeks(giftingUser, giftedMonths, "Gifted T3 sub");
+                    await this.userService.addVipGoldWeeks(giftingUser, giftedMonths, "Gifted T3 sub");
                 }
             }
         }
     }
 
-    private async getUserForEvent(username: string) {
+    private async getUserForEventIfValid(username: string) : Promise<IUser | undefined> {
         let user = await this.userService.getUser(username);
 
         // Add user from Twitch chat as best effort (then we know that it is a valid user name at least).
