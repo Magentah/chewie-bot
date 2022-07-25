@@ -47,6 +47,10 @@ export default class TwitchPubSubService {
         }
     }
 
+    public subscribeEvents(): void {
+        void this.listen(TwitchPubSubService.SubScribeEvent, "LISTEN");
+    }
+
     /**
      * Called when the websocket connection is opened.
      * @param event The open event message from the websocket.
@@ -55,7 +59,7 @@ export default class TwitchPubSubService {
         Logger.info(LogType.TwitchPubSub, "Connected to Twitch PubSub service.");
         this.heartbeat();
         this.heartbeatHandle = setInterval(() => this.heartbeat(), this.HeartbeatInterval);
-        void this.listen(TwitchPubSubService.SubScribeEvent);
+        this.subscribeEvents();
     }
 
     /**
@@ -150,12 +154,12 @@ export default class TwitchPubSubService {
      * Helper function to send a listen message for a specific Twitch PubSub topic. Only handles topics that are postfixed with the channel id only
      * @param topic The topic to listen to.
      */
-    private async listen(topic: string): Promise<void> {
+    private async listen(topic: string, type: "LISTEN" | "UNLISTEN"): Promise<void> {
         Logger.info(LogType.TwitchPubSub, `Listening to topic: ${topic}`);
         const authToken = await this.getBroadcasterOAuth();
         const channelId = await this.getBroadcasterChannelId();
         const message = {
-            type: "LISTEN",
+            type,
             nonce: CryptoHelper.generateNonce(),
             data: {
                 topics: [`${topic}.${channelId}`],
