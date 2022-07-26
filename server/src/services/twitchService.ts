@@ -2,7 +2,7 @@ import axios from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
-import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType, ITwitchChatters, IUser } from "../models";
+import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType } from "../models";
 import { Response } from "../helpers";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -23,7 +23,7 @@ export type TwitchServiceProvider = () => Promise<TwitchService>;
 export class TwitchService {
     private client!: tmi.Client;
     private channelUserList: Map<string, ITwitchChatList>;
-    public hasInitialized: boolean = false;
+    public hasInitialized = false;
     private channel: string;
     private commandCallback!: (channel: string, username: string, message: string) => void;
     private giftSubCallback!: (username: string, recipient: string, giftedMonths: number, plan: string | undefined) => Promise<void>;
@@ -69,7 +69,7 @@ export class TwitchService {
     public async triggerAlert(alertType: string, variation: string, imageUrl: string) {
         switch (alertType) {
             case "redeem": {
-                this.websocketService.send({
+                await this.websocketService.send({
                     type: SocketMessageType.AlertTriggered,
                     message: `Redeem ${variation} alert triggered.`,
                     data: { href: imageUrl },

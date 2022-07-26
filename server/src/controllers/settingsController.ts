@@ -33,6 +33,7 @@ class SettingsController {
         [BotSettings.GoldWeeksPerT3Sub]: { title: "Amount of VIP gold weeks per T3 sub", readonly: false },
         [BotSettings.ReadonlyMode]: { title: "Read-only mode for points", readonly: false },
         [BotSettings.MaxSongRequestRedemptionsInQueue]: { title: "Maximum number of song requests through channel rewards in queue", readonly: false },
+        [BotSettings.SubNotificationProvider]: { title: "Provider for subscription notifications (Twitch|Streamlabs)", readonly: false },
     };
 
     constructor(

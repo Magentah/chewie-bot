@@ -1,5 +1,5 @@
 import { injectable, inject } from "inversify";
-import { UserService } from "../services";
+import { BotSettingsService, UserService } from "../services";
 import Constants from "../constants";
 import * as io from "socket.io-client";
 import { Logger, LogType } from "../logger";
@@ -7,6 +7,7 @@ import RewardService from "../services/rewardService";
 import EventLogService from "../services/eventLogService";
 import { EventLogType } from "../models";
 import DonationsRepository from "../database/donations";
+import { BotSettings } from "./botSettingsService";
 
 export enum StreamlabsEvent {
     Donation = "donation",
@@ -60,7 +61,7 @@ export interface ISubscriptionMessage {
     emotes: any;
     sub_plan: SubscriptionPlan;
     sub_type: SubType;
-    _id: string;
+    _id?: string;
 }
 
 export interface IResubscriptionMessage {
@@ -89,7 +90,8 @@ export class StreamlabsService {
         @inject(UserService) private users: UserService,
         @inject(RewardService) private rewards: RewardService,
         @inject(EventLogService) private eventLogService: EventLogService,
-        @inject(DonationsRepository) private donations: DonationsRepository
+        @inject(DonationsRepository) private donations: DonationsRepository,
+        @inject(BotSettingsService) private settings: BotSettingsService
     ) {
         // Empty
     }
@@ -162,10 +164,6 @@ export class StreamlabsService {
                 this.subscriptionReceived(message.message);
                 break;
             }
-            case StreamlabsEvent.Resub: {
-                this.resubscriptionReceived(message.message);
-                break;
-            }
             case StreamlabsEvent.Bits: {
                 this.bitsReceived(message.message);
                 break;
@@ -188,22 +186,6 @@ export class StreamlabsService {
         }
     }
 
-    private async resubscriptionReceived(messages: IResubscriptionMessage[]) {
-        Logger.info(LogType.Streamlabs, JSON.stringify(messages));
-
-        for (const sub of messages) {
-            const user = await this.users.addUser(sub.name);
-            this.eventLogService.addStreamlabsEventReceived(user, EventLogType.Resub, sub);
-
-            const subMessage: ISubscriptionMessage = {
-                ...sub,
-                sub_type: SubType.Resub,
-            };
-
-            this.rewards.processSub(subMessage);
-        }
-    }
-
     private async subscriptionReceived(messages: ISubscriptionMessage[]) {
         Logger.info(LogType.Streamlabs, JSON.stringify(messages));
 
@@ -211,7 +193,9 @@ export class StreamlabsService {
             const user = await this.users.addUser(sub.name);
             this.eventLogService.addStreamlabsEventReceived(user, EventLogType.Sub, sub);
 
-            this.rewards.processSub(sub);
+            if (await this.settings.getValue(BotSettings.SubNotificationProvider) === "Streamlabs") {
+                await this.rewards.processSub(sub);
+            }
         }
     }
 
