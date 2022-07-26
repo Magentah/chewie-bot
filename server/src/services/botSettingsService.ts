@@ -26,6 +26,7 @@ export enum BotSettings {
     GoldWeeksPerT3Sub = "gold-weeks-per-sub-t3",
     ReadonlyMode = "readonly-mode",
     MaxSongRequestRedemptionsInQueue = "max-songrequest-redemptions-in-queue",
+    SubNotificationProvider = "sub-notification-provider",
 }
 
 @injectable()
@@ -54,6 +55,7 @@ export default class BotSettingsService {
         [BotSettings.GoldWeeksPerT3Sub]: 1,
         [BotSettings.ReadonlyMode]: 0,
         [BotSettings.MaxSongRequestRedemptionsInQueue]: 0,
+        [BotSettings.SubNotificationProvider]: "Twitch",
     };
 
     private readonly settingCache: { [name: string] : any; } = {};
@@ -78,6 +80,10 @@ export default class BotSettingsService {
         const result = (await this.botSettings.get(key))?.value ?? this.getDefaultValue(key);
         this.settingCache[key] = result;
         return result;
+    }
+
+    public async getSubNotificationProvider(): Promise<"Twitch" | "Streamlabs"> {
+        return await this.getValue(BotSettings.SubNotificationProvider) === "Streamlabs" ? "Streamlabs" : "Twitch";
     }
 
     public getDefaultValue(key: BotSettings): string | number | boolean {

@@ -23,3 +23,4 @@ export { default as TaxService } from "./taxService";
 export { default as CardService } from "./cardService";
 export { default as AchievementService } from "./achievementService";
 export { default as EventAggregator } from "./eventAggregator";
+export { default as TwitchPubSubService } from "./twitchPubSubService";
