@@ -415,7 +415,7 @@ export class TwitchService {
     }
 
     private joinEventHandler(channel: string, username: string, self: boolean) {
-        Logger.debug(LogType.Twitch, `Channel:: ${channel} - JOIN:: ${username}`);
+        // Empty
     }
 
     private logonEventHandler() {
@@ -439,7 +439,7 @@ export class TwitchService {
     }
 
     private partEventHandler(channel: string, username: string, self: boolean) {
-        Logger.debug(LogType.Twitch, `PART:: ${username}`);
+        // Empty
     }
 
     private pingEventHandler() {
@@ -489,10 +489,10 @@ export class TwitchService {
         // userstate.login should contain the plain (non international) username.
         const actualUser = userstate.login ?? username;
         const user = await this.users.addUser(actualUser);
-        this.eventLogService.addTwitchGiftSub(user, { channel, streakMonths, recipient, methods, userstate });
+        await this.eventLogService.addTwitchGiftSub(user, { channel, streakMonths, recipient, methods, userstate });
 
         if (this.giftSubCallback) {
-            this.giftSubCallback(actualUser, recipient, userstate["msg-param-gift-months"], methods.plan);
+            await this.giftSubCallback(actualUser, recipient, userstate["msg-param-gift-months"], methods.plan);
         }
     }
 
