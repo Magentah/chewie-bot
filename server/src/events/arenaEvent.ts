@@ -8,6 +8,7 @@ import { Lang } from "../lang";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import PointLogsRepository from "../database/pointLogsRepository";
 import SeasonsRepository from "../database/seasonsRepository";
+import { delay } from "../helpers/asyncHelper";
 
 /**
  * Detailed description of an arena (tournament) event: http://wiki.deepbot.tv/arena
@@ -79,7 +80,7 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         this.sendMessage(Lang.get("arena.started", this.participants.length));
 
         // Suspense
-        await this.delay(10000);
+        await delay(10000);
 
         // Win or lose? We need 3 winners out of all participants.
         const fighters = this.participants.map((x) => x.user);
@@ -117,11 +118,11 @@ export default class ArenaEvent extends ParticipationEvent<EventParticipant> {
         await this.sendMessage(
             Lang.get("arena.result3rd", numberOfWinsNeeded - 1, winners[2].points, winners[2].user.username)
         );
-        await this.delay(3000);
+        await delay(3000);
         await this.sendMessage(
             Lang.get("arena.result2nd", numberOfWinsNeeded - 1, winners[1].points, winners[1].user.username)
         );
-        await this.delay(3000);
+        await delay(3000);
         await this.sendMessage(Lang.get("arena.result1st", numberOfWinsNeeded, winners[0].points, winners[0].user.username));
 
         this.eventService.stopEventStartCooldown(this);

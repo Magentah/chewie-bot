@@ -4,6 +4,7 @@ import moment = require("moment");
 import * as Config from "../config.json";
 import { Logger, LogType } from "../logger";
 import { IUser, UserLevels } from "../models";
+import { delay } from "../helpers/asyncHelper";
 import { exec } from "child_process";
 
 export enum DatabaseTables {
@@ -42,7 +43,7 @@ export enum DatabaseTables {
 export type DatabaseProvider = () => Promise<DatabaseService>;
 
 // Already in types/knex/index.d.ts, but does not compile in docker container without having it duplicated here.
-declare module 'knex' {
+declare module "knex" {
   namespace Knex {
     interface QueryBuilder {
         fulltextSearch<TRecord, TResult>(value: string, columns: string[]): Knex.QueryBuilder<TRecord, TResult>;
@@ -119,59 +120,55 @@ export class DatabaseService {
     };
 
     private db: Knex;
-    private isInit: boolean = false;
-    private inSetup: boolean = false;
+    private isInit = false;
+    private inSetup = false;
     private currentTransaction: Knex.Transaction<any, any[]> | undefined = undefined;
 
     public async initDatabase(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            if (!this.isInit && !this.inSetup) {
-                this.inSetup = true;
-                Logger.info(LogType.Database, "Creating database tables");
-                await this.createVIPLevelTable();
-                await this.createUserTable();
-                await this.createDonationsTable();
-                await this.createTextCommandsTable();
-                await this.createQuotesTable();
-                await this.createCommandAliasTable();
-                await this.createBotSettingsTable();
-                await this.createSonglistTable();
-                await this.createSonglistCategoriesTable();
-                await this.createSonglistFavoritesTable();
-                await this.createSonglistTagsTable();
-                await this.createSonglistSongTagsTable();
-                await this.createDiscordSettingTable();
-                await this.createEventLogsTable();
-                await this.createPointLogsTable();
-                await this.createMessagesTable();
-                await this.createTwitchProfileTable();
-                await this.createUserCardsTable();
-                await this.createUserCardStackTable();
-                await this.createUserCardUpgradesTable();
-                await this.createUserTaxStreakTable();
-                await this.createUserTaxHistoryTable();
-                await this.createChannelPointRewardsTable();
-                await this.createChannelPointRewardHistoryTable();
-                await this.createStreamActivityTable();
-                await this.createAchievementsTable();
-                await this.createUserAchievementsTable();
-                await this.createSeasonsTable();
-                await this.createPointArchiveTable();
+        if (!this.isInit && !this.inSetup) {
+            this.inSetup = true;
+            Logger.info(LogType.Database, "Creating database tables");
+            await this.createVIPLevelTable();
+            await this.createUserTable();
+            await this.createDonationsTable();
+            await this.createTextCommandsTable();
+            await this.createQuotesTable();
+            await this.createCommandAliasTable();
+            await this.createBotSettingsTable();
+            await this.createSonglistTable();
+            await this.createSonglistCategoriesTable();
+            await this.createSonglistFavoritesTable();
+            await this.createSonglistTagsTable();
+            await this.createSonglistSongTagsTable();
+            await this.createDiscordSettingTable();
+            await this.createEventLogsTable();
+            await this.createPointLogsTable();
+            await this.createMessagesTable();
+            await this.createTwitchProfileTable();
+            await this.createUserCardsTable();
+            await this.createUserCardStackTable();
+            await this.createUserCardUpgradesTable();
+            await this.createUserTaxStreakTable();
+            await this.createUserTaxHistoryTable();
+            await this.createChannelPointRewardsTable();
+            await this.createChannelPointRewardHistoryTable();
+            await this.createStreamActivityTable();
+            await this.createAchievementsTable();
+            await this.createUserAchievementsTable();
+            await this.createSeasonsTable();
+            await this.createPointArchiveTable();
 
-                // Need to add VIP levels first because of foreign key.
-                await this.populateDatabase();
-                await this.addBroadcaster();
-                Logger.info(LogType.Database, "Database init finished.");
-                this.inSetup = false;
-                this.isInit = true;
-                resolve();
-            } else if (this.isInit) {
-                resolve();
-            } else if (this.inSetup) {
-                await this.waitForSetup();
-                resolve();
-            }
-        });
+            // Need to add VIP levels first because of foreign key.
+            await this.populateDatabase();
+            await this.addBroadcaster();
+            Logger.info(LogType.Database, "Database init finished.");
+            this.inSetup = false;
+            this.isInit = true;
+        } else if (this.isInit) {
+            return;
+        } else if (this.inSetup) {
+            await this.waitForSetup();
+        }
     }
 
     /**
@@ -179,16 +176,9 @@ export class DatabaseService {
      * @returns Promise that resolves when this.inSetup is false.
      */
     private async waitForSetup(): Promise<void> {
-        return new Promise<void>((resolve) => {
-            if (this.inSetup) {
-                setTimeout(async () => {
-                    await this.waitForSetup();
-                    resolve();
-                }, 100);
-            } else {
-                resolve();
-            }
-        });
+        while (this.inSetup) {
+            await delay(100);
+        }
     }
 
     private async hasTable(tableName: string): Promise<boolean> {
@@ -201,17 +191,13 @@ export class DatabaseService {
      * @param callback Callback function called to create the table.
      */
     private async createTable(tableName: DatabaseTables, callback: (table: Knex.TableBuilder) => any): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const hasTable = await this.hasTable(tableName);
-            if (!hasTable) {
-                Logger.debug(LogType.Database, `${tableName} being created.`);
-                await this.db.schema.createTable(tableName, callback);
-                resolve();
-            } else {
-                Logger.debug(LogType.Database, `${tableName} already exists.`);
-                resolve();
-            }
-        });
+        const hasTable = await this.hasTable(tableName);
+        if (!hasTable) {
+            Logger.debug(LogType.Database, `${tableName} being created.`);
+            await this.db.schema.createTable(tableName, callback);
+        } else {
+            Logger.debug(LogType.Database, `${tableName} already exists.`);
+        }
     }
     private async createDiscordSettingTable(): Promise<void> {
         return this.createTable(DatabaseTables.DiscordSettings, (table) => {
@@ -233,7 +219,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.Users, (table) => {
             table.increments("id").primary().notNullable();
             table.integer("vipLevelKey").unsigned();
-            table.foreign("vipLevelKey").references(`id`).inTable(DatabaseTables.VIPLevels);
+            table.foreign("vipLevelKey").references("id").inTable(DatabaseTables.VIPLevels);
             table.integer("userLevel").unsigned().notNullable().defaultTo(UserLevels.Viewer);
             table.string("username").notNullable();
             table.string("refreshToken");
@@ -320,9 +306,9 @@ export class DatabaseService {
             table.string("album").notNullable();
             table.string("title").notNullable();
             table.string("artist").notNullable().defaultTo("");
-            table.integer("categoryId").notNullable().references(`id`).inTable(DatabaseTables.SonglistCategories);
+            table.integer("categoryId").notNullable().references("id").inTable(DatabaseTables.SonglistCategories);
             table.dateTime("created").notNullable();
-            table.integer("attributedUserId").references(`id`).inTable(DatabaseTables.Users);
+            table.integer("attributedUserId").references("id").inTable(DatabaseTables.Users);
         });
     }
 
@@ -337,8 +323,8 @@ export class DatabaseService {
     private async createSonglistFavoritesTable(): Promise<void> {
         return this.createTable(DatabaseTables.SonglistFavorites, (table) => {
             table.increments("id").primary().notNullable();
-            table.integer("userId").notNullable().references(`id`).inTable(DatabaseTables.Users).onDelete("CASCADE");
-            table.integer("songId").notNullable().references(`id`).inTable(DatabaseTables.Songlist).onDelete("CASCADE");
+            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
+            table.integer("songId").notNullable().references("id").inTable(DatabaseTables.Songlist).onDelete("CASCADE");
             table.unique(["userId", "songId"]);
         });
     }
@@ -353,8 +339,8 @@ export class DatabaseService {
     private async createSonglistSongTagsTable(): Promise<void> {
         return this.createTable(DatabaseTables.SonglistSongTags, (table) => {
             table.increments("id").primary().notNullable();
-            table.integer("tagId").notNullable().references(`id`).inTable(DatabaseTables.SonglistTags).onDelete("CASCADE");
-            table.integer("songId").notNullable().references(`id`).inTable(DatabaseTables.Songlist).onDelete("CASCADE");
+            table.integer("tagId").notNullable().references("id").inTable(DatabaseTables.SonglistTags).onDelete("CASCADE");
+            table.integer("songId").notNullable().references("id").inTable(DatabaseTables.Songlist).onDelete("CASCADE");
             table.unique(["tagId", "songId"]);
         });
     }
@@ -364,7 +350,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("type").notNullable();
             table.string("username").notNullable();
-            table.integer("userId").references(`id`).inTable(DatabaseTables.Users).index();
+            table.integer("userId").references("id").inTable(DatabaseTables.Users).index();
             table.json("data").notNullable();
             table.dateTime("time").notNullable().index();
         });
@@ -374,7 +360,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.PointLogs, (table) => {
             table.increments("id").primary().notNullable();
             table.string("eventType").notNullable();
-            table.integer("userId").notNullable().references(`id`).inTable(DatabaseTables.Users).index();
+            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).index();
             table.string("username").notNullable();
             table.integer("pointsBefore").notNullable();
             table.integer("points").notNullable();
@@ -411,9 +397,9 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.CardStack, (table) => {
             table.integer("id").primary().notNullable();
             table.integer("userId").notNullable().index();
-            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users).onDelete("CASCADE");
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.integer("cardId").notNullable().index();
-            table.foreign("cardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
+            table.foreign("cardId").references("id").inTable(DatabaseTables.Cards).onDelete("CASCADE");
             table.dateTime("redemptionDate").notNullable();
             table.boolean("deleted").notNullable().defaultTo(false);
         });
@@ -423,11 +409,11 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.CardUpgrades, (table) => {
             table.integer("id").primary().notNullable();
             table.integer("userId").notNullable();
-            table.foreign("userId").references(`id`).inTable(DatabaseTables.Users).onDelete("CASCADE");
+            table.foreign("userId").references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.integer("upgradedCardId").notNullable();
-            table.foreign("upgradedCardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
+            table.foreign("upgradedCardId").references("id").inTable(DatabaseTables.Cards).onDelete("CASCADE");
             table.integer("upgradeCardId").notNullable();
-            table.foreign("upgradeCardId").references(`id`).inTable(DatabaseTables.Cards).onDelete("CASCADE");
+            table.foreign("upgradeCardId").references("id").inTable(DatabaseTables.Cards).onDelete("CASCADE");
             table.dateTime("dateUpgraded").notNullable();
             table.unique(["userId", "upgradedCardId", "upgradeCardId"]);
         });
@@ -534,7 +520,7 @@ export class DatabaseService {
         return this.createTable(DatabaseTables.PointArchive, (table) => {
             table.increments("id").primary().notNullable();
             table.integer("seasonId").notNullable().references("id").inTable(DatabaseTables.Seasons).onDelete("CASCADE");
-            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");;
+            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.decimal("points").notNullable();
             table.unique(["userId", "seasonId"]);
         });
@@ -544,43 +530,37 @@ export class DatabaseService {
      * Adds user and vip levels to the database if they don't exist.
      */
     private async populateDatabase(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const vipLevelsAdded = await this.db(DatabaseTables.VIPLevels).select();
-            if (vipLevelsAdded.length === 0) {
-                const vipLevels = [
-                    { name: "None", rank: 1 },
-                    { name: "Bronze", rank: 2 },
-                    { name: "Silver", rank: 3 },
-                    { name: "Gold", rank: 4 },
-                ];
-                await this.db(DatabaseTables.VIPLevels).insert(vipLevels);
-                Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
-            } else {
-                Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
-            }
-            resolve();
-        });
+        const vipLevelsAdded = await this.db(DatabaseTables.VIPLevels).select();
+        if (vipLevelsAdded.length === 0) {
+            const vipLevels = [
+                { name: "None", rank: 1 },
+                { name: "Bronze", rank: 2 },
+                { name: "Silver", rank: 3 },
+                { name: "Gold", rank: 4 },
+            ];
+            await this.db(DatabaseTables.VIPLevels).insert(vipLevels);
+            Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} populated with initial data.`);
+        } else {
+            Logger.debug(LogType.Database, `${DatabaseTables.VIPLevels} already has data.`);
+        }
     }
 
     /**
      * Adds config.json configured broadcaster as a user with broadcaster status to the database if it exists.
      */
     private async addBroadcaster(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            const broadcasterUsername = Config.twitch.broadcasterName;
-            if (!(await this.db(DatabaseTables.Users).first().where("username", "like", broadcasterUsername))) {
-                const user: IUser = {
-                    username: broadcasterUsername,
-                    userLevel: UserLevels.Broadcaster,
-                    vipLevelKey: 1,
-                    points: 0,
-                    hasLogin: true,
-                };
+        const broadcasterUsername = Config.twitch.broadcasterName;
+        if (!(await this.db(DatabaseTables.Users).first().where("username", "like", broadcasterUsername))) {
+            const user: IUser = {
+                username: broadcasterUsername,
+                userLevel: UserLevels.Broadcaster,
+                vipLevelKey: 1,
+                points: 0,
+                hasLogin: true,
+            };
 
-                await this.db(DatabaseTables.Users).insert(user);
-            }
-            resolve();
-        });
+            await this.db(DatabaseTables.Users).insert(user);
+        }
     }
 
     public isInitialized(): boolean {
@@ -607,23 +587,21 @@ export class DatabaseService {
         return this.db.raw(value);
     }
 
-    public async createBackup(callback?: (error: any, stderr: any, stdout: any) => Promise<void>): Promise<string | undefined> {
-        return new Promise<string | undefined>(async (resolve, reject) => {
-            Logger.info(LogType.Backup, "Backing up database.");
-            if (Config.database.client === "sqlite3") {
-                const now = moment();
-                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup.gz`;
-                exec("mkdir db/backups");
-                exec(`sqlite3 ${Config.database.connection.name} .dump | gzip > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
-                    if (callback) {
-                        callback(err, stderr, stdout);
-                    }
-                    resolve(filename);
-                });
-            } else {
-                resolve(undefined);
-            }
-        });
+    public createBackup(callback?: (error: any, stderr: any, stdout: any) => Promise<void>): string | undefined {
+        Logger.info(LogType.Backup, "Backing up database.");
+        if (Config.database.client === "sqlite3") {
+            const now = moment();
+            const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup.gz`;
+            exec("mkdir db/backups");
+            exec(`sqlite3 ${Config.database.connection.name} .dump | gzip > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
+                if (callback) {
+                    void callback(err, stderr, stdout);
+                }
+                return filename;
+            });
+        }
+
+        return undefined;
     }
 }
 
