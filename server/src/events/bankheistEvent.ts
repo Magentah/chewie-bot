@@ -9,6 +9,7 @@ import { PointLogReason, PointLogType } from "../models/pointLog";
 import MessagesRepository from "../database/messagesRepository";
 import PointLogsRepository from "../database/pointLogsRepository";
 import SeasonsRepository from "../database/seasonsRepository";
+import { delay } from "../helpers/asyncHelper";
 
 /**
  * Detailed description of a bankheist: http://wiki.deepbot.tv/bankheist
@@ -120,7 +121,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         }
 
         // Suspense
-        await this.delay(10000);
+        await delay(10000);
 
         // Win or lose? We need to determine success for each participant individually.
         const winners = [];
@@ -217,7 +218,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
 
     private async sudokuParticipants() {
         // Give users time to process the message and realize their fate.
-        await this.delay(5000);
+        await delay(5000);
 
         for (const participant of this.participants) {
             this.twitchService.invokeCommand(participant.user.username, "!sudoku 1");

@@ -6,6 +6,7 @@ import { Logger, LogType } from "../logger";
 import { inject } from "inversify";
 import { Lang } from "../lang";
 import { PointLogType } from "../models/pointLog";
+import { delay } from "../helpers/asyncHelper";
 
 /**
  * Auction:
@@ -82,7 +83,7 @@ export default class AuctionEvent extends ParticipationEvent<EventParticipant> {
      */
     private async runAnnouncmentTimer() {
         while (this.state === EventState.Open) {
-            await this.delay(60 * 1000);
+            await delay(60 * 1000);
 
             const highestBid = this.getHighestBid();
             if (this.state === EventState.Open && highestBid) {

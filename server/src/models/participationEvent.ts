@@ -140,8 +140,4 @@ export default abstract class ParticipationEvent<T extends EventParticipant> {
 
         return undefined;
     }
-
-    protected delay(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
 }

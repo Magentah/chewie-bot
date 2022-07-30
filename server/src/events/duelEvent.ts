@@ -10,6 +10,7 @@ import { Lang } from "../lang";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import PointLogsRepository from "../database/pointLogsRepository";
 import SeasonsRepository from "../database/seasonsRepository";
+import { delay } from "../helpers/asyncHelper";
 
 /**
  * Rough description of a duel:
@@ -161,7 +162,7 @@ export default class DuelEvent extends ParticipationEvent<DuelEventParticipant> 
         Logger.info(LogType.Command, `Waiting for weapon choice`);
 
         // Wait one minute for both participants to choose a weapon.
-        await this.delay(60 * 1000);
+        await delay(60 * 1000);
 
         if (this.participants[0].weapon === DuelWeapon.None) {
             this.eventService.stopEvent(this);

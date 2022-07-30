@@ -3,6 +3,7 @@ import ParticipationEvent, { EventState } from "../models/participationEvent";
 import { EventParticipant } from "../models/eventParticipant";
 import Logger, { LogType } from "../logger";
 import { IUser } from "../models";
+import { delay } from "../helpers/asyncHelper";
 
 type Constructor<T> = new (...args: any[]) => T;
 
@@ -49,7 +50,7 @@ export class EventService {
 
     private async startParticipation(event: ParticipationEvent<EventParticipant>) {
         if (event.initialParticipationPeriod) {
-            await this.delay(event.initialParticipationPeriod);
+            await delay(event.initialParticipationPeriod);
             Logger.info(LogType.Command, `Participation period for event ${event.constructor.name} has ended`);
             event.participationPeriodEnded();
         }
@@ -79,13 +80,9 @@ export class EventService {
         );
 
         event.state = EventState.Ended;
-        await this.delay(event.cooldownPeriod);
+        await delay(event.cooldownPeriod);
         this.stopEvent(event);
         event.onCooldownComplete();
-    }
-
-    private delay(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     // Taken from https://stackoverflow.com/a/65152869/259059
