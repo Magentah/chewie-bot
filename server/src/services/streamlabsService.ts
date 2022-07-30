@@ -26,7 +26,7 @@ export enum SubType {
 
 export enum SubscriptionPlan {
     None = "0",
-    Prime = "1",
+    Prime = "Prime",
     Tier1 = "1000",
     Tier2 = "2000",
     Tier3 = "3000",
