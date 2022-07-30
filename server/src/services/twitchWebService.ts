@@ -93,7 +93,7 @@ export class TwitchWebService {
         }
 
         const body = {
-            "status": status,
+            status
         };
         const updateStatusUrl = `${this.getChannelRedemptionUrl}?broadcaster_id=${executor.broadcasterId}&reward_id=${channelRewardId}&id=${redemptionRewardId}`;
         const response: AxiosResponse = await executor.executeFunction(HttpMethods.PATCH, updateStatusUrl, body);
