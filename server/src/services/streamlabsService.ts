@@ -190,10 +190,9 @@ export class StreamlabsService {
         Logger.info(LogType.Streamlabs, JSON.stringify(messages));
 
         for (const sub of messages) {
-            const user = await this.users.addUser(sub.name);
-            this.eventLogService.addStreamlabsEventReceived(user, EventLogType.Sub, sub);
-
             if (await this.settings.getValue(BotSettings.SubNotificationProvider) === "Streamlabs") {
+                const user = await this.users.addUser(sub.name);
+                this.eventLogService.addStreamlabsEventReceived(user, EventLogType.Sub, sub);
                 await this.rewards.processSub(sub);
             }
         }

@@ -56,7 +56,7 @@ export default class TwitchPubSubService {
      * @param event The open event message from the websocket.
      */
     private onOpen(): void {
-        Logger.info(LogType.TwitchPubSub, "Connected to Twitch PubSub service.");
+        Logger.info(LogType.Twitch, "Connected to Twitch PubSub service.");
         this.heartbeat();
         this.heartbeatHandle = setInterval(() => this.heartbeat(), this.HeartbeatInterval);
         this.subscribeEvents();
@@ -67,7 +67,7 @@ export default class TwitchPubSubService {
      * @param event The close event message from the websocket.
      */
     private onClose(event: WebSocket.CloseEvent): void {
-        Logger.info(LogType.TwitchPubSub, "Connection to Twitch PubSub closed. Reconnecting...", event);
+        Logger.info(LogType.Twitch, "Connection to Twitch PubSub closed. Reconnecting...", event);
         clearInterval(this.heartbeatHandle);
         setTimeout(() => this.connect(), this.ReconnectInterval);
     }
@@ -85,6 +85,7 @@ export default class TwitchPubSubService {
             // Ignore RESPONSE, PONG etc.
             if (msg.type === "MESSAGE") {
                 const data = msg.data as { topic: string, message: string };
+                void this.eventLogService.addDebug(data);
 
                 if (data.topic.startsWith(TwitchPubSubService.SubScribeEvent)) {
                     if (await this.settings.getSubNotificationProvider() === "Twitch") {
@@ -114,11 +115,17 @@ export default class TwitchPubSubService {
                                 name: message.user_name
                             });
                         }
+                    } else {
+                        Logger.debug(LogType.Twitch, `PubSub subscribe event not enabled`, data);
                     }
+                } else {
+                    Logger.debug(LogType.Twitch, `Received PubSub message with topic  ${data.topic}`, data);
                 }
+            } else {
+                Logger.debug(LogType.Twitch, `Received PubSub message of type ${msg.type}`, msg);
             }
         } else {
-            Logger.debug(LogType.TwitchPubSub, `Message data type not string but ${typeof(event.data)}`, event);
+            Logger.debug(LogType.Twitch, `Message data type not string but ${typeof(event.data)}`, event);
         }
     }
 
@@ -127,7 +134,7 @@ export default class TwitchPubSubService {
      * @param event The error event message from the websocket.
      */
     private onError(event: WebSocket.ErrorEvent): void {
-        Logger.err(LogType.TwitchPubSub, "Received error from Twitch PubSub", event);
+        Logger.err(LogType.Twitch, "Received error from Twitch PubSub", event);
     }
 
     /**
@@ -155,7 +162,7 @@ export default class TwitchPubSubService {
      * @param topic The topic to listen to.
      */
     private async listen(topic: string, type: "LISTEN" | "UNLISTEN"): Promise<void> {
-        Logger.info(LogType.TwitchPubSub, `Listening to topic: ${topic}`);
+        Logger.info(LogType.Twitch, `Listening to topic: ${topic}`);
         const authToken = await this.getBroadcasterOAuth();
         const channelId = await this.getBroadcasterChannelId();
         const message = {

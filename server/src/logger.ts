@@ -11,7 +11,6 @@ enum LogType {
     Command = "Command",
     Twitch = "Twitch",
     TwitchEvents = "TwitchEvents",
-    TwitchPubSub = "TwitchPubSub",
     Cache = "Cache",
     Database = "Database",
     OAuth = "OAuth",

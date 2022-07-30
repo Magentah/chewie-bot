@@ -29,6 +29,9 @@ module.exports = {
     "root": true,
     "rules": {
         "@typescript-eslint/adjacent-overload-signatures": "error",
+        "@typescript-eslint/no-unsafe-return": "warn",
+        "@typescript-eslint/no-unsafe-member-access": "warn",
+        "@typescript-eslint/no-unsafe-assignment": "warn",
         "@typescript-eslint/array-type": [
             "error",
             {

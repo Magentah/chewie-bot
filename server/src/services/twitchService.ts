@@ -22,7 +22,6 @@ export type TwitchServiceProvider = () => Promise<TwitchService>;
 @injectable()
 export class TwitchService {
     private client!: tmi.Client;
-    private channelUserList: Map<string, ITwitchChatList>;
     public hasInitialized = false;
     private channel: string;
     private commandCallback!: (channel: string, username: string, message: string) => void;
@@ -37,7 +36,6 @@ export class TwitchService {
         @inject(EventLogService) private eventLogService: EventLogService
     ) {
         this.channel = `#${Config.twitch.broadcasterName}`;
-        this.channelUserList = new Map<string, ITwitchChatList>();
     }
 
     public async initialize(): Promise<IServiceResponse> {
@@ -54,7 +52,6 @@ export class TwitchService {
         }
 
         const options = await this.setupOptions();
-        Logger.info(LogType.Twitch, JSON.stringify(options));
         if (options.identity?.username && options.identity.password) {
             this.client = tmi.client(options);
             this.setupEventHandlers(this.client);
@@ -211,7 +208,7 @@ export class TwitchService {
 
     public async userExistsInChat(channel: string, username: string): Promise<boolean> {
         const chatters = (await this.getChatListFromTwitch(channel)).chatters;
-        let exists: boolean = false;
+        let exists = false;
         Object.keys(chatters).forEach((_, index) => {
             // If we've already found the user, just exit.
             if (exists) {
@@ -341,7 +338,7 @@ export class TwitchService {
         // Empty
     }
 
-    private async chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
+    private chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
         Logger.debug(LogType.Twitch, `Chat event: ${channel}:${userstate.username} -- ${message}`);
 
         if (self) {
@@ -505,10 +502,10 @@ export class TwitchService {
      */
     private async subMysteryGiftEventHandler(channel: string, username: string, numbOfSubs: number, methods: tmi.SubMethods, userstate: tmi.SubMysteryGiftUserstate) {
         const user = await this.users.addUser(username);
-        this.eventLogService.addTwitchCommunityGiftSub(user, { channel, numbOfSubs, methods, userstate });
+        await this.eventLogService.addTwitchCommunityGiftSub(user, { channel, numbOfSubs, methods, userstate });
 
         if (this.subMysteryGiftCallback) {
-            this.subMysteryGiftCallback(username, numbOfSubs, methods.plan);
+            await this.subMysteryGiftCallback(username, numbOfSubs, methods.plan);
         }
     }
 
@@ -575,7 +572,7 @@ export class TwitchService {
         if (this.client.readyState() === "OPEN") {
             Logger.info(LogType.Twitch, "Disconnecting from Twitch.tv");
             try {
-                this.client.disconnect();
+                await this.client.disconnect();
                 return Response.Success();
             } catch (error: any) {
                 Logger.err(LogType.Twitch, error);
