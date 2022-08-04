@@ -39,10 +39,9 @@ export default class TwitchPubSubService {
     public connect(): void {
         if (this.websocket === undefined) {
             this.websocket = new WebSocket(Constants.TwitchPubSubUrl);
-
             this.websocket.onopen = () => this.onOpen();
             this.websocket.onclose = (ev: WebSocket.CloseEvent) => this.onClose(ev);
-            this.websocket.onmessage = (ev: WebSocket.MessageEvent) => (async() => await this.onMessage(ev));
+            this.websocket.onmessage = (ev: WebSocket.MessageEvent) => this.onMessage(ev);
             this.websocket.onerror = (ev: WebSocket.ErrorEvent) => this.onError(ev);
         }
     }
@@ -76,7 +75,7 @@ export default class TwitchPubSubService {
      * Called when the websocket receives a message.
      * @param event The message event from the websocket.
      */
-    private async onMessage(event: WebSocket.MessageEvent): Promise<void> {
+    private onMessage(event: WebSocket.MessageEvent): void {
         if (typeof(event.data) === "string") {
             // Type definition of WebSocket.MessageEvent is a bit misleading, not sure what the
             // "type" member is supposed to do since the needed information is in event.data.type and not event.type.
@@ -88,36 +87,40 @@ export default class TwitchPubSubService {
                 void this.eventLogService.addDebug(data);
 
                 if (data.topic.startsWith(TwitchPubSubService.SubScribeEvent)) {
-                    if (await this.settings.getSubNotificationProvider() === "Twitch") {
-                        let type = EventLogType.Sub;
-                        const message = JSON.parse(data.message) as ITwitchPubSubSubscription;
-                        switch (message.context) {
-                            case "resub":
-                                type = EventLogType.Resub;
-                                break;
-                            case "subgift":
-                                type = EventLogType.GiftSub;
-                                break;
-                        }
+                    this.settings.getSubNotificationProvider().then(value => {
+                        if (value === "Twitch") {
+                            let type = EventLogType.Sub;
+                            const message = JSON.parse(data.message) as ITwitchPubSubSubscription;
+                            switch (message.context) {
+                                case "resub":
+                                    type = EventLogType.Resub;
+                                    break;
+                                case "subgift":
+                                    type = EventLogType.GiftSub;
+                                    break;
+                            }
 
-                        await this.eventLogService.addStreamlabsEventReceived(message.user_name, type, message);
+                            void this.eventLogService.addStreamlabsEventReceived(message.user_name, type, message);
 
-                        // In case of sub gift, only gifter will receive points etc.
-                        // Exception T3 sub, here gifter and recipient will get perks through IRC events,
-                        // so we only need to take care of actual sub events here.
-                        if (!message.is_gift) {
-                            await this.rewardService.processSub({
-                                sub_plan: message.sub_plan,
-                                message: message.sub_message.message,
-                                months: message.cumulative_months,
-                                sub_type: message.context,
-                                emotes: message.sub_message.emotes,
-                                name: message.user_name
-                            });
+                            // In case of sub gift, only gifter will receive points etc.
+                            // Exception T3 sub, here gifter and recipient will get perks through IRC events,
+                            // so we only need to take care of actual sub events here.
+                            if (!message.is_gift) {
+                                void this.rewardService.processSub({
+                                    sub_plan: message.sub_plan,
+                                    message: message.sub_message.message,
+                                    months: message.cumulative_months,
+                                    sub_type: message.context,
+                                    emotes: message.sub_message.emotes,
+                                    name: message.user_name
+                                });
+                            }
+                        } else {
+                            Logger.debug(LogType.Twitch, "PubSub subscribe event not enabled", data);
                         }
-                    } else {
-                        Logger.debug(LogType.Twitch, `PubSub subscribe event not enabled`, data);
-                    }
+                    }).catch(x => {
+                        Logger.err(LogType.Twitch, "Error calling getSubNotificationProvider()", x);
+                    });
                 } else {
                     Logger.debug(LogType.Twitch, `Received PubSub message with topic  ${data.topic}`, data);
                 }
