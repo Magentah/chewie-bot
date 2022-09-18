@@ -54,6 +54,7 @@ import UserTaxStreakRepository from "./database/userTaxStreakRepository";
 import StreamActivityRepository from "./database/streamActivityRepository";
 import AchievementsRepository from "./database/achievementsRepository";
 import SeasonsRepository from "./database/seasonsRepository";
+import RedemptionsRepository from "./database/redemptionsRepository";
 
 // Controllers
 import SongController from "./controllers/songController";
@@ -70,6 +71,7 @@ import ChannelPointRewardController from "./controllers/channelPointRewardContro
 import AchievementsController from "./controllers/achievementsController";
 import SeasonController from "./controllers/seasonController";
 import QuotelistController from "./controllers/quotelistController";
+import RedemptionsController from "./controllers/redemptionsController";
 
 // Commands
 import * as Commands from "./commands/commandScripts";
@@ -159,6 +161,7 @@ botContainer.bind<UserTaxStreakRepository>(UserTaxStreakRepository).toSelf();
 botContainer.bind<StreamActivityRepository>(StreamActivityRepository).toSelf();
 botContainer.bind<AchievementsRepository>(AchievementsRepository).toSelf();
 botContainer.bind<SeasonsRepository>(SeasonsRepository).toSelf();
+botContainer.bind<RedemptionsRepository>(RedemptionsRepository).toSelf();
 
 // Controllers
 botContainer.bind<SongController>(SongController).toSelf();
@@ -169,6 +172,7 @@ botContainer.bind<DonationlistController>(DonationlistController).toSelf();
 botContainer.bind<MessagelistController>(MessagelistController).toSelf();
 botContainer.bind<UserlistController>(UserlistController).toSelf();
 botContainer.bind<CommandlistController>(CommandlistController).toSelf();
+botContainer.bind<RedemptionsController>(RedemptionsController).toSelf();
 botContainer.bind<SettingsController>(SettingsController).toSelf();
 botContainer.bind<CardlistController>(CardlistController).toSelf();
 botContainer.bind<ChannelPointRewardController>(ChannelPointRewardController).toSelf();

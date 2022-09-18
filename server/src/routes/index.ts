@@ -11,3 +11,4 @@ export { default as CardlistRouter } from "./cardlistRouter";
 export { default as AchievementlistRouter } from "./achievementlistRouter";
 export { default as SeasonRouter } from "./seasonRouter";
 export { default as QuotelistRouter } from "./quotelistRouter";
+export { default as RedemptionListRouter } from "./redemptionlistRouter";
