@@ -84,8 +84,6 @@ export default class TwitchPubSubService {
             // Ignore RESPONSE, PONG etc.
             if (msg.type === "MESSAGE") {
                 const data = msg.data as { topic: string, message: string };
-                void this.eventLogService.addDebug(data);
-
                 if (data.topic.startsWith(TwitchPubSubService.SubScribeEvent)) {
                     this.settings.getSubNotificationProvider().then(value => {
                         if (value === "Twitch") {
