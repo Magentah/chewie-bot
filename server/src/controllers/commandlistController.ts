@@ -7,7 +7,6 @@ import { Logger, LogType } from "../logger";
 import { CommandAliasesRepository, TextCommandsRepository } from "../database";
 import { CommandType } from "../models/commandInfo";
 import { Command } from "../commands/command";
-import { addClassOptionsToClassMetadata } from "@overnightjs/core";
 
 @injectable()
 class CommandlistController {
@@ -53,7 +52,7 @@ class CommandlistController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-     public async addCommand(req: Request, res: Response): Promise<void> {
+    public async addCommand(req: Request, res: Response): Promise<void> {
         const commandInfo = req.body as ICommandInfo;
         if (!commandInfo) {
             res.status(StatusCodes.BAD_REQUEST);

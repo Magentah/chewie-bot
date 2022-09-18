@@ -38,6 +38,7 @@ export enum DatabaseTables {
     Achievements = "achievements",
     UserAchievements = "userAchievements",
     Seasons = "seasons",
+    CommandRedemptions = "commandRedemptions",
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -46,7 +47,7 @@ export type DatabaseProvider = () => Promise<DatabaseService>;
 declare module "knex" {
   namespace Knex {
     interface QueryBuilder {
-        fulltextSearch<TRecord, TResult>(value: string, columns: string[]): Knex.QueryBuilder<TRecord, TResult>;
+        fulltextSearch<TRecord, TResult>(value: string, columns: string[]): Knex.QueryBuilder<{}, TResult>;
     }
   }
 }
@@ -157,6 +158,7 @@ export class DatabaseService {
             await this.createUserAchievementsTable();
             await this.createSeasonsTable();
             await this.createPointArchiveTable();
+            await this.createCommandRedemptionsTable();
 
             // Need to add VIP levels first because of foreign key.
             await this.populateDatabase();
@@ -523,6 +525,16 @@ export class DatabaseService {
             table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
             table.decimal("points").notNullable();
             table.unique(["userId", "seasonId"]);
+        });
+    }
+
+    private async createCommandRedemptionsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.CommandRedemptions, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("name").notNullable().unique();
+            table.string("message");
+            table.string("imageId").notNullable();
+            table.string("mimetype");
         });
     }
 
