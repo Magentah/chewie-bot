@@ -243,7 +243,7 @@ export class TextCommand extends Command {
         return parts.join(", ");
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays a message in chat.`;
     }
 }

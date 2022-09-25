@@ -48,7 +48,7 @@ export default class AddAliasCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Adds an alias (<name>) for an existing command (<command>) which can be called with an optional list of arguments. Usage: !addalias <name> <command> [<arguments>] `;
     }
 }

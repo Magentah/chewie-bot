@@ -47,7 +47,7 @@ export default class AddPointsCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Adds the specified amount of points to the target user. Usage: !addpoints <user> <amount>`;
     }
 }

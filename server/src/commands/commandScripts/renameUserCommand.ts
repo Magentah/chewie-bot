@@ -79,7 +79,7 @@ export default class RenameUserCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Renames a user in the database. To be used when user has changed the Twitch user name. Usage: !renameuser <oldname> <newname>`;
     }
 }

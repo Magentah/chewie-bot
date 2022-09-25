@@ -84,7 +84,7 @@ export default class OfferCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Offers a card you own for trading. Usage: !offer <card> <wanted card or amount chews> [<target user>]`;
     }
 }

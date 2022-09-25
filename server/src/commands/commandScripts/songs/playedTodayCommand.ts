@@ -28,7 +28,7 @@ export default class PlayedTodayCommand extends Command {
         return [{ alias: "today", commandName: "playedToday" }, { alias: "played", commandName: "playedToday" }];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs the number of songs that have been played this stream.`;
     }
 }

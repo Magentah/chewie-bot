@@ -39,7 +39,7 @@ export default class SetReadonlyCommand extends Command {
         await this.twitchService.sendMessage(channel, isReadonlyEnabled ? "Enabled read-only mode." : "Disabled read-only mode.");
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return "Enables or disables read-only mode. Usage: !setReadonly <0|1>";
     }
 }

@@ -42,7 +42,7 @@ export default class AddQuoteCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Saves a quote to the database with author (the person who said it), text and date. Usage: !addquote <author> <text>`;
     }
 }

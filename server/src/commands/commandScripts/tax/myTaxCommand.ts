@@ -37,7 +37,7 @@ export class MyTaxCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays your current tax track record. Usage: !mytax`;
     }
 }

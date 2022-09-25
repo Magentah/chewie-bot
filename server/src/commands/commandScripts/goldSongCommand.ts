@@ -38,7 +38,7 @@ export class GoldSongCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Adds a song to the song queue if VIP gold status is active. Usage: !goldsong <url> [<comment>]`;
     }
 }

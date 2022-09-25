@@ -29,7 +29,7 @@ export default class ExplainCommand extends Command {
 
         // If this is an alias, update the command name to be the actual command
         // so that we can get the description
-        var commandNameIfAlias = await this.getAliasCommandName(command);
+        const commandNameIfAlias = await this.getAliasCommandName(command);
         if (commandNameIfAlias) {
             command = commandNameIfAlias;
         }
@@ -38,23 +38,25 @@ export default class ExplainCommand extends Command {
         const commandList = BotContainer.get<Map<string, Command>>("Commands");
         if (commandList.has(command)) {
             const commandObject = commandList.get(command);
-            if (commandObject && commandObject.getDescription().length > 0) {
-                this.twitchService.sendMessage(channel, `${command}: ${commandObject.getDescription()}`);
-                return;
+            if (commandObject) {
+                const description = await commandObject.getDescription();
+                if (description.length > 0) {
+                    await this.twitchService.sendMessage(channel, `${command}: ${await description}`);
+                    return;
+                }
             }
         }
 
         const textCommand = await this.textCommandsRepository.get(command);
         if (textCommand) {
-            this.twitchService.sendMessage(channel, `${command}: Outputs \"${textCommand.message}\". Used ${textCommand.useCount} times. Has cooldown: ${textCommand.useCooldown ? "Yes" : "No"}`);
+            await this.twitchService.sendMessage(channel, `${command}: Outputs \"${textCommand.message}\". Used ${textCommand.useCount} times. Has cooldown: ${textCommand.useCooldown ? "Yes" : "No"}`);
             return;
         }
 
-        this.twitchService.sendMessage(channel, `${command} doesn't have a description.`);
+        await this.twitchService.sendMessage(channel, `${command} doesn't have a description.`);
     }
 
     private async getAliasCommandName(command: string): Promise<string | undefined> {
-        
         const aliases = await this.commandAliasRepository.getList();
         const alias = aliases.find((alias) => alias.alias === command);
         if (alias) {
@@ -63,7 +65,7 @@ export default class ExplainCommand extends Command {
         return undefined;
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs information about a command including its arguments (if any). Optional arguments in brackets. Usage: !explain <command>`;
     }
 }

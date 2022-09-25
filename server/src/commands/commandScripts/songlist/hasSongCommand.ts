@@ -32,7 +32,7 @@ export default class HasSongCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Checks if a particular song is in the song list and puts it into chat. Usage: !hasSong <search subject>`;
     }
 

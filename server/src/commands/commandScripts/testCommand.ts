@@ -13,7 +13,7 @@ export class TestCommand extends Command {
         this.twitchService.sendMessage(channel, "Test message from a command!");
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Test the commmand system.`;
     }
 }

@@ -101,7 +101,7 @@ class AchievementsController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-     public async getUsersWithAchievements(req: Request, res: Response): Promise<void> {
+    public async getUsersWithAchievements(req: Request, res: Response): Promise<void> {
         const achievementId = parseInt(req.params.id, 10);
         if (!achievementId) {
             res.status(StatusCodes.BAD_REQUEST);
@@ -119,7 +119,7 @@ class AchievementsController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-     public async redeemAchievement(req: Request, res: Response): Promise<void> {
+    public async redeemAchievement(req: Request, res: Response): Promise<void> {
         const user = req.user as IUser;
         if (!user) {
             res.status(StatusCodes.BAD_REQUEST);
@@ -304,7 +304,7 @@ class AchievementsController {
     public async removeAchievement(req: Request, res: Response): Promise<void> {
         const achievement = req.body as IAchievement;
         if (achievement) {
-            this.achievementsRepository.delete(achievement);
+            await this.achievementsRepository.delete(achievement);
             if (achievement.mimetype) {
                 const fileExt = this.achievementsRepository.getFileExt(achievement.mimetype);
                 const imagePath = path.join(this.ImageDir, `${achievement.imageId}.${fileExt}`);
@@ -315,7 +315,7 @@ class AchievementsController {
         } else if (Number(req.body)) {
             const achievementData = await this.achievementsRepository.get(achievement);
             if (achievementData) {
-                this.achievementsRepository.delete(achievementData);
+                await  this.achievementsRepository.delete(achievementData);
                 if (achievementData.mimetype) {
                     const fileExt = this.achievementsRepository.getFileExt(achievementData.mimetype);
                     const imagePath = path.join(this.ImageDir, `${achievementData.imageId}.${fileExt}`);

@@ -70,7 +70,7 @@ export default class RecycleCardCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Disposes of a card and grants a certain amount of points in return. When recycling more than one card, one will always remain in your collection. Usage: !recycle <card name> [<amount>]`;
     }
 }

@@ -26,7 +26,7 @@ export class DelCmdCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Deletes a text command. Usage: !delcmd <name>`;
     }
 }

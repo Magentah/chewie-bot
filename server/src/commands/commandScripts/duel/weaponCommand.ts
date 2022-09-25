@@ -65,7 +65,7 @@ export default class WeaponCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Select your weapon in a duel. Usage: !rock | !paper | !scissors`;
     }
 }

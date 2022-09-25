@@ -38,7 +38,7 @@ export default class RandomUserFavoriteCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Selects a random (of all / by genre / by search subject) favorite song from a specific user's favorites and puts it into chat. Usage: !randomuserfav <username> [<genre or search subject>]`;
     }
 

@@ -78,7 +78,7 @@ export class BankheistCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Starts or joins a bankheist with a certain amount of chews as wager. Usage: !bankheist <amount>`;
     }
 }

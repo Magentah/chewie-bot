@@ -42,7 +42,7 @@ export class AddPermanentVipCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Adds a number of permanent VIP requests to a user. Also increases the VIP expiry by <amount> * one week. Usage: !addpermanentvip <user> <amount>`;
     }
 }

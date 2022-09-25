@@ -470,13 +470,6 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                    </Link>
                </Typography>
            </Grid>
-           <Grid item>
-               <Typography style={{marginLeft: "1em"}}>
-                   <Link href={"https://rally.io/creator/CHEWS/"} target="_blank" rel="noopener noreferrer">
-                       <AttachMoney /> Donate using $CHEWS
-                   </Link>
-               </Typography>
-           </Grid>
        </Grid>
       : undefined;
 

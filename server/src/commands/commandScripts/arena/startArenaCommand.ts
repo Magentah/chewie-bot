@@ -54,7 +54,7 @@ export default class StartArenaCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Starts an arena with a certain entrance fee. Usage: !startarena <wager>`;
     }
 }

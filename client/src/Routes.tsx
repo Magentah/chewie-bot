@@ -15,6 +15,7 @@ import DonationList from "./components/donationlist/donationlist";
 import MessageList from "./components/messages/messagelist";
 import QuoteList from "./components/quotes/quotelist";
 import CommandList from "./components/commands/commandlist";
+import RedemptionsList from "./components/commands/redemptions";
 import NotFound from "./components/error/404";
 import { UserLevels } from "./contexts/userContext";
 import Login from "./views/login/Login";
@@ -105,6 +106,13 @@ const DashboardRoutes: Route[] = [
                     variant="caption"
                 >Configuration</Typography>
             </li> : undefined
+    },
+    {
+        path: "/redemptions",
+        name: "Redemptions",
+        icon: Extension,
+        Component: RedemptionsList,
+        minUserLevel: UserLevels.Admin
     },
     {
         path: "/editSonglist",

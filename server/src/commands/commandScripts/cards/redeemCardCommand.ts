@@ -59,7 +59,7 @@ export default class RedeemCardCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Redeems a random card for a certain amount of points. Usage: !redeemCard [<number of pulls>]`;
     }
 }

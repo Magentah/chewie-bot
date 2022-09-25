@@ -32,7 +32,7 @@ export class DelAliasCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Deletes a command alias. Usage: !delalias <name>`;
     }
 }
