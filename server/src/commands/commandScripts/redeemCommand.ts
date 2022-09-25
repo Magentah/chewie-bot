@@ -15,13 +15,6 @@ export default class RedeemCommand extends Command {
     private seasonsRepository: SeasonsRepository;
     private redemptionsRepository: RedemptionsRepository;
 
-    /*    private readonly Variations = {
-        [RedeemVariation.Clap]: {emote: "chewieClap", url: "https://i.imgur.com/yCfzpSf.gif"},
-        [RedeemVariation.Catjam]: {emote: "catJAM", url: "https://i.imgur.com/Yhp8rDt.gif"},
-        [RedeemVariation.Comfy]: {emote: "chewieMmm", url: "https://i.imgur.com/Kwrb7nS.gif"},
-        [RedeemVariation.River]: {emote: "chewieRiver ", url: "https://i.imgur.com/nbpE58Y.gif"},
-    };
-    */
     constructor() {
         super();
         this.userService = BotContainer.get(UserService);
