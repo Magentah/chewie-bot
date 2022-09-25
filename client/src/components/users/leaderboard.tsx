@@ -195,9 +195,6 @@ const Leaderboard: React.FC<any> = (props: any) => {
                         <Grid item>
                             <Typography style={{ textAlign: "center" }}>Pink diamond icon in Twitch chat for a season</Typography>
                         </Grid>
-                        <Grid item>
-                            <Typography style={{ textAlign: "center" }}>50 $CHEWS</Typography>
-                        </Grid>
                     </Grid>
                 </Grid>
                 <Grid item xs>
@@ -214,9 +211,6 @@ const Leaderboard: React.FC<any> = (props: any) => {
                         <Grid item>
                             <Typography style={{ textAlign: "center" }}>Pink diamond icon in Twitch chat for a season</Typography>
                         </Grid>
-                        <Grid item>
-                            <Typography style={{ textAlign: "center" }}>25 $CHEWS</Typography>
-                        </Grid>
                     </Grid>
                 </Grid>
                 <Grid item xs>
@@ -229,9 +223,6 @@ const Leaderboard: React.FC<any> = (props: any) => {
                         </Grid>
                         <Grid item>
                             <Typography style={{ textAlign: "center" }}>Pink diamond icon in Twitch chat for a season</Typography>
-                        </Grid>
-                        <Grid item>
-                            <Typography style={{ textAlign: "center" }}>25 $CHEWS</Typography>
                         </Grid>
                     </Grid>
                 </Grid>
