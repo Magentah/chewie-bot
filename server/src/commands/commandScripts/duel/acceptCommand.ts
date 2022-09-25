@@ -56,7 +56,7 @@ export default class AcceptCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Participate in a duel.`;
     }
 }

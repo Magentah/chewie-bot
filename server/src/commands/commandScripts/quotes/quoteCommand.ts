@@ -42,7 +42,7 @@ export default class QuoteCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Searches for a quote that contains the given term or ID. Usage: !quote <search>`;
     }
 }

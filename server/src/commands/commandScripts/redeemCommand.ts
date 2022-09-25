@@ -1,42 +1,42 @@
 import { Command } from "../command";
 import { EventLogService, UserService } from "../../services";
-import { AchievementType, EventLogType, ICommandAlias, IUser } from "../../models";
+import { AchievementType, EventLogType, IUser } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { PointLogType } from "../../models/pointLog";
 import { BotSettings } from "../../services/botSettingsService";
 import SeasonsRepository from "../../database/seasonsRepository";
 import EventAggregator from "../../services/eventAggregator";
-
-enum RedeemVariation {
-    Catjam = "catjam",
-    Clap = "clap",
-    Comfy = "comfy",
-    River = "river"
-}
+import RedemptionsRepository from "../../database/redemptionsRepository";
 
 export default class RedeemCommand extends Command {
     private userService: UserService;
     private eventLogService: EventLogService;
     private eventAggregator: EventAggregator;
     private seasonsRepository: SeasonsRepository;
+    private redemptionsRepository: RedemptionsRepository;
 
-    private readonly Variations = {
+    /*    private readonly Variations = {
         [RedeemVariation.Clap]: {emote: "chewieClap", url: "https://i.imgur.com/yCfzpSf.gif"},
         [RedeemVariation.Catjam]: {emote: "catJAM", url: "https://i.imgur.com/Yhp8rDt.gif"},
         [RedeemVariation.Comfy]: {emote: "chewieMmm", url: "https://i.imgur.com/Kwrb7nS.gif"},
         [RedeemVariation.River]: {emote: "chewieRiver ", url: "https://i.imgur.com/nbpE58Y.gif"},
     };
-
+    */
     constructor() {
         super();
         this.userService = BotContainer.get(UserService);
         this.eventLogService = BotContainer.get(EventLogService);
         this.eventAggregator = BotContainer.get(EventAggregator);
         this.seasonsRepository = BotContainer.get(SeasonsRepository);
+        this.redemptionsRepository = BotContainer.get(RedemptionsRepository);
     }
 
     public async executeInternal(channel: string, user: IUser, variation: string): Promise<void> {
-        const data = this.Variations[variation as RedeemVariation];
+        if (!variation) {
+            return;
+        }
+
+        const data = await this.redemptionsRepository.getByName(variation);
         if (!data) {
             return;
         }
@@ -50,8 +50,10 @@ export default class RedeemCommand extends Command {
 
         if (user.points >= cost) {
             await this.userService.changeUserPoints(user, -cost, `${PointLogType.Redeem}-${variation}`);
-            await this.twitchService.triggerAlert("redeem", variation, data.url);
-            await this.twitchService.sendMessage(channel, `${data.emote} ${data.emote} ${data.emote} ${data.emote} ${data.emote}`);
+            await this.twitchService.triggerAlert("redeem", variation, this.redemptionsRepository.addUrl(data).url);
+            if (data.message) {
+                await this.twitchService.sendMessage(channel, data.message);
+            }
 
             // Check for achievements
             await this.eventLogService.addRedeem(user, variation);
@@ -64,16 +66,12 @@ export default class RedeemCommand extends Command {
         }
     }
 
-    public getAliases(): ICommandAlias[] {
-        return [
-            { alias: "redeemclap", commandName: "redeem", commandArguments: RedeemVariation.Clap },
-            { alias: "redeemcatjam", commandName: "redeem", commandArguments: RedeemVariation.Catjam },
-            { alias: "redeemcomfy", commandName: "redeem", commandArguments: RedeemVariation.Comfy },
-            { alias: "redeemriver", commandName: "redeem", commandArguments: RedeemVariation.River },
-        ];
-    }
+    public async getDescription(): Promise<string> {
+        const options: string[] = [];
+        for (const variation of await this.redemptionsRepository.getList()) {
+            options.push(variation.name);
+        }
 
-    public getDescription(): string {
-        return "Triggers an animation in return for points. Usage: !redeemclap | !redeemcatjam | !redeemcomfy | !redeemriver";
+        return `Triggers an animation in return for points. Usage: !redeem [${options.join(",")}]`;
     }
 }

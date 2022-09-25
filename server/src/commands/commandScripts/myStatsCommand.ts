@@ -57,7 +57,7 @@ export default class MyStatsCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs the number of times an event has been caused by the user. Usage: !myStats <${this.Arguments}>`;
     }
 }

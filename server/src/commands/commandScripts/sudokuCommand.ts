@@ -58,7 +58,7 @@ export class SudokuCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Commit sudoku (get timed out). You probably noticed.`;
     }
 }

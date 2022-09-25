@@ -57,7 +57,7 @@ export default class GivePointsCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Transfers the specified amount of points to the target user. Usage: !give <user> <amount>`;
     }
 }

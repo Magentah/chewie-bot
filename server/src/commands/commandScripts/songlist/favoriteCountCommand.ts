@@ -36,7 +36,7 @@ export default class FavoriteCountCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays number of favorite songs for a user. Usage: !favoriteCount [<user>]`;
     }
 }

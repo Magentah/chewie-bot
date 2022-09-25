@@ -32,7 +32,7 @@ export default class PointsCommand extends Command {
         return [{ alias: "chews", commandName: "points" }];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays the amount of points you have. Usage: !points [<user>]`;
     }
 }

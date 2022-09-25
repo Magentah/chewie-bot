@@ -32,7 +32,7 @@ export class AddSongCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Adds a new song to the song queue. Usage: !addsong <url> [<for user>] [<comment>]`;
     }
 }

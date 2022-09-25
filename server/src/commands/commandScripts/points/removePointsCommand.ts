@@ -52,7 +52,7 @@ export default class RemovePointsCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Removes the specified amount of points from the target user. Usage: !removepoints <user> <amount>`;
     }
 }

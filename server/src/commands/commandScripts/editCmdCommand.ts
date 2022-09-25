@@ -30,7 +30,7 @@ export default class EditCmdCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Edits a command that outputs the specified message. Usage: !editcmd <name> <message>`;
     }
 }

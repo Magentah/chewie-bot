@@ -64,7 +64,7 @@ export default class SongStatsCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs additional information about a specific song. Usage: !songStats <search subject>`;
     }
 }

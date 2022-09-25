@@ -37,7 +37,7 @@ export default class AcceptOfferCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Complete an ongoing card trade.`;
     }
 }

@@ -29,7 +29,7 @@ export default class TopFavoritesCommand extends Command {
         this.twitchService.sendMessage(channel, result.substring(0, result.length - 2));
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays the top 10 or <number> favorited songs on the songlist. Usage: !topFavorites [<number>]`;
     }
 }

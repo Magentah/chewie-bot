@@ -38,7 +38,7 @@ export class TaxStreakCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays the top tax payers (by longest streak paid). Usage: !taxstreak <number>`;
     }
 }

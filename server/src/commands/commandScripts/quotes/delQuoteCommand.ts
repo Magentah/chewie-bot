@@ -28,7 +28,7 @@ export default class DelQuoteCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Deletes a quote with the given ID from the database. Usage: !delquote <id>`;
     }
 }
