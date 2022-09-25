@@ -24,6 +24,12 @@ export default class RedemptionsRepository {
         return results as ICommandRedemption;
     }
 
+    public async getByName(redemption: string): Promise<ICommandRedemption | undefined> {
+        const databaseService = await this.databaseProvider();
+        const results = await databaseService.getQueryBuilder(DatabaseTables.CommandRedemptions).where({ name: redemption }).first();
+        return results as ICommandRedemption;
+    }
+
     public async addOrUpdate(redemption: ICommandRedemption): Promise<ICommandRedemption> {
         const existingItem = await this.get(redemption);
         if (!existingItem) {
@@ -59,5 +65,9 @@ export default class RedemptionsRepository {
         }
 
         return undefined;
+    }
+
+    public addUrl(x: { mimetype?: string, imageId: string }): any {
+        return {...x, url: `/img/${x.imageId}.${this.getFileExt(x.mimetype ?? "")}` };
     }
 }

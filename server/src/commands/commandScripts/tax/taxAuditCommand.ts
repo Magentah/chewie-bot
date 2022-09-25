@@ -76,7 +76,7 @@ export default class TaxAuditCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Audits the daily taxes paid for a specific user. Usage: !taxaudit <user> ["save"]`;
     }
 }

@@ -27,7 +27,7 @@ export default class LastSongCommand extends Command {
         return [{ alias: "lastPlayed", commandName: "lastSong" }];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs the most recently played song.`;
     }
 }

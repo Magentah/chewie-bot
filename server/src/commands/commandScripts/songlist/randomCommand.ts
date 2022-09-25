@@ -22,7 +22,7 @@ export default class RandomCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Selects a random (of all / by genre / by search subject) song from the song list and puts it into chat. Usage: !random [<genre or search subject>]`;
     }
 }

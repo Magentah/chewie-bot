@@ -24,7 +24,7 @@ export class TopCommand extends Command {
         this.twitchService.sendMessage(channel, result.substr(0, result.length - 2));
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays the top 10 or <number> users with the highest amount of points. Usage: !top [<number>]`;
     }
 }

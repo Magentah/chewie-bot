@@ -43,7 +43,7 @@ export default class LastRequestCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs the first song in the song request history and its requester in chat. Usage: !lastRequest <search subject>`;
     }
 }

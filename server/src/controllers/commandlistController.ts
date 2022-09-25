@@ -36,7 +36,7 @@ class CommandlistController {
         for (const name of this.commandList.keys()) {
             resultList.push({
                 commandName: name,
-                content: this.commandList.get(name)?.getDescription() as string,
+                content: await this.commandList.get(name)?.getDescription() ?? "",
                 type: CommandType.System,
                 minUserLevel: this.commandList.get(name)?.getMinimumUserLevel(),
                 useCooldown: false

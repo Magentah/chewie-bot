@@ -52,7 +52,7 @@ export abstract class Command {
         return false;
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return this.description;
     }
 }

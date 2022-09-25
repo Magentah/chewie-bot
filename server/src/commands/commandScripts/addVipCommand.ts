@@ -36,7 +36,7 @@ export class AddVipCommand extends Command {
         this.twitchService.sendMessage(channel, `Added ${weeks} weeks of VIP gold to ${targetUsername}.`);
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Adds a number of gold VIP weeks to a user. Usage: !addvip <user> <weeks>`;
     }
 }

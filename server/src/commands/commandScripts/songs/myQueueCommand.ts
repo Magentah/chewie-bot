@@ -48,7 +48,7 @@ export default class MyQueueCommand extends Command {
         return [{ alias: "mq", commandName: "MyQueue" }, { alias: "when", commandName: "MyQueue" }];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs a user's songs in the queue. Usage: !myQueue [<user>]`;
     }
 }

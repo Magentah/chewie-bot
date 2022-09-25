@@ -97,7 +97,7 @@ export default class CheckLossesCommand extends Command {
         ];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs information for the current user about how many points have been lost/won/total for a specific event type. Usage: !checklosses [<event>]`;
     }
 }

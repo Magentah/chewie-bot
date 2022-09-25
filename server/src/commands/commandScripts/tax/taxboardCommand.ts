@@ -39,7 +39,7 @@ export class TaxboardCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Displays the top tax payers (by amount paid). Usage: !taxboard <number>`;
     }
 }

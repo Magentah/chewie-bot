@@ -36,7 +36,7 @@ export default class AddCmdCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Adds a command that outputs the specified message. Usage: !addcmd <name> <message>`;
     }
 }

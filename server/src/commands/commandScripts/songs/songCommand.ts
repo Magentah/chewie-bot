@@ -25,7 +25,7 @@ export class SongCommand extends Command {
         return [{ alias: "currentsong", commandName: "song" }];
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs the first song in the song queue and its requester in chat.`;
     }
 }

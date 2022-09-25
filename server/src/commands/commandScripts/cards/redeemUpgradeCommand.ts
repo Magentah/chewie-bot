@@ -56,7 +56,7 @@ export default class RedeemUpgradeCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `If available, exchanges a certain number of a cards with an upgrade of that card. Usage: !redeemupgrade <card name>`;
     }
 }

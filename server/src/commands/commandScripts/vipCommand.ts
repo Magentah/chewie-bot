@@ -62,7 +62,7 @@ export class VipCommand extends Command {
         }
     }
 
-    public getDescription(): string {
+    public async getDescription(): Promise<string> {
         return `Outputs VIP status information for a user. Usage: !vip [<user>]`;
     }
 }
