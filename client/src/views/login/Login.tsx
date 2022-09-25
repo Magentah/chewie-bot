@@ -1,4 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { library, IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faDiscord, faPatreon, faSpotify, faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { Box, Button, Card, CardContent, Divider, Grid, Typography, Theme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 import React, { useContext } from "react";
@@ -14,6 +16,16 @@ type AffiliateLink = {
     color: string;
     name: string;
 };
+
+// Some dependencies broken again 
+// See https://github.com/FortAwesome/angular-fontawesome/issues/125
+library.add(
+    faPatreon as IconDefinition,
+    faSpotify as IconDefinition,
+    faTwitch as IconDefinition,
+    faYoutube as IconDefinition,
+    faDiscord as IconDefinition
+);
 
 const stubLinks: AffiliateLink[] = [
     {
