@@ -16,7 +16,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
 
 type RowData = { id?: number, imageId: string, message: string, url: string, name: string };
 const MaxFileSize = 1024 * 1024 * 15;
-const FileTypes = ["image/jpeg", "image/png", "image/gif"];
+const FileTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 const ImageCell: React.FC<{value: RowData}> = ({value}) => {
     const [currentFile, setCurrentFile] = useState({ url: value.url});
