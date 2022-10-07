@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Image } from "react-bootstrap";
-import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem, Theme, Collapse } from "@mui/material";
+import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem, Theme, Collapse, debounce } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 import { UserContext } from "../../contexts/userContext";
 import { TransitionGroup } from 'react-transition-group';
@@ -72,10 +72,13 @@ const Leaderboard: React.FC<any> = (props: any) => {
         // Only live update for current season.
         if (currentSeasonId === seasons[0]?.id) {
             websocket = new WebsocketService(window.location.hostname, window.location.protocol);
+
+            // When many changes occur at once (consider bankheists, arenas etc.) avoid
+            // making un anreasonably high amount of requests.
+            const debouncedCallback = debounce(() => updateLeaderboard(0), 1000);
             websocket.onMessage(SocketMessageType.PointsChanged, (message: ISocketMessage) => 
             {
-                // Only live update for current season.
-                updateLeaderboard(0);
+                debouncedCallback();
             });
         }
 
