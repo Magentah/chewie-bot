@@ -1,19 +1,21 @@
 import { injectable, inject } from "inversify";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
-import { IUser, ITwitchChatList, AchievementType, UserLevels } from "../models";
+import { IUser, ITwitchChatList, AchievementType, UserLevels, SocketMessageType } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import { Logger, LogType } from "../logger";
 import PointLogsRepository from "../database/pointLogsRepository";
 import EventAggregator from "./eventAggregator";
+import WebsocketService from "../services/websocketService";
 
 @injectable()
 export class UserService {
     constructor(@inject(UsersRepository) private users: UsersRepository,
                 @inject(EventLogService) private eventLog: EventLogService,
                 @inject(EventAggregator) private eventAggregator: EventAggregator,
+                @inject(WebsocketService) private websocketService: WebsocketService,
                 @inject(PointLogsRepository) private pointsLog: PointLogsRepository) {
         // Empty
     }
@@ -118,6 +120,8 @@ export class UserService {
             // achievements here would be that non-seasonal achievements stay permanently across seasons.
             this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points, seasonalCount: user.points });
         }
+
+        await this.websocketService.send({ type: SocketMessageType.PointsChanged, message: "Points changed", data: reason });
     }
 
     /**

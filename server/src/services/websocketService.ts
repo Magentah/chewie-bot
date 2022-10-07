@@ -2,11 +2,8 @@ import * as WebSocket from "ws";
 import { ClientRequest, IncomingMessage } from "http";
 import { Logger, LogType } from "../logger";
 import { inject, injectable } from "inversify";
-import { ISocketMessage, SocketMessageType, IUser } from "../models";
-import UserService from "../services/userService";
-import * as Config from "../config.json";
+import { ISocketMessage, SocketMessageType } from "../models";
 import https = require("https");
-import fs = require("fs");
 
 interface IExWebSocket extends WebSocket {
     isAlive: boolean;
@@ -18,7 +15,7 @@ export class WebsocketService {
     private wss: WebSocket.Server;
     private heartbeat: NodeJS.Timeout;
 
-    constructor(@inject(UserService) private userService: UserService) {
+    constructor() {
         this.wss = new WebSocket.Server({
             port: 8001,
             perMessageDeflate: false
@@ -44,12 +41,8 @@ export class WebsocketService {
 
     }
 
-    public async send(message: ISocketMessage): Promise<void> {
+    public send(message: ISocketMessage): void {
         Logger.info(LogType.WebSocket, "Sending message to websocket clients.", { message });
-
-        if (message.username && !message.user) {
-            message.user = await this.getUser(message.username);
-        }
 
         this.wss.clients.forEach((client: WebSocket) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -62,11 +55,6 @@ export class WebsocketService {
                 });
             }
         });
-    }
-
-    private async getUser(username: string): Promise<IUser | undefined> {
-        const user = await this.userService.getUser(username);
-        return user;
     }
 
     private onServerConnection(this: WebSocket.Server, socket: WebSocket, request: IncomingMessage): void {
