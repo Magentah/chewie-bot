@@ -5,6 +5,7 @@ type WebsocketCallback = (event: ISocketMessage) => void;
 class WebsocketService {
     private websocket: WebSocket | undefined;
     private callbacks: Map<SocketMessageType, WebsocketCallback[]> = new Map();
+    private isClosed = false;
 
     constructor(hostname: string, protocol: string) {
         this.connect(hostname, protocol);
@@ -20,6 +21,7 @@ class WebsocketService {
     }
 
     public close(): void {
+        this.isClosed = true;
         this.websocket?.close();
     }
 
@@ -48,7 +50,9 @@ class WebsocketService {
         };
         this.websocket.onclose = () => {
             console.log("disconnected from websocket");
-            setTimeout(() => this.connect(hostname, protocol), 10000);
+            if (!this.isClosed) {
+                setTimeout(() => this.connect(hostname, protocol), 10000);
+            }
         };
         this.websocket.onerror = (event: Event) => {
             console.log("websocket error");
@@ -103,9 +107,9 @@ export enum SocketMessageType {
     SongRemoved = "SONG_REMOVED",
     SongMovedToTop = "SONG_MOVEDTOTOP",
     SongUpdated = "SONG_UPDATED",
-    DonationReceived = "DONATION_RECEIVED",
     Subscriber = "SUBSCRIBER",
     AlertTriggered = "ALERT_TRIGGERED",
+    PointsChanged = "POINTS_CHANGED",
 }
 
 export default WebsocketService;

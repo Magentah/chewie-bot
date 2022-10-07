@@ -1,9 +1,11 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Image } from "react-bootstrap";
-import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem, Theme } from "@mui/material";
+import { Card, Box, Grid, Typography, Select, FormControl, InputLabel, MenuItem, Theme, Collapse } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 import { UserContext } from "../../contexts/userContext";
+import { TransitionGroup } from 'react-transition-group';
+import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 
 type RowData = { username: string, points: number, rank: number };
 type SeasonData = { id: number, startDate: Date, endDate: Date, plannedEndDate: string, description: string };
@@ -66,6 +68,23 @@ const Leaderboard: React.FC<any> = (props: any) => {
     useEffect(() => updateLeaderboard(0), [updateLeaderboard]);
 
     useEffect(() => {
+        let websocket: WebsocketService;
+        // Only live update for current season.
+        if (currentSeasonId === seasons[0]?.id) {
+            websocket = new WebsocketService(window.location.hostname, window.location.protocol);
+            websocket.onMessage(SocketMessageType.PointsChanged, (message: ISocketMessage) => 
+            {
+                // Only live update for current season.
+                updateLeaderboard(0);
+            });
+        }
+
+        return () => {
+            websocket?.close();
+        };
+    }, [updateLeaderboard, currentSeasonId, seasons]);
+
+    useEffect(() => {
         axios.get("/api/seasons").then((response) => {
             const seasonData = response.data as SeasonData[];
             if (seasonData.length > 0) {
@@ -97,78 +116,95 @@ const Leaderboard: React.FC<any> = (props: any) => {
     // If user is not in top 10, an additional row will be added.
     let leaderboardList;
     if (userlist.length >= 3) {
-        leaderboardList = <Grid xs>
+        leaderboardList = <Grid>            
             <Grid item container alignItems="flex-end" justifyContent="center" direction="row">
                 <Grid item xs={1} />
                 <Grid item xs>
-                    <Grid container direction="column" alignItems="center">
-                        <Grid item style={{ textAlign: "center" }}>
-                            <Image style={{ width: "80%" }} src={"/assets/leaderboard/2nd-Place-Dango-Leaderboard.png"} alt="2nd place" />
-                        </Grid>
-                        <Grid item>
-                            <Typography className={classes.topUsersUsername} style={{ color: rankingColors[1] }}>{userlist[1].username}</Typography>
-                        </Grid>
-                        <Grid item>
-                            <Typography>{numberFormat.format(userlist[1].points)} chews</Typography>
-                        </Grid>
-                    </Grid>
+                    <TransitionGroup>
+                        <Collapse key={`${userlist[1].username}.${userlist[1].points}`}>
+                            <Grid container direction="column" alignItems="center">
+                                <Grid item style={{ textAlign: "center" }}>
+                                    <Image style={{ width: "80%" }} src={"/assets/leaderboard/2nd-Place-Dango-Leaderboard.png"} alt="2nd place" />
+                                </Grid>
+                                <Grid item>
+                                    <Typography className={classes.topUsersUsername} style={{ color: rankingColors[1] }}>{userlist[1].username}</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <Typography>{numberFormat.format(userlist[1].points)} chews</Typography>
+                                </Grid>
+                            </Grid>
+                        </Collapse>
+                    </TransitionGroup>
                 </Grid>
                 <Grid item xs>
-                    <Grid container direction="column" alignItems="center">
-                        <Grid item style={{ textAlign: "center" }}>
-                            <Image style={{ width: "100%" }} src={"/assets/leaderboard/1st-Place-Dango-Leaderboard.png"} alt="1st place" />
-                        </Grid>
-                        <Grid item>
-                            <Typography className={classes.topUsersUsername} style={{ color: rankingColors[0] }}>{userlist[0].username}</Typography>
-                        </Grid>
-                        <Grid item>
-                            <Typography>{numberFormat.format(userlist[0].points)} chews</Typography>
-                        </Grid>
-                    </Grid>
+                    <TransitionGroup>
+                        <Collapse key={`${userlist[0].username}.${userlist[0].points}`}>
+                            <Grid container direction="column" alignItems="center">
+                                <Grid item style={{ textAlign: "center" }}>
+                                    <Image style={{ width: "100%" }} src={"/assets/leaderboard/1st-Place-Dango-Leaderboard.png"} alt="1st place" />
+                                </Grid>
+                                <Grid item>
+                                    <Typography className={classes.topUsersUsername} style={{ color: rankingColors[0] }}>{userlist[0].username}</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <Typography>{numberFormat.format(userlist[0].points)} chews</Typography>
+                                </Grid>
+                            </Grid>
+                        </Collapse>
+                    </TransitionGroup>
                 </Grid>
                 <Grid item xs>
-                    <Grid container direction="column" alignItems="center">
-                        <Grid item style={{ textAlign: "center" }}>
-                            <Image style={{ width: "80%" }} src={"/assets/leaderboard/3rd-Place-Dango-Leaderboard.png"} alt="3rd place" />
-                        </Grid>
-                        <Grid item>
-                            <Typography className={classes.topUsersUsername} style={{ color: rankingColors[2] }}>{userlist[2].username}</Typography>
-                        </Grid>
-                        <Grid item>
-                            <Typography>{numberFormat.format(userlist[2].points)} chews</Typography>
-                        </Grid>
-                    </Grid>
+                    <TransitionGroup>
+                        <Collapse key={`${userlist[2].username}.${userlist[2].points}`}>
+                            <Grid container direction="column" alignItems="center">
+                                <Grid item style={{ textAlign: "center" }}>
+                                    <Image style={{ width: "80%" }} src={"/assets/leaderboard/3rd-Place-Dango-Leaderboard.png"} alt="3rd place" />
+                                </Grid>
+                                <Grid item>
+                                    <Typography className={classes.topUsersUsername} style={{ color: rankingColors[2] }}>{userlist[2].username}</Typography>
+                                </Grid>
+                                <Grid item>
+                                    <Typography>{numberFormat.format(userlist[2].points)} chews</Typography>
+                                </Grid>
+                            </Grid>
+                        </Collapse>
+                    </TransitionGroup>
                 </Grid>
                 <Grid item xs={1} />
             </Grid>
+            
             <Box marginTop={4}>
-                <Grid container rowSpacing={1} columnSpacing={2}>
-                    {userlist.slice(3).map(x => (<React.Fragment >
-                        <Grid item xs="auto">
-                        <Box className={x.username === userContext.user.username
-                             ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}`
-                             : `${classes.flexBox} ${classes.flexBoxNumber}`}
-                             style={{ background: rankingColors[x.rank - 1] }}>
-                                {x.rank}
-                            </Box>
-                        </Grid>
-                        <Grid item xs>
-                            <Box className={x.username === userContext.user.username ? `${classes.flexBox} ${classes.flexBoxCurrentUser}` : classes.flexBox}
-                                 style={{ background: rankingColors[x.rank - 1] }}>
-                                <Grid container>
-                                    <Grid xs item style={{ width: "80%" }}>{x.username}</Grid>
-                                    <Grid item>{numberFormat.format(x.points)}</Grid>
-                                </Grid>
-                            </Box>
-                        </Grid>
-                        <Box width="100%"/>
-                    </React.Fragment>))}
-                </Grid>
+                <TransitionGroup>        
+                    {userlist.slice(3).map(x => (
+                    <Collapse key={`${x.username}.${x.points}`}>
+                        <Grid container mt={0.5} mb={0.5} columnSpacing={2}>
+                            <Grid item xs="auto">
+                                <Box className={x.username === userContext.user.username
+                                    ? `${classes.flexBox} ${classes.flexBoxNumber} ${classes.flexBoxCurrentUser}`
+                                    : `${classes.flexBox} ${classes.flexBoxNumber}`}
+                                    style={{ background: rankingColors[x.rank - 1] }}>
+                                    {x.rank}
+                                </Box>
+                            </Grid>
+                            <Grid item xs>
+                                <Box className={x.username === userContext.user.username ? `${classes.flexBox} ${classes.flexBoxCurrentUser}` : classes.flexBox}
+                                    style={{ background: rankingColors[x.rank - 1] }}>
+                                    <Grid container>
+                                        <Grid xs item style={{ width: "80%" }}>{x.username}</Grid>
+                                        <Grid item>{numberFormat.format(x.points)}</Grid>
+                                    </Grid>
+                                </Box>
+                            </Grid>
+                            <Box width="100%"/>
+                        </Grid>                
+                    </Collapse>
+                    ))}
+                </TransitionGroup>                
             </Box>
         </Grid>;
     }
 
-    const rewards = leaderboardList && (seasons.length === 0 || currentSeasonId === 0 || seasons[0].id === currentSeasonId) ? <Grid xs>
+    const rewards = leaderboardList && (seasons.length === 0 || currentSeasonId === 0 || seasons[0].id === currentSeasonId) ? <Grid>
         <Box marginTop={4} display="flex" justifyContent="center">
             <Grid>
                 <Box minWidth="20em" className={classes.prizeHeader} style={{ fontWeight: "bold" }}>Top 3 prizes</Box>
@@ -176,7 +212,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
             </Grid>
         </Box>
         <Box marginTop={2}>
-            <Grid container xs justifyContent="center" direction="row">
+            <Grid container justifyContent="center" direction="row">
                 <Grid item xs={1}></Grid>
                 <Grid item xs>
                     <Grid container direction="column" alignItems="center">
@@ -232,7 +268,7 @@ const Leaderboard: React.FC<any> = (props: any) => {
     </Grid> : undefined;
 
     return <Card><Box padding={5} justifyContent="center" display="flex">
-        <Grid xs>
+        <Grid xs item>
             {currentSeasonId ?
                 <Box marginBottom={4} display="flex" justifyContent="center">
                     {seasons.length <= 1 ?

@@ -60,7 +60,7 @@ class UserlistController {
         const sessionUser = req.user as IUser;
         let seasonId = parseInt(req.params.season, 10);
 
-        // Do not use point achive if current season.
+        // Do not use point archive if current season.
         if (seasonId) {
             if ((await this.seasonRepository.getCurrentSeason()).id === seasonId) {
                 seasonId = 0;
