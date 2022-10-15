@@ -1,7 +1,7 @@
 import * as WebSocket from "ws";
 import { ClientRequest, IncomingMessage } from "http";
 import { Logger, LogType } from "../logger";
-import { inject, injectable } from "inversify";
+import { injectable } from "inversify";
 import { ISocketMessage, SocketMessageType } from "../models";
 import https = require("https");
 

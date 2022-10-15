@@ -154,8 +154,7 @@ export class SongService {
             void this.websocketService.send({
                 type: SocketMessageType.SongAdded,
                 message: "Song Added",
-                data: song,
-                username,
+                data: song
             });
 
             const user = await this.userService.getUser(username);

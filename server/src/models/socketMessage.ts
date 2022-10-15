@@ -1,11 +1,7 @@
-import IUser from "./user";
-
 export default interface ISocketMessage {
     type: SocketMessageType;
     data: any;
     message: string;
-    user?: IUser;
-    username?: string;
 }
 
 export enum SocketMessageType {
