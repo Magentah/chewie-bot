@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { makeStyles } from "tss-react/mui";
 import axios from "axios";
-import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop, Select, MenuItem, Theme } from "@mui/material";
+import { Box, Button, Typography, Grid, Card, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Paper, PaperProps, Backdrop, Select, MenuItem, Theme, Autocomplete, TextField, useTheme } from "@mui/material";
 import { Image } from "react-bootstrap";
 import useSetting from "../../hooks/setting";
 import Sparkles from "../common/sparkle";
@@ -9,9 +9,8 @@ import { UserContext } from "../../contexts/userContext";
 
 const useStyles = makeStyles()((theme: Theme) => ({
     cardsCountBox: {
-        textTransform: "uppercase",
         fontWeight: "bold",
-        fontSize: "0.9em"
+        fontSize: "0.9em",
     },
     cardsCountFont: {
         fontSize: theme.typography.h5.fontSize,
@@ -78,6 +77,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
 
     const { classes } = useStyles();
     const userContext = useContext(UserContext);
+    const theme = useTheme();
 
     const updateCards = useCallback(async (currentSeason: string) => {
         const selectorResponse = await axios.get("/api/mycards/selector");
@@ -161,22 +161,55 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                 </DialogActions>}
             </Dialog>
             <Grid>
-                <Box padding={3}>
+                <Box padding={3} pt={1}>
                     <Grid item>
                         <Grid item container>
                             <Grid item className={classes.cardsCountBox}>
-                                <Grid item>
-                                    Dango cards collected so far
-                                </Grid>
-                                <Grid item>
-                                    <Box border={2} paddingLeft={2} paddingRight={2} paddingTop={1} paddingBottom={1} className={classes.cardsCountFont}>
-                                        {cardlist.length} / {cardcount}
-                                    </Box>
-                                </Grid>
+                                <Box paddingRight={2} paddingBottom={1}>
+                                    <Autocomplete 
+                                        sx={{ width: 250 }}
+                                        openOnFocus
+                                        options={cardlist.sort((a, b) => -b.setName.localeCompare(a.setName))}
+                                        groupBy={(option) => option.setName}
+                                        getOptionLabel={(option) => option.name}
+                                        onChange={(e, newValue) => { if (newValue) { setSelectedSeason(newValue.setName) } }}
+                                        renderOption={(props, option) => (
+                                            <Box component="li" {...props}>
+                                                {option.upgradedName ? option.upgradedName : option.name} (× {option.cardCount})
+                                            </Box>
+                                        )}
+                                        renderInput={(params) => (
+                                            <TextField
+                                            {...params}
+                                            label={`Cards collected: ${cardlist.length} / ${cardcount}`}
+                                            InputLabelProps={{ style: {color: "black"} }}
+                                            inputProps={{
+                                                ...params.inputProps,
+                                                style: {"color": theme.palette.text.primary },
+                                                autoComplete: 'new-password', // disable autocomplete and autofill
+                                            }}
+                                            />
+                                        )}
+                                        />
+                                </Box>
                             </Grid>
+                            {selector && selector.length ?
+                            <Grid item>
+                                <Box mt={2}>
+                                    <Select
+                                        id="season-selector"
+                                        value={selectedSeason}
+                                        label="Set"
+                                        onChange={handleChange}>
+                                        {selector.map((set) => <MenuItem key={"set-" + set.setName} value={set.setName}>{`${set.setName} (${set.collectedCardCount} / ${set.cardCount} collected)`}</MenuItem>)}
+                                    </Select>
+                                </Box>
+                            </Grid> : undefined}
                             <Grid item xs />
                             <Grid item>
-                                {cardCost ? <Button variant="contained" color="primary" onClick={() => setResetDialogOpen(true)}>Get a dango card</Button> : undefined}
+                                <Box mt={2}>
+                                    {cardCost ? <Button variant="contained" color="primary" onClick={() => setResetDialogOpen(true)}>Get a dango card</Button> : undefined}
+                                </Box>
                             </Grid>
                         </Grid>
                     </Grid>
@@ -194,18 +227,6 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                             </Grid>
                         </Box> :
                         <Grid>
-                            {selector && selector.length ?
-                            <Grid item>
-                                <Box mt={2}>
-                                    <Select
-                                        id="season-selector"
-                                        value={selectedSeason}
-                                        label="Set"
-                                        onChange={handleChange}>
-                                        {selector.map((set) => <MenuItem key={"set-" + set.setName} value={set.setName}>{`${set.setName} (${set.collectedCardCount} / ${set.cardCount} collected)`}</MenuItem>)}
-                                    </Select>
-                                </Box>
-                            </Grid> : undefined}
                             <Grid item>
                                 {filteredCardList.length === 0 ?
                                 <Box className={classes.noCardsGrid} padding={15}>
