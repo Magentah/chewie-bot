@@ -38,8 +38,18 @@ export default class CardsRepository {
         }
 
         const databaseService = await this.databaseProvider();
-        const cards = await databaseService.getQueryBuilder(DatabaseTables.Cards).where("name", "LIKE", cardName).first();
-        return cards as IUserCard;
+        return await databaseService.getQueryBuilder(DatabaseTables.Cards).where("name", "LIKE", cardName).first()  as IUserCard;
+    }
+
+    public async findByName(cardName: string): Promise<IUserCard | undefined> {
+        if (!cardName) {
+            return undefined;
+        }
+
+        const databaseService = await this.databaseProvider();
+        return await databaseService.getQueryBuilder(DatabaseTables.Cards)
+            .where("name", "LIKE", `%${cardName}%`)
+            .andWhere("isUpgrade", false).first() as IUserCard;
     }
 
     public async getUpgradeCard(card: IUserCard): Promise<IUserCard | undefined> {
@@ -53,6 +63,14 @@ export default class CardsRepository {
         return (await databaseService.getQueryBuilder(DatabaseTables.CardStack)
             .where("cardId", card.id)
             .andWhere("userId", user.id)
+            .andWhere("deleted", false)
+            .count("id AS cardCount").first()).cardCount;
+    }
+
+    public async getGlobalCountByCard(card: IUserCard): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        return (await databaseService.getQueryBuilder(DatabaseTables.CardStack)
+            .where("cardId", card.id)
             .andWhere("deleted", false)
             .count("id AS cardCount").first()).cardCount;
     }
@@ -177,7 +195,7 @@ export default class CardsRepository {
         }
     }
 
-    public async  renameBaseCard(oldName: string, newName: string) {
+    public async renameBaseCard(oldName: string, newName: string) {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.Cards).where({ baseCardName: oldName }).update({ baseCardName: newName });
     }
@@ -234,7 +252,7 @@ export default class CardsRepository {
                 .first()
                 .orderByRaw("RANDOM()") as IUserCard;
             if (card) {
-                return card as IUserCard;
+                return card;
             }
         }
 
