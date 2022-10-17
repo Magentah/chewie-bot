@@ -28,7 +28,8 @@ export default class CardStatsCommand extends Command {
                 info += `, part of ${card.setName}`;
             }
 
-            const hasUpgrade = await this.cards.hasUpgrade(user, card);
+            const upgradeCard = await this.cards.getUpgradeCard(card);
+            const hasUpgrade = upgradeCard ? await this.cards.hasUpgrade(user, upgradeCard) : false;
             info += `, owning ${userCount} (upgraded: ${hasUpgrade ? "yes" : "no"})`;
             info += `, redeemable: ${card.isEnabled ? "yes" : "no"}`;
 
