@@ -199,7 +199,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
             ]}
             options = {{
                 paging: false,
-                sorting: false,
+                maxColumnSort: 0,
                 actionsColumnIndex: 1,
                 showTitle: false,
                 search: false,
