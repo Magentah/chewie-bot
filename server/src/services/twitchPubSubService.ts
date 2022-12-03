@@ -15,7 +15,7 @@ import RewardService from "./rewardService";
 
 @injectable()
 export default class TwitchPubSubService {
-    private websocket!: WebSocket;
+    private websocket: WebSocket | undefined;
     private heartbeatHandle!: NodeJS.Timeout;
 
     private readonly HeartbeatInterval: number = 1000 * 60;
@@ -68,6 +68,7 @@ export default class TwitchPubSubService {
     private onClose(event: WebSocket.CloseEvent): void {
         Logger.info(LogType.Twitch, "Connection to Twitch PubSub closed. Reconnecting...", event);
         clearInterval(this.heartbeatHandle);
+        this.websocket = undefined;
         setTimeout(() => this.connect(), this.ReconnectInterval);
     }
 
