@@ -80,7 +80,7 @@ export default class TwitchPubSubService {
         if (typeof(event.data) === "string") {
             // Type definition of WebSocket.MessageEvent is a bit misleading, not sure what the
             // "type" member is supposed to do since the needed information is in event.data.type and not event.type.
-            const msg = JSON.parse(event.data) as { type: string, data: any };
+            const msg = JSON.parse(event.data) as { type: string, data: any, error: string };
 
             // Ignore RESPONSE, PONG etc.
             if (msg.type === "MESSAGE") {
@@ -123,6 +123,8 @@ export default class TwitchPubSubService {
                 } else {
                     Logger.debug(LogType.Twitch, `Received PubSub message with topic  ${data.topic}`, data);
                 }
+            } else if (msg.type === "RESPONSE" && msg.error) {
+                Logger.err(LogType.Twitch, "Received error from Twitch PubSub: " + msg.error, event);
             } else {
                 Logger.debug(LogType.Twitch, `Received PubSub message of type ${msg.type}`, msg);
             }
