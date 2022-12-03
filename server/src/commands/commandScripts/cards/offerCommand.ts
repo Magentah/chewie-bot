@@ -29,13 +29,13 @@ export default class OfferCommand extends Command {
             return;
         }
 
-        if (!cardName) {
-            this.twitchService.sendMessage(channel, Lang.get("cards.trading.nocardoffered", user.username));
+        if (!cardName || typeof cardName !== "string") {
+            await this.twitchService.sendMessage(channel, Lang.get("cards.trading.nocardoffered", user.username));
             return;
         }
 
         if (!cardNameOrChews) {
-            this.twitchService.sendMessage(channel, Lang.get("cards.trading.missingargument", user.username));
+            await this.twitchService.sendMessage(channel, Lang.get("cards.trading.missingargument", user.username));
             return;
         }
 
@@ -44,7 +44,7 @@ export default class OfferCommand extends Command {
         if (targetUserName) {
             targetUser = await this.userService.getUser(targetUserName);
             if (!targetUser) {
-                this.twitchService.sendMessage(channel, Lang.get("cards.trading.userunknown", targetUserName));
+                await this.twitchService.sendMessage(channel, Lang.get("cards.trading.userunknown", targetUserName));
                 return;
             }
         }
@@ -54,13 +54,13 @@ export default class OfferCommand extends Command {
 
         // Abort if card does not exist at all.
         if (cardWanted === undefined && isNaN(pointsWanted)) {
-            this.twitchService.sendMessage(channel, Lang.get("cards.trading.cardnotexists", user.username, cardNameOrChews));
+            await this.twitchService.sendMessage(channel, Lang.get("cards.trading.cardnotexists", user.username, cardNameOrChews));
             return;
         }
 
         // Abort if card wanted is same as card offered.
         if (cardWanted && cardWanted.name.toLowerCase() === cardName.toLowerCase()) {
-            this.twitchService.sendMessage(channel, Lang.get("cards.trading.nosamecard", user.username, cardNameOrChews));
+            await this.twitchService.sendMessage(channel, Lang.get("cards.trading.nosamecard", user.username, cardNameOrChews));
             return;
         }
 
@@ -74,7 +74,7 @@ export default class OfferCommand extends Command {
 
         const eventResult = this.eventService.startEvent(trading, user);
         if (!isEvent(eventResult)) {
-            this.twitchService.sendMessage(channel, eventResult);
+            await this.twitchService.sendMessage(channel, eventResult);
         }
     }
 
