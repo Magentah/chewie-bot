@@ -126,6 +126,7 @@ class BotServer extends Server {
             expressSession({
                 secret: CryptoHelper.getSecret(),
                 resave: true,
+                rolling: true,
                 saveUninitialized: true,
                 cookie: {
                     httpOnly: true,
