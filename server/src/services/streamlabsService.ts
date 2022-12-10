@@ -43,7 +43,6 @@ export interface IDonationMessage {
     name: string;
     amount: number;
     formatted_amount: string;
-    formattedAmount: string;
     message: string;
     currency: string;
     emotes: string;

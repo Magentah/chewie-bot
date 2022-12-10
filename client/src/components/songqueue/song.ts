@@ -9,6 +9,7 @@ export default interface Song {
     duration: number;
     requestedBy: string;
     requestSource: string;
+    requestSourceDetails: string;
     source: SongSource;
     sourceId: string;
     sourceUrl: string;

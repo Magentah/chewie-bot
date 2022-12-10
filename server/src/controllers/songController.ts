@@ -64,6 +64,7 @@ class SongController {
             sourceUrl: songData.url,
             previewUrl: songData.previewUrl,
             comments: "",
+            requestSourceDetails: "",
             requestTime: new Date(event.time ?? 0).getTime()
         };
     }
@@ -151,7 +152,8 @@ class SongController {
         }
 
         try {
-            const song = await this.songService.addSong(newSong.sourceUrl, newSong.requestSource, newSong.requestedBy ?? req.params.username, newSong.comments, newSong.title);
+            const song = await this.songService.addSong(newSong.sourceUrl, newSong.requestSource, newSong.requestedBy ?? req.params.username,
+                newSong.comments, newSong.title, newSong.requestSourceDetails);
 
             if (song === undefined) {
                 res.status(StatusCodes.INTERNAL_SERVER_ERROR);

@@ -135,7 +135,7 @@ export class SongService {
      * @param username The username that is requesting the song to be added.
      * @param comments Additional comments/instructions for the song
      */
-    public async addSong(url: string, requestSource: RequestSource, username: string, comments: string, title = ""): Promise<ISong> {
+    public async addSong(url: string, requestSource: RequestSource, username: string, comments: string, title = "", requestSourceDetails = ""): Promise<ISong> {
         const song: ISong = await this.getSong(url);
 
         try {
@@ -148,6 +148,7 @@ export class SongService {
             Logger.info(LogType.Song, `${song.source}:${song.sourceId} added to Song Queue`);
             song.requestedBy = username;
             song.requestSource = requestSource;
+            song.requestSourceDetails = requestSourceDetails;
             song.requestTime = moment.now();
             song.comments = comments;
 
