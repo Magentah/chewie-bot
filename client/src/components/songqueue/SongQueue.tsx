@@ -106,6 +106,15 @@ const RequestUserTimeCell: React.FC<any> = (value: Song) => {
     );
 };
 
+const RequestSourceCell: React.FC<any> = (value: Song) => {
+    return (
+        <Grid>
+            <Grid item>{value.requestSource}</Grid>
+            <Grid item>{value.requestSourceDetails}</Grid>
+        </Grid>
+    );
+};
+
 interface OwnRequest {
     index: number,
     song: Song
@@ -283,6 +292,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 } else {
                     const user = editingSongRequester ? editingSongRequester : userContext.user.username;
                     editingSong.requestSource = "Bot UI";
+                    editingSong.requestSourceDetails = "Added by " + userContext.user.username;
                     await axios.post(`/api/songs/user/${user}`, editingSong);
                 }
                 setSongRequestState({state: "success"});
@@ -479,7 +489,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             field: "title",
             render: rowData => DetailCell({value: rowData, onPlaySong: props.onPlaySong}),
             sorting: false,
-            width: "60%"
+            width: "50%"
         },
         {
             title: "Requested By",
@@ -490,10 +500,11 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             width: "20%"
         },
         {
-            title: "Requested With",
+            title: "Source",
             field: "requestSource",
+            render: rowData => RequestSourceCell(rowData),
             sorting: false,
-            width: "10%"
+            width: "20%"
         }
     ];
 

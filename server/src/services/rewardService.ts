@@ -34,7 +34,6 @@ export default class RewardService {
 
     public async processDonation(donation: IDonationMessage) {
         const user = await this.getUserForEventIfValid(donation.from);
-
         await this.addUserPoints(user, donation);
 
         if ((await this.addGoldStatus(user, donation)) && user) {
@@ -43,7 +42,13 @@ export default class RewardService {
             for (const match of matches) {
                 try {
                     const comments = donation.message.replace(match, "");
-                    await this.songService.addGoldSong(match, user, comments);
+                    const result = await this.songService.addGoldSong(match, user, comments);
+
+                    // If VIP cannot be used, add as regular song to avoid confusion.
+                    // Up to streamer what to do with this.
+                    if (typeof(result) === "string") {
+                        await this.songService.addSong(match, RequestSource.Donation, user.username, comments, "", donation.formatted_amount);
+                    }
 
                     // Only accept one song per donation.
                     break;
@@ -209,7 +214,7 @@ export default class RewardService {
             for (const match of matches) {
                 try {
                     const comments = donation.message.replace(match, "");
-                    await this.songService.addSong(match, RequestSource.Donation, donation.from, comments);
+                    await this.songService.addSong(match, RequestSource.Donation, donation.from, comments, "", donation.formatted_amount);
 
                     // Only accept one song per donation.
                     return;
