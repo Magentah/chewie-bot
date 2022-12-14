@@ -44,7 +44,7 @@ const QuoteList: React.FC<any> = (props: any) => {
                     {
                         isEditable: rowData => true,
                         isDeletable: rowData => true,
-                        onRowAdd: (newData) => axios.post("/api/quotes", newData).then((result) => {
+                        onRowAdd: (newData) => axios.post("/api/quotes/add", newData).then((result) => {
                             const newList = [...quotelist, result.data as RowData];
                             setQuotelist(newList);
                         }),
