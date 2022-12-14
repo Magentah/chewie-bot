@@ -1,5 +1,5 @@
 import { IUser, RequestSource, UserLevels } from "../../../models";
-import { SongService, TwitchService } from "../../../services";
+import { SongService } from "../../../services";
 import { Command } from "../../command";
 import { BotContainer } from "../../../inversify.config";
 
@@ -17,15 +17,15 @@ export class AddSongCommand extends Command {
     public async executeInternal(channel: string, user: IUser, url: string, forUser: string, ...args: string[]) {
         try {
             const comments = args.join(" ");
-            const song = await this.songService.addSong(url, RequestSource.Chat, forUser ? forUser : user.username, comments);
+            const song = await this.songService.addSong(url, RequestSource.Chat, forUser ? forUser : user.username, comments, "", "Added by " + user.username);
             if (song) {
-                this.twitchService.sendMessage(
+                await this.twitchService.sendMessage(
                     channel,
                     `${song.title} was added to the song queue by ${song.requestedBy} at position ${this.songService.getSongQueue().indexOf(song) + 1}!`
                 );
             }
         } catch (err) {
-            this.twitchService.sendMessage(
+            await this.twitchService.sendMessage(
                 channel,
                 `${user.username}, the song could not be added to the queue (${err}).`
             );

@@ -40,7 +40,7 @@ class QuotelistController {
         }
 
         try {
-            await this.quotesRepository.addOrUpdate(quote);
+            await this.quotesRepository.addOrUpdate({ id: quote.id, author: quote.author, dateAdded: quote.dateAdded, text: quote.text, addedByUserName: quote.addedByUserName });
             res.status(StatusCodes.OK);
             res.send(quote);
         } catch (err) {
@@ -48,7 +48,7 @@ class QuotelistController {
             res.send(
                 APIHelper.error(
                     StatusCodes.INTERNAL_SERVER_ERROR,
-                    "There was an error when attempting to add the quote."
+                    "There was an error when attempting to update the quote."
                 )
             );
         }
