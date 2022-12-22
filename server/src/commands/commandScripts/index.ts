@@ -22,6 +22,7 @@ export { default as LastSongCommand } from "./songs/lastSongCommand";
 export { default as PlayedTodayCommand } from "./songs/playedTodayCommand";
 export { default as MyQueueCommand } from "./songs/myQueueCommand";
 export { default as LastRequestCommand } from "./songs/lastRequestCommand";
+export { default as QueueListCommand } from "./songs/queueListCommand";
 
 // Duel
 export { default as DuelCommand } from "./duel/duelCommand";
