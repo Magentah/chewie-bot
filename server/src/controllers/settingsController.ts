@@ -34,6 +34,7 @@ class SettingsController {
         [BotSettings.ReadonlyMode]: { title: "Read-only mode for points", readonly: false },
         [BotSettings.MaxSongRequestRedemptionsInQueue]: { title: "Maximum number of song requests through channel rewards in queue", readonly: false },
         [BotSettings.SubNotificationProvider]: { title: "Provider for subscription notifications (Twitch|Streamlabs)", readonly: false },
+        [BotSettings.TimeoutDuration]: { title: "Duration for channel point redemption timeouts", readonly: false },
     };
 
     constructor(

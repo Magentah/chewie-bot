@@ -246,6 +246,16 @@ export default class TwitchEventService {
                         );
                     }
                     break;
+
+                case ChannelPointRedemption.Timeout:
+                    try {
+                        await this.twitchService.banUser(notificationEvent.user_input, "Channel point redemption");
+                        await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+                    } catch (err) {
+                        Logger.err(LogType.TwitchEvents, "Could not convert channel points.", err);
+                        // No cancel, but also no fulfill. Let mods handle it.
+                    }
+                    break;
             }
         }
     }
