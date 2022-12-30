@@ -3,6 +3,7 @@ export enum ChannelPointRedemption {
     Tax = "Tax Reward Event",
     Points = "Redeem points",
     SongRequest = "Song request",
+    Timeout = "Timeout",
 }
 
 export default interface IChannelPointReward {
