@@ -237,7 +237,7 @@ export class TwitchService {
         return exists;
     }
 
-    public async banUser(banUser: string, reason: string): Promise<any> {
+    public async banUser(banUser: string, duration: number | undefined, reason: string): Promise<any> {
         const broadcaster: IUserPrincipal | undefined = await this.users.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
         if (!broadcaster || !broadcaster.userId) {
             throw new Error("Missing broadcaster authorization");
@@ -256,7 +256,6 @@ export class TwitchService {
             throw new Error(`Unknown user \"${banUser}\"`);
         }
 
-        const duration = await this.botSettingsService.getIntValue(BotSettings.TimeoutDuration);
         const data = {
             user_id: banUserId,
             duration,
