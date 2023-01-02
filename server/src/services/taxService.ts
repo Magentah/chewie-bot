@@ -34,12 +34,13 @@ export default class TaxService {
      * @param notification The channel point redemption notification.
      */
     private async channelPointsRedeemed(notification: IEventSubNotification): Promise<void> {
-        Logger.info(LogType.TwitchEvents, "TaxService Channel Point Redemption", notification);
 
         const notificationEvent = notification.event as IRewardRedemeptionEvent;
         const taxChannelReward = await this.channelPointRewardService.getChannelReward(notificationEvent.reward as ITwitchChannelReward);
 
         if (taxChannelReward?.associatedRedemption === ChannelPointRedemption.Tax) {
+            Logger.info(LogType.TwitchEvents, "TaxService Channel Point Redemption", notification);
+
             const user = await this.userService.addUser(notificationEvent.user_login);
             let redemptionState: "FULFILLED" | "CANCELED" = "FULFILLED";
             try {

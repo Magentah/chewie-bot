@@ -4,6 +4,7 @@ export enum ChannelPointRedemption {
     Points = "Redeem points",
     SongRequest = "Song request",
     Timeout = "Timeout",
+    TimeoutMod = "Timeout mod",
 }
 
 export default interface IChannelPointReward {

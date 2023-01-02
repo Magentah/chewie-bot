@@ -12,7 +12,7 @@ import StreamActivityRepository from "../database/streamActivityRepository";
 import ChannelPointRewardService from "./channelPointRewardService";
 import * as EventSub from "../models";
 import { EventTypes, ChannelPointRedemption, ITwitchChannelReward, RequestSource } from "../models";
-import { TwitchAuthService } from ".";
+import { TwitchAuthService, UserPermissionService } from ".";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import { PointLogType } from "../models/pointLog";
 import { TwitchWebService } from "./twitchWebService";
@@ -44,6 +44,7 @@ export default class TwitchEventService {
         @inject(SongService) private songService: SongService,
         @inject(TwitchService) private twitchService: TwitchService,
         @inject(BotSettingsService) private settingsService: BotSettingsService,
+        @inject(UserPermissionService) private userPermissionService: UserPermissionService,
     ) {
         this.accessToken = {
             token: "",
@@ -249,11 +250,31 @@ export default class TwitchEventService {
 
                 case ChannelPointRedemption.Timeout:
                     try {
-                        const duration = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
-                        await this.twitchService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
-                        await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+                        if (await this.userPermissionService.isUserModded(notificationEvent.user_input) === true) {
+                            // Regular timeout only for non-mods.
+                            await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");
+                        } else {
+                            const duration = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
+                            await this.twitchService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
+                            await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+                        }
                     } catch (err) {
-                        Logger.err(LogType.TwitchEvents, "Could not convert channel points.", err);
+                        Logger.err(LogType.TwitchEvents, "Could not timeout user.", err);
+                        // No cancel, but also no fulfill. Let mods handle it.
+                    }
+                    break;
+
+                case ChannelPointRedemption.TimeoutMod:
+                    try {
+                        if (await this.userPermissionService.isUserModded(notificationEvent.user_input) === true) {
+                            const duration = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
+                            await this.twitchService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
+                            await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+                        } else{
+                            await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");
+                        }
+                    } catch (err) {
+                        Logger.err(LogType.TwitchEvents, "Could not timeout user (mod).", err);
                         // No cancel, but also no fulfill. Let mods handle it.
                     }
                     break;

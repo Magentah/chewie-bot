@@ -1,6 +1,6 @@
 import { injectable, inject } from "inversify";
 import { UserService, TwitchWebService } from "./";
-import { IUser, ITwitchUser, UserLevels} from "../models";
+import { IUser, UserLevels} from "../models";
 import * as Config from "../config.json";
 
 /**
@@ -61,7 +61,7 @@ export class UserPermissionService {
         }
     }
 
-    private async isUserModded(username: string): Promise<boolean | undefined> {
+    public async isUserModded(username: string): Promise<boolean | undefined> {
         const mods = await this.twitchWebService.fetchModerators([username]);
         return mods === undefined ? undefined : mods.length > 0;
     }
