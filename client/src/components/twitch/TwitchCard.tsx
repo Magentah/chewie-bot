@@ -390,7 +390,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
                     <Grid item>
                         <MaterialTable
                             columns={[
-                                { title: "Name", field: "description", defaultSort: "asc" },
+                                { title: "Name", field: "description", defaultSort: "asc", editable: "never" },
                                 { title: "Value", field: "value" },
                             ]}
                             options={{

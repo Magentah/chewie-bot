@@ -34,7 +34,11 @@ export default class QueueListCommand extends Command {
         if (result === "") {
             await this.twitchService.sendMessage(channel,  "There are no songs in the queue currently.");
         } else {
-            await this.twitchService.sendMessage(channel, `Songs in the queue: ${result}`);
+            if (songsListed === songQueue.length) {
+                await this.twitchService.sendMessage(channel, `Songs in the queue: ${result}`);
+            } else{
+                await this.twitchService.sendMessage(channel, `Songs in the queue (${songsListed} of ${songQueue.length}): ${result}`);
+            }
         }
     }
 

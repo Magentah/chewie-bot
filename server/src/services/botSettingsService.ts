@@ -27,6 +27,7 @@ export enum BotSettings {
     ReadonlyMode = "readonly-mode",
     MaxSongRequestRedemptionsInQueue = "max-songrequest-redemptions-in-queue",
     SubNotificationProvider = "sub-notification-provider",
+    TimeoutDuration = "redeption-timeout-duration",
 }
 
 @injectable()
@@ -56,6 +57,7 @@ export default class BotSettingsService {
         [BotSettings.ReadonlyMode]: 0,
         [BotSettings.MaxSongRequestRedemptionsInQueue]: 0,
         [BotSettings.SubNotificationProvider]: "Twitch",
+        [BotSettings.TimeoutDuration]: 60 * 5,
     };
 
     private readonly settingCache: { [name: string] : any; } = {};

@@ -2,7 +2,7 @@ import axios from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
-import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType } from "../models";
+import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType, IUserPrincipal, ProviderType } from "../models";
 import { Response } from "../helpers";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -171,17 +171,26 @@ export class TwitchService {
             },
         };
 
-        const userData = await axios.get(`${Constants.TwitchAPIEndpoint}/users?login=` + channelName, options);
-        if (!userData?.data?.data[0]?.id) {
+        const userId = await this.getUserId(channelName, options);
+        if (!userId) {
             return "";
         }
 
-        const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/channels?broadcaster_id=${userData.data.data[0].id}`, options);
+        const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/channels?broadcaster_id=${userId}`, options);
         if (!data?.data) {
             return "";
         }
 
         return data.data[0].game_name;
+    }
+
+    private async getUserId(username: string, options: any) : Promise<number | undefined> {
+        const userData = await axios.get(`${Constants.TwitchAPIEndpoint}/users?login=` + username, options);
+        if (!userData?.data?.data[0]?.id) {
+            return undefined;
+        }
+
+        return userData?.data?.data[0]?.id;
     }
 
     public async getFollowInfo(username: string): Promise<string> {
@@ -226,6 +235,35 @@ export class TwitchService {
         });
 
         return exists;
+    }
+
+    public async banUser(banUser: string, duration: number | undefined, reason: string): Promise<any> {
+        const broadcaster: IUserPrincipal | undefined = await this.users.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
+        if (!broadcaster || !broadcaster.userId) {
+            throw new Error("Missing broadcaster authorization");
+        }
+
+        const accessDetails = await this.authService.getUserAccessToken(broadcaster);
+        const options = {
+            headers: {
+                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
+                "Client-Id": accessDetails.clientId,
+            },
+        };
+
+        const banUserId = await this.getUserId(banUser, options);
+        if (!banUserId) {
+            throw new Error(`Unknown user \"${banUser}\"`);
+        }
+
+        const data = {
+            user_id: banUserId,
+            duration,
+            reason
+        };
+
+        // Moderator must be the same user as used in authentication so we can only use the broadcaster here.
+        await axios.post(`${Constants.TwitchAPIEndpoint}/moderation/bans?broadcaster_id=${broadcaster.userId}&moderator_id=${broadcaster.userId}`, { data }, options);
     }
 
     private async getChatListFromTwitch(channel: string): Promise<ITwitchChatList> {
