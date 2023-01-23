@@ -16,7 +16,7 @@ export enum GameMessageType {
 }
 
 export default interface IGameMessage {
-    id: number;
+    id?: number;
     type: GameMessageType;
     text: string;
     eventType: GameEventType;

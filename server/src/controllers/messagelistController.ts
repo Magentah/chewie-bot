@@ -40,7 +40,7 @@ class MessagelistController {
         }
 
         try {
-            await this.messageService.addOrUpdate(message);
+            await this.messageService.addOrUpdate({ id: message.id, type: message.type, eventType: message.eventType, text: message.text });
             res.status(StatusCodes.OK);
             res.send(message);
         } catch (err) {
@@ -68,7 +68,7 @@ class MessagelistController {
         }
 
         try {
-            const resultMessage = await this.messageService.addOrUpdate(newMessage);
+            const resultMessage = await this.messageService.addOrUpdate({ type: newMessage.type, eventType: newMessage.eventType, text: newMessage.text });
             res.status(StatusCodes.OK);
             res.send(resultMessage);
         } catch (err) {
@@ -87,12 +87,12 @@ class MessagelistController {
      * @param req Express HTTP Request
      * @param res Express HTTP Response
      */
-    public removeMessage(req: Request, res: Response): void {
+    public async removeMessage(req: Request, res: Response): Promise<void> {
         const message = req.body as IGameMessage;
         if (message) {
-            this.messageService.delete(message);
+            await this.messageService.delete(message);
         } else if (Number(req.body)) {
-            this.messageService.delete(req.body);
+            await this.messageService.delete(req.body);
         } else {
             res.status(StatusCodes.BAD_REQUEST);
             res.send(APIHelper.error(StatusCodes.BAD_REQUEST, "Request body does not include a message object."));
