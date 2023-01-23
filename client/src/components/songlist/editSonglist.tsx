@@ -241,7 +241,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                     onRowDelete: oldData => axios.post("/api/songlist/categories/delete", oldData).then((result) => {
                         const newCategories = [...categories];
                         // @ts-ignore
-                        const target = newCategories.find((el) => el.id === oldData.tableData.id);
+                        const target = newCategories.find((el) => el.id === oldData.id);
                         if (target) {
                             const index = newCategories.indexOf(target);
                             newCategories.splice(index, 1);
@@ -379,7 +379,7 @@ const EditSonglist: React.FC<any> = (props: any) => {
                     onRowDelete: oldData => axios.post("/api/songlist/delete", oldData).then((result) => {
                         const newSonglist = [...songlist];
                         // @ts-ignore
-                        const target = newSonglist.find((el) => el.id === oldData.tableData.id);
+                        const target = newSonglist.find((el) => el.id === oldData.id);
                         if (target) {
                             const index = newSonglist.indexOf(target);
                             newSonglist.splice(index, 1);

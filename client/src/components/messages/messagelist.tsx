@@ -57,8 +57,7 @@ const MessageList: React.FC<any> = (props: any) => {
                         }),
                         onRowUpdate: (newData, oldData) => axios.post("/api/messages", newData).then((result) => {
                             const newList = [...messagelist];
-                            // @ts-ignore
-                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            const target = newList.find((el) => el.id === oldData?.id);
                             if (target) {
                                 const index = newList.indexOf(target);
                                 newList[index] = newData;
@@ -67,8 +66,7 @@ const MessageList: React.FC<any> = (props: any) => {
                         }),
                         onRowDelete: oldData => axios.post("/api/messages/delete", oldData).then((result) => {
                             const newList = [...messagelist];
-                            // @ts-ignore
-                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            const target = newList.find((el) => el.id === oldData.id);
                             if (target) {
                                 const index = newList.indexOf(target);
                                 newList.splice(index, 1);
