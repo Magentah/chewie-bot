@@ -21,7 +21,7 @@ export default class MyStatsCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser, eventTypeArgument: string): Promise<void> {
         if (!eventTypeArgument) {
-            this.twitchService.sendMessage(channel, `No event type specified (options: ${this.Arguments})`);
+            await this.twitchService.sendMessage(channel, `No event type specified (options: ${this.Arguments})`);
             return;
         }
 
@@ -33,7 +33,7 @@ export default class MyStatsCommand extends Command {
             const refundsTotal = await this.pointsLog.getCount(user, PointLogType.Duel, PointLogReason.Refund);
             const startedTotal = await this.pointsLog.getCount(user, PointLogType.Duel, PointLogReason.None);
             const completedDuels = startedTotal - refundsTotal;
-            this.twitchService.sendMessage(channel, `${user.username}, won ${duelsWon} out of ${completedDuels} duels (draws: ${duelsDraw})`);
+            await this.twitchService.sendMessage(channel, `${user.username}, won ${duelsWon} out of ${completedDuels} duels (draws: ${duelsDraw})`);
         } else if (eventType === "arena" && user.id) {
             const arena1 = await this.pointsLog.getCount(user, PointLogType.Arena, PointLogReason.FirstPlace);
             const arena2 = await this.pointsLog.getCount(user, PointLogType.Arena, PointLogReason.SecondPlace);
@@ -41,18 +41,20 @@ export default class MyStatsCommand extends Command {
             const arenaRefundsTotal = await this.pointsLog.getCount(user, PointLogType.Arena, PointLogReason.Refund);
             const arenaStartedTotal = await this.pointsLog.getCount(user, PointLogType.Arena, PointLogReason.None);
             const completedArenas = arenaStartedTotal - arenaRefundsTotal;
-            this.twitchService.sendMessage(channel, `${user.username}, participated in ${completedArenas} arenas. Score: 1st [${arena1}], 2nd [${arena2}], 3rd [${arena3}]`);
+            await this.twitchService.sendMessage(channel, `${user.username}, participated in ${completedArenas} arenas. Score: 1st [${arena1}], 2nd [${arena2}], 3rd [${arena3}]`);
         } else if (Object.values(EventLogType).includes(eventType as EventLogType)) {
             const count = await this.eventLogsRepository.getCount(eventType as EventLogType, user);
-            this.twitchService.sendMessage(channel, `${user.username}, your stats for ${eventTypeArgument}: ${count}`);
+            await this.twitchService.sendMessage(channel, `${user.username}, your stats for ${eventTypeArgument}: ${count}`);
         } else if (eventType === "songlist" && user.id) {
             const countSongs = await this.songlistRepository.countAttributions(user.id);
-            this.twitchService.sendMessage(channel, `${user.username}, number of songlisted requests: ${countSongs}`);
+            await this.twitchService.sendMessage(channel, `${user.username}, number of songlisted requests: ${countSongs}`);
         } else if (eventType === "cards" && user.id) {
             const countCards = await this.cardsRepository.getCountByUser(user);
-            this.twitchService.sendMessage(channel, `${user.username}, total number of cards collected: ${countCards}`);
+            const countUniqueCards = await this.cardsRepository.getUniqueCardsCount(user);
+            const countUpgrades = await this.cardsRepository.getUniqueUpgradesCount(user);
+            await this.twitchService.sendMessage(channel, `${user.username}, total number of cards collected: ${countCards} (unique: ${countUniqueCards}). Upgraded cards: ${countUpgrades}`);
         } else {
-            this.twitchService.sendMessage(channel, `Unknown event type \"${eventTypeArgument}\"`);
+            await this.twitchService.sendMessage(channel, `Unknown event type \"${eventTypeArgument}\"`);
             return;
         }
     }
