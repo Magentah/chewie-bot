@@ -62,7 +62,7 @@ const QuoteList: React.FC<any> = (props: any) => {
                         onRowDelete: oldData => axios.post("/api/quotes/delete", oldData).then((result) => {
                             const newList = [...quotelist];
                             // @ts-ignore
-                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            const target = newList.find((el) => el.id === oldData.id);
                             if (target) {
                                 const index = newList.indexOf(target);
                                 newList.splice(index, 1);

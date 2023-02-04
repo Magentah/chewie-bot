@@ -283,8 +283,7 @@ const UserCardList: React.FC<any> = (props: any) => {
                         }),
                         onRowDelete: oldData => axios.post("/api/cards/delete", oldData).then((result) => {
                             const newList = [...cardlist];
-                            // @ts-ignore
-                            const target = newList.find((el) => el.id === oldData.tableData.id);
+                            const target = newList.find((el) => el.id === oldData.id);
                             if (target) {
                                 const index = newList.indexOf(target);
                                 newList.splice(index, 1);
