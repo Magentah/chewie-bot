@@ -23,18 +23,21 @@ export default class RenameUserCommand extends Command {
         }
 
         if (!oldUserName || !newUserName) {
-            this.twitchService.sendMessage(channel, "Use !renameuser <olduser> <newuser> to rename.");
-            return;
-        }
-
-        if (oldUserName === newUserName) {
-            this.twitchService.sendMessage(channel, "User names cannot be identical.");
+            await this.twitchService.sendMessage(channel, "Use !renameuser <olduser> <newuser> to rename.");
             return;
         }
 
         const oldUser = await this.userService.getUser(oldUserName);
         if (!oldUser) {
-            this.twitchService.sendMessage(channel, `${oldUserName} is unknown, renaming not possible.`);
+            await this.twitchService.sendMessage(channel, `${oldUserName} is unknown, renaming not possible.`);
+            return;
+        }
+
+        // Prevent new usernames being created with @
+        newUserName = newUserName.startsWith("@") ? newUserName.substring(1) : newUserName;
+
+        if (oldUser.username === newUserName) {
+            await this.twitchService.sendMessage(channel, "User names cannot be identical.");
             return;
         }
 
@@ -53,7 +56,7 @@ export default class RenameUserCommand extends Command {
                         await this.userService.moveUserData(newUser, oldUser);
 
                         if (!await this.userService.deleteUser(newUser)){
-                            this.twitchService.sendMessage(channel, `Cannot delete existing record for ${newUserName}, renaming not possible.`);
+                            await this.twitchService.sendMessage(channel, `Cannot delete existing record for ${newUserName}, renaming not possible.`);
                             return;
                         }
                     }
@@ -61,15 +64,15 @@ export default class RenameUserCommand extends Command {
                     // Rename existing user.
                     await this.userService.renameUser(oldUser, newUserName);
 
-                    this.eventLog.addUserRename(user, oldUserName, newUserName);
+                    await this.eventLog.addUserRename(user, oldUserName, newUserName);
                 }));
             } finally {
                 this.databaseService.useTransaction(undefined);
             }
 
-            this.twitchService.sendMessage(channel, `Renamed ${oldUserName} to ${newUserName} successfully.`);
+            await this.twitchService.sendMessage(channel, `Renamed ${oldUserName} to ${newUserName} successfully.`);
         }  catch (err: any) {
-            this.twitchService.sendMessage(channel, `User cannot be renamed (${err.code}).`);
+            await this.twitchService.sendMessage(channel, `User cannot be renamed (${err.code}).`);
         }
     }
 
