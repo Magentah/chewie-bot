@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
@@ -132,16 +132,6 @@ export class TwitchService {
         }
     }
 
-    public async timeout(channel: string, username: string, length: number, reason: string): Promise<IServiceResponse> {
-        try {
-            await this.client.timeout(channel, username, length, reason);
-            return Response.Success();
-        } catch (error: any) {
-            Logger.warn(LogType.Twitch, error);
-            return Response.Error(undefined, error);
-        }
-    }
-
     public getStatus(): IServiceResponse {
         try {
             return Response.Success(undefined, { state: this.client.readyState() });
@@ -237,7 +227,7 @@ export class TwitchService {
         return exists;
     }
 
-    public async banUser(banUser: string, duration: number | undefined, reason: string): Promise<void> {
+    private async getModEndpoint(endpoint: string): Promise<{url: string, options: AxiosRequestConfig}> {
         const broadcaster: IUserPrincipal | undefined = await this.users.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
         if (!broadcaster || !broadcaster.userId) {
             throw new Error("Missing broadcaster authorization");
@@ -251,7 +241,14 @@ export class TwitchService {
             },
         };
 
-        const banUserId = await this.getUserId(banUser, options);
+        // Moderator must be the same user as used in authentication so we can only use the broadcaster here.
+        return { url: `${Constants.TwitchAPIEndpoint}/${endpoint}?broadcaster_id=${broadcaster.userId}&moderator_id=${broadcaster.userId}`, options };
+    }
+
+    public async banUser(banUser: string, duration: number | undefined, reason: string): Promise<void> {
+        const endpoint = await this.getModEndpoint("moderation/bans");
+
+        const banUserId = await this.getUserId(banUser, endpoint.options);
         if (!banUserId) {
             throw new Error(`Unknown user \"${banUser}\"`);
         }
@@ -262,8 +259,12 @@ export class TwitchService {
             reason
         };
 
-        // Moderator must be the same user as used in authentication so we can only use the broadcaster here.
-        await axios.post(`${Constants.TwitchAPIEndpoint}/moderation/bans?broadcaster_id=${broadcaster.userId}&moderator_id=${broadcaster.userId}`, { data }, options);
+        await axios.post(endpoint.url, { data }, endpoint.options);
+    }
+
+    public async announce(message: string, color: "blue" | "green" | "orange" | "purple" | "primary" = "primary"): Promise<void> {
+        const endpoint = await this.getModEndpoint("chat/announcements");
+        await axios.post(endpoint.url, { message, color }, endpoint.options);
     }
 
     private async getChatListFromTwitch(channel: string): Promise<ITwitchChatList> {

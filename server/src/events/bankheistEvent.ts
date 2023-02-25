@@ -221,7 +221,7 @@ export class BankheistEvent extends ParticipationEvent<EventParticipant> {
         await delay(5000);
 
         for (const participant of this.participants) {
-            this.twitchService.invokeCommand(participant.user.username, "!sudoku 1");
+            this.twitchService.invokeCommand(participant.user.username, "!sudoku");
         }
     }
 
