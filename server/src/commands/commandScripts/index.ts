@@ -74,3 +74,4 @@ export { default as CheckLossesCommand } from "../commandScripts/checklossesComm
 export { default as RedeemCommand } from "../commandScripts/redeemCommand";
 
 export { default as SudokuCommand } from "../commandScripts/sudokuCommand";
+export { default as AnnounceCommand } from "../commandScripts/announceCommand";
