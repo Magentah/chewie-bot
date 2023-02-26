@@ -28,7 +28,7 @@ export class SudokuCommand extends Command {
                 if (newUser) {
                     user = newUser;
                 } else {
-                    if (await this.twitchService.userExistsInChat(channel, targetUser)) {
+                    if (await this.twitchService.userExists(targetUser)) {
                         user = await this.userService.addUser(targetUser);
                     } else {
                         return;

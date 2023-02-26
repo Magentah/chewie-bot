@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
-import { IServiceResponse, ITwitchChatList, ResponseStatus, SocketMessageType, IUserPrincipal, ProviderType } from "../models";
+import { IServiceResponse, ResponseStatus, SocketMessageType, IUserPrincipal, ProviderType } from "../models";
 import { Response } from "../helpers";
 import * as Config from "../config.json";
 import Constants from "../constants";
@@ -212,26 +212,15 @@ export class TwitchService {
         return data.data[0].followed_at;
     }
 
-    public async userExistsInChat(channel: string, username: string): Promise<boolean> {
-        const chatters = (await this.getChatListFromTwitch(channel)).chatters;
-        let exists = false;
-        Object.keys(chatters).forEach((key) => {
-            // If we've already found the user, just exit.
-            if (exists) {
-                return;
-            }
-
-            const users = (chatters as any)[key] as string[];
-            const chatUser = users?.find((user: string) => {
-                return user.toLowerCase() === username.toLowerCase();
-            });
-            if (chatUser) {
-                exists = true;
-                return;
-            }
-        });
-
-        return exists;
+    public async userExists(username: string): Promise<boolean> {
+        const accessDetails = await this.authService.getClientAccessTokenWithScopes("");
+        const options = {
+            headers: {
+                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
+                "Client-Id": accessDetails.clientId,
+            },
+        };
+        return (await this.getUserId(username, options)) !== undefined;
     }
 
     public async sendWhisper(toUser: string, message: string): Promise<void> {
@@ -277,13 +266,6 @@ export class TwitchService {
     public async announce(message: string, color: "blue" | "green" | "orange" | "purple" | "primary" = "primary"): Promise<void> {
         const endpoint = await this.getModEndpoint("chat/announcements");
         await axios.post(endpoint.url, { message, color }, endpoint.options);
-    }
-
-    private async getChatListFromTwitch(channel: string): Promise<ITwitchChatList> {
-        // https://tmi.twitch.tv/group/user/:channel_name/chatters
-
-        const { data } = await axios.get(`https://tmi.twitch.tv/group/user/${channel.slice(1)}/chatters`);
-        return data as ITwitchChatList;
     }
 
     private async setupOptions(): Promise<tmi.Options> {

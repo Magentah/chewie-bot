@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
-import { IUser, ITwitchChatList, AchievementType, UserLevels, SocketMessageType } from "../models";
+import { IUser, AchievementType, UserLevels, SocketMessageType } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
 import { PointLogReason, PointLogType } from "../models/pointLog";
