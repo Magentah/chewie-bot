@@ -28,7 +28,11 @@ export class SudokuCommand extends Command {
                 if (newUser) {
                     user = newUser;
                 } else {
-                    return;
+                    if (await this.twitchService.userExistsInChat(channel, targetUser)) {
+                        user = await this.userService.addUser(targetUser);
+                    } else {
+                        return;
+                    }
                 }
             } else {
                 // Moderators are exempt from being timed out.

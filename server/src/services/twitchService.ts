@@ -215,13 +215,13 @@ export class TwitchService {
     public async userExistsInChat(channel: string, username: string): Promise<boolean> {
         const chatters = (await this.getChatListFromTwitch(channel)).chatters;
         let exists = false;
-        Object.keys(chatters).forEach((_, index) => {
+        Object.keys(chatters).forEach((key) => {
             // If we've already found the user, just exit.
             if (exists) {
                 return;
             }
 
-            const users = (chatters as any)[index] as string[];
+            const users = (chatters as any)[key] as string[];
             const chatUser = users?.find((user: string) => {
                 return user.toLowerCase() === username.toLowerCase();
             });
