@@ -4,6 +4,7 @@ import Constants from "../constants";
 export enum TwitchAuthorizationLevel {
     Twitch = "twitch",
     TwitchBroadcaster = "twitch-broadcaster",
+    TwitchBot = "twitch-bot",
 }
 
 class TwitchStrategy extends OAuth2Strategy {

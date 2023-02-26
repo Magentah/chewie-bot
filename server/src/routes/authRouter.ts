@@ -15,6 +15,16 @@ import { APIHelper } from "../helpers";
 const authRouter: express.Router = express.Router();
 
 function MakeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strategy {
+    let scope: string | string[] = "";
+    switch (authLevel) {
+        case TwitchAuthorizationLevel.TwitchBroadcaster:
+            scope = Constants.TwitchBroadcasterScopes.split(" ");
+            break;
+        case TwitchAuthorizationLevel.TwitchBot:
+            scope = Constants.TwitchBotScopes.split(" ");
+            break;
+    }
+
     return new TwitchStrategy(
         {
             clientID: Config.twitch.clientId,
@@ -22,7 +32,7 @@ function MakeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strat
             authorizationURL: Constants.TwitchAuthUrl,
             tokenURL: Constants.TwitchTokenUrl,
             callbackURL: Config.twitch.redirectUri,
-            scope: authLevel === TwitchAuthorizationLevel.TwitchBroadcaster ? Constants.TwitchBroadcasterScopes.split(" ") : "",
+            scope,
             customHeaders: {
                 "Client-ID": Config.twitch.clientId,
             },
@@ -73,6 +83,7 @@ function MakeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strat
 export function setupPassport(): void {
     passport.use(MakeTwitchStrategy(TwitchAuthorizationLevel.Twitch));
     passport.use(MakeTwitchStrategy(TwitchAuthorizationLevel.TwitchBroadcaster));
+    passport.use(MakeTwitchStrategy(TwitchAuthorizationLevel.TwitchBot));
 
     passport.serializeUser((user: any, done) => {
         done(undefined, user);
@@ -179,6 +190,7 @@ export function setupPassport(): void {
 // Passport Auth Routes
 authRouter.get("/api/auth/twitch", passport.authenticate("twitch"));
 authRouter.get("/api/auth/twitch/broadcaster", passport.authenticate("twitch-broadcaster"));
+authRouter.get("/api/auth/twitch/bot", passport.authenticate("twitch-bot"));
 authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { failureRedirect: "/" }), (req, res) => {
     const user = req.user as IUser;
     if (user.userLevel === UserLevels.Broadcaster) {

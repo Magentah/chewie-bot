@@ -100,16 +100,6 @@ export class TwitchService {
         }
     }
 
-    public async sendWhisper(username: string, message: string): Promise<IServiceResponse> {
-        try {
-            await this.client.whisper(username, message);
-            return Response.Success();
-        } catch (error: any) {
-            Logger.warn(LogType.Twitch, error);
-            return Response.Error(undefined, error);
-        }
-    }
-
     public async joinChannel(channel: string): Promise<IServiceResponse> {
         try {
             Logger.info(LogType.Twitch, `Bot joined channel ${channel}`);
@@ -183,6 +173,23 @@ export class TwitchService {
         return userData?.data?.data[0]?.id;
     }
 
+    private async getUserAuth(username: string): Promise<{userId: number, options: AxiosRequestConfig}> {
+        const userPrincipial: IUserPrincipal | undefined = await this.users.getUserPrincipal(username, ProviderType.Twitch);
+        if (!userPrincipial || !userPrincipial.userId) {
+            throw new Error(`Missing auth for user ${username} authorization`);
+        }
+
+        const accessDetails = await this.authService.getUserAccessToken(userPrincipial);
+        const options = {
+            headers: {
+                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
+                "Client-Id": accessDetails.clientId,
+            },
+        };
+
+        return { userId: userPrincipial.userId ?? 0, options};
+    }
+
     public async getFollowInfo(username: string): Promise<string> {
         const accessDetails = await this.authService.getClientAccessTokenWithScopes(Constants.TwitchBroadcasterScopes);
         const options = {
@@ -227,22 +234,27 @@ export class TwitchService {
         return exists;
     }
 
-    private async getModEndpoint(endpoint: string): Promise<{url: string, options: AxiosRequestConfig}> {
-        const broadcaster: IUserPrincipal | undefined = await this.users.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
-        if (!broadcaster || !broadcaster.userId) {
-            throw new Error("Missing broadcaster authorization");
+    public async sendWhisper(toUser: string, message: string): Promise<void> {
+        const botUser = await this.botSettingsService.getValue(BotSettings.BotUsername);
+        if (!botUser) {
+            return;
         }
 
-        const accessDetails = await this.authService.getUserAccessToken(broadcaster);
-        const options = {
-            headers: {
-                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
-                "Client-Id": accessDetails.clientId,
-            },
-        };
+        const userAuth = await this.getUserAuth(botUser);
+
+        const toUserId = await this.getUserId(toUser, userAuth.options);
+        if (!toUserId) {
+            throw new Error(`Whisper recipient ${toUser} not found`);
+        }
+
+        await axios.post(`${Constants.TwitchAPIEndpoint}/whispers?from_user_id=${userAuth.userId}&to_user_id=${toUserId}`, { message }, userAuth.options);
+    }
+
+    private async getModEndpoint(endpoint: string): Promise<{url: string, options: AxiosRequestConfig}> {
+        const userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
 
         // Moderator must be the same user as used in authentication so we can only use the broadcaster here.
-        return { url: `${Constants.TwitchAPIEndpoint}/${endpoint}?broadcaster_id=${broadcaster.userId}&moderator_id=${broadcaster.userId}`, options };
+        return { url: `${Constants.TwitchAPIEndpoint}/${endpoint}?broadcaster_id=${userAuth.userId}&moderator_id=${userAuth.userId}`, options: userAuth.options };
     }
 
     public async banUser(banUser: string, duration: number | undefined, reason: string): Promise<void> {
