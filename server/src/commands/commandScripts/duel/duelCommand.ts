@@ -62,7 +62,7 @@ export default class DuelCommand extends Command {
         if (target) {
             targetUser = await this.userService.getUser(target);
             if (!targetUser) {
-                if (await this.twitchService.userExistsInChat(channel, target)) {
+                if (await this.twitchService.userExists(target)) {
                     targetUser = await this.userService.addUser(target);
                 }
             }

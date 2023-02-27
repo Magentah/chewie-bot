@@ -1,6 +1,6 @@
 import { Command } from "../command";
 import { AchievementType, EventLogType, ICommandAlias, IUser, UserLevels } from "../../models";
-import { EventLogService } from "../../services";
+import { EventLogService, UserService } from "../../services";
 import { BotContainer } from "../../inversify.config";
 import EventAggregator from "../../services/eventAggregator";
 import SeasonsRepository from "../../database/seasonsRepository";
@@ -10,22 +10,38 @@ export class SudokuCommand extends Command {
     private eventLogService: EventLogService;
     private seasonsRepository: SeasonsRepository;
     private eventAggregator: EventAggregator;
+    private userService: UserService;
 
     constructor() {
         super();
         this.eventLogService = BotContainer.get(EventLogService);
         this.eventAggregator = BotContainer.get(EventAggregator);
         this.seasonsRepository = BotContainer.get(SeasonsRepository);
+        this.userService = BotContainer.get(UserService);
     }
 
-    public async executeInternal(channel: string, user: IUser, force: number): Promise<void> {
-        if (!force && user && user.userLevel && user.userLevel >= UserLevels.Moderator) {
-            // Moderators are exempt from being timed out.
-            return;
+    public async executeInternal(channel: string, user: IUser, targetUser: string): Promise<void> {
+        if (user && user.userLevel && user.userLevel >= UserLevels.Moderator) {
+            if (targetUser) {
+                // Mods can use this command to timeout other people
+                const newUser = await this.userService.getUser(targetUser);
+                if (newUser) {
+                    user = newUser;
+                } else {
+                    if (await this.twitchService.userExists(targetUser)) {
+                        user = await this.userService.addUser(targetUser);
+                    } else {
+                        return;
+                    }
+                }
+            } else {
+                // Moderators are exempt from being timed out.
+                return;
+            }
         }
 
-        await this.twitchService.timeout(channel, user.username, this.SudokuTimeoutLength, `${user.username} just got their guts spilled chewieSudoku`);
-        this.twitchService.sendMessage(channel, `${user.username} just got their guts spilled chewieSudoku`);
+        await this.twitchService.banUser(user.username, this.SudokuTimeoutLength, `${user.username} just got their guts spilled chewieSudoku`);
+        await this.twitchService.sendMessage(channel, `${user.username} just got their guts spilled chewieSudoku`);
 
         await this.eventLogService.addSudoku(user);
 
@@ -59,7 +75,7 @@ export class SudokuCommand extends Command {
     }
 
     public async getDescription(): Promise<string> {
-        return `Commit sudoku (get timed out). You probably noticed.`;
+        return "Commit sudoku (get timed out). You probably noticed.";
     }
 }
 

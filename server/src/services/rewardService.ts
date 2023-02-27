@@ -6,7 +6,6 @@ import { IBitsMessage, IDonationMessage, ISubscriptionMessage, SubscriptionPlan,
 import TwitchService from "../services/twitchService";
 import UserService from "../services/userService";
 import TaxService from "../services/taxService";
-import * as Config from "../config.json";
 import { PointLogType } from "../models/pointLog";
 import TwitchEventService from "./twitchEventService";
 import StreamActivityRepository from "../database/streamActivityRepository";
@@ -114,7 +113,7 @@ export default class RewardService {
 
         // Add user from Twitch chat as best effort (then we know that it is a valid user name at least).
         if (!user) {
-            if (await this.twitchService.userExistsInChat(Config.twitch.broadcasterName, username)) {
+            if (await this.twitchService.userExists(username)) {
                 user = await this.userService.addUser(username);
             }
         }

@@ -26,7 +26,7 @@ export class TextCommand extends Command {
     public async execute(channel: string, user: IUser, commandName: string, useCooldown: boolean, minUserLevel: UserLevels, ...args: any[]): Promise<void> {
         if (minUserLevel) {
             if (!user?.userLevel || user.userLevel < minUserLevel) {
-                this.twitchService.sendMessage(channel, `${user.username}, you do not have permissions to execute this command.` );
+                await this.twitchService.sendMessage(channel, `${user.username}, you do not have permissions to execute this command.` );
                 return;
             }
         }
@@ -44,6 +44,11 @@ export class TextCommand extends Command {
             }
         }
 
+        const msg = await this.getCommandText(user, commandName, args);
+        await this.twitchService.sendMessage(channel, msg);
+    }
+
+    public async getCommandText(user: IUser, commandName: string, args: any[]): Promise<string> {
         let message = args[0] as string;
 
         for (let i = 1; i < args.length; i++) {
@@ -56,16 +61,15 @@ export class TextCommand extends Command {
         if (paramCheck.test(message)) {
             // Should only display text if all parameters have been filled.
             Logger.info(LogType.Command, "Text command used without parameter");
+            return "";
         } else {
             const newUseCount = await this.commands.incrementUseCount(commandName);
-
-            message = await this.ReplaceCommonVariables(message, newUseCount, user, args);
-
-            this.twitchService.sendMessage(channel, message);
+            message = await this.replaceCommonVariables(message, newUseCount, user, args);
+            return message;
         }
     }
 
-    private async ReplaceCommonVariables(message: string, newUseCount: number, user: IUser, args: any[]): Promise<string> {
+    private async replaceCommonVariables(message: string, newUseCount: number, user: IUser, args: any[]): Promise<string> {
         // Replace variable with current counter
         // Use after increment since starting with 1 makes more sense.
         if (message.indexOf("{count}") !== -1) {

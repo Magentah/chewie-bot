@@ -220,6 +220,25 @@ const TwitchCard: React.FC<any> = (props: any) => {
 
                             <Grid item>
                                 <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
+                                    <Button className={classes.twitchButton} disabled style={{ width: "17em" }}>
+                                        <Image
+                                            src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
+                                            style={{ width: "24px", margin: "1px 8px 2px 0px" }}
+                                        />
+                                        <span style={{ color: "white" }}>Bot permissions</span>
+                                    </Button>
+                                    <Button style={{ color: "white" }} className={classes.twitchButton} disabled>
+                                        <Check />
+                                    </Button>
+                                    <Button style={{ color: "white" }} href="/api/auth/twitch/bot">
+                                        Connect
+                                    </Button>
+                                    <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
+                                </ButtonGroup>
+                            </Grid>
+
+                            <Grid item>
+                                <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
                                     <Button className={classes.streamlabsButton} disabled style={{ width: "17em" }}>
                                         <Image className={classes.streamlabsImage} src="https://cdn.streamlabs.com/static/imgs/logos/kevin-logo.svg" />
                                     </Button>

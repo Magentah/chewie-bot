@@ -2,7 +2,7 @@ import { Command } from "../../command";
 import { ICommandAlias, IUser } from "../../../models";
 import DuelEvent from "../../../events/duelEvent";
 import { DuelWeapon } from "../../../events/duelWeapon";
-import { EventService, TwitchService } from "../../../services";
+import { EventService } from "../../../services";
 import { EventState } from "../../../models/participationEvent";
 import { Logger, LogType } from "../../../logger";
 import { BotContainer } from "../../../inversify.config";
@@ -23,23 +23,23 @@ export default class WeaponCommand extends Command {
 
         switch (weapon.toLowerCase()) {
             case "rock":
-                this.chooseWeapon(channel, user, DuelWeapon.Rock);
+                await this.chooseWeapon(channel, user, DuelWeapon.Rock);
                 break;
 
             case "scissors":
-                this.chooseWeapon(channel, user, DuelWeapon.Scissors);
+                await this.chooseWeapon(channel, user, DuelWeapon.Scissors);
                 break;
 
             case "paper":
-                this.chooseWeapon(channel, user, DuelWeapon.Paper);
+                await this.chooseWeapon(channel, user, DuelWeapon.Paper);
                 break;
         }
     }
 
-    protected chooseWeapon(channel: string, user: IUser, weapon: DuelWeapon): void {
+    protected async chooseWeapon(channel: string, user: IUser, weapon: DuelWeapon): Promise<void> {
         // We only accept whispers for the choice of weapon.
         if (channel) {
-            Logger.info(LogType.Command, `Ignoring weapon choice posted in public chat`);
+            Logger.info(LogType.Command, "Ignoring weapon choice posted in public chat");
             return;
         }
 
@@ -48,13 +48,13 @@ export default class WeaponCommand extends Command {
         for (const duel of runningDuels) {
             if (duel.state === EventState.BoardingCompleted) {
                 if (duel.setWeapon(user, weapon)) {
-                    this.twitchService.sendWhisper(user.username, Lang.get("duel.curentweapon", weapon));
+                    await this.twitchService.sendWhisper(user.username, Lang.get("duel.curentweapon", weapon));
                     return;
                 }
             }
         }
 
-        Logger.info(LogType.Command, `Cannot set weapon because no duel is currently in progress.`);
+        Logger.info(LogType.Command, "Cannot set weapon because no duel is currently in progress.");
     }
 
     public getAliases(): ICommandAlias[] {
@@ -66,6 +66,6 @@ export default class WeaponCommand extends Command {
     }
 
     public async getDescription(): Promise<string> {
-        return `Select your weapon in a duel. Usage: !rock | !paper | !scissors`;
+        return "Select your weapon in a duel. Usage: !rock | !paper | !scissors";
     }
 }

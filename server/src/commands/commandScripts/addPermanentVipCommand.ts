@@ -22,7 +22,7 @@ export class AddPermanentVipCommand extends Command {
         }
 
         if (!targetUser) {
-            if (await this.twitchService.userExistsInChat(channel, targetUsername)) {
+            if (await this.twitchService.userExists(targetUsername)) {
                 targetUser = await this.userService.getUser(targetUsername);
             }
         }

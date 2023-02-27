@@ -26,7 +26,7 @@ export default class AddPointsCommand extends Command {
 
         let targetUser = await this.userService.getUser(targetUsername);
         if (!targetUser) {
-            if (await this.twitchService.userExistsInChat(channel, targetUsername)) {
+            if (await this.twitchService.userExists(targetUsername)) {
                 targetUser = await this.userService.addUser(targetUsername);
             }
         }

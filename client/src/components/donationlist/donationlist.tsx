@@ -20,8 +20,9 @@ const DonationList: React.FC<any> = (props: any) => {
                 columns = {[
                     { title: "Username", field: "username" },
                     {
-                         title: "Date", field: "date", defaultGroupOrder: 0, defaultGroupSort: "asc", type: "date",
-                         render: (rowData: any, type: 'row' | 'group') => <span>{dateFormat.format(new Date(type === "group" ? rowData : rowData.date))}</span>
+                         title: "Date", field: "date", defaultGroupOrder: 0, defaultGroupSort: "desc", type: "date",
+                         render: (rowData: RowData) => <span>{dateFormat.format(new Date(rowData.date))}</span>,
+                         groupRender: (groupKey: string) => <span>{dateFormat.format(new Date(groupKey))}</span>
                     },
                     { title: "Message", field: "message" },
                     { title: "Amount", field: "amount", type: "currency" }
