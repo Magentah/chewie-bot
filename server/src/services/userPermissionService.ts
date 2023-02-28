@@ -33,7 +33,7 @@ export class UserPermissionService {
         if (this.isUserBroadcaster(username)) {
             newUserLevel = UserLevels.Broadcaster;
         } else if (userData.userLevel < UserLevels.Admin) {
-            const isModded = await this.isUserModded(username);
+            const isModded = await this.twitchWebService.isUserModded(username);
             if (isModded === undefined) {
                 // Do not update user levels if status cannot currently be determined.
                 return;
@@ -59,11 +59,6 @@ export class UserPermissionService {
             user.userLevel = userLevel;
             return this.userService.updateUser(user);
         }
-    }
-
-    public async isUserModded(username: string): Promise<boolean | undefined> {
-        const mods = await this.twitchWebService.fetchModerators([username]);
-        return mods === undefined ? undefined : mods.length > 0;
     }
 
     private async isUserSubbed(username: string): Promise<boolean | undefined> {

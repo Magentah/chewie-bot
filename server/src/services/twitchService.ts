@@ -12,6 +12,7 @@ import WebsocketService from "../services/websocketService";
 import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 import TwitchAuthService from "../services/twitchAuthService";
 import EventLogService from "./eventLogService";
+import TwitchWebService from "./twitchWebService";
 
 export interface IBotTwitchStatus {
     connected: boolean;
@@ -33,7 +34,8 @@ export class TwitchService {
         @inject(WebsocketService) private websocketService: WebsocketService,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
         @inject(TwitchAuthService) private authService: TwitchAuthService,
-        @inject(EventLogService) private eventLogService: EventLogService
+        @inject(EventLogService) private eventLogService: EventLogService,
+        @inject(TwitchWebService) private webService: TwitchWebService
     ) {
         this.channel = `#${Config.twitch.broadcasterName}`;
     }
@@ -63,10 +65,10 @@ export class TwitchService {
         return Response.Error("No valid bot username or oauth key.");
     }
 
-    public async triggerAlert(alertType: string, variation: string, imageUrl: string) {
+    public triggerAlert(alertType: string, variation: string, imageUrl: string) {
         switch (alertType) {
             case "redeem": {
-                await this.websocketService.send({
+                this.websocketService.send({
                     type: SocketMessageType.AlertTriggered,
                     message: `Redeem ${variation} alert triggered.`,
                     data: { href: imageUrl },
@@ -163,7 +165,7 @@ export class TwitchService {
             return undefined;
         }
 
-        return userData?.data?.data[0]?.id;
+        return parseInt(userData?.data?.data[0]?.id, 10);
     }
 
     private async getUserAuth(username: string): Promise<{userId: number, options: AxiosRequestConfig}> {
@@ -251,10 +253,10 @@ export class TwitchService {
     /**
      * Ban or timeout a user in chat.
      * @param banUser User to ban
-     * @param duration Duration of timeout (or 0 for ban)
+     * @param duration Duration of timeout in seconds (or 0 for ban)
      * @param reason Reason for ban
      */
-    public async banUser(banUser: string, duration: number | undefined, reason: string): Promise<void> {
+    public async banUser(banUser: string, duration: number | undefined, reason: string, remodAfterRecovery = false): Promise<void> {
         const endpoint = await this.getModEndpoint("moderation/bans");
 
         const banUserId = await this.getUserId(banUser, endpoint.options);
@@ -268,7 +270,25 @@ export class TwitchService {
             reason
         };
 
+        const needsRemod = remodAfterRecovery && duration && await this.webService.isUserModded(banUserId);
         await axios.post(endpoint.url, { data }, endpoint.options);
+
+        if (needsRemod) {
+            setTimeout(() => void this.modUser(banUserId), duration * 1000);
+        }
+    }
+
+    /**
+     * Makes a user mod in the broadcaster's channel.
+     * @param userId User to mod
+     */
+    public async modUser(userId: number): Promise<void> {
+        if (!userId) {
+            return;
+        }
+
+        const userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
+        await axios.post(`${Constants.TwitchAPIEndpoint}/moderation/moderators?broadcaster_id=${userAuth.userId}&user_id=${userId}`, { }, userAuth.options);
     }
 
     /**

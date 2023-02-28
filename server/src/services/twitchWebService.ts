@@ -222,7 +222,7 @@ export class TwitchWebService {
      *
      * @param users (optional) - name of users that wants to validate for moderators
      */
-    public async fetchModerators(users?: string[]): Promise<ITwitchUser[] | undefined> {
+    public async fetchModerators(users?: (string|number)[]): Promise<ITwitchUser[] | undefined> {
         const executor = await this.getBroadcasterExecutor();
         if (!executor) {
             return undefined;
@@ -232,7 +232,11 @@ export class TwitchWebService {
 
         if (users && users.length > 0) {
             const userIds: number[] = await Promise.all(
-                users.map(async (user: string) => {
+                users.map(async (user: string|number) => {
+                    if (typeof(user) === "number") {
+                        return user;
+                    }
+
                     const userProfile: ITwitchUserProfile | undefined = await this.fetchUserProfile(user);
                     return userProfile?.id ?? 0;
                 })
@@ -253,6 +257,11 @@ export class TwitchWebService {
 
         const moderators: ITwitchUser[] = parsedResponse.data;
         return moderators;
+    }
+
+    public async isUserModded(username: string|number): Promise<boolean | undefined> {
+        const mods = await this.fetchModerators([username]);
+        return mods === undefined ? undefined : mods.length > 0;
     }
 
     /**

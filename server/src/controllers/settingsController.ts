@@ -35,6 +35,8 @@ class SettingsController {
         [BotSettings.MaxSongRequestRedemptionsInQueue]: { title: "Maximum number of song requests through channel rewards in queue", readonly: false },
         [BotSettings.SubNotificationProvider]: { title: "Provider for subscription notifications (Twitch|Streamlabs)", readonly: false },
         [BotSettings.TimeoutDuration]: { title: "Duration for channel point redemption timeouts", readonly: false },
+        [BotSettings.SudokuDuration]: { title: "Duration for sudoku timeouts", readonly: false },
+        [BotSettings.ModsSudokuExemption]: { title: "Exemption for mods from sudoku timeouts", readonly: false },
     };
 
     constructor(
