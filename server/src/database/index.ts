@@ -15,3 +15,4 @@ export { default as UserTaxHistoryRepository } from "./userTaxHistoryRepository"
 export { default as UserTaxStreakRepository } from "./userTaxStreakRepository";
 export { default as SeasonsRepository } from "./seasonsRepository";
 export { default as PointLogsRepository } from "./pointLogsRepository";
+export { default as MessagesRepository } from "./messagesRepository";
