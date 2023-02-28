@@ -54,20 +54,19 @@ export class TwitchWebService {
         const execute = this.twitchExecutor.build(header);
 
         return await execute(HttpMethods.GET, this.getUserProfileUrl + `?login=${user}`).then((resp: AxiosResponse) => {
-            if (resp === undefined) {
-                Logger.err(LogType.Twitch, `Unable to get the user profile for ${user}`);
-                return undefined;
-            }
-
             if (resp.data === undefined) {
                 Logger.err(LogType.Twitch, "Malformed data from fetchUserProfile", resp);
                 return undefined;
             }
 
-            const json: any = resp.data.data[0];
+            if (resp.data.data.length === 0){
+                return undefined;
+            }
+
+            const json = resp.data.data[0] as { id: string, login: string, display_name: string, profile_image_url: string };
 
             const profile: ITwitchUserProfile = {
-                id: json.id,
+                id: parseInt(json.id, 10),
                 username: json.login,
                 displayName: json.display_name,
                 profileImageUrl: json.profile_image_url,
@@ -262,6 +261,11 @@ export class TwitchWebService {
     public async isUserModded(username: string|number): Promise<boolean | undefined> {
         const mods = await this.fetchModerators([username]);
         return mods === undefined ? undefined : mods.length > 0;
+    }
+
+    public async isUserSubbed(username: string): Promise<boolean | undefined> {
+        const subs = await this.fetchSubscribers([username]);
+        return subs === undefined ? undefined : subs.length > 0;
     }
 
     /**

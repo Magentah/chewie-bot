@@ -30,6 +30,7 @@ export enum BotSettings {
     TimeoutDuration = "redeption-timeout-duration",
     ModsSudokuExemption = "mods-sudoku-exemption",
     SudokuDuration = "sudoku-duration",
+    TaxTimeoutDuration = "tax-timeout-duration",
 }
 
 @injectable()
@@ -62,6 +63,7 @@ export default class BotSettingsService {
         [BotSettings.TimeoutDuration]: 60 * 5,
         [BotSettings.ModsSudokuExemption]: false,
         [BotSettings.SudokuDuration]: 120,
+        [BotSettings.TaxTimeoutDuration]: 60 * 10,
     };
 
     private readonly settingCache: { [name: string] : any; } = {};
