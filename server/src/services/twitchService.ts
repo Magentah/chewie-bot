@@ -25,6 +25,7 @@ export class TwitchService {
     private client!: tmi.Client;
     public hasInitialized = false;
     private channel: string;
+    private activeChatters: string[] = [];
     private commandCallback!: (channel: string, username: string, message: string) => void;
     private giftSubCallback!: (username: string, recipient: string, giftedMonths: number, plan: string | undefined) => Promise<void>;
     private subMysteryGiftCallback!: (username: string, giftedSubs: number, plan: string | undefined) => Promise<void>;
@@ -157,6 +158,30 @@ export class TwitchService {
         }
 
         return data.data[0].game_name;
+    }
+
+    /**
+     * Gets the list of current chatters in the broadcaster's channel.
+     */
+    public async getChatters(): Promise<{"user_id": string, "user_login": string, "user_name": string}[]> {
+        const endpoint = await this.getModEndpoint("chat/chatters");
+        const { data } = await axios.get(endpoint.url + "&first=1000", endpoint.options);
+        if (!data?.data) {
+            return [];
+        }
+
+        return data.data;
+    }
+
+    /**
+     * Gets the list of active chatters (posted a message since start of stream).
+     */
+    public getActiveChatters(): string[] {
+        return this.activeChatters;
+    }
+
+    public clearActiveChatters() {
+        this.activeChatters = [];
     }
 
     private async getUserId(username: string, options: any) : Promise<number | undefined> {
@@ -405,13 +430,16 @@ export class TwitchService {
     }
 
     private chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
-        Logger.debug(LogType.Twitch, `Chat event: ${channel}:${userstate.username} -- ${message}`);
-
         if (self) {
             return;
         }
 
-        this.handleCommand(channel, userstate, message);
+        const username = userstate.username ?? "";
+        if (this.activeChatters.indexOf(username) === -1) {
+            this.activeChatters.push(username);
+        }
+
+        this.handleCommand(channel, username, message);
     }
 
     public invokeCommand(username: string, message: string) {
@@ -420,9 +448,9 @@ export class TwitchService {
         }
     }
 
-    private handleCommand(channel: string, userstate: tmi.ChatUserstate, message: string) {
+    private handleCommand(channel: string, username: string, message: string) {
         if (this.commandCallback) {
-            this.commandCallback(channel, userstate.username ?? "", message);
+            this.commandCallback(channel, username, message);
         }
     }
 

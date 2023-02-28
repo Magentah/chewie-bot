@@ -33,6 +33,18 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
+    public async getLastTaxPayment(userId: number): Promise<IDBUserTaxHistory> {
+        const databaseService = await this.databaseProvider();
+        const returnUserTaxHistory = await databaseService
+            .getQueryBuilder(DatabaseTables.UserTaxHistory)
+            .select("*")
+            .where("userId", userId)
+            .andWhere("type", TaxType.ChannelPoints)
+            .orderBy("taxRedemptionDate", "DESC")
+            .first() as IDBUserTaxHistory;
+        return returnUserTaxHistory;
+    }
+
     public async getSinceDate(sinceDate: Date): Promise<IDBUserTaxHistory[]> {
         const databaseService = await this.databaseProvider();
         const returnUserTaxHistory: IDBUserTaxHistory[] = await databaseService

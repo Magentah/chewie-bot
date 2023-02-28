@@ -37,6 +37,7 @@ class SettingsController {
         [BotSettings.TimeoutDuration]: { title: "Duration for channel point redemption timeouts", readonly: false },
         [BotSettings.SudokuDuration]: { title: "Duration for sudoku timeouts", readonly: false },
         [BotSettings.ModsSudokuExemption]: { title: "Exemption for mods from sudoku timeouts", readonly: false },
+        [BotSettings.TaxTimeoutDuration]: { title: "Duration for tax evasion timeouts", readonly: false },
     };
 
     constructor(

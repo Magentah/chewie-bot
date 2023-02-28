@@ -293,6 +293,8 @@ export default class TwitchEventService {
     private async channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): Promise<void> {
         Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
 
+        this.twitchService.clearActiveChatters();
+
         const dateTimeOnline = new Date(notificationEvent.started_at);
         await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);
 
