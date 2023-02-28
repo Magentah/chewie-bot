@@ -1,7 +1,7 @@
 import { Command } from "../../command";
-import { IUser, UserLevels } from "../../../models";
+import { GameEventType, GameMessageType, IUser, UserLevels } from "../../../models";
 import { BotContainer } from "../../../inversify.config";
-import { UserTaxHistoryRepository } from "../../../database";
+import { UserTaxHistoryRepository, MessagesRepository } from "../../../database";
 import { TwitchWebService, UserService } from "../../../services";
 import { BotSettings } from "../../../services/botSettingsService";
 import Logger, { LogType } from "../../../logger";
@@ -10,12 +10,14 @@ export default class TaxInvestigatorCommand extends Command {
     private taxRepository: UserTaxHistoryRepository;
     private userService: UserService;
     private twitchWebService: TwitchWebService;
+    private messages: MessagesRepository;
 
     constructor() {
         super();
         this.taxRepository = BotContainer.get(UserTaxHistoryRepository);
         this.userService = BotContainer.get(UserService);
         this.twitchWebService = BotContainer.get(TwitchWebService);
+        this.messages = BotContainer.get(MessagesRepository);
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
@@ -48,7 +50,16 @@ export default class TaxInvestigatorCommand extends Command {
 
     private async executePenalty(channel: string, taxEvader: string) {
         const penalty = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
-        await this.twitchService.sendMessage(channel, `${taxEvader} has not payed his taxes and his now given a penalty.`);
+
+        let message = `${taxEvader} has not paid his taxes and his now given a penalty.`;
+
+        const messages = (await this.messages.getByType(GameEventType.Tax, GameMessageType.TaxInvestigation)).map(item => item.text);
+        if (messages.length > 0) {
+            const msgIndex = Math.floor(Math.random() * Math.floor(messages.length));
+            message = messages[msgIndex].replace(/\{user\}/ig, taxEvader);
+        }
+
+        await this.twitchService.sendMessage(channel, message);
         await this.twitchService.banUser(taxEvader, penalty, "Tax evasion", true);
     }
 

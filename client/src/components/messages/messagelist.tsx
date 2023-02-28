@@ -28,6 +28,7 @@ const MessageList: React.FC<any> = (props: any) => {
                             "34-percent-win": "Some people win",
                             "single-win": "Single person wins",
                             "single-lose": "Single person loses",
+                            "tax-investigation": "Tax evader found",
                             "bank-level-1": "Bank Level 1",
                             "bank-level-2": "Bank Level 2",
                             "bank-level-3": "Bank Level 3",
@@ -37,7 +38,7 @@ const MessageList: React.FC<any> = (props: any) => {
                         width: "10em"
                     },
                     { title: "Message", field: "text", width: "70%" },
-                    { title: "Event", field: "eventType", initialEditValue: "bankheist", lookup: { "bankheist": "Bankheist" }, width: "9em" }
+                    { title: "Event", field: "eventType", initialEditValue: "bankheist", lookup: { "bankheist": "Bankheist", "tax": "Tax" }, width: "9em" }
                 ]}
                 options = {{
                     paging: false,
