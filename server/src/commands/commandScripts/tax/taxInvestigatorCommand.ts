@@ -51,7 +51,7 @@ export default class TaxInvestigatorCommand extends Command {
     private async executePenalty(channel: string, taxEvader: string) {
         const penalty = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
 
-        let message = `${taxEvader} has not paid his taxes and his now given a penalty.`;
+        let message = `${taxEvader} has not paid their taxes and is now given a penalty.`;
 
         const messages = (await this.messages.getByType(GameEventType.Tax, GameMessageType.TaxInvestigation)).map(item => item.text);
         if (messages.length > 0) {
