@@ -329,7 +329,7 @@ export class TwitchWebService {
 
         const execute = this.twitchExecutor.build(header);
         return {
-            broadcasterId: broadcasterCtx.userId,
+            broadcasterId: broadcasterCtx.foreignUserId,
             executeFunction: execute,
         };
     }
@@ -341,13 +341,9 @@ export class TwitchWebService {
         }
 
         const auth = await this.authService.getUserAccessToken(ctx);
-
-        const user = await this.userService.getUser(ctx.username);
-        if (user) {
-            user.accessToken = auth.accessToken.token;
-            user.refreshToken = auth.refreshToken;
-            await this.userService.updateUser(user);
-        }
+        ctx.accessToken = auth.accessToken.token;
+        ctx.refreshToken = auth.refreshToken;
+        await this.userService.updateAuth(ctx);
 
         return {
             "Authorization": `Bearer ${auth.accessToken.token}`,

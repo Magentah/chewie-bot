@@ -5,7 +5,7 @@ import * as io from "socket.io-client";
 import { Logger, LogType } from "../logger";
 import RewardService from "../services/rewardService";
 import EventLogService from "../services/eventLogService";
-import { EventLogType } from "../models";
+import { EventLogType, ProviderType } from "../models";
 import DonationsRepository from "../database/donations";
 import { BotSettings } from "./botSettingsService";
 
@@ -100,12 +100,12 @@ export class StreamlabsService {
             return;
         }
 
-        const user = await this.users.getUser(username);
-        if (!user || !user.streamlabsSocketToken) {
+        const user = await this.users.getUserPrincipal(username, ProviderType.Streamlabs);
+        if (!user || !user.accessToken) {
             return;
         }
 
-        this.startSocketConnect(user.streamlabsSocketToken);
+        this.startSocketConnect(user.accessToken);
     }
 
     public startSocketConnect(socketToken: string): void {

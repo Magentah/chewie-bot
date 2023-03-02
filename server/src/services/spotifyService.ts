@@ -6,7 +6,7 @@ import * as Config from "../config.json";
 import Constants from "../constants";
 import { Logger, LogType } from "../logger";
 import qs = require("qs");
-import { IUser } from "../models";
+import { IUser, IUserAuth, IUserPrincipal } from "../models";
 
 @injectable()
 export class SpotifyService {
@@ -49,13 +49,13 @@ export class SpotifyService {
      * May also receive a new refresh token.
      * @param user User to get new refresh token for.
      */
-    public async getNewAccessToken(user: IUser): Promise<{accessToken: string, newRefreshToken?: string}> {
-        if (!user.spotifyRefresh) {
+    public async getNewAccessToken(user: IUserPrincipal): Promise<{accessToken: string, newRefreshToken?: string}> {
+        if (!user.refreshToken) {
             return { accessToken: "" };
         }
 
         const base64Auth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64");
-        const refreshToken = user.spotifyRefresh;
+        const refreshToken = user.refreshToken;
         const authOptions = {
             headers: { "Authorization": "Basic " + base64Auth, "content-type": "application/x-www-form-urlencoded" }
         };

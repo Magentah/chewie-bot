@@ -195,7 +195,7 @@ export class TwitchService {
 
     private async getUserAuth(username: string): Promise<{userId: number, options: AxiosRequestConfig}> {
         const userPrincipial: IUserPrincipal | undefined = await this.users.getUserPrincipal(username, ProviderType.Twitch);
-        if (!userPrincipial || !userPrincipial.userId) {
+        if (!userPrincipial || !userPrincipial.foreignUserId) {
             throw new Error(`Missing auth for user ${username} authorization`);
         }
 
@@ -207,7 +207,7 @@ export class TwitchService {
             },
         };
 
-        return { userId: userPrincipial.userId ?? 0, options};
+        return { userId: userPrincipial.foreignUserId ?? 0, options};
     }
 
     /**
