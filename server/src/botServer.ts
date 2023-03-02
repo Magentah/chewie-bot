@@ -30,7 +30,7 @@ import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
-import { IUser, UserLevels } from "./models";
+import { IUser, ProviderType, UserLevels } from "./models";
 import TwitchPubSubService from "./services/twitchPubSubService";
 import DropboxService from "./services/dropboxService";
 
@@ -155,7 +155,12 @@ class BotServer extends Server {
             if (!req.user) {
                 return res.status(200).json(UsersRepository.getAnonUser());
             } else {
-                return res.status(200).json(req.user);
+                const sessionUser = req.user as IUser;
+                const streamlabsAuth = await BotContainer.get(UsersRepository).getUserAuth(sessionUser.id ?? 0, ProviderType.Streamlabs);
+                return res.status(200).json({
+                    ...sessionUser,
+                    hasStreamlabsAuth: streamlabsAuth?.accessToken ? true : false
+                });
             }
         });
         this.app.get("/api/logout", (req, res) => {
@@ -192,7 +197,7 @@ class BotServer extends Server {
                     const databaseService = BotContainer.get<DatabaseService>(DatabaseService);
                     const dropboxService = BotContainer.get<DropboxService>(DropboxService);
 
-                    const databaseFilename = await databaseService.createBackup();
+                    const databaseFilename = databaseService.createBackup();
                     if (databaseFilename) {
                         await dropboxService.uploadFile("db/backups", databaseFilename);
                         res.sendStatus(StatusCodes.ACCEPTED);

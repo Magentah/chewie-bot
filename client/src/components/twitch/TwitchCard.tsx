@@ -244,12 +244,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     </Button>
 
                                     <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>
-                                        {userContext.user.streamlabsSocketToken ? <Check /> : <Clear />}
+                                        {userContext.user.hasStreamlabsAuth ? <Check /> : <Clear />}
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/streamlabs">
                                         Connect
                                     </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!userContext.user.streamlabsSocketToken}>
+                                    <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!userContext.user.hasStreamlabsAuth}>
                                         Disconnect
                                     </Button>
                                 </ButtonGroup>

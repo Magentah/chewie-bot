@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { IUserPrincipal, ProviderType } from "../models/userPrincipal";
 import { UsersRepository } from "../database/usersRepository";
-import { IUser, AchievementType, UserLevels, SocketMessageType } from "../models";
+import { IUser, AchievementType, UserLevels, SocketMessageType, IUserAuth } from "../models";
 import EventLogService from "./eventLogService";
 import * as Config from "../config.json";
 import { PointLogReason, PointLogType } from "../models/pointLog";
@@ -12,11 +12,12 @@ import WebsocketService from "../services/websocketService";
 
 @injectable()
 export class UserService {
-    constructor(@inject(UsersRepository) private users: UsersRepository,
-                @inject(EventLogService) private eventLog: EventLogService,
-                @inject(EventAggregator) private eventAggregator: EventAggregator,
-                @inject(WebsocketService) private websocketService: WebsocketService,
-                @inject(PointLogsRepository) private pointsLog: PointLogsRepository) {
+    constructor(
+        @inject(UsersRepository) private users: UsersRepository,
+        @inject(EventLogService) private eventLog: EventLogService,
+        @inject(EventAggregator) private eventAggregator: EventAggregator,
+        @inject(WebsocketService) private websocketService: WebsocketService,
+        @inject(PointLogsRepository) private pointsLog: PointLogsRepository) {
         // Empty
     }
 
@@ -41,13 +42,13 @@ export class UserService {
         return await this.users.add(newUser);
     }
 
-    public async addUsers(users: string[] | IUser[]): Promise<Number> {
+    public async addUsers(users: string[] | IUser[]): Promise<number> {
         if (users.length === 0) {
             return 0;
         }
 
         if (Array.isArray(users) && typeof users[0] === "string") {
-            var newUsers = users.map(
+            const newUsers = users.map(
                 (name: any): IUser => {
                     return {
                         username: name,
@@ -121,7 +122,7 @@ export class UserService {
             this.eventAggregator.publishAchievement({ user, count: user.points, type: AchievementType.Points, seasonalCount: user.points });
         }
 
-        await this.websocketService.send({ type: SocketMessageType.PointsChanged, message: "Points changed", data: reason });
+        this.websocketService.send({ type: SocketMessageType.PointsChanged, message: "Points changed", data: reason });
     }
 
     /**
@@ -165,13 +166,13 @@ export class UserService {
 
         await this.users.updateVipExpiry(user);
 
-        this.eventLog.addVipGoldAdded(user, { weeksAdded: goldWeeks, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests, reason });
+        await this.eventLog.addVipGoldAdded(user, { weeksAdded: goldWeeks, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests, reason });
     }
 
     /**
      * Adds a number of permanent (non-expiring) VIP requests.
-     * For each request, the requests counter will be incremented *and* VIP gold duration will be extended for one week. 
-     * When redeeming gold, it will always be deducted from the amount of permanent requests. 
+     * For each request, the requests counter will be incremented *and* VIP gold duration will be extended for one week.
+     * When redeeming gold, it will always be deducted from the amount of permanent requests.
      * This way you can not keep your permanent request indefinitely when adding more gold, but
      * you will also not lose the permanent request when using a normal VIP gold request in terms of total
      * number of requests that you can make..
@@ -212,43 +213,54 @@ export class UserService {
         return await this.users.get(Config.twitch.broadcasterName);
     }
 
+    public async updateAuth(ctx: IUserAuth): Promise<void> {
+        return await this.users.updateUserAuth(ctx);
+    }
+
+    public async deleteAuth(username: string, provider: ProviderType) : Promise<boolean> {
+        const user: IUser | undefined = await this.getUser(username);
+        if (!user?.id) {
+            return false;
+        }
+        return await this.users.deleteUserAuth(user, provider);
+    }
+
     public async getUserPrincipal(username: string, providerType: ProviderType): Promise<IUserPrincipal | undefined> {
+        const user: IUser | undefined = await this.getUser(username);
+        if (!user?.id) {
+            return undefined;
+        }
+
+        const userAuth = await this.users.getUserAuth(user.id, providerType);
+
         const userPrincipal: IUserPrincipal = {
             username,
             accessToken: "",
             refreshToken: "",
-            providerType,
+            type: providerType,
+            userId: user.id,
+            scope: userAuth?.scope ?? ""
         };
-
-        const user: IUser | undefined = await this.getUser(username);
-        if (!user) {
-            return undefined;
-        }
 
         switch (providerType) {
             case ProviderType.Twitch:
-                if (!user.accessToken || !user.refreshToken) {
+                if (!userAuth?.accessToken || !userAuth?.refreshToken) {
                     Logger.err(LogType.Twitch, "Twitch tokens are not setup.");
                     return undefined;
                 }
-                userPrincipal.accessToken = user.accessToken;
-                userPrincipal.refreshToken = user.refreshToken;
-                userPrincipal.userId = user.twitchProfileKey;
+                userPrincipal.accessToken = userAuth.accessToken;
+                userPrincipal.refreshToken = userAuth.refreshToken;
+                userPrincipal.foreignUserId = user.twitchProfileKey;
                 break;
 
-            case ProviderType.Streamlabs:
-                if (!user.streamlabsToken || !user.streamlabsRefresh) {
-                    //throw new Error("Streamlabs tokens are not setup");
-                    Logger.err(LogType.Streamlabs, "Streamlabs tokens are not setup.");
+            default:
+                if (!userAuth?.accessToken || !userAuth?.refreshToken) {
+                    Logger.err(LogType.Streamlabs, `${providerType} tokens are not setup.`);
                     return undefined;
                 }
-                userPrincipal.accessToken = user.streamlabsToken;
-                userPrincipal.refreshToken = user.streamlabsRefresh;
+                userPrincipal.accessToken = userAuth.accessToken;
+                userPrincipal.refreshToken = userAuth.refreshToken;
                 break;
-            default: {
-                Logger.err(LogType.Server, `UserPrincipal is not implemented for provider: ${providerType}`);
-                return undefined;
-            }
         }
 
         return userPrincipal;

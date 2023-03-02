@@ -5,6 +5,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { Logger, LogType } from "../logger";
 import Constants from "../constants";
 import { StatusCodes } from "http-status-codes";
+import { ProviderType } from "../models";
 
 @injectable()
 export class DropboxService {
@@ -17,14 +18,19 @@ export class DropboxService {
             const file = fs.readFileSync(`${path}/${name}`);
             if (file && file.length > 0) {
                 const user = await this.users.getBroadcaster();
-                if (user && user.dropboxAccessToken) {
+                if (!user) {
+                    return;
+                }
+
+                const userAuth = await this.users.getUserPrincipal(user?.username, ProviderType.DropBox);
+                if (userAuth && userAuth.accessToken) {
                     const dropboxApiArgs = {
                         "path": `/backups/${name}`,
                         "mode": "add",
                     };
                     const options: AxiosRequestConfig = {
                         headers: {
-                            "Authorization": `Bearer ${user.dropboxAccessToken}`,
+                            "Authorization": `Bearer ${userAuth.accessToken}`,
                             "Content-Type": "application/octet-stream",
                             "Dropbox-API-Arg": JSON.stringify(dropboxApiArgs),
                         },

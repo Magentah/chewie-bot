@@ -1,7 +1,7 @@
 export { default as IDonation } from "./donation";
 export { default as ISong, RequestSource, SongSource } from "./song";
 export { default as ITextCommand } from "./textCommand";
-export { ITwitchAuthResponse, ITwitchCacheValue, ITwitchIDToken, ITwitchRedirectResponse, ITwitchUser } from "./twitchApi";
+export { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchUser } from "./twitchApi";
 export { default as IUser } from "./user";
 export { UserLevels } from "./userLevel";
 export { default as IVIPLevel } from "./vipLevel";
@@ -56,4 +56,4 @@ export { default as IChannelPointReward, IChannelPointRewardHistory, ChannelPoin
 export { default as IAchievement, AchievementType } from "./achievement";
 export { default as ISeason } from "./season";
 export { default as ICommandRedemption } from "./commandRedemption";
-export { IUserPrincipal, ProviderType } from "./userPrincipal";
+export { IUserAuth, IUserPrincipal, ProviderType } from "./userPrincipal";

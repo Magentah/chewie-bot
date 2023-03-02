@@ -78,7 +78,6 @@ export interface ISocketMessage {
 interface IUser {
     id?: number;
     username: string;
-    idToken?: string;
     refreshToken?: string;
     points: number;
     vipExpiry?: Date;

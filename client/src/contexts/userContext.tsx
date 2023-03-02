@@ -12,7 +12,7 @@ export enum UserLevels {
 }
 
 const defaultUser: any = {
-    streamlabsToken: undefined,
+    hasStreamlabsAuth: undefined,
     username: "",
     userLevel: UserLevels.None
 };

@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { PointLogReason, PointLogType } from "../models/pointLog";
 import { CryptoHelper } from "../helpers";
-import { EventLogType, IUser, UserLevels } from "../models";
+import { EventLogType, IUser, UserLevels, ProviderType, IUserAuth } from "../models";
 import DatabaseService, { DatabaseProvider, DatabaseTables } from "../services/databaseService";
 
 @injectable()
@@ -76,6 +76,48 @@ export class UsersRepository {
 
         // Need to map from SQLResult to the correct model.
         return userResult.map((x: any) => this.mapDBUserToUser(x));
+    }
+
+    public async getUserAuth(userId: number, type: ProviderType): Promise<IUserAuth | undefined>  {
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.UserAuth)
+            .where({ userId, type })
+            .select()
+            .first() as IUserAuth;
+
+        if (result === undefined){
+            return undefined;
+        }
+
+        const data = this.decryptAuth(result);
+        return data;
+    }
+
+    public async updateUserAuth(ctx: IUserAuth): Promise<void> {
+        const data = this.encryptAuth(ctx);
+
+        const databaseService = await this.databaseProvider();
+        const updateCount = await databaseService.getQueryBuilder(DatabaseTables.UserAuth)
+            .where({ userId: ctx.userId, type: ctx.type })
+            .update({ accessToken: data.accessToken, refreshToken: data.refreshToken, scope: ctx.scope });
+
+        if (updateCount === 0) {
+            await databaseService.getQueryBuilder(DatabaseTables.UserAuth).insert({
+                userId: ctx.userId,
+                type: ctx.type,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+                scope: data.scope
+            });
+        }
+    }
+
+    public async deleteUserAuth(user: IUser, type: ProviderType): Promise<boolean> {
+        const databaseService = await this.databaseProvider();
+        const deleteCount = await databaseService.getQueryBuilder(DatabaseTables.UserAuth)
+            .where({ userId: user.id, type })
+            .delete();
+        return deleteCount > 0;
     }
 
     /**
@@ -201,7 +243,7 @@ export class UsersRepository {
             .first();
 
         return userResult.cnt + 1;
-     }
+    }
 
     /**
      * Returns a list of user names with top amount of points
@@ -260,7 +302,7 @@ export class UsersRepository {
         await databaseService.getQueryBuilder(DatabaseTables.UserAchievements).where({ userId: fromUser.id }).update({ userId: toUser.id });
         await databaseService.getQueryBuilder(DatabaseTables.CardStack).where({ userId: fromUser.id }).update({ userId: toUser.id });
         await databaseService.getQueryBuilder(DatabaseTables.UserTaxHistory).where({ userId: fromUser.id }).update({ userId: toUser.id });
-        
+
         // Merge would be better but in practice this is not likely to be needed.
         await databaseService.getQueryBuilder(DatabaseTables.UserTaxStreak).where({ userId: fromUser.id }).delete();
 
@@ -277,9 +319,8 @@ export class UsersRepository {
     public async update(user: IUser): Promise<void> {
         const databaseService = await this.databaseProvider();
 
-        const userData = this.encryptUser(user);
-
-        // encryptUser() will return a copy of the object so we can safely delete here
+        // Make copy of the object so we can safely delete here
+        const userData = { ...user };
         delete userData.vipLevel;
         delete userData.twitchUserProfile;
 
@@ -351,8 +392,7 @@ export class UsersRepository {
     public async add(user: IUser): Promise<IUser> {
         const databaseService = await this.databaseProvider();
 
-        const userData = this.encryptUser(user);
-        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(userData).onConflict("username").ignore();
+        await databaseService.getQueryBuilder(DatabaseTables.Users).insert(user).onConflict("username").ignore();
         const returnUser = await this.get(user.username);
         return returnUser as IUser;
     }
@@ -378,10 +418,7 @@ export class UsersRepository {
 
     public async addMultiple(users: IUser[]): Promise<IUser[]> {
         const databaseService = await this.databaseProvider();
-        const usersData = users.map((user) => {
-            return this.encryptUser(user);
-        });
-        const ids = await databaseService.getQueryBuilder(DatabaseTables.Users).insert(usersData).onConflict("username").ignore();
+        const ids = await databaseService.getQueryBuilder(DatabaseTables.Users).insert(users).onConflict("username").ignore();
         return await this.getByIds(ids);
     }
 
@@ -402,13 +439,6 @@ export class UsersRepository {
             points: userResult.points,
             username: userResult.username,
             id: userResult.id,
-            idToken: userResult.idToken,
-            accessToken: userResult.accessToken,
-            refreshToken: userResult.refreshToken,
-            spotifyRefresh: userResult.spotifyRefresh,
-            streamlabsRefresh: userResult.streamlabsRefresh,
-            streamlabsToken: userResult.streamlabsToken,
-            streamlabsSocketToken: userResult.streamlabsSocketToken,
             twitchProfileKey: userResult.twitchProfileKey,
             vipLevel: userResult.vipLevel,
             vipExpiry: userResult.vipExpiry ? new Date(userResult.vipExpiry) : undefined,
@@ -416,8 +446,6 @@ export class UsersRepository {
             vipPermanentRequests: userResult.vipPermanentRequests ?? 0,
             userLevel: userResult.userLevel,
             vipLevelKey: userResult.vipLevelKey,
-            dropboxAccessToken: userResult.dropboxAccessToken,
-            dropboxRefreshToken: userResult.dropboxRefreshToken,
             twitchUserProfile: {
                 username: userResult.username,
                 displayName: userResult.profileDisplayName,
@@ -426,38 +454,28 @@ export class UsersRepository {
             },
         };
 
-        return this.decryptUser(user);
+        return user;
     }
 
     private mapDBMultipleUsers(userResult: any[]): IUser[] {
-        let users: IUser[] = [];
+        const users: IUser[] = [];
         userResult.forEach((user) => {
             users.push(this.mapDBUserToUser(user));
         });
         return users;
     }
 
-    private encryptUser(user: IUser): IUser {
-        const userData = { ...user };
+    private encryptAuth(data: IUserAuth): IUserAuth {
+        const userData = { ...data };
         userData.accessToken = CryptoHelper.encryptString(userData.accessToken);
         userData.refreshToken = CryptoHelper.encryptString(userData.refreshToken);
-        userData.spotifyRefresh = CryptoHelper.encryptString(userData.spotifyRefresh);
-        userData.streamlabsToken = CryptoHelper.encryptString(userData.streamlabsToken);
-        userData.streamlabsRefresh = CryptoHelper.encryptString(userData.streamlabsRefresh);
-        userData.dropboxAccessToken = CryptoHelper.encryptString(userData.dropboxAccessToken);
-        userData.dropboxRefreshToken = CryptoHelper.encryptString(userData.dropboxRefreshToken);
         return userData;
     }
 
-    private decryptUser(user: IUser): IUser {
-        user.accessToken = CryptoHelper.decryptString(user.accessToken);
-        user.refreshToken = CryptoHelper.decryptString(user.refreshToken);
-        user.spotifyRefresh = CryptoHelper.decryptString(user.spotifyRefresh);
-        user.streamlabsRefresh = CryptoHelper.decryptString(user.streamlabsRefresh);
-        user.streamlabsToken = CryptoHelper.decryptString(user.streamlabsToken);
-        user.dropboxAccessToken = CryptoHelper.decryptString(user.dropboxAccessToken);
-        user.dropboxRefreshToken = CryptoHelper.decryptString(user.dropboxRefreshToken);
-        return user;
+    private decryptAuth(data: IUserAuth): IUserAuth {
+        data.accessToken = CryptoHelper.decryptString(data.accessToken);
+        data.refreshToken = CryptoHelper.decryptString(data.refreshToken);
+        return data;
     }
 }
 
