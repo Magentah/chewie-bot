@@ -250,7 +250,7 @@ export default class TwitchEventService {
 
                 case ChannelPointRedemption.Timeout:
                     try {
-                        if (await this.userPermissionService.isUserModded(notificationEvent.user_input) === true) {
+                        if (await this.twitchWebService.isUserModded(notificationEvent.user_input) === true) {
                             // Regular timeout only for non-mods.
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");
                         } else {
@@ -266,7 +266,7 @@ export default class TwitchEventService {
 
                 case ChannelPointRedemption.TimeoutMod:
                     try {
-                        if (await this.userPermissionService.isUserModded(notificationEvent.user_input) === true) {
+                        if (await this.twitchWebService.isUserModded(notificationEvent.user_input) === true) {
                             const duration = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
                             await this.twitchService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
@@ -292,6 +292,8 @@ export default class TwitchEventService {
 
     private async channelOnlineEvent(notificationEvent: EventSub.IStreamOnlineEvent): Promise<void> {
         Logger.info(LogType.Twitch, "Channel Online", notificationEvent);
+
+        this.twitchService.clearActiveChatters();
 
         const dateTimeOnline = new Date(notificationEvent.started_at);
         await this.streamActivityRepository.add(EventTypes.StreamOnline, dateTimeOnline);

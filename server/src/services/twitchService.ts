@@ -12,6 +12,7 @@ import WebsocketService from "../services/websocketService";
 import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 import TwitchAuthService from "../services/twitchAuthService";
 import EventLogService from "./eventLogService";
+import TwitchWebService from "./twitchWebService";
 
 export interface IBotTwitchStatus {
     connected: boolean;
@@ -24,6 +25,7 @@ export class TwitchService {
     private client!: tmi.Client;
     public hasInitialized = false;
     private channel: string;
+    private activeChatters: string[] = [];
     private commandCallback!: (channel: string, username: string, message: string) => void;
     private giftSubCallback!: (username: string, recipient: string, giftedMonths: number, plan: string | undefined) => Promise<void>;
     private subMysteryGiftCallback!: (username: string, giftedSubs: number, plan: string | undefined) => Promise<void>;
@@ -33,7 +35,8 @@ export class TwitchService {
         @inject(WebsocketService) private websocketService: WebsocketService,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
         @inject(TwitchAuthService) private authService: TwitchAuthService,
-        @inject(EventLogService) private eventLogService: EventLogService
+        @inject(EventLogService) private eventLogService: EventLogService,
+        @inject(TwitchWebService) private webService: TwitchWebService
     ) {
         this.channel = `#${Config.twitch.broadcasterName}`;
     }
@@ -63,10 +66,10 @@ export class TwitchService {
         return Response.Error("No valid bot username or oauth key.");
     }
 
-    public async triggerAlert(alertType: string, variation: string, imageUrl: string) {
+    public triggerAlert(alertType: string, variation: string, imageUrl: string) {
         switch (alertType) {
             case "redeem": {
-                await this.websocketService.send({
+                this.websocketService.send({
                     type: SocketMessageType.AlertTriggered,
                     message: `Redeem ${variation} alert triggered.`,
                     data: { href: imageUrl },
@@ -157,13 +160,37 @@ export class TwitchService {
         return data.data[0].game_name;
     }
 
+    /**
+     * Gets the list of current chatters in the broadcaster's channel.
+     */
+    public async getChatters(): Promise<{"user_id": string, "user_login": string, "user_name": string}[]> {
+        const endpoint = await this.getModEndpoint("chat/chatters");
+        const { data } = await axios.get(endpoint.url + "&first=1000", endpoint.options);
+        if (!data?.data) {
+            return [];
+        }
+
+        return data.data;
+    }
+
+    /**
+     * Gets the list of active chatters (posted a message since start of stream).
+     */
+    public getActiveChatters(): string[] {
+        return this.activeChatters;
+    }
+
+    public clearActiveChatters() {
+        this.activeChatters = [];
+    }
+
     private async getUserId(username: string, options: any) : Promise<number | undefined> {
         const userData = await axios.get(`${Constants.TwitchAPIEndpoint}/users?login=` + username, options);
         if (!userData?.data?.data[0]?.id) {
             return undefined;
         }
 
-        return userData?.data?.data[0]?.id;
+        return parseInt(userData?.data?.data[0]?.id, 10);
     }
 
     private async getUserAuth(username: string): Promise<{userId: number, options: AxiosRequestConfig}> {
@@ -251,10 +278,10 @@ export class TwitchService {
     /**
      * Ban or timeout a user in chat.
      * @param banUser User to ban
-     * @param duration Duration of timeout (or 0 for ban)
+     * @param duration Duration of timeout in seconds (or 0 for ban)
      * @param reason Reason for ban
      */
-    public async banUser(banUser: string, duration: number | undefined, reason: string): Promise<void> {
+    public async banUser(banUser: string, duration: number | undefined, reason: string, remodAfterRecovery = false): Promise<void> {
         const endpoint = await this.getModEndpoint("moderation/bans");
 
         const banUserId = await this.getUserId(banUser, endpoint.options);
@@ -268,7 +295,25 @@ export class TwitchService {
             reason
         };
 
+        const needsRemod = remodAfterRecovery && duration && await this.webService.isUserModded(banUserId);
         await axios.post(endpoint.url, { data }, endpoint.options);
+
+        if (needsRemod) {
+            setTimeout(() => void this.modUser(banUserId), duration * 1000);
+        }
+    }
+
+    /**
+     * Makes a user mod in the broadcaster's channel.
+     * @param userId User to mod
+     */
+    public async modUser(userId: number): Promise<void> {
+        if (!userId) {
+            return;
+        }
+
+        const userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
+        await axios.post(`${Constants.TwitchAPIEndpoint}/moderation/moderators?broadcaster_id=${userAuth.userId}&user_id=${userId}`, { }, userAuth.options);
     }
 
     /**
@@ -385,13 +430,16 @@ export class TwitchService {
     }
 
     private chatEventHandler(channel: string, userstate: tmi.ChatUserstate, message: string, self: boolean) {
-        Logger.debug(LogType.Twitch, `Chat event: ${channel}:${userstate.username} -- ${message}`);
-
         if (self) {
             return;
         }
 
-        this.handleCommand(channel, userstate, message);
+        const username = userstate.username ?? "";
+        if (this.activeChatters.indexOf(username) === -1) {
+            this.activeChatters.push(username);
+        }
+
+        this.handleCommand(channel, username, message);
     }
 
     public invokeCommand(username: string, message: string) {
@@ -400,9 +448,9 @@ export class TwitchService {
         }
     }
 
-    private handleCommand(channel: string, userstate: tmi.ChatUserstate, message: string) {
+    private handleCommand(channel: string, username: string, message: string) {
         if (this.commandCallback) {
-            this.commandCallback(channel, userstate.username ?? "", message);
+            this.commandCallback(channel, username, message);
         }
     }
 

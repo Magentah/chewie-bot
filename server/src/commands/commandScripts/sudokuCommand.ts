@@ -4,9 +4,9 @@ import { EventLogService, UserService } from "../../services";
 import { BotContainer } from "../../inversify.config";
 import EventAggregator from "../../services/eventAggregator";
 import SeasonsRepository from "../../database/seasonsRepository";
+import { BotSettings } from "../../services/botSettingsService";
 
 export class SudokuCommand extends Command {
-    private readonly SudokuTimeoutLength = 120;
     private eventLogService: EventLogService;
     private seasonsRepository: SeasonsRepository;
     private eventAggregator: EventAggregator;
@@ -21,7 +21,7 @@ export class SudokuCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser, targetUser: string): Promise<void> {
-        if (user && user.userLevel && user.userLevel >= UserLevels.Moderator) {
+        if (user.userLevel >= UserLevels.Moderator) {
             if (targetUser) {
                 // Mods can use this command to timeout other people
                 const newUser = await this.userService.getUser(targetUser);
@@ -34,13 +34,14 @@ export class SudokuCommand extends Command {
                         return;
                     }
                 }
-            } else {
-                // Moderators are exempt from being timed out.
+            } else if (await this.settingsService.getValue(BotSettings.ModsSudokuExemption)) {
+                // Moderators may be exempt from being timed out.
                 return;
             }
         }
 
-        await this.twitchService.banUser(user.username, this.SudokuTimeoutLength, `${user.username} just got their guts spilled chewieSudoku`);
+        const timeoutLength = await this.settingsService.getIntValue(BotSettings.SudokuDuration);
+        await this.twitchService.banUser(user.username, timeoutLength, `${user.username} just got their guts spilled chewieSudoku`, true);
         await this.twitchService.sendMessage(channel, `${user.username} just got their guts spilled chewieSudoku`);
 
         await this.eventLogService.addSudoku(user);

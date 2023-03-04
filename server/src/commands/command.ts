@@ -4,10 +4,10 @@ import { IUser, UserLevels, ICommandAlias } from "../models";
 import { BotSettings } from "../services/botSettingsService";
 
 export abstract class Command {
-    protected isInternalCommand: boolean = false;
+    protected isInternalCommand = false;
     protected minimumUserLevel: UserLevels = UserLevels.Viewer;
     protected twitchService: TwitchService;
-    protected description: string = "";
+    protected description = "";
     protected settingsService: BotSettingsService;
 
     constructor() {
