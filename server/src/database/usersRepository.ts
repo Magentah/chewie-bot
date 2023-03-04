@@ -93,6 +93,21 @@ export class UsersRepository {
         return data;
     }
 
+    public async getUserAuthStatus(userId: number): Promise<Map<ProviderType, boolean|undefined>>  {
+        const authStates = new Map<ProviderType, boolean|undefined>();
+
+        const databaseService = await this.databaseProvider();
+        const result = await databaseService.getQueryBuilder(DatabaseTables.UserAuth)
+            .where({ userId })
+            .select() as IUserAuth[];
+
+        for (const auth of result) {
+            authStates.set(auth.type, auth.accessToken !== "");
+        }
+
+        return authStates;
+    }
+
     public async updateUserAuth(ctx: IUserAuth): Promise<void> {
         const data = this.encryptAuth(ctx);
 

@@ -1,26 +1,33 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
 import axios, { AxiosError, AxiosResponse } from "axios";
+import { IUser } from "components/common/user";
+import { UserLevels } from "components/common/userLevel";
 
-export enum UserLevels {
-    None = 0,
-    Viewer = 1,
-    Subscriber,
-    Moderator,
-    Bot,
-    Admin,
-    Broadcaster,
+export enum ProviderType {
+    Twitch,
+    Streamlabs,
+    Youtube,
+    Spotify,
+    DropBox
 }
 
-const defaultUser: any = {
-    hasStreamlabsAuth: undefined,
+export interface IAuthorizedUser extends IUser {
+    missingTwitchPermissions?: boolean[],
+    authorizations?: any
+}
+
+const defaultUser: IAuthorizedUser = {
     username: "",
-    userLevel: UserLevels.None
+    userLevel: UserLevels.None,
+    missingTwitchPermissions: [],
+    points: 0,
+    hasLogin: false
 };
 
 export const UserContext = createContext({user: defaultUser, loadUser: () => {}});
 
 const UserContextProvider = (props: any) => {
-    const [user, setUser] = useState<any>(defaultUser);
+    const [user, setUser] = useState<IAuthorizedUser>(defaultUser);
 
     const loadUser = () => {
         axios.get("/api/isloggedin", {

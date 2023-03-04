@@ -5,11 +5,11 @@ import MaterialTable from "@material-table/core";
 import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Theme } from "@mui/material";
 import { Star, SettingsBackupRestore } from "@mui/icons-material";
 import { AddToListState } from "../common/addToListState";
-import { UserLevel } from "../common/userLevel";
+import { UserLevel, UserLevels } from "../common/userLevel";
 import AddIcon from "@mui/icons-material/Add";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
-import { UserContext, UserLevels } from "../../contexts/userContext";
+import { UserContext  } from "../../contexts/userContext";
 
 type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
 

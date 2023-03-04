@@ -28,7 +28,7 @@ import AuthService from "../../services/authService";
 import { Alert } from "@mui/material";
 import MaterialTable from "@material-table/core";
 import { blue } from "@mui/material/colors";
-import { UserContext } from "../../contexts/userContext";
+import { ProviderType, UserContext } from "../../contexts/userContext";
 
 const useStyles = makeStyles()((theme: Theme) => ({
     title: {
@@ -206,32 +206,16 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                             src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
                                             style={{ width: "24px", margin: "1px 8px 2px 0px" }}
                                         />
-                                        <span style={{ color: "white" }}>Broadcaster permissions</span>
+                                        <span style={{ color: "white" }}>Twitch</span>
                                     </Button>
                                     <Button style={{ color: "white" }} className={classes.twitchButton} disabled>
                                         <Check />
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">
-                                        Connect
-                                    </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
-                                </ButtonGroup>
-                            </Grid>
-
-                            <Grid item>
-                                <ButtonGroup variant="contained" color="primary" aria-label="contained primary button group" className={classes.buttonGroup}>
-                                    <Button className={classes.twitchButton} disabled style={{ width: "17em" }}>
-                                        <Image
-                                            src={"/assets/TwitchGlitchWhite.png"} // Must use glitch logo (see https://www.twitch.tv/p/legal/trademark/)
-                                            style={{ width: "24px", margin: "1px 8px 2px 0px" }}
-                                        />
-                                        <span style={{ color: "white" }}>Bot permissions</span>
-                                    </Button>
-                                    <Button style={{ color: "white" }} className={classes.twitchButton} disabled>
-                                        <Check />
+                                        Broadcaster
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/twitch/bot">
-                                        Connect
+                                        Bot
                                     </Button>
                                     <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
                                 </ButtonGroup>
@@ -244,12 +228,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     </Button>
 
                                     <Button style={{ color: "black" }} className={classes.streamlabsButton} disabled>
-                                        {userContext.user.hasStreamlabsAuth ? <Check /> : <Clear />}
+                                        {userContext.user.authorizations[ProviderType.Streamlabs] ? <Check /> : <Clear />}
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/streamlabs">
                                         Connect
                                     </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!userContext.user.hasStreamlabsAuth}>
+                                    <Button onClick={() => disconnectService("/api/auth/streamlabs/disconnect")} disabled={!userContext.user.authorizations[ProviderType.Streamlabs] }>
                                         Disconnect
                                     </Button>
                                 </ButtonGroup>
@@ -265,12 +249,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     </Button>
 
                                     <Button style={{ color: "black" }} className={classes.spotifyButton} disabled>
-                                        {userContext.user.spotifyRefresh ? <Check /> : <Clear />}
+                                        {userContext.user.authorizations[ProviderType.Spotify] ? <Check /> : <Clear />}
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/spotify">
                                         Connect
                                     </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!userContext.user.spotifyRefresh}>
+                                    <Button onClick={() => disconnectService("/api/auth/spotify/disconnect")} disabled={!userContext.user.authorizations[ProviderType.Spotify]}>
                                         Disconnect
                                     </Button>
                                 </ButtonGroup>
@@ -289,12 +273,12 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     </Button>
 
                                     <Button style={{ color: "white" }} className={classes.dropboxButton} disabled>
-                                        {userContext.user.dropboxAccessToken ? <Check /> : <Clear />}
+                                        {userContext.user.authorizations[ProviderType.DropBox] ? <Check /> : <Clear />}
                                     </Button>
                                     <Button style={{ color: "white" }} href="/api/auth/dropbox">
                                         Connect
                                     </Button>
-                                    <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!userContext.user.dropboxAccessToken}>
+                                    <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!userContext.user.authorizations[ProviderType.DropBox]}>
                                         Disconnect
                                     </Button>
                                 </ButtonGroup>
