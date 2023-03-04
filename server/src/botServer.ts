@@ -152,26 +152,42 @@ class BotServer extends Server {
         });
 
         // Login/Logout Routes
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.app.get("/api/isloggedin", async (req, res) => {
             if (!req.user) {
                 return res.status(200).json(UsersRepository.getAnonUser());
             } else {
                 const sessionUser = req.user as IUser;
                 const authStates = await BotContainer.get(UsersRepository).getUserAuthStatus(sessionUser.id ?? 0);
-                let missingTwitchPermissions: string[] = [];
-                if (sessionUser.userLevel === UserLevels.Broadcaster) {
+                let missingBroadcasterPermissions: string[] = [];
+                let missingModPermissions: string[] = [];
+
+                // Check if current authorized scopes are up-to-date
+                if (sessionUser.userLevel >= UserLevels.Moderator) {
                     const twitchAuth = await BotContainer.get(UsersRepository).getUserAuth(sessionUser.id ?? 0, ProviderType.Twitch);
-                    if (twitchAuth !== undefined && twitchAuth.scope !== Constants.TwitchBroadcasterScopes) {
-                        const current = twitchAuth.scope.split(" ");
-                        const needed = Constants.TwitchBroadcasterScopes.split(" ");
-                        const missing = needed.filter(item => current.indexOf(item) < 0);
-                        missingTwitchPermissions = missing;
+
+                    if (sessionUser.userLevel === UserLevels.Broadcaster) {
+                        if (twitchAuth !== undefined && twitchAuth.scope !== Constants.TwitchBroadcasterScopes) {
+                            const current = twitchAuth.scope.split(" ");
+                            const needed = Constants.TwitchBroadcasterScopes.split(" ");
+                            const missing = needed.filter(item => current.indexOf(item) < 0);
+                            missingBroadcasterPermissions = missing;
+                        }
+                    } else {
+                        if (twitchAuth !== undefined && twitchAuth.scope !== Constants.TwitchModScopes) {
+                            const current = twitchAuth.scope.split(" ");
+                            const needed = Constants.TwitchModScopes.split(" ");
+                            const missing = needed.filter(item => current.indexOf(item) < 0);
+                            missingModPermissions = missing;
+                        }
                     }
                 }
+
                 return res.status(200).json({
                     ...sessionUser,
                     authorizations: Object.fromEntries(authStates),
-                    missingTwitchPermissions
+                    missingBroadcasterPermissions,
+                    missingModPermissions
                 });
             }
         });
@@ -182,6 +198,7 @@ class BotServer extends Server {
             res.redirect("/");
         });
         // Allow setting custom user levels for debug purposes.
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.app.get("/api/debug", async (req, res) => {
             const sessionUser = req.user as IUser;
 

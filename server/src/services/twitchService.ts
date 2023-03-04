@@ -194,7 +194,7 @@ export class TwitchService {
     }
 
     private async getUserAuth(username: string): Promise<{userId: number, options: AxiosRequestConfig}> {
-        const userPrincipial: IUserPrincipal | undefined = await this.users.getUserPrincipal(username, ProviderType.Twitch);
+        const userPrincipial = await this.users.getUserPrincipal(username, ProviderType.Twitch);
         if (!userPrincipial || !userPrincipial.foreignUserId) {
             throw new Error(`Missing auth for user ${username} authorization`);
         }
@@ -268,11 +268,36 @@ export class TwitchService {
         await axios.post(`${Constants.TwitchAPIEndpoint}/whispers?from_user_id=${userAuth.userId}&to_user_id=${toUserId}`, { message }, userAuth.options);
     }
 
-    private async getModEndpoint(endpoint: string): Promise<{url: string, options: AxiosRequestConfig}> {
-        const userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
+    private async getModEndpoint(endpoint: string, modUser = ""): Promise<{url: string, options: AxiosRequestConfig}> {
+        let broadcasterId = 0;
+        let userAuth;
+        let needsBroadcasterAuth = true;
+        if (modUser && modUser !== Config.twitch.broadcasterName) {
+            try {
+                userAuth = await this.getUserAuth(modUser);
+                const userPrincipial = await this.users.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
+                if (!userPrincipial || !userPrincipial.foreignUserId) {
+                    throw new Error(`Missing auth for user ${Config.twitch.broadcasterName} authorization`);
+                }
+
+                broadcasterId = userPrincipial.foreignUserId;
+                needsBroadcasterAuth = false;
+            } catch (err: any) {
+                // Mod auth is optional so fall back to broadcaster if unsuccessful
+            }
+        }
+
+        if (needsBroadcasterAuth) {
+            userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
+            broadcasterId = userAuth.userId;
+        }
+
+        if (!userAuth) {
+            throw new Error("Error in getModEndpoint");
+        }
 
         // Moderator must be the same user as used in authentication so we can only use the broadcaster here.
-        return { url: `${Constants.TwitchAPIEndpoint}/${endpoint}?broadcaster_id=${userAuth.userId}&moderator_id=${userAuth.userId}`, options: userAuth.options };
+        return { url: `${Constants.TwitchAPIEndpoint}/${endpoint}?broadcaster_id=${broadcasterId}&moderator_id=${userAuth.userId}`, options: userAuth.options };
     }
 
     /**
@@ -318,11 +343,12 @@ export class TwitchService {
 
     /**
      * Announce a message in chat.
+     * @param username User who executes the announcement command
      * @param message Message to display
      * @param color Color for announcement banner
      */
-    public async announce(message: string, color: "blue" | "green" | "orange" | "purple" | "primary" = "primary"): Promise<void> {
-        const endpoint = await this.getModEndpoint("chat/announcements");
+    public async announce(username: string, message: string, color: "blue" | "green" | "orange" | "purple" | "primary" = "primary"): Promise<void> {
+        const endpoint = await this.getModEndpoint("chat/announcements", username);
         await axios.post(endpoint.url, { message, color }, endpoint.options);
     }
 

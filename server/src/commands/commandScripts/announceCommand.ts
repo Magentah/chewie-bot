@@ -39,7 +39,7 @@ export class AnnounceCommand extends Command {
         if (commandInfo) {
             const msg = await this.textCommand.getCommandText(user, commandName, [commandInfo.message, ...args]);
             if (msg) {
-                await this.twitchService.announce(msg);
+                await this.twitchService.announce(user.username, msg);
             }
         } else {
             await this.twitchService.sendMessage(channel, `The command "${commandName}" does not exist`);

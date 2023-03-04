@@ -315,7 +315,7 @@ export class TwitchWebService {
      * @returns Object with the broadcasterId and an executeFunction to call to execute the HTTP request.
      */
     private async getBroadcasterExecutor(): Promise<ITwitchExecutor | undefined> {
-        const broadcasterCtx: IUserPrincipal | undefined = await this.getBroadcasterUserPrincipal();
+        const broadcasterCtx: IUserPrincipal | undefined = await this.userService.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
         if (broadcasterCtx === undefined) {
             Logger.err(LogType.Twitch, "Unable to get create BroadcasterAuthHeaders. Broadcaster context is undefined.");
             return;
@@ -362,10 +362,6 @@ export class TwitchWebService {
             "Authorization": `Bearer ${auth.accessToken.token}`,
             "Client-ID": auth.clientId,
         };
-    }
-
-    private async getBroadcasterUserPrincipal(): Promise<IUserPrincipal | undefined> {
-        return this.userService.getUserPrincipal(Config.twitch.broadcasterName, ProviderType.Twitch);
     }
 
     /**

@@ -23,6 +23,9 @@ function makeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strat
         case TwitchAuthorizationLevel.TwitchBot:
             scope = Constants.TwitchBotScopes;
             break;
+        case TwitchAuthorizationLevel.TwitchMod:
+            scope = Constants.TwitchModScopes;
+            break;
     }
 
     return new TwitchStrategy(
@@ -91,6 +94,7 @@ export function setupPassport(): void {
     passport.use(makeTwitchStrategy(TwitchAuthorizationLevel.Twitch));
     passport.use(makeTwitchStrategy(TwitchAuthorizationLevel.TwitchBroadcaster));
     passport.use(makeTwitchStrategy(TwitchAuthorizationLevel.TwitchBot));
+    passport.use(makeTwitchStrategy(TwitchAuthorizationLevel.TwitchMod));
 
     passport.serializeUser((user: any, done) => {
         done(undefined, user);
@@ -202,9 +206,10 @@ export function setupPassport(): void {
 }
 
 // Passport Auth Routes
-authRouter.get("/api/auth/twitch", passport.authenticate("twitch"));
-authRouter.get("/api/auth/twitch/broadcaster", passport.authenticate("twitch-broadcaster"));
-authRouter.get("/api/auth/twitch/bot", passport.authenticate("twitch-bot"));
+authRouter.get("/api/auth/twitch", passport.authenticate(TwitchAuthorizationLevel.Twitch));
+authRouter.get("/api/auth/twitch/broadcaster", passport.authenticate(TwitchAuthorizationLevel.TwitchBroadcaster));
+authRouter.get("/api/auth/twitch/mod", passport.authenticate(TwitchAuthorizationLevel.TwitchMod));
+authRouter.get("/api/auth/twitch/bot", passport.authenticate(TwitchAuthorizationLevel.TwitchBot));
 authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { failureRedirect: "/" }), async (req, res) => {
     const user = req.user as IUser;
     if (user.userLevel === UserLevels.Broadcaster) {
