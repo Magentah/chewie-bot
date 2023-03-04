@@ -1,13 +1,13 @@
 import React, { ReactNode, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
-import { UserLevel } from "../common/userLevel";
+import { UserLevel, UserLevels } from "../common/userLevel";
 import {
     Alert, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, Grid, 
     InputAdornment, InputLabel, MenuItem, Select, SelectChangeEvent, Snackbar, SnackbarCloseReason, TextField }
 from "@mui/material";
 import { Launch, Chat, Settings } from "@mui/icons-material";
-import { UserContext, UserLevels } from "../../contexts/userContext";
+import { UserContext } from "../../contexts/userContext";
 import { AddToListState } from "../common/addToListState";
 
 enum CommandType {

@@ -81,12 +81,12 @@ const UserProfileView: React.FC<any> = (props: any) => {
         userProfileContent = <Grid alignItems="flex-start">
             <Grid item container alignItems="center" id="user-status-log-table">
                 <Grid item>
-                    <Avatar className={classes.large} src={userContext.user.twitchUserProfile.profileImageUrl} />
+                    <Avatar className={classes.large} src={userContext.user.twitchUserProfile?.profileImageUrl} />
                 </Grid>
                 <Grid item>
                     <Grid>
                         <Box ml={1}>
-                            <Typography variant="h6">{userContext.user.twitchUserProfile.displayName} ({fullUserProfile.user.userLevelName})</Typography>
+                            <Typography variant="h6">{userContext.user.twitchUserProfile?.displayName} ({fullUserProfile.user.userLevelName})</Typography>
                         </Box>
                     </Grid>
                     <Grid>

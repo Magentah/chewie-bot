@@ -76,7 +76,7 @@ const NavBarMenu: React.FC<any> = (props: any) => {
         ));
     };
 
-    if (!userContext.user.username) {
+    if (!userContext.user.username || !userContext.user.twitchUserProfile) {
         return null;
     }
 

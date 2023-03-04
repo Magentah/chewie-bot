@@ -33,6 +33,7 @@ import * as Config from "./config.json";
 import { IUser, ProviderType, UserLevels } from "./models";
 import TwitchPubSubService from "./services/twitchPubSubService";
 import DropboxService from "./services/dropboxService";
+import Constants from "./constants";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -156,10 +157,21 @@ class BotServer extends Server {
                 return res.status(200).json(UsersRepository.getAnonUser());
             } else {
                 const sessionUser = req.user as IUser;
-                const streamlabsAuth = await BotContainer.get(UsersRepository).getUserAuth(sessionUser.id ?? 0, ProviderType.Streamlabs);
+                const authStates = await BotContainer.get(UsersRepository).getUserAuthStatus(sessionUser.id ?? 0);
+                let missingTwitchPermissions: string[] = [];
+                if (sessionUser.userLevel === UserLevels.Broadcaster) {
+                    const twitchAuth = await BotContainer.get(UsersRepository).getUserAuth(sessionUser.id ?? 0, ProviderType.Twitch);
+                    if (twitchAuth !== undefined && twitchAuth.scope !== Constants.TwitchBroadcasterScopes) {
+                        const current = twitchAuth.scope.split(" ");
+                        const needed = Constants.TwitchBroadcasterScopes.split(" ");
+                        const missing = needed.filter(item => current.indexOf(item) < 0);
+                        missingTwitchPermissions = missing;
+                    }
+                }
                 return res.status(200).json({
                     ...sessionUser,
-                    hasStreamlabsAuth: streamlabsAuth?.accessToken ? true : false
+                    authorizations: Object.fromEntries(authStates),
+                    missingTwitchPermissions
                 });
             }
         });

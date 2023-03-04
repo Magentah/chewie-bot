@@ -5,9 +5,10 @@ import { Image } from "react-bootstrap";
 import NavBarMenu from "./NavBarMenu";
 import axios from "axios";
 import { green, red, grey } from "@mui/material/colors";
-import { UserContext, UserLevels } from "../../contexts/userContext";
+import { UserContext } from "../../contexts/userContext";
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
+import { UserLevels } from "components/common/userLevel";
 
 type NavBarProps = {};
 
