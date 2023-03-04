@@ -70,14 +70,14 @@ const Dashboard: React.FC<{}> = (props) => {
 
     return (
         <div className={classes.root}>
-                <Dialog open={(userContext.user.missingTwitchPermissions?.length ?? 0) > 0 && !dialogClosed}>
+                <Dialog open={(userContext.user.missingBroadcasterPermissions?.length ?? 0) > 0 && !dialogClosed}>
                     <DialogTitle>
                         {"Twitch permission update required"}
                     </DialogTitle>
                     <DialogContent>
                         <DialogContentText>
                             The current permissions acquired through authorization with Twitch need to be updated. <br />
-                            New permissions needed: {userContext.user.missingTwitchPermissions?.join("\r\n") ?? ""}
+                            New permissions needed: {userContext.user.missingBroadcasterPermissions?.join("\r\n") ?? ""}
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>

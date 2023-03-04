@@ -4,6 +4,8 @@ export default class Constants {
     public static readonly TwitchTokenUrl = "https://id.twitch.tv/oauth2/token";
     public static readonly TwitchBroadcasterScopes =
         "channel:moderate chat:read chat:edit channel:read:subscriptions channel:read:redemptions channel:manage:extensions moderation:read channel:manage:redemptions moderator:manage:banned_users moderator:manage:announcements moderator:read:followers channel:manage:moderators moderator:read:chatters";
+    public static readonly TwitchModScopes =
+        "moderator:manage:banned_users moderator:manage:announcements";
     public static readonly TwitchBotScopes = "user:manage:whispers";
 
     public static readonly TwitchClaims =

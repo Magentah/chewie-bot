@@ -4,6 +4,7 @@ import Constants from "../constants";
 export enum TwitchAuthorizationLevel {
     Twitch = "twitch",
     TwitchBroadcaster = "twitch-broadcaster",
+    TwitchMod = "twitch-mod",
     TwitchBot = "twitch-bot",
 }
 

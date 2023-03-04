@@ -101,6 +101,14 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
             </Typography>
         </Button>;
 
+    const hasModAuth = userContext.user.missingModPermissions?.length === 0;
+    const connectModButton = (userContext.user.userLevel > UserLevels.Admin || userContext.user.userLevel < UserLevels.Moderator) ? undefined :
+    <Button className={getStyle(hasModAuth)} href={"/api/auth/twitch/mod"} variant="contained" startIcon={<Image height="80%" width={"80%"} src={"/assets/Sword.svg"} />}>
+        <Typography variant="caption">
+            {hasModAuth ? "Mod authorized" : "Not authorized"}
+        </Typography>
+    </Button>;
+
     return (
         <AppBar position="fixed">
             <Toolbar>
@@ -108,6 +116,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
                 <div className={classes.rightMenu}>
                     {hasBroadcasterAuth !== undefined ? connectBroadcasterButton : undefined}
                     {connectBotButton}
+                    {connectModButton}
                     <IconButton
                         color="inherit"
                         className={classes.iconButton}

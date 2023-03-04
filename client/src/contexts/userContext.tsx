@@ -12,14 +12,16 @@ export enum ProviderType {
 }
 
 export interface IAuthorizedUser extends IUser {
-    missingTwitchPermissions?: boolean[],
+    missingBroadcasterPermissions?: boolean[],
+    missingModPermissions?: boolean[],
     authorizations?: any
 }
 
 const defaultUser: IAuthorizedUser = {
     username: "",
     userLevel: UserLevels.None,
-    missingTwitchPermissions: [],
+    missingBroadcasterPermissions: [],
+    missingModPermissions: [],
     points: 0,
     hasLogin: false
 };
