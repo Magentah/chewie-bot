@@ -296,7 +296,7 @@ export class TwitchService {
             throw new Error("Error in getModEndpoint");
         }
 
-        // Moderator must be the same user as used in authentication so we can only use the broadcaster here.
+        // Moderator must be the same user as used for authentication.
         return { url: `${Constants.TwitchAPIEndpoint}/${endpoint}?broadcaster_id=${broadcasterId}&moderator_id=${userAuth.userId}`, options: userAuth.options };
     }
 
