@@ -49,7 +49,7 @@ export default class TaxInvestigatorCommand extends Command {
     }
 
     private async executePenalty(channel: string, taxEvader: string) {
-        const penalty = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
+        const penalty = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
 
         let message = `${taxEvader} has not paid their taxes and is now given a penalty.`;
 
