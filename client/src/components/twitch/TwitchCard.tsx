@@ -214,9 +214,6 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     <Button style={{ color: "white" }} href="/api/auth/twitch/broadcaster">
                                         Broadcaster
                                     </Button>
-                                    <Button style={{ color: "white" }} href="/api/auth/twitch/bot">
-                                        Bot
-                                    </Button>
                                     <Button onClick={() => disconnectService("/api/auth/twitch/disconnect")}>Disconnect</Button>
                                 </ButtonGroup>
                             </Grid>
