@@ -30,7 +30,7 @@ import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
-import { IUser, ProviderType, UserLevels } from "./models";
+import { IUser, IUserAuth, ProviderType, UserLevels } from "./models";
 import TwitchPubSubService from "./services/twitchPubSubService";
 import DropboxService from "./services/dropboxService";
 import Constants from "./constants";
@@ -161,25 +161,35 @@ class BotServer extends Server {
                 const authStates = await BotContainer.get(UsersRepository).getUserAuthStatus(sessionUser.id ?? 0);
                 let missingBroadcasterPermissions: string[] = [];
                 let missingModPermissions: string[] = [];
+                let missingBotPermissions: string[] = [];
+
+                function getMissingPermissions(twitchAuth: IUserAuth | undefined, scopes: string) {
+                    if (twitchAuth !== undefined && twitchAuth.scope !== scopes) {
+                        const current = twitchAuth.scope.split(" ");
+                        const needed = scopes.split(" ");
+                        const missing = needed.filter(item => current.indexOf(item) < 0);
+                        return missing;
+                    }
+
+                    return [];
+                }
 
                 // Check if current authorized scopes are up-to-date
                 if (sessionUser.userLevel >= UserLevels.Moderator) {
                     const twitchAuth = await BotContainer.get(UsersRepository).getUserAuth(sessionUser.id ?? 0, ProviderType.Twitch);
 
-                    if (sessionUser.userLevel === UserLevels.Broadcaster) {
-                        if (twitchAuth !== undefined && twitchAuth.scope !== Constants.TwitchBroadcasterScopes) {
-                            const current = twitchAuth.scope.split(" ");
-                            const needed = Constants.TwitchBroadcasterScopes.split(" ");
-                            const missing = needed.filter(item => current.indexOf(item) < 0);
-                            missingBroadcasterPermissions = missing;
-                        }
-                    } else {
-                        if (twitchAuth !== undefined && twitchAuth.scope !== Constants.TwitchModScopes) {
-                            const current = twitchAuth.scope.split(" ");
-                            const needed = Constants.TwitchModScopes.split(" ");
-                            const missing = needed.filter(item => current.indexOf(item) < 0);
-                            missingModPermissions = missing;
-                        }
+                    switch (sessionUser.userLevel) {
+                        case UserLevels.Broadcaster:
+                            missingBroadcasterPermissions = getMissingPermissions(twitchAuth, Constants.TwitchBroadcasterScopes);
+                            break;
+
+                        case UserLevels.Moderator:
+                            missingModPermissions = getMissingPermissions(twitchAuth, Constants.TwitchModScopes);
+                            break;
+
+                        case UserLevels.Bot:
+                            missingBotPermissions = getMissingPermissions(twitchAuth, Constants.TwitchBotScopes);
+                            break;
                     }
                 }
 
@@ -187,7 +197,8 @@ class BotServer extends Server {
                     ...sessionUser,
                     authorizations: Object.fromEntries(authStates),
                     missingBroadcasterPermissions,
-                    missingModPermissions
+                    missingModPermissions,
+                    missingBotPermissions
                 });
             }
         });

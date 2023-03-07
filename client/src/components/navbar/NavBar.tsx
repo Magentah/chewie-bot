@@ -9,6 +9,7 @@ import { UserContext } from "../../contexts/userContext";
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import { UserLevels } from "components/common/userLevel";
+import SettingsIcon from '@mui/icons-material/Settings';
 
 type NavBarProps = {};
 
@@ -94,18 +95,28 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
             </Typography>
         </Button>;
 
-    const connectBotButton = (userContext.user.userLevel < UserLevels.Admin) ? undefined :
+    const connectChatButton = (userContext.user.userLevel < UserLevels.Admin) ? undefined :
         <Button className={getStyle(botConnected)} onClick={connectBot} variant="contained" startIcon={getIcon(botConnected)}>
             <Typography variant="caption">
-                {botConnected === undefined ? "Checking status..." : botConnected ? "Bot connected" : "Bot not connected"}
+                {botConnected === undefined ? "Checking status..." : botConnected ? "Chat connected" : "Chat disconnected"}
             </Typography>
         </Button>;
 
     const hasModAuth = userContext.user.missingModPermissions?.length === 0;
     const connectModButton = (userContext.user.userLevel > UserLevels.Admin || userContext.user.userLevel < UserLevels.Moderator) ? undefined :
-    <Button className={getStyle(hasModAuth)} href={"/api/auth/twitch/mod"} variant="contained" startIcon={<Image height="80%" width={"80%"} src={"/assets/Sword.svg"} />}>
+    <Button className={getStyle(hasModAuth)} href={"/api/auth/twitch/mod"} variant="contained" startIcon={<Image height="80%" width={"80%"} src={"/assets/Sword.svg"} />}
+            title={`Missing permissions: ${userContext.user.missingModPermissions?.join("\r\n") ?? ""}`}>
         <Typography variant="caption">
-            {hasModAuth ? "Mod authorized" : "Not authorized"}
+            {hasModAuth ? "Mod authorized" : "Mod not authorized"}
+        </Typography>
+    </Button>;
+
+    const hasBotAuth = userContext.user.missingBotPermissions?.length === 0;
+    const connectBotButton = (userContext.user.userLevel !== UserLevels.Bot) ? undefined :
+    <Button className={getStyle(hasBotAuth)} href={"/api/auth/twitch/bot"} variant="contained" startIcon={<SettingsIcon />}
+            title={`Missing permissions: ${userContext.user.missingBotPermissions?.join("\r\n") ?? ""}`}>
+        <Typography variant="caption">
+            {hasBotAuth ? "Bot authorized" : "Bot not authorized"}
         </Typography>
     </Button>;
 
@@ -115,8 +126,9 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
                 <Typography variant="h6">Chewie Melodies</Typography>
                 <div className={classes.rightMenu}>
                     {hasBroadcasterAuth !== undefined ? connectBroadcasterButton : undefined}
-                    {connectBotButton}
+                    {connectChatButton}
                     {connectModButton}
+                    {connectBotButton}
                     <IconButton
                         color="inherit"
                         className={classes.iconButton}

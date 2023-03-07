@@ -11,7 +11,9 @@ const pointRewardController: ChannelPointRewardController = BotContainer.get(Cha
 
 twitchRouter.get(
     "/api/twitch/status",
-    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Admin),
+    // Logging in with bot user might be needed to authorize with Twitch to acquire permission for whispers,
+    // don't break status display for this case.
+    (req, res, next) => APIHelper.checkUserLevel(req, res, next, UserLevels.Bot),
     (req, res) => twitchController.getStatus(req, res));
 twitchRouter.get(
     "/api/twitch/connect",

@@ -14,6 +14,7 @@ export enum ProviderType {
 export interface IAuthorizedUser extends IUser {
     missingBroadcasterPermissions?: boolean[],
     missingModPermissions?: boolean[],
+    missingBotPermissions?: boolean[],
     authorizations?: any
 }
 
@@ -22,6 +23,7 @@ const defaultUser: IAuthorizedUser = {
     userLevel: UserLevels.None,
     missingBroadcasterPermissions: [],
     missingModPermissions: [],
+    missingBotPermissions: [],
     points: 0,
     hasLogin: false
 };
