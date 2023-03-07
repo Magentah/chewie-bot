@@ -393,7 +393,6 @@ export class UsersRepository {
             vipLevelKey: userData.vipLevelKey,
             userLevel: userData.userLevel,
             points: userData.points,
-            hasLogin: userData.hasLogin,
             vipPermanentRequests: userData.vipPermanentRequests
         }
 
@@ -420,7 +419,6 @@ export class UsersRepository {
         return {
             username: "",
             points: 0,
-            hasLogin: false,
             userLevel: UserLevels.Viewer,
             twitchUserProfile: {
                 id: 0,
@@ -450,7 +448,6 @@ export class UsersRepository {
 
     private mapDBUserToUser(userResult: any): IUser {
         const user: IUser = {
-            hasLogin: userResult.hasLogin,
             points: userResult.points,
             username: userResult.username,
             id: userResult.id,

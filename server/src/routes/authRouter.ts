@@ -61,8 +61,7 @@ function makeTwitchStrategy(authLevel: TwitchAuthorizationLevel): passport.Strat
                 twitchProfileKey: twitchProfile.id,
                 userLevel: UserLevels.Viewer,
                 vipLevelKey: 1,
-                points: 0,
-                hasLogin: false,
+                points: 0
             };
 
             const user = await BotContainer.get(UserService).addUser(newUser);
