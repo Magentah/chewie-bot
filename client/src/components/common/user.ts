@@ -17,7 +17,6 @@ export interface IUser {
     vipLevelKey?: number;
     vipLevel?: IVIPLevel;
     userLevel: UserLevels;
-    hasLogin: boolean;
     twitchUserProfile?: ITwitchUserProfile;
 }
 

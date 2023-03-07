@@ -230,7 +230,6 @@ export class DatabaseService {
             table.dateTime("vipExpiry");
             table.integer("vipPermanentRequests");
             table.dateTime("vipLastRequest");
-            table.boolean("hasLogin").notNullable();
             table.integer("twitchProfileKey").unsigned().index();
             table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
             table.unique(this.raw("username COLLATE NOCASE"));
@@ -572,8 +571,7 @@ export class DatabaseService {
                 username: broadcasterUsername,
                 userLevel: UserLevels.Broadcaster,
                 vipLevelKey: 1,
-                points: 0,
-                hasLogin: true,
+                points: 0
             };
 
             await this.db(DatabaseTables.Users).insert(user);

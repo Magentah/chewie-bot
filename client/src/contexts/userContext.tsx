@@ -24,8 +24,7 @@ const defaultUser: IAuthorizedUser = {
     missingBroadcasterPermissions: [],
     missingModPermissions: [],
     missingBotPermissions: [],
-    points: 0,
-    hasLogin: false
+    points: 0
 };
 
 export const UserContext = createContext({user: defaultUser, loadUser: () => {}});

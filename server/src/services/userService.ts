@@ -31,7 +31,6 @@ export class UserService {
             newUser = {
                 username: user,
                 points: 0,
-                hasLogin: false,
                 vipLevelKey: 1,
                 userLevel: UserLevels.Viewer,
             };
@@ -53,7 +52,6 @@ export class UserService {
                     return {
                         username: name,
                         points: 0,
-                        hasLogin: false,
                         vipLevelKey: 1,
                         userLevel: UserLevels.Viewer,
                     };
