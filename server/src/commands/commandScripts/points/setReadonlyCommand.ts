@@ -2,18 +2,16 @@ import { Command } from "../../command";
 import { ChannelPointRedemption, IUser, UserLevels } from "../../../models";
 import { BotSettings } from "../../../services/botSettingsService";
 import { BotContainer } from "../../../inversify.config";
-import { ChannelPointRewardService, TwitchWebService } from "../../../services";
+import { ChannelPointRewardService } from "../../../services";
 import Logger, { LogType } from "../../../logger";
 
 export default class SetReadonlyCommand extends Command {
     private rewardService: ChannelPointRewardService;
-    private twitchWebService: TwitchWebService;
 
     constructor() {
         super();
         this.minimumUserLevel = UserLevels.Moderator;
         this.rewardService = BotContainer.get(ChannelPointRewardService);
-        this.twitchWebService = BotContainer.get(TwitchWebService);
     }
 
     public async executeInternal(channel: string, user: IUser, isReadonlyEnabled: string): Promise<void> {
