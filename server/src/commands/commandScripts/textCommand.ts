@@ -119,7 +119,7 @@ export class TextCommand extends Command {
         if (message.indexOf("{userlaststreaming}") !== -1 && userFromParams) {
             let lastStreaming = "(unknown)";
             try {
-                lastStreaming = await this.twitchService.getLastChannelCategory(userFromParams);
+                lastStreaming = await this.twitchWebService.getLastChannelCategory(userFromParams);
                 if (!lastStreaming) {
                     // Should fit into senteces like "were last seen streaming ..."
                     lastStreaming = "nothing";
@@ -134,7 +134,7 @@ export class TextCommand extends Command {
         if (message.indexOf("{userfollowage}") !== -1) {
             let followingSince = "(never)";
             try {
-                const followDate = await this.twitchService.getFollowInfo(userFromParams ? userFromParams : user.username);
+                const followDate = await this.twitchWebService.getFollowInfo(userFromParams ? userFromParams : user.username);
                 if (followDate) {
                     followingSince = this.formatFollowDuration(moment.duration(moment(new Date()).diff(followDate)));
                 }
@@ -231,17 +231,34 @@ export class TextCommand extends Command {
 
         if (duration.years() >= 1) {
             const years = Math.floor(duration.years());
-            parts.push(years + " " + (years > 1 ? "years" : "year"));
+            parts.push(`${years} ` + (years > 1 ? "years" : "year"));
         }
 
         if (duration.months() >= 1) {
             const months = Math.floor(duration.months());
-            parts.push(months + " " + (months > 1 ? "months" : "month"));
+            parts.push(`${months} ` + (months > 1 ? "months" : "month"));
         }
 
         if (duration.days() >= 1) {
             const days = Math.floor(duration.days());
-            parts.push(days + " " + (days > 1 ? "days" : "day"));
+            parts.push(`${days} ` + (days > 1 ? "days" : "day"));
+        }
+
+        if (parts.length === 0) {
+            if (duration.hours() >= 1) {
+                const hours = Math.floor(duration.hours());
+                parts.push(`${hours} ` + (hours > 1 ? "hours" : "hour"));
+            }
+
+            if (duration.minutes() >= 1) {
+                const minutes = Math.floor(duration.minutes());
+                parts.push(`${minutes} ` + (minutes > 1 ? "minutes" : "minute"));
+            }
+
+            if (parts.length === 0 && duration.seconds() >= 1) {
+                const seconds = Math.floor(duration.seconds());
+                parts.push(`${seconds} ` + (seconds > 1 ? "seconds" : "second"));
+            }
         }
 
         return parts.join(", ");

@@ -1,4 +1,6 @@
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
+import { StatusCodes } from "http-status-codes";
+import { ITwitchAuthClientToken } from "../services/twitchAuthService";
 import { Logger, LogType } from "../logger";
 
 export enum HttpMethods {
@@ -10,39 +12,44 @@ export enum HttpMethods {
     HEAD = "HEAD"
 }
 
+export interface AuthTokenConfig extends AxiosRequestConfig {
+    token: ITwitchAuthClientToken
+}
+
 export class HttpClient {
-    constructor(private baseUrl: string,
-                private headers: any = {},
-                private refreshTokenFn?: () => void,
-                private isLogging = false) {
+    private isLogging = false;
+    private baseUrl: string;
+
+    constructor(baseUrl: string) {
+        this.baseUrl = baseUrl;
     }
 
-    public build(headers: any = {},
-                 isLogging: boolean = this.isLogging):
-                (method: HttpMethods, apiPath: string, body?: any) => Promise<AxiosResponse> {
-        let headerData = this.headers;
-
-        if (this.headers) {
-            headerData = { ...this.headers, ...headers };
-        }
+    public build(token: ITwitchAuthClientToken): (method: HttpMethods, apiPath: string, body?: any) => Promise<AxiosResponse> {
+        const headers = {
+            "Authorization": `Bearer ${token.accessToken.token}`,
+            "Client-ID": token.clientId,
+        };
 
         const client: AxiosInstance = axios.create({
             baseURL: this.baseUrl,
-            headers: headerData
+            headers,
         });
 
-        if (isLogging) {
+        if (this.isLogging) {
             this.logRequest(client);
-            this.logResponse(client);
         }
 
+        this.processResponse(client);
+
         const execute = (method: HttpMethods, apiPath: string, body?: any) => {
-            const future = client.request({
+            const config: AuthTokenConfig = {
                 url: apiPath,
                 method,
-                data: body
-            });
+                data: body,
+                token
+            };
 
+            const future = client.request(config);
             return future;
         };
 
@@ -64,12 +71,17 @@ export class HttpClient {
         });
     }
 
-    private logResponse(client: AxiosInstance): void {
+    private processResponse(client: AxiosInstance): void {
         client.interceptors.response.use((response: AxiosResponse) => {
-            Logger.info(LogType.Http, "======= RESPONSE =======");
-            Logger.info(LogType.Http, `${response.config.method} ${response.config.baseURL} ${response.config.url} -- STATUS: ${response.status}`);
             return response;
         }, (error: AxiosError) => {
+            if (error.response?.status === StatusCodes.UNAUTHORIZED) {
+                const config = error.config as AuthTokenConfig;
+                if (config) {
+                    config.token.invalidate();
+                }
+            }
+
             const meta = { ...error.config, response: error.response?.data };
             Logger.err(LogType.Http, JSON.stringify(meta));
             return Promise.reject(error);
