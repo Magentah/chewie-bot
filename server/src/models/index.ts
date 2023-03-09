@@ -1,6 +1,6 @@
 export { default as IDonation } from "./donation";
 export { default as ISong, RequestSource, SongSource } from "./song";
-export { default as ITextCommand } from "./textCommand";
+export { default as ITextCommand, TextCommandMessagType } from "./textCommand";
 export { ITwitchAuthResponse, ITwitchRedirectResponse, ITwitchUser } from "./twitchApi";
 export { default as IUser } from "./user";
 export { UserLevels } from "./userLevel";

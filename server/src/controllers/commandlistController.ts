@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { ICommandAlias, ICommandInfo, ITextCommand, UserLevels } from "../models";
+import { ICommandAlias, ICommandInfo, ITextCommand, TextCommandMessagType, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { CommandAliasesRepository, TextCommandsRepository } from "../database";
@@ -96,12 +96,14 @@ class CommandlistController {
                     break;
 
                 case CommandType.Text:
+                case CommandType.TextGeneration:
                     await this.textCommandsRepository.add({
                         commandName: commandInfo.commandName,
                         message: commandInfo.content ?? "",
                         useCount: commandInfo.useCount ?? 0,
                         useCooldown: commandInfo.useCooldown ?? true,
-                        minimumUserLevel: commandInfo.minUserLevel ? commandInfo.minUserLevel : UserLevels.Viewer
+                        minimumUserLevel: commandInfo.minUserLevel ? commandInfo.minUserLevel : UserLevels.Viewer,
+                        messageType: commandInfo.type === CommandType.TextGeneration ? TextCommandMessagType.AiPrompt : TextCommandMessagType.Plaintext
                     });
 
                     const resultTextCmd = await this.textCommandsRepository.get(commandInfo.commandName);
@@ -167,6 +169,7 @@ class CommandlistController {
                     break;
 
                 case CommandType.Text:
+                case CommandType.TextGeneration:
                     const txtCommand = await this.textCommandsRepository.getById(commandInfo.id);
                     if (txtCommand) {
                         txtCommand.commandName = commandInfo.commandName;
@@ -174,6 +177,7 @@ class CommandlistController {
                         txtCommand.useCount = commandInfo.useCount ?? 0;
                         txtCommand.useCooldown = commandInfo.useCooldown ?? true;
                         txtCommand.minimumUserLevel = commandInfo.minUserLevel;
+                        txtCommand.messageType = commandInfo.type === CommandType.TextGeneration ? TextCommandMessagType.AiPrompt : TextCommandMessagType.Plaintext;
                         await this.textCommandsRepository.update(txtCommand);
                     }
 
@@ -241,7 +245,7 @@ class CommandlistController {
             id: command.id,
             commandName: command.commandName,
             content: command.message,
-            type: CommandType.Text,
+            type: command.messageType === TextCommandMessagType.AiPrompt ? CommandType.TextGeneration : CommandType.Text,
             minUserLevel: command.minimumUserLevel ?? UserLevels.Viewer,
             useCount: command.useCount,
             useCooldown: command.useCooldown

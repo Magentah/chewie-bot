@@ -8,6 +8,7 @@ import { IUser } from "../models";
 import { UserService } from "./userService";
 import { TwitchService } from "./twitchService";
 import { CommandAliasesRepository } from "../database/commandAliases";
+import { TextCommand } from "src/commands/commandScripts";
 
 @injectable()
 export class CommandService {
@@ -58,8 +59,8 @@ export class CommandService {
         const textCommand = await this.textCommands.get(commandName);
         if (textCommand) {
             if (this.commandList.has("text")) {
-                const command = this.commandList.get("text") as Command;
-                command.execute(channel, user, commandName, textCommand.useCooldown, textCommand.minimumUserLevel, ...[textCommand.message, ...args]);
+                const command = this.commandList.get("text") as TextCommand;
+                command.executeWithOptions(textCommand, channel, user, args);
             }
         }
     }

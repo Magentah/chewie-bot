@@ -3,7 +3,8 @@ import { UserLevels } from "./userLevel";
 export enum CommandType {
     Text,
     Alias,
-    System
+    System,
+    TextGeneration
 }
 
 export default interface ICommandInfo {

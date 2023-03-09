@@ -66,6 +66,7 @@
         "moment": "^2.29.1",
         "node-cache": "^5.1.2",
         "node-cron": "^3.0.0",
+        "openai": "^3.2.1",
         "passport": "^0.4.1",
         "passport-oauth2": "^1.6.1",
         "redis": "^3.0.2",

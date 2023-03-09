@@ -30,6 +30,7 @@ import CardService from "./services/cardService";
 import AchievementService from "./services/achievementService";
 import EventAggregator from "./services/eventAggregator";
 import TwitchPubSubService from "./services/twitchPubSubService";
+import OpenAiService from "./services/openAiService";
 
 // Database Repositories
 
@@ -138,6 +139,7 @@ botContainer.bind<CardService>(CardService).toSelf().inSingletonScope();
 botContainer.bind<AchievementService>(AchievementService).toSelf().inSingletonScope();
 botContainer.bind<EventAggregator>(EventAggregator).toSelf().inSingletonScope();
 botContainer.bind<TwitchPubSubService>(TwitchPubSubService).toSelf().inSingletonScope();
+botContainer.bind<OpenAiService>(OpenAiService).toSelf().inSingletonScope();
 
 // Database Repositories
 botContainer.bind<UsersRepository>(UsersRepository).toSelf();
