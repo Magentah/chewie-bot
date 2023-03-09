@@ -265,6 +265,7 @@ export class DatabaseService {
             table.integer("minimumUserLevel").unsigned();
             table.integer("useCount").unsigned().notNullable().defaultTo(0);
             table.boolean("useCooldown").notNullable().defaultTo(true);
+            table.integer("messageType").unsigned().defaultTo(0);
         });
     }
 

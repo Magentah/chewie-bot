@@ -1,10 +1,12 @@
 import { Command } from "../command";
-import { EventTypes, IUser, UserLevels } from "../../models";
+import { EventTypes, ITextCommand, IUser, TextCommandMessagType } from "../../models";
 import Logger, { LogType } from "../../logger";
 import { BotContainer } from "../../inversify.config";
 import { StreamActivityRepository, TextCommandsRepository } from "../../database";
 import { BotSettings } from "../../services/botSettingsService";
 import moment = require("moment");
+import OpenAiService from "../../services/openAiService";
+import { IGenerateTextData } from "src/models/textCommand";
 
 // I think it's better to have a "command" to handle all text commands instead of having the
 // command service directly call the twitchservice.sendmessage with the text command.
@@ -14,6 +16,7 @@ export class TextCommand extends Command {
 
     private commands: TextCommandsRepository;
     private streamActivityRepository: StreamActivityRepository;
+    private openAiService: OpenAiService;
 
     constructor() {
         super();
@@ -21,30 +24,48 @@ export class TextCommand extends Command {
         this.isInternalCommand = true;
         this.commands = BotContainer.get(TextCommandsRepository);
         this.streamActivityRepository = BotContainer.get(StreamActivityRepository);
+        this.openAiService = BotContainer.get(OpenAiService);
     }
 
-    public async execute(channel: string, user: IUser, commandName: string, useCooldown: boolean, minUserLevel: UserLevels, ...args: any[]): Promise<void> {
-        if (minUserLevel) {
-            if (!user?.userLevel || user.userLevel < minUserLevel) {
+    public async executeWithOptions(commandInfo: ITextCommand, channel: string, user: IUser, args: string[]) {
+        if (commandInfo.minimumUserLevel) {
+            if (!user?.userLevel || user.userLevel < commandInfo.minimumUserLevel) {
                 await this.twitchService.sendMessage(channel, `${user.username}, you do not have permissions to execute this command.` );
                 return;
             }
         }
 
         // Skip command if still in cooldown.
-        if (useCooldown) {
-            if (this.cooldowns[commandName]) {
+        if (commandInfo.useCooldown) {
+            if (this.cooldowns[commandInfo.commandName]) {
                 return;
             } else {
                 const cooldown = parseInt(await this.settingsService.getValue(BotSettings.CommandCooldownInSeconds), 10);
-                this.cooldowns[commandName] = true;
+                this.cooldowns[commandInfo.commandName] = true;
                 setTimeout(() => {
-                    this.cooldowns[commandName] = false;
+                    this.cooldowns[commandInfo.commandName] = false;
                 }, cooldown * 1000);
             }
         }
 
-        const msg = await this.getCommandText(user, commandName, args);
+        let msg = await this.getCommandText(user, commandInfo.commandName, [commandInfo.message, ...args]);
+
+        switch (commandInfo.messageType) {
+            case TextCommandMessagType.AiPrompt:
+                const data = JSON.parse(msg) as IGenerateTextData;
+
+                try {
+                    msg = await this.openAiService.generateText(data.prompt);
+                } catch (error: any) {
+                    Logger.err(LogType.Command, error as Error);
+                }
+
+                if (!msg) {
+                    msg = data.fallback;
+                }
+                break;
+        }
+
         await this.twitchService.sendMessage(channel, msg);
     }
 
@@ -67,6 +88,10 @@ export class TextCommand extends Command {
             message = await this.replaceCommonVariables(message, newUseCount, user, args);
             return message;
         }
+    }
+
+    public async execute(channel: string, user: IUser): Promise<void> {
+        // Command doesn't do anything on its own
     }
 
     private async replaceCommonVariables(message: string, newUseCount: number, user: IUser, args: any[]): Promise<string> {
