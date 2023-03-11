@@ -1,7 +1,7 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { makeStyles } from "makeStyles";
-import { Grid, Typography, Divider, Theme } from "@mui/material";
+import { Grid, Typography, Divider, Theme, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material";
 import SideBar from "../../components/sidebar/SideBar";
 import NavBar from "../../components/navbar/NavBar";
 import { Route as RouteType, DashboardRoutes, NotFoundRoute } from "../../Routes";
@@ -42,6 +42,7 @@ const Dashboard: React.FC<{}> = (props) => {
     const location = useLocation();
     const getRoute = createRouteMap(DashboardRoutes);
     const userContext = useContext(UserContext);
+    const [dialogClosed, setDialogClosed] = useState(false);
 
     const path = location.pathname;
 
@@ -69,6 +70,23 @@ const Dashboard: React.FC<{}> = (props) => {
 
     return (
         <div className={classes.root}>
+            <Dialog open={(userContext.user.missingBroadcasterPermissions?.length ?? 0) > 0 && !dialogClosed}>
+                <DialogTitle>
+                    {"Twitch permission update required"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        The current permissions acquired through authorization with Twitch need to be updated. <br />
+                        New permissions needed: {userContext.user.missingBroadcasterPermissions?.join("\r\n") ?? ""}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button href="/api/auth/twitch/broadcaster" color="primary" autoFocus>Update permissions</Button>
+                    <Button onClick={() => setDialogClosed(true)}>
+                        Ignore
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <NavBar />
             <SideBar />
             <main className={classes.content}>

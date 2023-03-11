@@ -1,4 +1,3 @@
-import React from "react";
 import { SvgIconTypeMap } from "@mui/material";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
 import { Typography } from "@mui/material";
@@ -17,7 +16,7 @@ import QuoteList from "./components/quotes/quotelist";
 import CommandList from "./components/commands/commandlist";
 import RedemptionsList from "./components/commands/redemptions";
 import NotFound from "./components/error/404";
-import { UserLevels } from "./contexts/userContext";
+import { UserLevels } from "./components/common/userLevel";
 import Login from "./views/login/Login";
 import UserList from "./components/users/userlist";
 import UserProfileView from "./components/users/userprofile";

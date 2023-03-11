@@ -19,13 +19,13 @@ export default class TaxAuditCommand extends Command {
 
     public async executeInternal(channel: string, user: IUser, username: string, save: "save" | undefined): Promise<void> {
         if (!username) {
-            this.twitchService.sendMessage(channel, `${user.username}, please specify a user name.`);
+            await this.twitchService.sendMessage(channel, `${user.username}, please specify a user name.`);
             return;
         }
 
         const targetUser = await this.userService.getUser(username);
         if (!targetUser) {
-            this.twitchService.sendMessage(channel, `${user.username}, the user \"${username}\" does not exist.`);
+            await this.twitchService.sendMessage(channel, `${user.username}, the user \"${username}\" does not exist.`);
             return;
         }
 
@@ -36,6 +36,7 @@ export default class TaxAuditCommand extends Command {
         let previousStreamDate = 0;
         let lastTaxMissDate = 0;
         let lastTaxRedemptionId = 0;
+        let lastTaxDate = 0;
 
         const taxAuditHistory = await this.taxRepository.getTaxAudit(targetUser);
         for (const event of taxAuditHistory) {
@@ -48,6 +49,7 @@ export default class TaxAuditCommand extends Command {
                 taxesPaid++;
                 taxesPaidForStream = true;
                 lastTaxRedemptionId = event.id;
+                lastTaxDate = event.date;
             } else if (event.event === EventTypes.StreamOnline) {
                 if (!taxesPaidForStream) {
                     const sixHours = 6 * 60 * 60 * 1000;
@@ -69,10 +71,12 @@ export default class TaxAuditCommand extends Command {
         // Optional: Save audited tax.
         if (save === "save" && targetUser.id) {
             await this.taxStreakRepository.updateStreak(targetUser.id, lastTaxRedemptionId, currentStreak, longestStreak);
-            this.twitchService.sendMessage(channel, `Tax streak for ${targetUser.username} saved: Current streak: ${currentStreak}, longest streak: ${longestStreak}`);
+            await this.twitchService.sendMessage(channel, `Tax streak for ${targetUser.username} saved: Current streak: ${currentStreak}, longest streak: ${longestStreak}`);
         } else {
             const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
-            this.twitchService.sendMessage(channel, `Audit for ${targetUser.username}. Taxes paid: ${taxesPaid}, current streak: ${currentStreak}, longest streak: ${longestStreak}, last miss: ${lastTaxMissDate ? dateFormat.format(new Date(lastTaxMissDate)) : "-"}`);
+            const taxesPaidText = lastTaxDate ? `Taxes paid: ${taxesPaid} (last: ${dateFormat.format(new Date(lastTaxMissDate))})` : `Taxes paid: ${taxesPaid}`;
+            await this.twitchService.sendMessage(channel,
+                `Audit for ${targetUser.username}. ${taxesPaidText}, current streak: ${currentStreak}, longest streak: ${longestStreak}, last miss: ${lastTaxMissDate ? dateFormat.format(new Date(lastTaxMissDate)) : "-"}`);
         }
     }
 

@@ -48,7 +48,7 @@ export default class WeaponCommand extends Command {
         for (const duel of runningDuels) {
             if (duel.state === EventState.BoardingCompleted) {
                 if (duel.setWeapon(user, weapon)) {
-                    await this.twitchService.sendWhisper(user.username, Lang.get("duel.curentweapon", weapon));
+                    await this.twitchWebService.sendWhisper(user.username, Lang.get("duel.curentweapon", weapon));
                     return;
                 }
             }

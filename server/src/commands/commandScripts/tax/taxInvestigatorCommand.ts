@@ -2,21 +2,19 @@ import { Command } from "../../command";
 import { GameEventType, GameMessageType, IUser, UserLevels } from "../../../models";
 import { BotContainer } from "../../../inversify.config";
 import { UserTaxHistoryRepository, MessagesRepository } from "../../../database";
-import { TwitchWebService, UserService } from "../../../services";
+import { UserService } from "../../../services";
 import { BotSettings } from "../../../services/botSettingsService";
 import Logger, { LogType } from "../../../logger";
 
 export default class TaxInvestigatorCommand extends Command {
     private taxRepository: UserTaxHistoryRepository;
     private userService: UserService;
-    private twitchWebService: TwitchWebService;
     private messages: MessagesRepository;
 
     constructor() {
         super();
         this.taxRepository = BotContainer.get(UserTaxHistoryRepository);
         this.userService = BotContainer.get(UserService);
-        this.twitchWebService = BotContainer.get(TwitchWebService);
         this.messages = BotContainer.get(MessagesRepository);
         this.minimumUserLevel = UserLevels.Moderator;
     }
@@ -35,7 +33,7 @@ export default class TaxInvestigatorCommand extends Command {
         }
 
         try {
-            const chatters = await this.twitchService.getChatters();
+            const chatters = await this.twitchWebService.getChatters();
             taxEvader = await this.findTaxEvader(chatters.map(x => x.user_name), oneMonthAgo);
             if (taxEvader) {
                 await this.executePenalty(channel, taxEvader);
@@ -49,7 +47,7 @@ export default class TaxInvestigatorCommand extends Command {
     }
 
     private async executePenalty(channel: string, taxEvader: string) {
-        const penalty = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
+        const penalty = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
 
         let message = `${taxEvader} has not paid their taxes and is now given a penalty.`;
 
@@ -60,7 +58,7 @@ export default class TaxInvestigatorCommand extends Command {
         }
 
         await this.twitchService.sendMessage(channel, message);
-        await this.twitchService.banUser(taxEvader, penalty, "Tax evasion", true);
+        await this.twitchWebService.banUser(taxEvader, penalty, "Tax evasion", true);
     }
 
     private async findTaxEvader(users: string[], oneMonthAgo: Date): Promise<string|undefined> {

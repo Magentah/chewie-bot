@@ -2,13 +2,19 @@ export enum ProviderType {
     Twitch,
     Streamlabs,
     Youtube,
-    Spotify
+    Spotify,
+    DropBox
 }
 
-export interface IUserPrincipal {
-    username: string;
+export interface IUserAuth {
     accessToken: string;
     refreshToken: string;
-    providerType: ProviderType;
-    userId?: number;
+    scope: string;
+    type: ProviderType;
+    userId: number;
+}
+
+export interface IUserPrincipal extends IUserAuth {
+    username: string;
+    foreignUserId?: number;
 }

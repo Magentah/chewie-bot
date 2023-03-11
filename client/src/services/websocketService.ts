@@ -1,4 +1,4 @@
-import { UserLevels } from "../contexts/userContext";
+import { IUser } from "components/common/user";
 
 type WebsocketCallback = (event: ISocketMessage) => void;
 
@@ -73,29 +73,6 @@ export interface ISocketMessage {
     message: string;
     user?: IUser;
     username?: string;
-}
-
-interface IUser {
-    id?: number;
-    username: string;
-    idToken?: string;
-    refreshToken?: string;
-    points: number;
-    vipExpiry?: Date;
-    vipLastRequest?: Date;
-    vipLevelKey?: number;
-    vipLevel?: IVIPLevel;
-    userLevel?: UserLevels;
-    hasLogin: boolean;
-    streamlabsToken?: string;
-    streamlabsRefresh?: string;
-    spotifyRefresh?: string;
-}
-
-interface IVIPLevel {
-    id?: number;
-    name: string;
-    rank: number;
 }
 
 export enum SocketMessageType {

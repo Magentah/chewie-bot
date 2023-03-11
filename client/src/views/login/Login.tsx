@@ -95,7 +95,16 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
 
     const userContext = useContext(UserContext);
 
+    let authUrl = "/api/auth/twitch";
     const requireBroadcasterAuth = Cookies.get("broadcaster_user") === "1";
+    if (requireBroadcasterAuth) {
+        authUrl = "/api/auth/twitch/broadcaster";
+    } else {
+        const requireModAuth = Cookies.get("moderator_user") === "1";
+        if (requireModAuth) {
+            authUrl = "/api/auth/twitch/mod";
+        }
+    }
 
     let loginHeader : JSX.Element | undefined;
     let loginButton : JSX.Element | undefined;
@@ -112,7 +121,7 @@ const Login: React.FC<LoginProps> = (props: LoginProps) => {
             <Button
                 className={classes.button}
                 style={{ backgroundColor: "#9146ff" }}
-                href={requireBroadcasterAuth ? "/api/auth/twitch/broadcaster" : "/api/auth/twitch"}
+                href={authUrl}
                 startIcon={<FontAwesomeIcon icon={['fab', 'twitch']} />}
             >
                 Twitch Account

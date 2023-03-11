@@ -4,6 +4,7 @@ import BotSettingsService, { BotSettings } from "./botSettingsService";
 import SongService from "./songService";
 import { IBitsMessage, IDonationMessage, ISubscriptionMessage, SubscriptionPlan, SubType } from "./streamlabsService";
 import TwitchService from "../services/twitchService";
+import TwitchWebService from "../services/twitchWebService";
 import UserService from "../services/userService";
 import TaxService from "../services/taxService";
 import { PointLogType } from "../models/pointLog";
@@ -18,6 +19,7 @@ export default class RewardService {
         @inject(UserService) private userService: UserService,
         @inject(UsersRepository) private usersRepository: UsersRepository,
         @inject(TwitchService) private twitchService: TwitchService,
+        @inject(TwitchWebService) private twitchWebService: TwitchWebService,
         @inject(TaxService) private taxService: TaxService,
         @inject(BotSettingsService) private settings: BotSettingsService,
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
@@ -113,7 +115,7 @@ export default class RewardService {
 
         // Add user from Twitch chat as best effort (then we know that it is a valid user name at least).
         if (!user) {
-            if (await this.twitchService.userExists(username)) {
+            if (await this.twitchWebService.userExists(username)) {
                 user = await this.userService.addUser(username);
             }
         }

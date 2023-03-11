@@ -4,11 +4,12 @@ import Constants from "../constants";
 export enum TwitchAuthorizationLevel {
     Twitch = "twitch",
     TwitchBroadcaster = "twitch-broadcaster",
+    TwitchMod = "twitch-mod",
     TwitchBot = "twitch-bot",
 }
 
 class TwitchStrategy extends OAuth2Strategy {
-    constructor(options: OAuth2Strategy.StrategyOptions, verify: OAuth2Strategy.VerifyFunction, authLevel: TwitchAuthorizationLevel) {
+    constructor(options: OAuth2Strategy.StrategyOptionsWithRequest, verify: OAuth2Strategy.VerifyFunctionWithRequest, authLevel: TwitchAuthorizationLevel) {
         super(options, verify);
         options.authorizationURL = options.authorizationURL || Constants.TwitchAuthUrl;
         options.tokenURL = options.tokenURL || Constants.TwitchTokenUrl;

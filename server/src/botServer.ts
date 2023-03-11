@@ -30,9 +30,10 @@ import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
-import { IUser, UserLevels } from "./models";
+import { IUser, IUserAuth, ProviderType, UserLevels } from "./models";
 import TwitchPubSubService from "./services/twitchPubSubService";
 import DropboxService from "./services/dropboxService";
+import Constants from "./constants";
 
 const RedisStore = connectRedis(expressSession);
 
@@ -151,11 +152,54 @@ class BotServer extends Server {
         });
 
         // Login/Logout Routes
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.app.get("/api/isloggedin", async (req, res) => {
             if (!req.user) {
                 return res.status(200).json(UsersRepository.getAnonUser());
             } else {
-                return res.status(200).json(req.user);
+                const sessionUser = req.user as IUser;
+                const authStates = await BotContainer.get(UsersRepository).getUserAuthStatus(sessionUser.id ?? 0);
+                let missingBroadcasterPermissions: string[] = [];
+                let missingModPermissions: string[] = [];
+                let missingBotPermissions: string[] = [];
+
+                function getMissingPermissions(twitchAuth: IUserAuth | undefined, scopes: string) {
+                    if (twitchAuth !== undefined && twitchAuth.scope !== scopes) {
+                        const current = twitchAuth.scope.split(" ");
+                        const needed = scopes.split(" ");
+                        const missing = needed.filter(item => current.indexOf(item) < 0);
+                        return missing;
+                    }
+
+                    return [];
+                }
+
+                // Check if current authorized scopes are up-to-date
+                if (sessionUser.userLevel >= UserLevels.Moderator) {
+                    const twitchAuth = await BotContainer.get(UsersRepository).getUserAuth(sessionUser.id ?? 0, ProviderType.Twitch);
+
+                    switch (sessionUser.userLevel) {
+                        case UserLevels.Broadcaster:
+                            missingBroadcasterPermissions = getMissingPermissions(twitchAuth, Constants.TwitchBroadcasterScopes);
+                            break;
+
+                        case UserLevels.Moderator:
+                            missingModPermissions = getMissingPermissions(twitchAuth, Constants.TwitchModScopes);
+                            break;
+
+                        case UserLevels.Bot:
+                            missingBotPermissions = getMissingPermissions(twitchAuth, Constants.TwitchBotScopes);
+                            break;
+                    }
+                }
+
+                return res.status(200).json({
+                    ...sessionUser,
+                    authorizations: Object.fromEntries(authStates),
+                    missingBroadcasterPermissions,
+                    missingModPermissions,
+                    missingBotPermissions
+                });
             }
         });
         this.app.get("/api/logout", (req, res) => {
@@ -165,6 +209,7 @@ class BotServer extends Server {
             res.redirect("/");
         });
         // Allow setting custom user levels for debug purposes.
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.app.get("/api/debug", async (req, res) => {
             const sessionUser = req.user as IUser;
 
@@ -192,7 +237,7 @@ class BotServer extends Server {
                     const databaseService = BotContainer.get<DatabaseService>(DatabaseService);
                     const dropboxService = BotContainer.get<DropboxService>(DropboxService);
 
-                    const databaseFilename = await databaseService.createBackup();
+                    const databaseFilename = databaseService.createBackup();
                     if (databaseFilename) {
                         await dropboxService.uploadFile("db/backups", databaseFilename);
                         res.sendStatus(StatusCodes.ACCEPTED);

@@ -28,7 +28,7 @@ export class SudokuCommand extends Command {
                 if (newUser) {
                     user = newUser;
                 } else {
-                    if (await this.twitchService.userExists(targetUser)) {
+                    if (await this.twitchWebService.userExists(targetUser)) {
                         user = await this.userService.addUser(targetUser);
                     } else {
                         return;
@@ -41,7 +41,7 @@ export class SudokuCommand extends Command {
         }
 
         const timeoutLength = await this.settingsService.getIntValue(BotSettings.SudokuDuration);
-        await this.twitchService.banUser(user.username, timeoutLength, `${user.username} just got their guts spilled chewieSudoku`, true);
+        await this.twitchWebService.banUser(user.username, timeoutLength, `${user.username} just got their guts spilled chewieSudoku`, true);
         await this.twitchService.sendMessage(channel, `${user.username} just got their guts spilled chewieSudoku`);
 
         await this.eventLogService.addSudoku(user);

@@ -22,7 +22,7 @@ export class AddVipCommand extends Command {
         }
 
         if (!targetUser) {
-            if (await this.twitchService.userExists(targetUsername)) {
+            if (await this.twitchWebService.userExists(targetUsername)) {
                 targetUser = await this.userService.getUser(targetUsername);
             }
         }

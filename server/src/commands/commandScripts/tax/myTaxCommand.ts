@@ -24,13 +24,17 @@ export class MyTaxCommand extends Command {
 
             const paidTaxesCount = await this.taxRepository.getCountForUser(user.id ?? 0, TaxType.ChannelPoints);
             const taxStreak = await this.taxStreakRepository.get(user.id ?? 0);
+            const lastTax = await this.taxRepository.getLastTaxPayment(user.id ?? 0);
+            const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
+            const lastTaxFormatted = dateFormat.format(new Date(lastTax.taxRedemptionDate));
 
             if (!paidTaxesCount) {
-                this.twitchService.sendMessage(channel, `${user.username}, you have not yet paid taxes.`);
+                await this.twitchService.sendMessage(channel, `${user.username}, you have not yet paid taxes.`);
             } else if (taxStreak) {
-                this.twitchService.sendMessage(channel, `${user.username}, you have paid taxes ${paidTaxesCount} times total. Your current streak is ${taxStreak?.currentStreak} (longest: ${taxStreak?.longestStreak}).`);
+                await this.twitchService.sendMessage(channel,
+                    `${user.username}, you have paid taxes ${paidTaxesCount} times total (last: ${lastTaxFormatted}). Your current streak is ${taxStreak?.currentStreak} (longest: ${taxStreak?.longestStreak}).`);
             } else {
-                this.twitchService.sendMessage(channel, `${user.username}, you have paid taxes ${paidTaxesCount} times total.`);
+                await this.twitchService.sendMessage(channel, `${user.username}, you have paid taxes ${paidTaxesCount} times total (last: ${lastTaxFormatted}).`);
             }
         } else {
             Logger.warn(LogType.Twitch, "!mytax cannot be used because tax is not configured");
@@ -38,7 +42,7 @@ export class MyTaxCommand extends Command {
     }
 
     public async getDescription(): Promise<string> {
-        return `Displays your current tax track record. Usage: !mytax`;
+        return "Displays your current tax track record. Usage: !mytax";
     }
 }
 

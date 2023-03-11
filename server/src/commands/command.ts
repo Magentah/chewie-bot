@@ -1,5 +1,5 @@
 import { BotContainer } from "../inversify.config";
-import { BotSettingsService, TwitchService } from "../services";
+import { BotSettingsService, TwitchService, TwitchWebService } from "../services";
 import { IUser, UserLevels, ICommandAlias } from "../models";
 import { BotSettings } from "../services/botSettingsService";
 
@@ -9,10 +9,12 @@ export abstract class Command {
     protected twitchService: TwitchService;
     protected description = "";
     protected settingsService: BotSettingsService;
+    protected twitchWebService;
 
     constructor() {
         this.twitchService = BotContainer.get(TwitchService);
         this.settingsService = BotContainer.get(BotSettingsService);
+        this.twitchWebService = BotContainer.get(TwitchWebService);
     }
 
     public execute(channel: string, user: IUser, ...args: any[]): void {

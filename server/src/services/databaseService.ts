@@ -9,6 +9,7 @@ import { exec } from "child_process";
 
 export enum DatabaseTables {
     Users = "users",
+    UserAuth = "userAuthorization",
     TextCommands = "textCommands",
     Quotes = "quotes",
     Donations = "donations",
@@ -131,6 +132,7 @@ export class DatabaseService {
             Logger.info(LogType.Database, "Creating database tables");
             await this.createVIPLevelTable();
             await this.createUserTable();
+            await this.createAuthorizationTable();
             await this.createDonationsTable();
             await this.createTextCommandsTable();
             await this.createQuotesTable();
@@ -224,23 +226,25 @@ export class DatabaseService {
             table.foreign("vipLevelKey").references("id").inTable(DatabaseTables.VIPLevels);
             table.integer("userLevel").unsigned().notNullable().defaultTo(UserLevels.Viewer);
             table.string("username").notNullable();
-            table.string("refreshToken");
-            table.string("accessToken");
-            table.string("idToken");
             table.decimal("points").notNullable();
             table.dateTime("vipExpiry");
             table.integer("vipPermanentRequests");
             table.dateTime("vipLastRequest");
-            table.boolean("hasLogin").notNullable();
-            table.string("streamlabsToken");
-            table.string("streamlabsSocketToken");
-            table.string("streamlabsRefresh");
-            table.string("spotifyRefresh");
             table.integer("twitchProfileKey").unsigned().index();
             table.foreign("twitchProfileKey").references("id").inTable(DatabaseTables.TwitchUserProfile);
-            table.string("dropboxAccessToken");
-            table.string("dropboxRefreshToken");
             table.unique(this.raw("username COLLATE NOCASE"));
+        });
+    }
+
+    private async createAuthorizationTable(): Promise<void> {
+        return this.createTable(DatabaseTables.UserAuth, (table) => {
+            table.increments("id").primary().notNullable();
+            table.integer("userId").notNullable().references("id").inTable(DatabaseTables.Users).onDelete("CASCADE");
+            table.string("refreshToken");
+            table.string("accessToken");
+            table.string("scope");
+            table.string("type");
+            table.unique(["userId", "type"]);
         });
     }
 
@@ -567,8 +571,7 @@ export class DatabaseService {
                 username: broadcasterUsername,
                 userLevel: UserLevels.Broadcaster,
                 vipLevelKey: 1,
-                points: 0,
-                hasLogin: true,
+                points: 0
             };
 
             await this.db(DatabaseTables.Users).insert(user);

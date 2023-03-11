@@ -255,7 +255,7 @@ export default class TwitchEventService {
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");
                         } else {
                             const duration = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
-                            await this.twitchService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
+                            await this.twitchWebService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
                         }
                     } catch (err) {
@@ -268,7 +268,7 @@ export default class TwitchEventService {
                     try {
                         if (await this.twitchWebService.isUserModded(notificationEvent.user_input) === true) {
                             const duration = await this.settingsService.getIntValue(BotSettings.TimeoutDuration);
-                            await this.twitchService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
+                            await this.twitchWebService.banUser(notificationEvent.user_input, duration, "Channel point redemption");
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
                         } else{
                             await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "CANCELED");

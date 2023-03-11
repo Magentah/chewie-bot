@@ -1,18 +1,15 @@
-import axios, { AxiosRequestConfig } from "axios";
 import { inject, injectable } from "inversify";
 import * as tmi from "tmi.js";
 import { Logger, LogType } from "../logger";
-import { IServiceResponse, ResponseStatus, SocketMessageType, IUserPrincipal, ProviderType } from "../models";
+import { IServiceResponse, ResponseStatus, SocketMessageType } from "../models";
 import { Response } from "../helpers";
 import * as Config from "../config.json";
-import Constants from "../constants";
 // Required to do it this way instead of from "../services" due to inversify breaking otherwise
 import UserService from "../services/userService";
 import WebsocketService from "../services/websocketService";
 import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 import TwitchAuthService from "../services/twitchAuthService";
 import EventLogService from "./eventLogService";
-import TwitchWebService from "./twitchWebService";
 
 export interface IBotTwitchStatus {
     connected: boolean;
@@ -20,6 +17,9 @@ export interface IBotTwitchStatus {
 
 export type TwitchServiceProvider = () => Promise<TwitchService>;
 
+/**
+ * Service for interacting with Twitch IRC.
+ */
 @injectable()
 export class TwitchService {
     private client!: tmi.Client;
@@ -36,7 +36,6 @@ export class TwitchService {
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
         @inject(TwitchAuthService) private authService: TwitchAuthService,
         @inject(EventLogService) private eventLogService: EventLogService,
-        @inject(TwitchWebService) private webService: TwitchWebService
     ) {
         this.channel = `#${Config.twitch.broadcasterName}`;
     }
@@ -134,46 +133,6 @@ export class TwitchService {
     }
 
     /**
-     * Determines the last streamed category of a Twitch channel.
-     * @param channelName Channel to check
-     * @returns Streaming category
-     */
-    public async getLastChannelCategory(channelName: string): Promise<string> {
-        const accessDetails = await this.authService.getClientAccessTokenWithScopes(Constants.TwitchBroadcasterScopes);
-        const options = {
-            headers: {
-                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
-                "Client-Id": accessDetails.clientId,
-            },
-        };
-
-        const userId = await this.getUserId(channelName, options);
-        if (!userId) {
-            return "";
-        }
-
-        const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/channels?broadcaster_id=${userId}`, options);
-        if (!data?.data) {
-            return "";
-        }
-
-        return data.data[0].game_name;
-    }
-
-    /**
-     * Gets the list of current chatters in the broadcaster's channel.
-     */
-    public async getChatters(): Promise<{"user_id": string, "user_login": string, "user_name": string}[]> {
-        const endpoint = await this.getModEndpoint("chat/chatters");
-        const { data } = await axios.get(endpoint.url + "&first=1000", endpoint.options);
-        if (!data?.data) {
-            return [];
-        }
-
-        return data.data;
-    }
-
-    /**
      * Gets the list of active chatters (posted a message since start of stream).
      */
     public getActiveChatters(): string[] {
@@ -182,148 +141,6 @@ export class TwitchService {
 
     public clearActiveChatters() {
         this.activeChatters = [];
-    }
-
-    private async getUserId(username: string, options: any) : Promise<number | undefined> {
-        const userData = await axios.get(`${Constants.TwitchAPIEndpoint}/users?login=` + username, options);
-        if (!userData?.data?.data[0]?.id) {
-            return undefined;
-        }
-
-        return parseInt(userData?.data?.data[0]?.id, 10);
-    }
-
-    private async getUserAuth(username: string): Promise<{userId: number, options: AxiosRequestConfig}> {
-        const userPrincipial: IUserPrincipal | undefined = await this.users.getUserPrincipal(username, ProviderType.Twitch);
-        if (!userPrincipial || !userPrincipial.userId) {
-            throw new Error(`Missing auth for user ${username} authorization`);
-        }
-
-        const accessDetails = await this.authService.getUserAccessToken(userPrincipial);
-        const options = {
-            headers: {
-                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
-                "Client-Id": accessDetails.clientId,
-            },
-        };
-
-        return { userId: userPrincipial.userId ?? 0, options};
-    }
-
-    /**
-     * Determines the follow date for a user (broadcaster#s channel).
-     * @param username User to check
-     * @returns Date time of followage
-     */
-    public async getFollowInfo(username: string): Promise<string> {
-        const userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
-
-        const userId = await this.getUserId(username, userAuth.options);
-        if (!userId) {
-            return "";
-        }
-
-        const { data } = await axios.get(`${Constants.TwitchAPIEndpoint}/channels/followers?user_id=${userId}&broadcaster_id=${userAuth.userId}`, userAuth.options);
-        if (!data?.data || data.data.length === 0) {
-            return "";
-        }
-
-        return data.data[0].followed_at;
-    }
-
-    /**
-     * Checks if a user name is a valid Twitch user.
-     * @param username User name to check
-     * @returns true if user exists
-     */
-    public async userExists(username: string): Promise<boolean> {
-        const accessDetails = await this.authService.getClientAccessTokenWithScopes("");
-        const options = {
-            headers: {
-                "Authorization": `Bearer ${accessDetails.accessToken.token}`,
-                "Client-Id": accessDetails.clientId,
-            },
-        };
-        return (await this.getUserId(username, options)) !== undefined;
-    }
-
-    /**
-     * Sends a whisper message to a specific user.
-     * @param toUser Recipient
-     * @param message Message to send
-     */
-    public async sendWhisper(toUser: string, message: string): Promise<void> {
-        const botUser = await this.botSettingsService.getValue(BotSettings.BotUsername);
-        if (!botUser) {
-            return;
-        }
-
-        const userAuth = await this.getUserAuth(botUser);
-
-        const toUserId = await this.getUserId(toUser, userAuth.options);
-        if (!toUserId) {
-            throw new Error(`Whisper recipient ${toUser} not found`);
-        }
-
-        await axios.post(`${Constants.TwitchAPIEndpoint}/whispers?from_user_id=${userAuth.userId}&to_user_id=${toUserId}`, { message }, userAuth.options);
-    }
-
-    private async getModEndpoint(endpoint: string): Promise<{url: string, options: AxiosRequestConfig}> {
-        const userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
-
-        // Moderator must be the same user as used in authentication so we can only use the broadcaster here.
-        return { url: `${Constants.TwitchAPIEndpoint}/${endpoint}?broadcaster_id=${userAuth.userId}&moderator_id=${userAuth.userId}`, options: userAuth.options };
-    }
-
-    /**
-     * Ban or timeout a user in chat.
-     * @param banUser User to ban
-     * @param duration Duration of timeout in seconds (or 0 for ban)
-     * @param reason Reason for ban
-     */
-    public async banUser(banUser: string, duration: number | undefined, reason: string, remodAfterRecovery = false): Promise<void> {
-        const endpoint = await this.getModEndpoint("moderation/bans");
-
-        const banUserId = await this.getUserId(banUser, endpoint.options);
-        if (!banUserId) {
-            throw new Error(`Unknown user \"${banUser}\"`);
-        }
-
-        const data = {
-            user_id: banUserId,
-            duration,
-            reason
-        };
-
-        const needsRemod = remodAfterRecovery && duration && await this.webService.isUserModded(banUserId);
-        await axios.post(endpoint.url, { data }, endpoint.options);
-
-        if (needsRemod) {
-            setTimeout(() => void this.modUser(banUserId), duration * 1000);
-        }
-    }
-
-    /**
-     * Makes a user mod in the broadcaster's channel.
-     * @param userId User to mod
-     */
-    public async modUser(userId: number): Promise<void> {
-        if (!userId) {
-            return;
-        }
-
-        const userAuth = await this.getUserAuth(Config.twitch.broadcasterName);
-        await axios.post(`${Constants.TwitchAPIEndpoint}/moderation/moderators?broadcaster_id=${userAuth.userId}&user_id=${userId}`, { }, userAuth.options);
-    }
-
-    /**
-     * Announce a message in chat.
-     * @param message Message to display
-     * @param color Color for announcement banner
-     */
-    public async announce(message: string, color: "blue" | "green" | "orange" | "purple" | "primary" = "primary"): Promise<void> {
-        const endpoint = await this.getModEndpoint("chat/announcements");
-        await axios.post(endpoint.url, { message, color }, endpoint.options);
     }
 
     private async setupOptions(): Promise<tmi.Options> {

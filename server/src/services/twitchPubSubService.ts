@@ -167,17 +167,25 @@ export default class TwitchPubSubService {
      */
     private async listen(topic: string, type: "LISTEN" | "UNLISTEN"): Promise<void> {
         Logger.info(LogType.Twitch, `Listening to topic: ${topic}`);
-        const authToken = await this.getBroadcasterOAuth();
-        const channelId = await this.getBroadcasterChannelId();
-        const message = {
-            type,
-            nonce: CryptoHelper.generateNonce(),
-            data: {
-                topics: [`${topic}.${channelId}`],
-                auth_token: authToken,
-            },
-        };
-        this.sendMessage(message);
+        try {
+            const authToken = await this.getBroadcasterOAuth();
+            const channelId = await this.getBroadcasterChannelId();
+            if (!authToken) {
+                return;
+            }
+
+            const message = {
+                type,
+                nonce: CryptoHelper.generateNonce(),
+                data: {
+                    topics: [`${topic}.${channelId}`],
+                    auth_token: authToken,
+                },
+            };
+            this.sendMessage(message);
+        } catch (err : any){
+            Logger.err(LogType.Twitch, `Error when listening to topic: ${topic}`, err);
+        }
     }
 
     /**
