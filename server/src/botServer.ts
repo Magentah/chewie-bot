@@ -174,6 +174,7 @@ class BotServer extends Server {
                             break;
 
                         case UserLevels.Moderator:
+                        case UserLevels.Admin:
                             missingModPermissions = TwitchAuthService.getMissingPermissions(twitchAuth?.scope, Constants.TwitchModScopes);
                             break;
 

@@ -105,7 +105,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const hasModAuth = userContext.user.missingModPermissions?.length === 0;
     const connectModButton = (userContext.user.userLevel > UserLevels.Admin || userContext.user.userLevel < UserLevels.Moderator) ? undefined :
     <Button className={getStyle(hasModAuth)} href={"/api/auth/twitch/mod"} variant="contained" startIcon={<Image height="80%" width={"80%"} src={"/assets/Sword.svg"} />}
-            title={`Missing permissions: ${userContext.user.missingModPermissions?.join("\r\n") ?? ""}`}>
+            title={`Missing permissions: ${userContext.user.missingModPermissions?.join("\r\n") ?? "(None)"}`}>
         <Typography variant="caption">
             {hasModAuth ? "Mod authorized" : "Mod not authorized"}
         </Typography>
@@ -114,7 +114,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const hasBotAuth = userContext.user.missingBotPermissions?.length === 0;
     const connectBotButton = (userContext.user.userLevel !== UserLevels.Bot) ? undefined :
     <Button className={getStyle(hasBotAuth)} href={"/api/auth/twitch/bot"} variant="contained" startIcon={<SettingsIcon />}
-            title={`Missing permissions: ${userContext.user.missingBotPermissions?.join("\r\n") ?? ""}`}>
+            title={`Missing permissions: ${userContext.user.missingBotPermissions?.join("\r\n") ?? "(None)"}`}>
         <Typography variant="caption">
             {hasBotAuth ? "Bot authorized" : "Bot not authorized"}
         </Typography>
