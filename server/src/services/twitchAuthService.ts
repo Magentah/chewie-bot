@@ -81,6 +81,17 @@ export default class TwitchAuthService {
         return result;
     }
 
+    public static getMissingPermissions(existingScopes: string | undefined, scopes: string): string[] {
+        if (existingScopes !== undefined && existingScopes !== scopes) {
+            const current = existingScopes.split(" ");
+            const needed = scopes.split(" ");
+            const missing = needed.filter(item => current.indexOf(item) < 0);
+            return missing;
+        }
+
+        return [];
+    }
+
     private isValid(existingAuth: ITwitchAuthClientToken) {
         return new Date(existingAuth.accessToken.expiry) > new Date();
     }

@@ -400,13 +400,13 @@ export class TwitchWebService {
         await executor.executeFunction(HttpMethods.POST, `whispers?from_user_id=${executor.twitchUserId}&to_user_id=${toUserId}`, { message });
     }
 
-    private async getModEndpoint(endpoint: string, modUser = ""): Promise<{url: string, executor: ITwitchExecutor}> {
+    private async getModEndpoint(endpoint: string, modUser = "", requiredScopes = ""): Promise<{url: string, executor: ITwitchExecutor}> {
         let broadcasterId = 0;
         let executor: ITwitchUserExecutor | undefined;
         let needsBroadcasterAuth = true;
         if (modUser && modUser !== Config.twitch.broadcasterName) {
             try {
-                const modExecutor = await this.getUserExecutor(modUser);
+                const modExecutor = await this.getUserExecutor(modUser, requiredScopes);
                 if (modExecutor) {
                     executor = modExecutor;
 
@@ -492,7 +492,7 @@ export class TwitchWebService {
      * @param color Color for announcement banner
      */
     public async announce(username: string, message: string, color: "blue" | "green" | "orange" | "purple" | "primary" = "primary"): Promise<void> {
-        const endpoint = await this.getModEndpoint("chat/announcements", username);
+        const endpoint = await this.getModEndpoint("chat/announcements", username, Constants.TwitchModScopes);
         await endpoint.executor.executeFunction(HttpMethods.POST, endpoint.url, { message, color });
     }
 
@@ -516,11 +516,18 @@ export class TwitchWebService {
      *
      * @returns Object with the twitch user id and an executeFunction to call to execute the HTTP request.
      */
-    private async getUserExecutor(username: string): Promise<ITwitchUserExecutor | undefined> {
+    private async getUserExecutor(username: string, requiredScope = ""): Promise<ITwitchUserExecutor | undefined> {
         const userCtx = await this.userService.getUserPrincipal(username, ProviderType.Twitch);
         if (userCtx === undefined) {
             Logger.err(LogType.Twitch, "Unable to get create user auth headers. User context is undefined.");
             return;
+        }
+
+        // Check for needed scope and don't return auth if insufficient
+        if (requiredScope) {
+            if (TwitchAuthService.getMissingPermissions(userCtx.scope, requiredScope).length > 0) {
+                return;
+            }
         }
 
         const header = await this.getTokenFromUserPrincipal(userCtx);
@@ -537,7 +544,7 @@ export class TwitchWebService {
     }
 
     private async getBroadcasterExecutor(): Promise<ITwitchUserExecutor | undefined> {
-        return this.getUserExecutor(Config.twitch.broadcasterName);
+        return this.getUserExecutor(Config.twitch.broadcasterName, "");
     }
 
     private async getClientExecutor(): Promise<ITwitchExecutor | undefined> {

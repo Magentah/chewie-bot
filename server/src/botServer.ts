@@ -22,6 +22,7 @@ import {
     TaxService,
     AchievementService,
     DatabaseService,
+    TwitchAuthService,
 } from "./services";
 import { BotContainer } from "./inversify.config";
 import { TwitchMessageSignatureError } from "./errors";
@@ -163,32 +164,21 @@ class BotServer extends Server {
                 let missingModPermissions: string[] = [];
                 let missingBotPermissions: string[] = [];
 
-                function getMissingPermissions(twitchAuth: IUserAuth | undefined, scopes: string) {
-                    if (twitchAuth !== undefined && twitchAuth.scope !== scopes) {
-                        const current = twitchAuth.scope.split(" ");
-                        const needed = scopes.split(" ");
-                        const missing = needed.filter(item => current.indexOf(item) < 0);
-                        return missing;
-                    }
-
-                    return [];
-                }
-
                 // Check if current authorized scopes are up-to-date
                 if (sessionUser.userLevel >= UserLevels.Moderator) {
                     const twitchAuth = await BotContainer.get(UsersRepository).getUserAuth(sessionUser.id ?? 0, ProviderType.Twitch);
 
                     switch (sessionUser.userLevel) {
                         case UserLevels.Broadcaster:
-                            missingBroadcasterPermissions = getMissingPermissions(twitchAuth, Constants.TwitchBroadcasterScopes);
+                            missingBroadcasterPermissions = TwitchAuthService.getMissingPermissions(twitchAuth?.scope, Constants.TwitchBroadcasterScopes);
                             break;
 
                         case UserLevels.Moderator:
-                            missingModPermissions = getMissingPermissions(twitchAuth, Constants.TwitchModScopes);
+                            missingModPermissions = TwitchAuthService.getMissingPermissions(twitchAuth?.scope, Constants.TwitchModScopes);
                             break;
 
                         case UserLevels.Bot:
-                            missingBotPermissions = getMissingPermissions(twitchAuth, Constants.TwitchBotScopes);
+                            missingBotPermissions =TwitchAuthService. getMissingPermissions(twitchAuth?.scope, Constants.TwitchBotScopes);
                             break;
                     }
                 }
