@@ -8,6 +8,7 @@ import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
 import { EventLogService } from "./eventLogService";
 import { TwitchWebService } from "./twitchWebService";
+import OpenAiService from "./openAiService";
 import EventAggregator from "./eventAggregator";
 import SeasonsRepository from "../database/seasonsRepository";
 import UserService from "./userService";
@@ -27,6 +28,7 @@ export class SongService {
         @inject(UserService) private userService: UserService,
         @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(TwitchWebService) private twitchWebService: TwitchWebService,
+        @inject(OpenAiService) private openAiService: OpenAiService,
     ) {
         //
     }
@@ -168,6 +170,8 @@ export class SongService {
                 this.eventAggregator.publishAchievement({ user, type: AchievementType.SongRequests, count, seasonalCount });
             }
 
+            void this.addPlainSongTitle(song);
+
             return song;
         } catch (err) {
             if (err instanceof InvalidSongUrlError) {
@@ -176,6 +180,26 @@ export class SongService {
             } else {
                 throw err;
             }
+        }
+    }
+
+    /**
+     * Titles for music videos are quite messy to try to provide a cleaned up and translated song title here.
+     * @param song Song to update
+     */
+    private async addPlainSongTitle(song: ISong): Promise<void> {
+        const prompt = "Cleanup the following music video title. Remove irrelevant information like \"official video\", \"official MV\" etc. " +
+            "Think of what else can be removed and reduce title to the song name and artist (don't include artist if information is missing). " +
+            "Keep title of the TV show if included. If the song name is non-English, add a translation for the song name. \r\n" + song.title;
+        const result = await this.openAiService.generateText(prompt, false);
+        if (result) {
+            song.cleanTitle = result;
+
+            this.websocketService.send({
+                type: SocketMessageType.SongUpdated,
+                message: "Song Updated",
+                data: song
+            });
         }
     }
 

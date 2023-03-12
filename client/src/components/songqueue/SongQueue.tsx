@@ -50,14 +50,6 @@ const useStyles = makeStyles()((theme: Theme) => ({
 }));
 
 const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (props) => {
-    let duration = "";
-    if (props.value.duration) {
-        const ms = moment.duration(props.value.duration).asMilliseconds();
-        if (ms) {
-            duration = moment.utc(ms).format("HH:mm:ss");
-        }
-    }
-
     const playButton = props.value.source === SongSource.Spotify ? (<Grid item>
         <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
             <PlayCircleOutline />
@@ -81,9 +73,9 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
                                 </Link>
                             </Typography>
                         </Grid>
-                        {duration && <Grid>
+                        {props.value.cleanTitle && <Grid>
                             <Typography style={{ fontSize: 14, fontStyle: "italic" }}>
-                                Length: {duration}{" "}
+                                {props.value.cleanTitle}
                             </Typography>
                         </Grid>}
                     </Grid>
@@ -150,6 +142,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const [selectedTab, setSelectedTab] = React.useState(0);
     const [editingSong, setEditingSong] = useState<Song>();
     const [editingSongTitle, setEditingSongTitle] = useState<string>("");
+    const [editingSongCleanTitle, setEditingSongCleanTitle] = useState<string>("");
     const [editingSongComment, setEditingSongComment] = useState<string>("");
     const [editingSongRequester, setEditingSongRequester] = useState<string>("");
     const [editingSongUrl, setEditingSongUrl] = useState<string>("");
@@ -281,6 +274,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
     const handleEditSongClose = async (doSave: boolean) => {
         if (doSave && editingSong) {
             editingSong.title = editingSongTitle;
+            editingSong.cleanTitle = editingSongCleanTitle;
             editingSong.comments = editingSongComment;
             editingSong.requestedBy = editingSongRequester;
             editingSong.sourceUrl = editingSongUrl;
@@ -353,6 +347,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                     setEditingSongComment("");
                     setEditingSongRequester("");
                     setEditingSongTitle("");
+                    setEditingSongCleanTitle("");
                     setEditingSongUrl("");
                 }
             },
@@ -385,6 +380,7 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                         setEditingSongComment(song.comments);
                         setEditingSongRequester(song.requestedBy);
                         setEditingSongTitle(song.title);
+                        setEditingSongCleanTitle(song.cleanTitle ?? "");
                         setEditingSongUrl(song.sourceUrl);
                     }
                 }
@@ -454,6 +450,8 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
             <DialogContent>
                 <TextField autoFocus margin="dense" id="edit-title" label="Title" fullWidth variant="standard"
                     value={editingSongTitle} onChange={(e) => setEditingSongTitle(e.target.value)} />
+                <TextField margin="dense" id="edit-clean-title" label="Clean title" fullWidth variant="standard"
+                    value={editingSongCleanTitle} onChange={(e) => setEditingSongCleanTitle(e.target.value)} />
                 <TextField margin="dense" id="edit-comment" label="Comments" fullWidth variant="standard" multiline
                     value={editingSongComment} rows={4} onChange={(e) => setEditingSongComment(e.target.value)} />
                 <TextField margin="dense" id="edit-requester" label="Requested by" fullWidth variant="standard"

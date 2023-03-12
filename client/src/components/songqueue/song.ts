@@ -6,6 +6,7 @@ export enum SongSource {
 export default interface Song {
     id: number;
     title: string;
+    cleanTitle?: string;
     duration: number;
     requestedBy: string;
     requestSource: string;

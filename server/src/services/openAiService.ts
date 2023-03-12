@@ -8,7 +8,7 @@ export default class OpenAiService {
         // Empty
     }
 
-    public async generateText(input: string): Promise<string> {
+    public async generateText(input: string, beCreative: boolean): Promise<string> {
         const apiKey = await this.botSettings.getValue(BotSettings.OpenAiApiKey);
         if (!apiKey) {
             return "";
@@ -23,7 +23,8 @@ export default class OpenAiService {
 
         const completion = await openai.createChatCompletion({
             model: "gpt-3.5-turbo",
-            messages
+            messages,
+            temperature: beCreative ? undefined : 0
         });
 
         if (completion.data.choices.length === 0 || completion.data.choices[0].finish_reason !== "stop") {
@@ -33,12 +34,11 @@ export default class OpenAiService {
             msg = msg.trim();
 
             // When asked to write a messge, quotes can be included and we don't want these.
-            if (msg.startsWith("\"")) {
+            if (msg.startsWith("\"") && msg.endsWith("\"")) {
                 msg = msg.substring(1);
-            }
-            if (msg.endsWith("\"")) {
                 msg = msg.substring(0, msg.length - 2);
             }
+
             return msg;
         }
     }

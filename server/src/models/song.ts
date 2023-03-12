@@ -14,6 +14,7 @@ export interface ISong {
     previewUrl: string,
     requestTime: number,
     comments: string,
+    cleanTitle?: string,
     rewardEvent?: IRewardRedemeptionEvent,
 }
 
