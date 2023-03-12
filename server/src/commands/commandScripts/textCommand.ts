@@ -55,7 +55,7 @@ export class TextCommand extends Command {
                 const data = JSON.parse(msg) as IGenerateTextData;
 
                 try {
-                    msg = await this.openAiService.generateText(data.prompt);
+                    msg = await this.openAiService.generateText(data.prompt, true);
                 } catch (error: any) {
                     Logger.err(LogType.Command, error as Error);
                 }
