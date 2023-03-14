@@ -5,6 +5,7 @@ export enum ChannelPointRedemption {
     SongRequest = "Song request",
     Timeout = "Timeout",
     TimeoutMod = "Timeout mod",
+    Command = "Command",
 }
 
 export default interface IChannelPointReward {
@@ -17,6 +18,7 @@ export default interface IChannelPointReward {
     globalCooldown?: number;
     shouldSkipRequestQueue: boolean;
     associatedRedemption?: string;
+    arguments?: string;
     isDeleted: boolean;
     hasOwnership?: boolean;
 }

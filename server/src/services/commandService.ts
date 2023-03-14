@@ -19,7 +19,7 @@ export class CommandService {
         @inject("Commands") private commandList: Map<string, Command>,
         @inject(TwitchService) private twitchService: TwitchService
     ) {
-        this.twitchService.setCommandCallback((channel: string, username: string, message: string) => this.handleMessage(channel, username, message));
+        this.twitchService.setCommandCallback(async (channel: string, username: string, message: string) => await this.handleMessage(channel, username, message));
     }
 
     /**

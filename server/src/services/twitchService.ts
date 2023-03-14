@@ -26,7 +26,7 @@ export class TwitchService {
     public hasInitialized = false;
     private channel: string;
     private activeChatters: string[] = [];
-    private commandCallback!: (channel: string, username: string, message: string) => void;
+    private commandCallback!: (channel: string, username: string, message: string) => Promise<void>;
     private giftSubCallback!: (username: string, recipient: string, giftedMonths: number, plan: string | undefined) => Promise<void>;
     private subMysteryGiftCallback!: (username: string, giftedSubs: number, plan: string | undefined) => Promise<void>;
 
@@ -80,7 +80,7 @@ export class TwitchService {
         }
     }
 
-    public setCommandCallback(callback: (channel: string, username: string, message: string) => void) {
+    public setCommandCallback(callback: (channel: string, username: string, message: string) => Promise<void>) {
         this.commandCallback = callback;
     }
 
@@ -256,18 +256,16 @@ export class TwitchService {
             this.activeChatters.push(username);
         }
 
-        this.handleCommand(channel, username, message);
+        void this.handleCommand(channel, username, message);
     }
 
-    public invokeCommand(username: string, message: string) {
-        if (this.commandCallback) {
-            this.commandCallback(this.channel, username ?? "", message);
-        }
+    public async invokeCommand(username: string, message: string) {
+        await this.handleCommand(this.channel, username ?? "", message);
     }
 
-    private handleCommand(channel: string, username: string, message: string) {
+    private async handleCommand(channel: string, username: string, message: string) {
         if (this.commandCallback) {
-            this.commandCallback(channel, username, message);
+            await this.commandCallback(channel, username, message);
         }
     }
 

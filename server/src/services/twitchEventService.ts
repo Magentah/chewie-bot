@@ -287,6 +287,16 @@ export default class TwitchEventService {
                         // No cancel, but also no fulfill. Let mods handle it.
                     }
                     break;
+
+                case ChannelPointRedemption.Command:
+                    try {
+                        await this.twitchService.invokeCommand(notificationEvent.broadcaster_user_login, reward.arguments ?? "");
+                        await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+                    } catch (err) {
+                        Logger.err(LogType.TwitchEvents, "Could not execute command.", err);
+                        // No cancel, but also no fulfill. Let mods handle it.
+                    }
+                    break;
             }
         }
     }
