@@ -13,7 +13,7 @@ export default class ChannelPointRewardController {
 
     public async addAssociation(req: Request, res: Response): Promise<void> {
         try {
-            await this.channelPointRewardService.addChannelRewardRedemption(req.body.rewardEvent, req.body.channelPointRedemption);
+            await this.channelPointRewardService.addChannelRewardRedemption(req.body.rewardEvent, req.body.channelPointRedemption, req.body.arguments);
             res.sendStatus(HttpStatusCodes.OK);
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error occured in addAssociation.", error);
@@ -22,15 +22,14 @@ export default class ChannelPointRewardController {
     }
 
     public async getChannelRewards(req: Request, res: Response): Promise<void> {
+        let channelRewards: ITwitchChannelReward[];
         try {
-            const channelRewards = await this.channelPointRewardService.getChannelRewardsForBroadcaster();
-            res.status(HttpStatusCodes.OK).send(channelRewards);
+            channelRewards = await this.channelPointRewardService.getChannelRewardsForBroadcaster();
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error occured in getChannelRewards", error);
-            res.status(HttpStatusCodes.OK);
 
             // Return something for now. Taken from documentation page.
-            res.send([{
+            channelRewards = [{
                 "broadcaster_name": "torpedo09",
                 "broadcaster_login": "torpedo09",
                 "broadcaster_id": "274637212",
@@ -64,8 +63,21 @@ export default class ChannelPointRewardController {
                 "should_redemptions_skip_request_queue": false,
                 "redemptions_redeemed_current_stream": null,
                 "cooldown_expires_at": null,
-            }]);
+            }];
         }
+
+        // Find associated redemptions in our database and add this information to the Twitch data
+        const associations = await this.channelPointRewardService.getAllChannelRewards();
+        channelRewards = channelRewards.map((r: ITwitchChannelReward) => {
+            const foundReward = associations.find((channelPointReward) => channelPointReward.twitchRewardId === r.id);
+            return {...r,
+                associatedRedemption: foundReward?.associatedRedemption ?? ChannelPointRedemption.None,
+                arguments: foundReward?.arguments,
+                hasOwnership: foundReward?.hasOwnership
+            }
+        });
+
+        res.status(HttpStatusCodes.OK).send(channelRewards);
     }
 
     public getRedemptions(req: Request, res: Response): void {
@@ -103,7 +115,8 @@ export default class ChannelPointRewardController {
     public async addChannelReward(req: Request, res: Response): Promise<void> {
         try {
             const redemption = req.body.associatedRedemption as string;
-            const channelReward = await this.channelPointRewardService.createChannelReward(req.body.title, req.body.cost, redemption);
+            const args = req.body.arguments as string;
+            const channelReward = await this.channelPointRewardService.createChannelReward(req.body.title, req.body.cost, redemption, args);
             res.status(HttpStatusCodes.OK).send({...channelReward, redemption});
         } catch (error: any) {
             Logger.err(LogType.Twitch, "Error in addChannelReward", error);

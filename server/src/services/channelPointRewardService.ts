@@ -28,7 +28,7 @@ export default class ChannelPointRewardService {
      * @param channelPointReward The Twitch Channel Point Reward that will be redeemed.
      * @param redemption The redemption to associate with the Twitch Channel Point Reward
      */
-    public async addChannelRewardRedemption(channelPointReward: ITwitchChannelReward, redemption: ChannelPointRedemption): Promise<void> {
+    public async addChannelRewardRedemption(channelPointReward: ITwitchChannelReward, redemption: ChannelPointRedemption, commandArguments: string): Promise<void> {
         const newChannelRewardRedemption: IChannelPointReward = {
             twitchRewardId: channelPointReward.id,
             title: channelPointReward.title,
@@ -38,6 +38,7 @@ export default class ChannelPointRewardService {
             globalCooldown: channelPointReward.global_cooldown_setting.global_cooldown_seconds,
             shouldSkipRequestQueue: channelPointReward.should_redemptions_skip_request_queue,
             associatedRedemption: redemption,
+            arguments: commandArguments,
             isDeleted: false,
         };
 
@@ -48,7 +49,7 @@ export default class ChannelPointRewardService {
      * Creates a new channel point reward for the broadcaster.
      * @returns Created channel point reward
      */
-    public async createChannelReward(title: string, cost: number, associatedRedemption: string): Promise<ITwitchChannelReward | undefined> {
+    public async createChannelReward(title: string, cost: number, associatedRedemption: string, commandArguments: string): Promise<ITwitchChannelReward | undefined> {
         const reward: ITwitchAddChannelReward = {
             title,
             cost
@@ -65,7 +66,8 @@ export default class ChannelPointRewardService {
                 shouldSkipRequestQueue: resultAward.should_redemptions_skip_request_queue ?? false,
                 isDeleted: false,
                 hasOwnership: true,
-                associatedRedemption
+                associatedRedemption,
+                arguments: commandArguments
             });
         }
 
