@@ -70,8 +70,12 @@ export default class TaxAuditCommand extends Command {
 
         // Optional: Save audited tax.
         if (save === "save" && targetUser.id) {
-            await this.taxStreakRepository.updateStreak(targetUser.id, lastTaxRedemptionId, currentStreak, longestStreak);
-            await this.twitchService.sendMessage(channel, `Tax streak for ${targetUser.username} saved: Current streak: ${currentStreak}, longest streak: ${longestStreak}`);
+            if (lastTaxRedemptionId) {
+                await this.taxStreakRepository.updateStreak(targetUser.id, lastTaxRedemptionId, currentStreak, longestStreak);
+                await this.twitchService.sendMessage(channel, `Tax streak for ${targetUser.username} saved: Current streak: ${currentStreak}, longest streak: ${longestStreak}`);
+            } else {
+                await this.twitchService.sendMessage(channel, `No tax streak for ${targetUser.username} saved since no taxes have been paid.`);
+            }
         } else {
             const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
             const taxesPaidText = lastTaxDate ? `Taxes paid: ${taxesPaid} (last: ${dateFormat.format(new Date(lastTaxMissDate))})` : `Taxes paid: ${taxesPaid}`;
