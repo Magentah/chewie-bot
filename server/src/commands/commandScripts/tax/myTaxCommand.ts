@@ -26,15 +26,15 @@ export class MyTaxCommand extends Command {
             const taxStreak = await this.taxStreakRepository.get(user.id ?? 0);
             const lastTax = await this.taxRepository.getLastTaxPayment(user.id ?? 0);
             const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short" });
-            const lastTaxFormatted = dateFormat.format(new Date(lastTax.taxRedemptionDate));
+            const lastTaxFormatted = lastTax ? ` (last: ${dateFormat.format(new Date(lastTax.taxRedemptionDate))})` : "";
 
             if (!paidTaxesCount) {
                 await this.twitchService.sendMessage(channel, `${user.username}, you have not yet paid taxes.`);
             } else if (taxStreak) {
                 await this.twitchService.sendMessage(channel,
-                    `${user.username}, you have paid taxes ${paidTaxesCount} times total (last: ${lastTaxFormatted}). Your current streak is ${taxStreak?.currentStreak} (longest: ${taxStreak?.longestStreak}).`);
+                    `${user.username}, you have paid taxes ${paidTaxesCount} times total${lastTaxFormatted}. Your current streak is ${taxStreak?.currentStreak} (longest: ${taxStreak?.longestStreak}).`);
             } else {
-                await this.twitchService.sendMessage(channel, `${user.username}, you have paid taxes ${paidTaxesCount} times total (last: ${lastTaxFormatted}).`);
+                await this.twitchService.sendMessage(channel, `${user.username}, you have paid taxes ${paidTaxesCount} times total${lastTaxFormatted}`);
             }
         } else {
             Logger.warn(LogType.Twitch, "!mytax cannot be used because tax is not configured");

@@ -33,7 +33,7 @@ export default class UserTaxHistoryRepository {
         return returnUserTaxHistory;
     }
 
-    public async getLastTaxPayment(userId: number): Promise<IDBUserTaxHistory> {
+    public async getLastTaxPayment(userId: number): Promise<IDBUserTaxHistory | undefined> {
         const databaseService = await this.databaseProvider();
         const returnUserTaxHistory = await databaseService
             .getQueryBuilder(DatabaseTables.UserTaxHistory)
