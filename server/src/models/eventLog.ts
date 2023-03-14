@@ -27,5 +27,6 @@ export enum EventLogType {
     CardTrading = "cardtrading",
     Sudoku = "sudoku",
     RedeemCommand = "redeem",
-    Debug = "debug"
+    Debug = "debug",
+    TaxEvasion = "taxevasion"
 }
