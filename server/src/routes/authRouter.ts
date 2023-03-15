@@ -189,7 +189,7 @@ export function setupPassport(): void {
                             refreshToken,
                             scope: "",
                             type: ProviderType.DropBox,
-                            userId: sessionUser.id ?? 0
+                            userId: sessionUser.id ?? 0,
                         });
                     }
                     const account = {
@@ -322,17 +322,7 @@ authRouter.get("/api/auth/spotify/callback", passport.authorize("spotify", { fai
 });
 
 authRouter.get("/api/auth/dropbox", passport.authorize("dropbox"));
-authRouter.get("/api/auth/dropbox/redirect", passport.authorize("dropbox", { failureRedirect: "/" }), async (req, res) => {
-    const user = req.user as IUser;
-    if (user && req.account) {
-        await BotContainer.get(UserService).updateAuth({
-            accessToken: req.account.accessToken,
-            refreshToken: req.account.refreshToken,
-            scope: "",
-            type: ProviderType.DropBox,
-            userId: user.id ?? 0
-        });
-    }
+authRouter.get("/api/auth/dropbox/redirect", passport.authorize("dropbox", { failureRedirect: "/" }), (req, res) => {
     res.redirect("/");
 });
 authRouter.get("/api/auth/dropbox/disconnect", async (req, res) => {

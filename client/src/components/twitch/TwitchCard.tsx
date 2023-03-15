@@ -89,8 +89,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         backgroundColor: blue[700],
         "&:hover": {
             backgroundColor: blue[900],
-        },
-        marginRight: "12px",
+        }
     },
 
     backupStatusAlert: {
@@ -175,12 +174,6 @@ const TwitchCard: React.FC<any> = (props: any) => {
         setBackupStatusOpen(false);
     };
 
-    const backupButton = (
-        <Button className={classes.createBackupButton} onClick={createBackup} variant="contained">
-            <Typography variant="caption">Create a database backup</Typography>
-        </Button>
-    );
-
     const backupStatus = (
         <Snackbar open={backupStatusOpen} autoHideDuration={2000} onClose={handleBackupStatusClose} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
             <SnackbarContent className={classes.backupStatusAlert} message={backupStatusMessage} />
@@ -192,7 +185,7 @@ const TwitchCard: React.FC<any> = (props: any) => {
             {backupStatus}
             <CardContent>
                 <Grid container>
-                    <Grid item xs={6}>
+                    <Grid item xs={12}>
                         <Grid item xs={12}>
                             <Typography className={classes.title} color="textSecondary" gutterBottom>
                                 Authorizations
@@ -278,19 +271,11 @@ const TwitchCard: React.FC<any> = (props: any) => {
                                     <Button onClick={() => disconnectService("/api/auth/dropbox/disconnect")} disabled={!userContext.user.authorizations[ProviderType.DropBox]}>
                                         Disconnect
                                     </Button>
+                                    <Button className={classes.createBackupButton} onClick={createBackup} variant="contained" disabled={!userContext.user.authorizations[ProviderType.DropBox]}>
+                                        <Typography>Create backup</Typography>
+                                    </Button>
                                 </ButtonGroup>
                             </Grid>
-                        </Grid>
-                        {/*  */}
-                    </Grid>
-                    <Grid item xs={6}>
-                        <Grid item xs={12}>
-                            <Typography className={classes.title} color="textSecondary" gutterBottom>
-                                Backup
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={12}>
-                            {backupButton}
                         </Grid>
                     </Grid>
                 </Grid>
