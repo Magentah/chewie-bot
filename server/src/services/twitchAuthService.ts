@@ -31,14 +31,15 @@ export default class TwitchAuthService {
     public async getClientAccessTokenWithScopes(scopes: string): Promise<ITwitchAuthClientToken> {
         const clientId = Config.twitch.clientId;
         const clientSecret = Config.twitch.clientSecret;
-        const { data } = await axios.post(
-            `${Constants.TwitchTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=${scopes}`
-        );
 
         const existingAuth = this.clientAccess.get(scopes);
         if (existingAuth !== undefined && this.isValid(existingAuth)) {
             return existingAuth;
         }
+
+        const { data } = await axios.post(
+            `${Constants.TwitchTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials&scope=${scopes}`
+        );
 
         const result = {
             accessToken: {
@@ -57,14 +58,15 @@ export default class TwitchAuthService {
     public async getUserAccessToken(userPrincipal: IUserPrincipal): Promise<ITwitchAuthUserToken> {
         const clientId = Config.twitch.clientId;
         const clientSecret = Config.twitch.clientSecret;
-        const { data } = await axios.post(
-            `${Constants.TwitchTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&grant_type=refresh_token&refresh_token=${userPrincipal.refreshToken}`
-        );
 
         const existingAuth = this.userAccess.get(userPrincipal.refreshToken);
         if (existingAuth !== undefined && this.isValid(existingAuth)) {
             return existingAuth;
         }
+
+        const { data } = await axios.post(
+            `${Constants.TwitchTokenUrl}?client_id=${clientId}&client_secret=${clientSecret}&grant_type=refresh_token&refresh_token=${userPrincipal.refreshToken}`
+        );
 
         const result = {
             accessToken: {

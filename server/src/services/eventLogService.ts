@@ -43,6 +43,11 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
+    public async addTaxEvasion(user: IUser) {
+        const log = this.createLog(EventLogType.TaxEvasion, user, {});
+        await this.eventLogs.add(log);
+    }
+
     public async addSongPlayed(user: IUser | string, song: ISong): Promise<void> {
         if (!Config.log.enabledEventLogs.song.played) {
             return;

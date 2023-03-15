@@ -227,7 +227,16 @@ export default class TwitchEventService {
                                         }
 
                                         if (countInQueue >= maxSongs) {
-                                            await this.twitchWebService.updateChannelReward(notificationEvent.reward.id, { is_paused: true });
+                                            try {
+                                                await this.twitchWebService.updateChannelReward(notificationEvent.reward.id, { is_paused: true });
+                                            } catch (err: any) {
+                                                Logger.err(LogType.TwitchEvents, err);
+
+                                                await this.twitchService.sendMessage(
+                                                    notificationEvent.broadcaster_user_login,
+                                                    `Notice: Channel point redemption "${notificationEvent.reward.title}" could not be paused automatically.`
+                                                );
+                                            }
                                         }
                                     }
                                 }

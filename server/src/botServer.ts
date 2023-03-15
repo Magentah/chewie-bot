@@ -228,7 +228,7 @@ class BotServer extends Server {
                     const databaseService = BotContainer.get<DatabaseService>(DatabaseService);
                     const dropboxService = BotContainer.get<DropboxService>(DropboxService);
 
-                    const databaseFilename = databaseService.createBackup();
+                    const databaseFilename = await databaseService.createBackup();
                     if (databaseFilename) {
                         await dropboxService.uploadFile("db/backups", databaseFilename);
                         res.sendStatus(StatusCodes.ACCEPTED);

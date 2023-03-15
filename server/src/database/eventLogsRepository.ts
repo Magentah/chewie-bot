@@ -79,7 +79,7 @@ export class EventLogsRepository {
         pruneDate.setDate(-pruneDays);
         await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
             .where("time", "<", pruneDate)
-            .whereNotIn("type", [EventLogType.SongRequest, EventLogType.Sudoku, EventLogType.RedeemCommand, EventLogType.SongPlayed])
+            .whereNotIn("type", [EventLogType.SongRequest, EventLogType.Sudoku, EventLogType.RedeemCommand, EventLogType.SongPlayed, EventLogType.TaxEvasion])
             .delete();
     }
 }

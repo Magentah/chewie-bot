@@ -2,7 +2,7 @@ import { Command } from "../../command";
 import { GameEventType, GameMessageType, IUser, UserLevels } from "../../../models";
 import { BotContainer } from "../../../inversify.config";
 import { UserTaxHistoryRepository, MessagesRepository } from "../../../database";
-import { UserService } from "../../../services";
+import { EventLogService, UserService } from "../../../services";
 import { BotSettings } from "../../../services/botSettingsService";
 import Logger, { LogType } from "../../../logger";
 
@@ -10,12 +10,14 @@ export default class TaxInvestigatorCommand extends Command {
     private taxRepository: UserTaxHistoryRepository;
     private userService: UserService;
     private messages: MessagesRepository;
+    private eventLog: EventLogService;
 
     constructor() {
         super();
         this.taxRepository = BotContainer.get(UserTaxHistoryRepository);
         this.userService = BotContainer.get(UserService);
         this.messages = BotContainer.get(MessagesRepository);
+        this.eventLog = BotContainer.get(EventLogService);
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
@@ -59,6 +61,10 @@ export default class TaxInvestigatorCommand extends Command {
 
         await this.twitchService.sendMessage(channel, message);
         await this.twitchWebService.banUser(taxEvader, penalty, "Tax evasion", true);
+
+        // User names come from Twitch API so we can safely add it if user does not exist yet and log
+        const user = await this.userService.addUser(taxEvader);
+        await this.eventLog.addTaxEvasion(user);
     }
 
     private async findTaxEvader(users: string[], oneMonthAgo: Date): Promise<string|undefined> {

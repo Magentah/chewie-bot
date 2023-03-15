@@ -602,21 +602,23 @@ export class DatabaseService {
         return this.db.raw(value);
     }
 
-    public createBackup(callback?: (error: any, stderr: any, stdout: any) => Promise<void>): string | undefined {
-        Logger.info(LogType.Backup, "Backing up database.");
-        if (Config.database.client === "sqlite3") {
-            const now = moment();
-            const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup.gz`;
-            exec("mkdir db/backups");
-            exec(`sqlite3 ${Config.database.connection.name} .dump | gzip > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
-                if (callback) {
-                    void callback(err, stderr, stdout);
-                }
-                return filename;
-            });
-        }
-
-        return undefined;
+    public async createBackup(callback?: (error: any, stderr: any, stdout: any) => Promise<void>): Promise<string | undefined> {
+        return new Promise<string | undefined>((resolve, reject) => {
+            Logger.info(LogType.Backup, "Backing up database.");
+            if (Config.database.client === "sqlite3") {
+                const now = moment();
+                const filename = `${now.format("YYYY-MM-DD-HH-mm-ss")}.chewiedb.backup.gz`;
+                exec("mkdir db/backups");
+                exec(`sqlite3 ${Config.database.connection.name} .dump | gzip > 'db/backups/${filename}'`, (err: any, stderr: any, stdout: any) => {
+                    if (callback) {
+                        void callback(err, stderr, stdout);
+                    }
+                    resolve(filename);
+                });
+            } else {
+                resolve(undefined);
+            }
+        });
     }
 }
 
