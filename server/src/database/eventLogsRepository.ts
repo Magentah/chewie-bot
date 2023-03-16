@@ -64,7 +64,7 @@ export class EventLogsRepository {
     public async getUsers(type: EventLogType, sinceDate: Date = new Date(0)): Promise<string[]> {
         const databaseService = await this.databaseProvider();
         const users = (await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
-            .select().where({ type }).andWhere("time", ">=", sinceDate).pluck("username")) as string[];
+            .select().where({ type }).andWhere("time", ">=", sinceDate).distinct().pluck("username")) as string[];
         return users;
     }
 
