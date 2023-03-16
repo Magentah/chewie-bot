@@ -26,8 +26,14 @@ export default class TaxInvestigatorCommand extends Command {
         const oneMonthAgo = new Date();
         oneMonthAgo.setDate(oneMonthAgo.getDate() - 31);
 
+        // Also find recently punished offenders (avoid timing them out twice).
+        const dateMinusTimeout = new Date();
+        const penaltyDuration = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
+        dateMinusTimeout.setSeconds(dateMinusTimeout.getSeconds() - penaltyDuration);
+        const users = (await this.eventLog.getTaxPenaltiesSince(dateMinusTimeout)).map(x => x.toLowerCase());
+
         // Start with people currently active in chat
-        const activeChatters = this.twitchService.getActiveChatters();
+        const activeChatters = this.twitchService.getActiveChatters().filter((el)  => !users.includes(el.toLowerCase()));
         let taxEvader = await this.findTaxEvader(activeChatters, oneMonthAgo);
         if (taxEvader) {
             await this.executePenalty(channel, taxEvader);
@@ -35,7 +41,7 @@ export default class TaxInvestigatorCommand extends Command {
         }
 
         try {
-            const chatters = await this.twitchWebService.getChatters();
+            const chatters = (await this.twitchWebService.getChatters()).filter((el)  => !users.includes(el.user_login.toLowerCase()));
             taxEvader = await this.findTaxEvader(chatters.map(x => x.user_name), oneMonthAgo);
             if (taxEvader) {
                 await this.executePenalty(channel, taxEvader);
