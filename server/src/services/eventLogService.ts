@@ -167,6 +167,10 @@ export class EventLogService {
         return await this.eventLogs.getCount(type, user, sinceDate);
     }
 
+    public async getTaxPenaltiesSince(sinceDate: Date): Promise<string[]> {
+        return await this.eventLogs.getUsers(EventLogType.TaxEvasion, sinceDate);
+    }
+
     private createLog(type: EventLogType, user: IUser | string | undefined, data: object | object[]): IEventLog {
         if (typeof(user) === "string") {
             const log: IEventLog = {

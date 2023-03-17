@@ -31,7 +31,7 @@ import { StatusCodes } from "http-status-codes";
 import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
-import { IUser, IUserAuth, ProviderType, UserLevels } from "./models";
+import { IUser, ProviderType, UserLevels } from "./models";
 import TwitchPubSubService from "./services/twitchPubSubService";
 import DropboxService from "./services/dropboxService";
 import Constants from "./constants";

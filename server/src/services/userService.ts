@@ -253,7 +253,7 @@ export class UserService {
 
             default:
                 if (!userAuth?.accessToken || !userAuth?.refreshToken) {
-                    Logger.err(LogType.Streamlabs, `${providerType} tokens are not setup.`);
+                    Logger.err(LogType.OAuth, `${providerType} tokens are not setup.`);
                     return undefined;
                 }
                 userPrincipal.accessToken = userAuth.accessToken;

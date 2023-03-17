@@ -6,6 +6,7 @@ import { Logger, LogType } from "../logger";
 import Constants from "../constants";
 import { StatusCodes } from "http-status-codes";
 import { ProviderType } from "../models";
+import * as Config from "./../config.json";
 
 @injectable()
 export class DropboxService {
@@ -24,13 +25,18 @@ export class DropboxService {
 
                 const userAuth = await this.users.getUserPrincipal(user?.username, ProviderType.DropBox);
                 if (userAuth && userAuth.accessToken) {
+                    // Access tokens are now short-lived, get a new one each time.
+                    const result = await axios.post(
+                        `${Constants.DropboxTokenUrl}?client_id=${Config.dropbox.clientId}&client_secret=${Config.dropbox.clientSecret}&grant_type=refresh_token&refresh_token=${userAuth.refreshToken}`
+                    );
+
                     const dropboxApiArgs = {
                         "path": `/backups/${name}`,
                         "mode": "add",
                     };
                     const options: AxiosRequestConfig = {
                         headers: {
-                            "Authorization": `Bearer ${userAuth.accessToken}`,
+                            "Authorization": `Bearer ${result.data.access_token}`,
                             "Content-Type": "application/octet-stream",
                             "Dropbox-API-Arg": JSON.stringify(dropboxApiArgs),
                         },

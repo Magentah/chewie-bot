@@ -26,26 +26,48 @@ export default class TaxInvestigatorCommand extends Command {
         const oneMonthAgo = new Date();
         oneMonthAgo.setDate(oneMonthAgo.getDate() - 31);
 
-        // Start with people currently active in chat
-        const activeChatters = this.twitchService.getActiveChatters();
-        let taxEvader = await this.findTaxEvader(activeChatters, oneMonthAgo);
-        if (taxEvader) {
-            await this.executePenalty(channel, taxEvader);
+        // Try finding a tax evader that has not recently been timed out first.
+        const last24Hours = new Date();
+        last24Hours.setHours(last24Hours.getHours() - 24);
+        let userFilter = (await this.eventLog.getTaxPenaltiesSince(last24Hours)).map(x => x.toLowerCase());
+
+        if (await this.findTaxEvaders(channel, oneMonthAgo, userFilter)) {
             return;
         }
 
+        // Next at least avoid those that are currently timed out because of tax evasion.
+        const dateMinusTimeout = new Date();
+        const penaltyDuration = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
+        dateMinusTimeout.setSeconds(dateMinusTimeout.getSeconds() - penaltyDuration);
+        userFilter = (await this.eventLog.getTaxPenaltiesSince(dateMinusTimeout)).map(x => x.toLowerCase());
+        if (await this.findTaxEvaders(channel, oneMonthAgo, userFilter)) {
+            return;
+        }
+
+        await this.twitchService.sendMessage(channel, "No tax evaders found, everyone is safe...for now.");
+    }
+
+    private async findTaxEvaders(channel: string, oneMonthAgo: Date, userFilter: string[]) {
+        // Start with people currently active in chat
+        const activeChatters = this.twitchService.getActiveChatters().filter((el)  => !userFilter.includes(el.toLowerCase()));
+        let taxEvader = await this.findTaxEvader(activeChatters, oneMonthAgo);
+        if (taxEvader) {
+            await this.executePenalty(channel, taxEvader);
+            return true;
+        }
+
         try {
-            const chatters = await this.twitchWebService.getChatters();
+            const chatters = (await this.twitchWebService.getChatters()).filter((el)  => !userFilter.includes(el.user_login.toLowerCase()));
             taxEvader = await this.findTaxEvader(chatters.map(x => x.user_name), oneMonthAgo);
             if (taxEvader) {
                 await this.executePenalty(channel, taxEvader);
-                return;
+                return true;
             }
         } catch (error : any) {
             Logger.err(LogType.Command, error);
         }
 
-        await this.twitchService.sendMessage(channel, "No tax evaders found, everyone is safe...for now.");
+        return false;
     }
 
     private async executePenalty(channel: string, taxEvader: string) {

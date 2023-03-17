@@ -9,9 +9,14 @@ class DropboxStrategy extends OAuth2Strategy {
 
         this._oauth2.useAuthorizationHeaderforGET(false);
         this.name = "dropbox";
+        this.authorizationParams = () => {
+            return {
+              "token_access_type" : "offline"
+            };
+        };
     }
 
-    public async userProfile(accessToken: string, done: (err?: Error | null | undefined, profile?: any) => void): Promise<void> {
+    public userProfile(accessToken: string, done: (err?: Error | null | undefined, profile?: any) => void): void {
         done(undefined, { accessToken });
     }
 }
