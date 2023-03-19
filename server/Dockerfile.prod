@@ -25,7 +25,7 @@ WORKDIR /usr/src/chewiebot/server
 # Copy src
 COPY . .
 # Install and run typescript
-RUN npm install -g typescript
+RUN npm install -g typescript@"^4.5.5"
 RUN tsc
 
 # --- Production ---
