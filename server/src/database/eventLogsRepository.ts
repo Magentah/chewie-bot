@@ -82,6 +82,7 @@ export class EventLogsRepository {
             .leftJoin(DatabaseTables.Users, "eventLogs.userId", "users.id")
             .groupBy("userId")
             .limit(maxCount)
+            .orderBy("count", "desc")
             .select(["users.username", databaseService.raw("COUNT(userId) AS count")])) as {username: string, count: number}[];
         return count;
     }
