@@ -8,7 +8,6 @@ import * as Config from "../config.json";
 import UserService from "../services/userService";
 import WebsocketService from "../services/websocketService";
 import BotSettingsService, { BotSettings } from "../services/botSettingsService";
-import TwitchAuthService from "../services/twitchAuthService";
 import EventLogService from "./eventLogService";
 
 export interface IBotTwitchStatus {
@@ -34,7 +33,6 @@ export class TwitchService {
         @inject(UserService) private users: UserService,
         @inject(WebsocketService) private websocketService: WebsocketService,
         @inject(BotSettingsService) private botSettingsService: BotSettingsService,
-        @inject(TwitchAuthService) private authService: TwitchAuthService,
         @inject(EventLogService) private eventLogService: EventLogService,
     ) {
         this.channel = `#${Config.twitch.broadcasterName}`;
@@ -259,7 +257,7 @@ export class TwitchService {
         void this.handleCommand(channel, username, message);
     }
 
-    public async invokeCommand(username: string, message: string) {
+    public async invokeCommand(username: string, message: string): Promise<void> {
         await this.handleCommand(this.channel, username ?? "", message);
     }
 

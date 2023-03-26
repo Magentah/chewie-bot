@@ -290,7 +290,9 @@ export default class TwitchEventService {
 
                 case ChannelPointRedemption.Command:
                     try {
-                        await this.twitchService.invokeCommand(notificationEvent.broadcaster_user_login, reward.arguments ?? "");
+                        let commandArgs = reward.arguments ?? "";
+                        commandArgs = commandArgs.replace(/\{username\}/ig, notificationEvent.user_login);
+                        await this.twitchService.invokeCommand(notificationEvent.broadcaster_user_login, commandArgs);
                         await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
                     } catch (err) {
                         Logger.err(LogType.TwitchEvents, "Could not execute command.", err);
