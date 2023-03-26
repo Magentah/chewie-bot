@@ -86,7 +86,7 @@ export default class TaxInvestigatorCommand extends Command {
 
         // User names come from Twitch API so we can safely add it if user does not exist yet and log
         const user = await this.userService.addUser(taxEvader);
-        await this.eventLog.addTaxEvasion(user);
+        await this.eventLog.addTaxEvasion(user, penalty);
     }
 
     private async findTaxEvader(users: string[], oneMonthAgo: Date): Promise<string|undefined> {
