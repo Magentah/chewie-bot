@@ -287,6 +287,18 @@ export default class TwitchEventService {
                         // No cancel, but also no fulfill. Let mods handle it.
                     }
                     break;
+
+                case ChannelPointRedemption.Command:
+                    try {
+                        let commandArgs = reward.arguments ?? "";
+                        commandArgs = commandArgs.replace(/\{username\}/ig, notificationEvent.user_login);
+                        await this.twitchService.invokeCommand(notificationEvent.broadcaster_user_login, commandArgs);
+                        await this.twitchWebService.tryUpdateChannelRewardStatus(notificationEvent.reward.id, notificationEvent.id, "FULFILLED");
+                    } catch (err) {
+                        Logger.err(LogType.TwitchEvents, "Could not execute command.", err);
+                        // No cancel, but also no fulfill. Let mods handle it.
+                    }
+                    break;
             }
         }
     }

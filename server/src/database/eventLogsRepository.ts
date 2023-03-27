@@ -75,6 +75,18 @@ export class EventLogsRepository {
         return count;
     }
 
+    public async getTopTaxEvaders(maxCount: number): Promise<{username: string, count: number}[]> {
+        const databaseService = await this.databaseProvider();
+        const count = (await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
+            .where({ type: EventLogType.TaxEvasion })
+            .leftJoin(DatabaseTables.Users, "eventLogs.userId", "users.id")
+            .groupBy("userId")
+            .limit(maxCount)
+            .orderBy("count", "desc")
+            .select(["users.username", databaseService.raw("COUNT(userId) AS count")])) as {username: string, count: number}[];
+        return count;
+    }
+
     public async add(log: IEventLog): Promise<void> {
         const databaseService = await this.databaseProvider();
         log.time = moment().utc().toDate();
