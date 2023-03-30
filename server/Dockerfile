@@ -10,7 +10,7 @@ COPY . .
 # Add sqlite3 for checking db
 RUN apk add --no-cache sqlite
 # Install Typescript and TS-Node for dev
-RUN npm install -g typescript@"^4.5.5"
+RUN npm install -g typescript
 
 
 # --- Dependencies ---
