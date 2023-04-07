@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "inversify";
-import { ICommandAlias, ICommandInfo, ITextCommand, TextCommandMessagType, UserLevels } from "../models";
+import { ICommandAlias, ICommandInfo, ITextCommand, IUser, TextCommandMessagType, UserLevels } from "../models";
 import { APIHelper } from "../helpers";
 import { Logger, LogType } from "../logger";
 import { CommandAliasesRepository, TextCommandsRepository } from "../database";
@@ -25,8 +25,10 @@ class CommandlistController {
      */
     public async getCommandlist(req: Request, res: Response): Promise<void> {
         const resultList: ICommandInfo[] = [];
+
+        const sessionUser = req.user as IUser;
         for (const command of await this.textCommandsRepository.getList()) {
-            resultList.push(this.mapTextCommand(command));
+            resultList.push(this.mapTextCommand(command, sessionUser?.userLevel >= UserLevels.Moderator));
         }
 
         for (const alias of await this.commandAliasRepository.getList()) {
@@ -108,7 +110,7 @@ class CommandlistController {
 
                     const resultTextCmd = await this.textCommandsRepository.get(commandInfo.commandName);
                     res.status(StatusCodes.OK);
-                    res.send(this.mapTextCommand(resultTextCmd));
+                    res.send(this.mapTextCommand(resultTextCmd, true));
                     break;
 
                 case CommandType.System:
@@ -240,11 +242,12 @@ class CommandlistController {
         };
     }
 
-    private mapTextCommand(command: ITextCommand): ICommandInfo {
+    private mapTextCommand(command: ITextCommand, hasEditPermissions: boolean): ICommandInfo {
         return {
             id: command.id,
             commandName: command.commandName,
-            content: command.message,
+            // Don't expose AI programming to regular users.
+            content: hasEditPermissions || command.messageType !== TextCommandMessagType.AiPrompt ? command.message : "",
             type: command.messageType === TextCommandMessagType.AiPrompt ? CommandType.TextGeneration : CommandType.Text,
             minUserLevel: command.minimumUserLevel ?? UserLevels.Viewer,
             useCount: command.useCount,
