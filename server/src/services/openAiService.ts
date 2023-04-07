@@ -1,5 +1,6 @@
 import { injectable, inject } from "inversify";
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
+import Logger, { LogType } from "../logger";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 
 @injectable()
@@ -21,25 +22,30 @@ export default class OpenAiService {
             {"role": "user", "content": input} as ChatCompletionRequestMessage,
         ];
 
-        const completion = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
-            messages,
-            temperature: beCreative ? undefined : 0
-        });
+        try {
+            const completion = await openai.createChatCompletion({
+                model: "gpt-4",
+                messages,
+                temperature: beCreative ? undefined : 0
+            });
 
-        if (completion.data.choices.length === 0 || completion.data.choices[0].finish_reason !== "stop") {
-            return "";
-        } else {
-            let msg = completion.data.choices[0].message?.content ?? "";
-            msg = msg.trim();
+            if (completion.data.choices.length === 0 || completion.data.choices[0].finish_reason !== "stop") {
+                return "";
+            } else {
+                let msg = completion.data.choices[0].message?.content ?? "";
+                msg = msg.trim();
 
-            // When asked to write a messge, quotes can be included and we don't want these.
-            if (msg.startsWith("\"") && msg.endsWith("\"")) {
-                msg = msg.substring(1);
-                msg = msg.substring(0, msg.length - 2);
+                // When asked to write a messge, quotes can be included and we don't want these.
+                if (msg.startsWith("\"") && msg.endsWith("\"")) {
+                    msg = msg.substring(1);
+                    msg = msg.substring(0, msg.length - 2);
+                }
+
+                return msg;
             }
-
-            return msg;
+        } catch (err: any) {
+            Logger.err(LogType.Http, err);
+            return "";
         }
     }
 }
