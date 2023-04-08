@@ -1,12 +1,11 @@
 import { Command } from "../command";
-import { EventTypes, ITextCommand, IUser, TextCommandMessagType } from "../../models";
+import { EventTypes, IGenerateTextData, ITextCommand, IUser, TextCommandMessagType } from "../../models";
 import Logger, { LogType } from "../../logger";
 import { BotContainer } from "../../inversify.config";
 import { StreamActivityRepository, TextCommandsRepository } from "../../database";
 import { BotSettings } from "../../services/botSettingsService";
 import moment = require("moment");
 import OpenAiService from "../../services/openAiService";
-import { IGenerateTextData } from "src/models/textCommand";
 
 // I think it's better to have a "command" to handle all text commands instead of having the
 // command service directly call the twitchservice.sendmessage with the text command.
@@ -55,7 +54,8 @@ export class TextCommand extends Command {
                 const data = JSON.parse(msg) as IGenerateTextData;
 
                 try {
-                    msg = await this.openAiService.generateText(data.prompt, true);
+                    // Do this with timeout. If API is too slow we don't want to wait forever
+                    msg = await this.fetchWithTimeout(8000, data.prompt, data.fallback);
                 } catch (error: any) {
                     Logger.err(LogType.Command, error as Error);
                 }
@@ -67,6 +67,15 @@ export class TextCommand extends Command {
         }
 
         await this.twitchService.sendMessage(channel, msg);
+    }
+
+    private async fetchWithTimeout(timeout: number, prompt: string, fallback: string): Promise<string> {
+        const result = await Promise.race([
+            this.openAiService.generateText(prompt, true),
+            new Promise(resolve => setTimeout(() => resolve(fallback), timeout))
+        ]);
+
+        return result as string;
     }
 
     public async getCommandText(user: IUser, commandName: string, args: any[]): Promise<string> {

@@ -33,12 +33,14 @@ export default class OpenAiService {
                 return "";
             } else {
                 let msg = completion.data.choices[0].message?.content ?? "";
-                msg = msg.trim();
+                if (msg) {
+                    msg = msg.trim();
 
-                // When asked to write a messge, quotes can be included and we don't want these.
-                if (msg.startsWith("\"") && msg.endsWith("\"")) {
-                    msg = msg.substring(1);
-                    msg = msg.substring(0, msg.length - 2);
+                    // When asked to write a messge, quotes can be included and we don't want these.
+                    if (msg.startsWith("\"") && msg.endsWith("\"")) {
+                        msg = msg.substring(1);
+                        msg = msg.substring(0, msg.length - 2);
+                    }
                 }
 
                 return msg;

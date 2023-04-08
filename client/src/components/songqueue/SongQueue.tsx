@@ -50,6 +50,14 @@ const useStyles = makeStyles()((theme: Theme) => ({
 }));
 
 const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (props) => {
+    let duration = "";
+    if (props.value.duration) {
+        const ms = moment.duration(props.value.duration).asMilliseconds();
+        if (ms) {
+            duration = moment.utc(ms).format("HH:mm:ss");
+        }
+    }
+
     const playButton = props.value.source === SongSource.Spotify ? (<Grid item>
         <IconButton onClick={() => props.onPlaySong(props.value.sourceId)}>
             <PlayCircleOutline />
@@ -73,9 +81,9 @@ const DetailCell: React.FC<{value: Song, onPlaySong: (id: string) => void}> = (p
                                 </Link>
                             </Typography>
                         </Grid>
-                        {props.value.cleanTitle && <Grid>
+                        {duration && <Grid>
                             <Typography style={{ fontSize: 14, fontStyle: "italic" }}>
-                                {props.value.cleanTitle}
+                                Length: {duration}{" "}
                             </Typography>
                         </Grid>}
                     </Grid>
