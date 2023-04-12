@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import WebsocketService, { SocketMessageType, ISocketMessage } from "../../services/websocketService";
 import { Typography } from "@mui/material";
 import axios from "axios";
+import Song from "./song";
 
 const CurrentSong: React.FC = (props) => {
     const websocket = useRef<WebsocketService | undefined>(undefined);
@@ -10,8 +11,10 @@ const CurrentSong: React.FC = (props) => {
     document.body.style.background = "transparent";
 
     const loadFirstSong = () => axios.get("/api/songs").then((response) => {
-        if (response.data && response.data.length > 0) {
-            setCurrentSongTitle(response.data[0].title);
+        const songs = response.data as Song[];
+        if (songs && songs.length > 0) {
+            const title = songs[0].cleanTitle ? songs[0].cleanTitle : songs[0].title;
+            setCurrentSongTitle(title);
         } else {
             setCurrentSongTitle("");
         }
