@@ -11,6 +11,7 @@ export enum DatabaseTables {
     Users = "users",
     UserAuth = "userAuthorization",
     TextCommands = "textCommands",
+    TextGenerationCache = "textGenerationCache",
     Quotes = "quotes",
     Donations = "donations",
     DonationTypes = "donationTypes",
@@ -135,6 +136,7 @@ export class DatabaseService {
             await this.createAuthorizationTable();
             await this.createDonationsTable();
             await this.createTextCommandsTable();
+            await this.createTextCommandsCacheTable();
             await this.createQuotesTable();
             await this.createCommandAliasTable();
             await this.createBotSettingsTable();
@@ -266,6 +268,16 @@ export class DatabaseService {
             table.integer("useCount").unsigned().notNullable().defaultTo(0);
             table.boolean("useCooldown").notNullable().defaultTo(true);
             table.integer("messageType").unsigned().defaultTo(0);
+        });
+    }
+
+    private async createTextCommandsCacheTable(): Promise<void> {
+        return this.createTable(DatabaseTables.TextGenerationCache, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("commandId").references("id").inTable(DatabaseTables.TextCommands).onDelete("CASCADE");
+            table.string("key").notNullable().index();
+            table.string("result").notNullable();
+            table.dateTime("time").notNullable().index();
         });
     }
 

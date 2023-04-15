@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { DatabaseTables, DatabaseProvider } from "../services/databaseService";
-import { ITextCommand } from "../models";
+import { ITextCommand, ITextGenerationResult } from "../models";
 
 @injectable()
 export class TextCommandsRepository {
@@ -77,6 +77,19 @@ export class TextCommandsRepository {
         }
 
         return false;
+    }
+
+    public async addCache(data: ITextGenerationResult): Promise<void> {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.TextGenerationCache).insert(data);
+    }
+
+    public async getFallbackFromCache(commandId: number, prompt: string): Promise<string|undefined> {
+        const databaseService = await this.databaseProvider();
+        const row = await databaseService.getQueryBuilder(DatabaseTables.TextGenerationCache)
+            .where({ commandId, key: prompt })
+            .orderBy("time", "DESC").first();
+        return row ? row.result as string : "";
     }
 }
 

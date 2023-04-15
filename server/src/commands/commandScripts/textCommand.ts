@@ -51,11 +51,21 @@ export class TextCommand extends Command {
 
         switch (commandInfo.messageType) {
             case TextCommandMessagType.AiPrompt:
+                if (!msg) {
+                    return;
+                }
+
                 const data = JSON.parse(msg) as IGenerateTextData;
+
+                // Use a previously generated value as fallback if possible
+                let fallback = await this.commands.getFallbackFromCache(commandInfo.id ?? 0, data.prompt);
+                if (!fallback) {
+                    fallback = data.fallback;
+                }
 
                 try {
                     // Do this with timeout. If API is too slow we don't want to wait forever
-                    msg = await this.fetchWithTimeout(8000, data.prompt, data.fallback);
+                    msg = await this.fetchWithTimeout(commandInfo, data.timeout ?? 8000, data.prompt, fallback);
                 } catch (error: any) {
                     Logger.err(LogType.Command, error as Error);
                 }
@@ -69,9 +79,13 @@ export class TextCommand extends Command {
         await this.twitchService.sendMessage(channel, msg);
     }
 
-    private async fetchWithTimeout(timeout: number, prompt: string, fallback: string): Promise<string> {
+    private async fetchWithTimeout(commandInfo: ITextCommand, timeout: number, prompt: string, fallback: string): Promise<string> {
         const result = await Promise.race([
-            this.openAiService.generateText(prompt, true),
+            (async() => {
+                const promptResult = await this.openAiService.generateText(prompt, true)
+                await this.commands.addCache({ key: prompt, result: promptResult, commandId: commandInfo.id, time: new Date().getTime() });
+                return promptResult;
+            })(),
             new Promise(resolve => setTimeout(() => resolve(fallback), timeout))
         ]);
 
