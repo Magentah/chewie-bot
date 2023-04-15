@@ -67,11 +67,13 @@ export class TextCommand extends Command {
                     // Do this with timeout. If API is too slow we don't want to wait forever
                     msg = await this.fetchWithTimeout(commandInfo, data.timeout ?? 8000, data.prompt, fallback);
                 } catch (error: any) {
+                    // Make sure to not output the original JSON
+                    msg = "";
                     Logger.err(LogType.Command, error as Error);
                 }
 
                 if (!msg) {
-                    msg = data.fallback;
+                    msg = fallback;
                 }
                 break;
         }
