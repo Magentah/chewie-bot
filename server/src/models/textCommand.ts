@@ -8,6 +8,15 @@ export enum TextCommandMessagType {
 export interface IGenerateTextData {
     prompt: string;
     fallback: string;
+    timeout?: number;
+}
+
+export interface ITextGenerationResult {
+    id?: number;
+    commandId?: number;
+    key: string;
+    result: string;
+    time: number
 }
 
 export default interface ITextCommand {
