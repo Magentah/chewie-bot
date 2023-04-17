@@ -99,7 +99,8 @@ export class TextCommand extends Command {
 
         for (let i = 1; i < args.length; i++) {
             if (args[i]) {
-                message = message.replace(`{${i}}`, args[i]);
+                const regex = new RegExp(`\\{${i}\\}`, "g");
+                message = message.replace(regex, args[i]);
             }
         }
 
