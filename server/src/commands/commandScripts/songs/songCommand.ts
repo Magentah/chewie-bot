@@ -12,12 +12,12 @@ export class SongCommand extends Command {
         this.songService = BotContainer.get(SongService);
     }
 
-    public executeInternal(channel: string, user: IUser): void {
+    public async executeInternal(channel: string, user: IUser): Promise<void> {
         const songQueue = this.songService.getSongQueue();
         if (songQueue.length > 0) {
-            this.twitchService.sendMessage(channel, `${songQueue[0].title} requested by ${songQueue[0].requestedBy}`);
+            await this.twitchService.sendMessage(channel, `${songQueue[0].cleanTitle ? songQueue[0].cleanTitle : songQueue[0].title} requested by ${songQueue[0].requestedBy}`);
         } else {
-            this.twitchService.sendMessage(channel, "There is no song in the queue currently.");
+            await this.twitchService.sendMessage(channel, "There is no song in the queue currently.");
         }
     }
 

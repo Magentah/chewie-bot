@@ -23,7 +23,7 @@ export default class QueueListCommand extends Command {
                 result += ", "
             }
 
-            const title = songQueue[i].cleanTitle !== undefined ? songQueue[i].cleanTitle ?? "" : songQueue[i].title;
+            const title = songQueue[i].cleanTitle ? songQueue[i].cleanTitle ?? "" : songQueue[i].title;
             result += `${i + 1}: ${title}`;
             songsListed++;
 
