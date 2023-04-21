@@ -429,6 +429,7 @@ export class SongService {
         for (const song of this.songQueue) {
             if (song.id === newSong.id) {
                 const changeTitle = song.title !== newSong.title;
+                const changeCleanTitle = song.cleanTitle !== newSong.cleanTitle;
 
                 // Change URL, update information (if possible).
                 if (song.sourceUrl !== newSong.sourceUrl) {
@@ -439,6 +440,12 @@ export class SongService {
                     song.sourceId = newSongData.sourceId;
                     song.sourceUrl = newSongData.sourceUrl;
                     song.previewUrl = newSongData.previewUrl;
+
+                    if (!changeCleanTitle) {
+                        // Auto generate new clean title if no manual change
+                        song.cleanTitle = undefined;
+                        void this.addPlainSongTitle(song);
+                    }
                 }
 
                 // Override title determined by URL if changed manually.
@@ -446,9 +453,12 @@ export class SongService {
                     song.title = newSong.title;
                 }
 
+                if (changeCleanTitle) {
+                    song.cleanTitle = newSong.cleanTitle;
+                }
+
                 song.comments = newSong.comments;
                 song.requestedBy = newSong.requestedBy;
-                song.cleanTitle = newSong.cleanTitle;
 
                 void this.websocketService.send({
                     type: SocketMessageType.SongUpdated,
