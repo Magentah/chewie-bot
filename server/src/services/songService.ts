@@ -448,6 +448,7 @@ export class SongService {
 
                 song.comments = newSong.comments;
                 song.requestedBy = newSong.requestedBy;
+                song.cleanTitle = newSong.cleanTitle;
 
                 void this.websocketService.send({
                     type: SocketMessageType.SongUpdated,
