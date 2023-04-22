@@ -5,6 +5,7 @@ import { UserTaxHistoryRepository, MessagesRepository } from "../../../database"
 import { EventLogService, UserService } from "../../../services";
 import { BotSettings } from "../../../services/botSettingsService";
 import Logger, { LogType } from "../../../logger";
+import { delay } from "../../../helpers/asyncHelper";
 
 export default class TaxInvestigatorCommand extends Command {
     private taxRepository: UserTaxHistoryRepository;
@@ -82,6 +83,10 @@ export default class TaxInvestigatorCommand extends Command {
         }
 
         await this.twitchService.sendMessage(channel, message);
+
+        // Give users time to process the message and realize their fate.
+        await delay(10000);
+
         await this.twitchWebService.banUser(taxEvader, penalty, "Tax evasion", true);
 
         // User names come from Twitch API so we can safely add it if user does not exist yet and log
