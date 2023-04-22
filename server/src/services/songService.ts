@@ -170,7 +170,9 @@ export class SongService {
                 this.eventAggregator.publishAchievement({ user, type: AchievementType.SongRequests, count, seasonalCount });
             }
 
-            void this.addPlainSongTitle(song);
+            if (song.source !== SongSource.Spotify) {
+                void this.addPlainSongTitle(song);
+            }
 
             return song;
         } catch (err) {
@@ -194,6 +196,19 @@ export class SongService {
         const result = await this.openAiService.generateText(prompt, false);
         if (result) {
             song.cleanTitle = result;
+
+            this.websocketService.send({
+                type: SocketMessageType.SongUpdated,
+                message: "Song Updated",
+                data: song
+            });
+        }
+
+        const promptDetails = "From the following youtube video title extract title, artist and TV show / anime / movie (labelled as \"Source\") if present. Print each title, artist and source" +
+            "in a separate line with translation if non-English (omit line if info is missing).\r\n"  + song.title;
+        const resultDetail = await this.openAiService.generateText(promptDetails, false);
+        if (resultDetail) {
+            song.detailedTitle = resultDetail;
 
             this.websocketService.send({
                 type: SocketMessageType.SongUpdated,

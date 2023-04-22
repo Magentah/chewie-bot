@@ -7,6 +7,7 @@ export default interface Song {
     id: number;
     title: string;
     cleanTitle?: string;
+    detailedTitle?: string;
     duration: number;
     requestedBy: string;
     requestSource: string;

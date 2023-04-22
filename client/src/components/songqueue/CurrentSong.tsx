@@ -4,7 +4,11 @@ import { Typography } from "@mui/material";
 import axios from "axios";
 import Song from "./song";
 
-const CurrentSong: React.FC = (props) => {
+interface CurrentSongProps {
+    useDetails?: boolean;
+}
+  
+const CurrentSong: React.FC<CurrentSongProps> = ({ useDetails }) => {
     const websocket = useRef<WebsocketService | undefined>(undefined);
     const [currentSongTitle, setCurrentSongTitle] = useState<string>();
 
@@ -13,7 +17,20 @@ const CurrentSong: React.FC = (props) => {
     const loadFirstSong = () => axios.get("/api/songs").then((response) => {
         const songs = response.data as Song[];
         if (songs && songs.length > 0) {
-            const title = songs[0].cleanTitle ? songs[0].cleanTitle : songs[0].title;
+            let title = songs[0].title;
+            if (useDetails && songs[0].detailedTitle) {
+                title = songs[0].detailedTitle;
+            } else if (songs[0].cleanTitle) {
+                title = songs[0].cleanTitle;
+            }
+
+            if (useDetails && songs[0].requestedBy) {
+                const lines = title.split('\n').length;
+                if (lines < 3) {
+                    title += `\r\nRequested by: ${songs[0].requestedBy}`;
+                }
+            }
+
             setCurrentSongTitle(title);
         } else {
             setCurrentSongTitle("");
@@ -46,7 +63,7 @@ const CurrentSong: React.FC = (props) => {
 
     useEffect(() => { loadFirstSong() }, []);
 
-    return <Typography>{currentSongTitle}</Typography>;
+    return <Typography style={{ whiteSpace: 'pre-line' }}>{currentSongTitle}</Typography>;
 }
 
 export default CurrentSong;
