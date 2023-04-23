@@ -78,7 +78,7 @@ export default class TaxAuditCommand extends Command {
             }
         } else {
             const dateFormat = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", weekday: "short" });
-            const taxesPaidText = lastTaxDate ? `Taxes paid: ${taxesPaid} (last: ${dateFormat.format(new Date(lastTaxMissDate))})` : `Taxes paid: ${taxesPaid}`;
+            const taxesPaidText = lastTaxDate ? `Taxes paid: ${taxesPaid} (last: ${dateFormat.format(new Date(lastTaxDate))})` : `Taxes paid: ${taxesPaid}`;
             await this.twitchService.sendMessage(channel,
                 `Audit for ${targetUser.username}. ${taxesPaidText}, current streak: ${currentStreak}, longest streak: ${longestStreak}, last miss: ${lastTaxMissDate ? dateFormat.format(new Date(lastTaxMissDate)) : "-"}`);
         }

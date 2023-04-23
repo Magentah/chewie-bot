@@ -170,7 +170,9 @@ export class SongService {
                 this.eventAggregator.publishAchievement({ user, type: AchievementType.SongRequests, count, seasonalCount });
             }
 
-            void this.addPlainSongTitle(song);
+            if (song.source !== SongSource.Spotify) {
+                void this.addPlainSongTitle(song);
+            }
 
             return song;
         } catch (err) {
@@ -194,6 +196,19 @@ export class SongService {
         const result = await this.openAiService.generateText(prompt, false);
         if (result) {
             song.cleanTitle = result;
+
+            this.websocketService.send({
+                type: SocketMessageType.SongUpdated,
+                message: "Song Updated",
+                data: song
+            });
+        }
+
+        const promptDetails = "From the following youtube video title extract title, artist and TV show / anime / movie (labelled as \"Source\") if present. Print each title, artist and source" +
+            "in a separate line with translation if non-English (omit line if info is missing).\r\n"  + song.title;
+        const resultDetail = await this.openAiService.generateText(promptDetails, false);
+        if (resultDetail) {
+            song.detailedTitle = resultDetail;
 
             this.websocketService.send({
                 type: SocketMessageType.SongUpdated,
@@ -429,6 +444,7 @@ export class SongService {
         for (const song of this.songQueue) {
             if (song.id === newSong.id) {
                 const changeTitle = song.title !== newSong.title;
+                const changeCleanTitle = song.cleanTitle !== newSong.cleanTitle;
 
                 // Change URL, update information (if possible).
                 if (song.sourceUrl !== newSong.sourceUrl) {
@@ -439,11 +455,21 @@ export class SongService {
                     song.sourceId = newSongData.sourceId;
                     song.sourceUrl = newSongData.sourceUrl;
                     song.previewUrl = newSongData.previewUrl;
+
+                    if (!changeCleanTitle) {
+                        // Auto generate new clean title if no manual change
+                        song.cleanTitle = undefined;
+                        void this.addPlainSongTitle(song);
+                    }
                 }
 
                 // Override title determined by URL if changed manually.
                 if (changeTitle) {
                     song.title = newSong.title;
+                }
+
+                if (changeCleanTitle) {
+                    song.cleanTitle = newSong.cleanTitle;
                 }
 
                 song.comments = newSong.comments;

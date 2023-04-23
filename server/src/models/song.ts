@@ -15,6 +15,7 @@ export interface ISong {
     requestTime: number,
     comments: string,
     cleanTitle?: string,
+    detailedTitle?: string,
     rewardEvent?: IRewardRedemeptionEvent,
 }
 

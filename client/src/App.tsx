@@ -45,6 +45,7 @@ const App: React.FC<{}> = (props) => {
                     <UserContextProvider>
                         <Routes>
                             <Route path="/currentsong" element={<CurrentSong/>} />
+                            <Route path="/currentsong/details" element={<CurrentSong useDetails />} />
                             <Route path="/alerts/:timeout" element={<Alert />} />
                             <Route path="*" element={<Dashboard />} />
                         </Routes>
