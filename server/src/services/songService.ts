@@ -204,8 +204,8 @@ export class SongService {
             });
         }
 
-        const promptDetails = "From the following youtube video title extract title, artist and TV show / anime / movie (labelled as \"Source\") if present. Print each title, artist and source" +
-            "in a separate line with translation if non-English (omit line if info is missing).\r\n"  + song.title;
+        const promptDetails = "From the following youtube video title extract title, artist and TV show / anime / movie (labelled as \"Source\") if present. Print each title, artist and source " +
+            "in a separate line with translation if non-English (omit line if info is missing). Respond with an empty string if no youtube title is provided.\r\n" + song.title;
         const resultDetail = await this.openAiService.generateText(promptDetails, false);
         if (resultDetail) {
             song.detailedTitle = resultDetail;
