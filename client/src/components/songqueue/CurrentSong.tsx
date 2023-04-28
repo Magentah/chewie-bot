@@ -20,6 +20,18 @@ const CurrentSong: React.FC<CurrentSongProps> = ({ useDetails }) => {
             let title = songs[0].title;
             if (useDetails && songs[0].detailedTitle) {
                 title = songs[0].detailedTitle;
+                
+                // Remove lines that only contain a header but no content.
+                const lines = title.split('\n').filter(line => {
+                    const headerPos = line.indexOf(":");
+                    if (headerPos > 0 && headerPos === line.trimEnd().length - 1) {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+                title = lines.join("\n");
             } else if (songs[0].cleanTitle) {
                 title = songs[0].cleanTitle;
             }
