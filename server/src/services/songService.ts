@@ -204,11 +204,39 @@ export class SongService {
             });
         }
 
-        const promptDetails = "From the following youtube video title extract title, artist and TV show / anime / movie (labelled as \"Source\") if present. Print each title, artist and source " +
-            "in a separate line with translation if non-English (omit line if info is missing). Respond with an empty string if no youtube title is provided.\r\n" + song.title;
+        const promptDetails = "From the following youtube video title extract title, artist and TV show / anime / movie (labelled as \"Source\") if present. Provide a JSON object with each title, artist and source " +
+            "in a separate key. For title, artist and source, add a *_translated key if the text is non-English, providing a mostly literal translation.\r\n" + song.title;
         const resultDetail = await this.openAiService.generateText(promptDetails, false);
         if (resultDetail) {
-            song.detailedTitle = resultDetail;
+            try {
+                const resultData = JSON.parse(resultDetail) as { title: string,
+                    title_translated?: string
+                    artist: string,
+                    artist_translated?: string,
+                    source: string,
+                    source_translated?: string
+                };
+
+                song.detailedTitle = "Title: " + resultData.title;
+                if (resultData.title_translated) {
+                    song.detailedTitle += ` (${resultData.title_translated})`;
+                }
+
+                if (resultData.artist) {
+                    song.detailedTitle += `\r\nArtist: ${resultData.artist}`;
+                    if (resultData.artist_translated) {
+                        song.detailedTitle += ` (${resultData.artist_translated})`;
+                    }
+                }
+                if (resultData.source) {
+                    song.detailedTitle += `\r\nSource: ${resultData.source}`;
+                    if (resultData.source_translated) {
+                        song.detailedTitle += ` (${resultData.source_translated})`;
+                    }
+                }
+            } catch (err: any) {
+                song.detailedTitle = undefined;
+            }
 
             this.websocketService.send({
                 type: SocketMessageType.SongUpdated,
@@ -455,6 +483,7 @@ export class SongService {
                     song.sourceId = newSongData.sourceId;
                     song.sourceUrl = newSongData.sourceUrl;
                     song.previewUrl = newSongData.previewUrl;
+                    song.detailedTitle = undefined;
 
                     if (!changeCleanTitle) {
                         // Auto generate new clean title if no manual change
