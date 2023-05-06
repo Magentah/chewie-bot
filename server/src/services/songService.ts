@@ -228,7 +228,8 @@ export class SongService {
                         song.detailedTitle += ` (${resultData.artist_translated})`;
                     }
                 }
-                if (resultData.source) {
+
+                if (resultData.source && resultData.source !== resultData.artist) {
                     song.detailedTitle += `\r\nSource: ${resultData.source}`;
                     if (resultData.source_translated) {
                         song.detailedTitle += ` (${resultData.source_translated})`;
