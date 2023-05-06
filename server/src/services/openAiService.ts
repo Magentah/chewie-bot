@@ -15,6 +15,11 @@ export default class OpenAiService {
             return "";
         }
 
+        let defaultModel = await this.botSettings.getValue(BotSettings.OpenAiModel);
+        if (!defaultModel) {
+            defaultModel = "gpt-4";
+        }
+
         const configuration = new Configuration({ apiKey });
         const openai = new OpenAIApi(configuration);
 
@@ -24,7 +29,7 @@ export default class OpenAiService {
 
         try {
             const completion = await openai.createChatCompletion({
-                model: model ? model : "gpt-4",
+                model: model ? model : defaultModel,
                 messages,
                 temperature: beCreative ? undefined : 0
             });
