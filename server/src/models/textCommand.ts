@@ -9,6 +9,7 @@ export interface IGenerateTextData {
     prompt: string;
     fallback: string;
     timeout?: number;
+    model?: string;
 }
 
 export interface ITextGenerationResult {

@@ -9,10 +9,15 @@ export default class OpenAiService {
         // Empty
     }
 
-    public async generateText(input: string, beCreative: boolean): Promise<string> {
+    public async generateText(input: string, beCreative: boolean, model?: string): Promise<string> {
         const apiKey = await this.botSettings.getValue(BotSettings.OpenAiApiKey);
         if (!apiKey) {
             return "";
+        }
+
+        let defaultModel = await this.botSettings.getValue(BotSettings.OpenAiModel);
+        if (!defaultModel) {
+            defaultModel = "gpt-4";
         }
 
         const configuration = new Configuration({ apiKey });
@@ -24,7 +29,7 @@ export default class OpenAiService {
 
         try {
             const completion = await openai.createChatCompletion({
-                model: "gpt-4",
+                model: model ? model : defaultModel,
                 messages,
                 temperature: beCreative ? undefined : 0
             });

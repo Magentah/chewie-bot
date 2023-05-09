@@ -65,7 +65,7 @@ export class TextCommand extends Command {
 
                 try {
                     // Do this with timeout. If API is too slow we don't want to wait forever
-                    msg = await this.fetchWithTimeout(commandInfo, data.timeout ?? 8000, data.prompt, fallback);
+                    msg = await this.fetchWithTimeout(commandInfo, data.timeout ?? 8000, data.prompt, fallback, data.model);
                 } catch (error: any) {
                     // Make sure to not output the original JSON
                     msg = "";
@@ -81,10 +81,10 @@ export class TextCommand extends Command {
         await this.twitchService.sendMessage(channel, msg);
     }
 
-    private async fetchWithTimeout(commandInfo: ITextCommand, timeout: number, prompt: string, fallback: string): Promise<string> {
+    private async fetchWithTimeout(commandInfo: ITextCommand, timeout: number, prompt: string, fallback: string, model?: string): Promise<string> {
         const result = await Promise.race([
             (async() => {
-                const promptResult = await this.openAiService.generateText(prompt, true)
+                const promptResult = await this.openAiService.generateText(prompt, true, model)
                 await this.commands.addCache({ key: prompt, result: promptResult, commandId: commandInfo.id, time: new Date().getTime() });
                 return promptResult;
             })(),

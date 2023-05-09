@@ -32,6 +32,7 @@ export enum BotSettings {
     SudokuDuration = "sudoku-duration",
     TaxTimeoutDuration = "tax-timeout-duration",
     OpenAiApiKey = "openai-api-key",
+    OpenAiModel = "openai-api-model",
 }
 
 @injectable()
@@ -66,6 +67,7 @@ export default class BotSettingsService {
         [BotSettings.SudokuDuration]: 120,
         [BotSettings.TaxTimeoutDuration]: 60 * 10,
         [BotSettings.OpenAiApiKey]: "",
+        [BotSettings.OpenAiModel]: "",
     };
 
     private readonly settingCache: { [name: string] : any; } = {};

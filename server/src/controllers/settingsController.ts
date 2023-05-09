@@ -39,6 +39,7 @@ class SettingsController {
         [BotSettings.ModsSudokuExemption]: { title: "Exemption for mods from sudoku timeouts", readonly: false },
         [BotSettings.TaxTimeoutDuration]: { title: "Duration for tax evasion timeouts", readonly: false },
         [BotSettings.OpenAiApiKey]: { title: "OpenAI API key", readonly: false },
+        [BotSettings.OpenAiModel]: { title: "OpenAI default model", readonly: false },
     };
 
     constructor(
