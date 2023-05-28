@@ -115,7 +115,10 @@ export function setupPassport(): void {
                 passReqToCallback: true,
             },
             async (req: express.Request, accessToken: any, refreshToken: any, profile: any, done: any) => {
-                const socketTokenResult = await axios.get(`${Constants.StreamlabsSocketTokenUrl}?access_token=${accessToken}`);
+                const authOptions = {
+                    headers: { "Authorization": `Bearer ${accessToken}`, "content-type": "application/json" }
+                };
+                const socketTokenResult = await axios.get(`${Constants.StreamlabsSocketTokenUrl}`, authOptions);
                 if (socketTokenResult.status === StatusCodes.OK) {
                     profile.socketToken = socketTokenResult.data.socket_token;
                 }
