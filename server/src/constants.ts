@@ -20,11 +20,11 @@ export default class Constants {
     public static readonly TwitchPubSubUrl = "wss://pubsub-edge.twitch.tv";
 
     // Streamlabs
-    public static readonly StreamlabsAuthUrl = "https://streamlabs.com/api/v1.0/authorize";
-    public static readonly StreamlabsTokenUrl = "https://streamlabs.com/api/v1.0/token";
-    public static readonly StreamlabsSocketTokenUrl = "https://streamlabs.com/api/v1.0/socket/token";
+    public static readonly StreamlabsAuthUrl = "https://streamlabs.com/api/v2.0/authorize";
+    public static readonly StreamlabsTokenUrl = "https://streamlabs.com/api/v2.0/token";
+    public static readonly StreamlabsSocketTokenUrl = "https://streamlabs.com/api/v2.0/socket/token";
     public static readonly StreamlabsScopes = "donations.read socket.token alerts.create";
-    public static readonly StreamlabsAPIEndpoint = "https://streamlabs.com/api/v1.0";
+    public static readonly StreamlabsAPIEndpoint = "https://streamlabs.com/api/v2.0";
     public static readonly StreamlabsSocketEndpoint = "https://sockets.streamlabs.com";
 
     // Youtube

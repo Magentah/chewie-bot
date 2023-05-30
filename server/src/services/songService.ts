@@ -218,20 +218,20 @@ export class SongService {
                 };
 
                 song.detailedTitle = "Title: " + resultData.title;
-                if (resultData.title_translated) {
+                if (resultData.title_translated && resultData.title_translated !== resultData.title) {
                     song.detailedTitle += ` (${resultData.title_translated})`;
                 }
 
                 if (resultData.artist) {
                     song.detailedTitle += `\r\nArtist: ${resultData.artist}`;
-                    if (resultData.artist_translated) {
+                    if (resultData.artist_translated && resultData.artist_translated !== resultData.artist) {
                         song.detailedTitle += ` (${resultData.artist_translated})`;
                     }
                 }
 
                 if (resultData.source && resultData.source !== resultData.artist) {
                     song.detailedTitle += `\r\nSource: ${resultData.source}`;
-                    if (resultData.source_translated) {
+                    if (resultData.source_translated && resultData.source_translated !== resultData.source) {
                         song.detailedTitle += ` (${resultData.source_translated})`;
                     }
                 }

@@ -16,29 +16,25 @@ class StreamlabsStrategy extends OAuth2Strategy {
         options.tokenURL = options.tokenURL || Constants.StreamlabsTokenUrl;
         options.scope = options.scope || Constants.StreamlabsScopes;
 
-        this._oauth2.useAuthorizationHeaderforGET(false);
+        this._oauth2.setAuthMethod("Bearer");
+        this._oauth2.useAuthorizationHeaderforGET(true);
         this.name = Provider.Streamlabs;
     }
 
-    public async userProfile(
-        accessToken: string,
-        done: (err?: Error | null | undefined, profile?: any) => void
-    ): Promise<void> {
-        const { data, status } = await axios.get(`${Constants.StreamlabsAPIEndpoint}/user`, {
-            params: {
-                access_token: accessToken,
-            },
-        });
-        switch (status) {
-            case StatusCodes.OK:
-                const user: IStreamlabsUser = data as IStreamlabsUser;
+    public async userProfile(accessToken: string, done: (err?: Error | null | undefined, profile?: any) => void): Promise<void> {
+        this._oauth2.get(`${Constants.StreamlabsAPIEndpoint}/user`, accessToken, (err, body, res) => {
+            if (err) {
+                return done(new OAuth2Strategy.InternalOAuthError("Failed to get user profile.", err));
+            }
+
+            try {
+                const user = JSON.parse(body as string) as IStreamlabsUser;
                 user.accessToken = accessToken;
                 done(undefined, user);
-                break;
-            case StatusCodes.BAD_REQUEST:
-            default:
-                done(new OAuth2Strategy.InternalOAuthError("Failed to get user profile", undefined));
-        }
+            } catch (e: any) {
+                done(e);
+            }
+        });
     }
 }
 
