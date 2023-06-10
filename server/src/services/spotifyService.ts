@@ -6,7 +6,7 @@ import * as Config from "../config.json";
 import Constants from "../constants";
 import { Logger, LogType } from "../logger";
 import qs = require("qs");
-import { IUser, IUserAuth, IUserPrincipal } from "../models";
+import { IUserPrincipal } from "../models";
 
 @injectable()
 export class SpotifyService {
@@ -105,9 +105,10 @@ export class SpotifyService {
      * Parses a spotify url to get the song id used in api queries.
      * @param url The url to parse
      * @example https://open.spotify.com/track/1GCy5g91naGnJ1WJJhI88m
+     *          https://open.spotify.com/intl-de/track/4FKRT4uPFx2L4exy9DCs1o?si=m6qc6ajXSqqGSpqbzTsJFw&nd=1
      */
     public parseSpotifyUrl(url: string): string | undefined {
-        const token = "spotify.com/track/";
+        const token = "/track/";
         const index = url.indexOf(token);
         if (index > -1) {
             // Cut off any parameters attached to the URL
@@ -117,7 +118,7 @@ export class SpotifyService {
                 return url.slice(startIndex, indexParams);
             } else {
                 return url.slice(startIndex);
-            }            
+            }
         } else {
             return undefined;
         }
