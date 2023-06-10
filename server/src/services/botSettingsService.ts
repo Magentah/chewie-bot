@@ -31,6 +31,8 @@ export enum BotSettings {
     ModsSudokuExemption = "mods-sudoku-exemption",
     SudokuDuration = "sudoku-duration",
     TaxTimeoutDuration = "tax-timeout-duration",
+    TaxTimeoutIncrement = "tax-timeout-increment",
+    TaxTimeoutMax = "tax-timeout-max",
     OpenAiApiKey = "openai-api-key",
     OpenAiModel = "openai-api-model",
 }
@@ -65,7 +67,9 @@ export default class BotSettingsService {
         [BotSettings.TimeoutDuration]: 60 * 5,
         [BotSettings.ModsSudokuExemption]: false,
         [BotSettings.SudokuDuration]: 120,
-        [BotSettings.TaxTimeoutDuration]: 60 * 10,
+        [BotSettings.TaxTimeoutDuration]: 60 * 5,
+        [BotSettings.TaxTimeoutIncrement]: 60,
+        [BotSettings.TaxTimeoutMax]: 60 * 15,
         [BotSettings.OpenAiApiKey]: "",
         [BotSettings.OpenAiModel]: "",
     };

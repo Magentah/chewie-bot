@@ -1,5 +1,5 @@
 import { Command } from "../../command";
-import { GameEventType, GameMessageType, IUser, UserLevels } from "../../../models";
+import { EventLogType, GameEventType, GameMessageType, IUser, UserLevels } from "../../../models";
 import { BotContainer } from "../../../inversify.config";
 import { UserTaxHistoryRepository, MessagesRepository } from "../../../database";
 import { EventLogService, UserService } from "../../../services";
@@ -52,6 +52,7 @@ export default class TaxInvestigatorCommand extends Command {
         // Start with people currently active in chat
         const activeChatters = this.twitchService.getActiveChatters().filter((el)  => !userFilter.includes(el.toLowerCase()));
         let taxEvader = await this.findTaxEvader(activeChatters, oneMonthAgo);
+
         if (taxEvader) {
             await this.executePenalty(channel, taxEvader);
             return true;
@@ -72,7 +73,20 @@ export default class TaxInvestigatorCommand extends Command {
     }
 
     private async executePenalty(channel: string, taxEvader: string) {
-        const penalty = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
+        let penalty = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
+
+        // User names come from Twitch API so we can safely add it if user does not exist yet and log
+        const user = await this.userService.addUser(taxEvader);
+
+        // Increase penalty each time if desired
+        const evasionCount = await this.eventLog.getCount(EventLogType.TaxEvasion, user);
+        if (evasionCount > 0) {
+            const penaltyIncrement = await this.settingsService.getIntValue(BotSettings.TaxTimeoutIncrement);
+            if (penaltyIncrement) {
+                const penaltyMax = await this.settingsService.getIntValue(BotSettings.TaxTimeoutMax);
+                penalty = Math.min(penalty + penaltyIncrement * evasionCount, penaltyMax);
+            }
+        }
 
         let message = `${taxEvader} has not paid their taxes and is now given a penalty.`;
 
@@ -80,6 +94,7 @@ export default class TaxInvestigatorCommand extends Command {
         if (messages.length > 0) {
             const msgIndex = Math.floor(Math.random() * Math.floor(messages.length));
             message = messages[msgIndex].replace(/\{user\}/ig, taxEvader);
+            message = message.replace(/\{duration\}/ig, (penalty / 60).toString());
         }
 
         await this.twitchService.sendMessage(channel, message);
@@ -89,8 +104,6 @@ export default class TaxInvestigatorCommand extends Command {
 
         await this.twitchWebService.banUser(taxEvader, penalty, "Tax evasion", true);
 
-        // User names come from Twitch API so we can safely add it if user does not exist yet and log
-        const user = await this.userService.addUser(taxEvader);
         await this.eventLog.addTaxEvasion(user, penalty);
     }
 
