@@ -14,7 +14,7 @@
         "moduleResolution": "Node",
         "importHelpers": true,
         "resolveJsonModule": true,
-        "types": ["node", "reflect-metadata"],
+        "types": ["node"],
         "typeRoots": ["./src/types", "node_modules/@types"],
         "allowJs": true,
         "paths": {
