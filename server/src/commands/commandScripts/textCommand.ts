@@ -104,6 +104,12 @@ export class TextCommand extends Command {
             }
         }
 
+        // Fill {0} with the entirety of all arguments
+        if (args.length > 0) {
+            const regex = new RegExp(`\\{${0}\\}`, "g");
+            message = message.replace(regex, args.slice(1).join(" "));
+        }
+
         const paramCheck = /\{[0-9]\}/;
         if (paramCheck.test(message)) {
             // Should only display text if all parameters have been filled.
@@ -154,7 +160,7 @@ export class TextCommand extends Command {
         let userFromParams = "";
         for (const a of args) {
             if (typeof(a) === "string" && a.startsWith("@")) {
-                userFromParams = a.substr(1);
+                userFromParams = a.substring(1);
                 break;
             }
         }
