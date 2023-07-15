@@ -37,7 +37,7 @@ export class AnnounceCommand extends Command {
 
         const commandInfo = await this.textCommands.get(commandName);
         if (commandInfo) {
-            const msg = await this.textCommand.getCommandText(user, commandName, [commandInfo.message, ...args]);
+            const msg = await this.textCommand.getCommandText(user, commandName, false, [commandInfo.message, ...args]);
             if (msg) {
                 await this.twitchWebService.announce(user.username, msg);
             }

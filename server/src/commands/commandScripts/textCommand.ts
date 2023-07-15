@@ -47,7 +47,7 @@ export class TextCommand extends Command {
             }
         }
 
-        let msg = await this.getCommandText(user, commandInfo.commandName, [commandInfo.message, ...args]);
+        let msg = await this.getCommandText(user, commandInfo.commandName, commandInfo.messageType === TextCommandMessagType.AiPrompt, [commandInfo.message, ...args]);
 
         switch (commandInfo.messageType) {
             case TextCommandMessagType.AiPrompt:
@@ -94,20 +94,21 @@ export class TextCommand extends Command {
         return result as string;
     }
 
-    public async getCommandText(user: IUser, commandName: string, args: any[]): Promise<string> {
+    public async getCommandText(user: IUser, commandName: string, escapeJson: boolean, args: any[]): Promise<string> {
         let message = args[0] as string;
 
         for (let i = 1; i < args.length; i++) {
             if (args[i]) {
                 const regex = new RegExp(`\\{${i}\\}`, "g");
-                message = message.replace(regex, args[i]);
+                message = message.replace(regex, escapeJson ? JSON.stringify(args[i]).slice(1, -1) : args[i]);
             }
         }
 
         // Fill {0} with the entirety of all arguments
         if (args.length > 0) {
             const regex = new RegExp(`\\{${0}\\}`, "g");
-            message = message.replace(regex, args.slice(1).join(" "));
+            const fullText = args.slice(1).join(" ");
+            message = message.replace(regex, escapeJson ? JSON.stringify(fullText).slice(1, -1) : fullText);
         }
 
         const paramCheck = /\{[0-9]\}/;
