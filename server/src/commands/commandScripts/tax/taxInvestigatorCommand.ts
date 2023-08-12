@@ -1,17 +1,19 @@
 import { Command } from "../../command";
-import { EventLogType, GameEventType, GameMessageType, IUser, UserLevels } from "../../../models";
+import { AchievementType, EventLogType, GameEventType, GameMessageType, IUser, UserLevels } from "../../../models";
 import { BotContainer } from "../../../inversify.config";
 import { UserTaxHistoryRepository, MessagesRepository } from "../../../database";
 import { EventLogService, UserService } from "../../../services";
 import { BotSettings } from "../../../services/botSettingsService";
 import Logger, { LogType } from "../../../logger";
 import { delay } from "../../../helpers/asyncHelper";
+import EventAggregator from "../../../services/eventAggregator";
 
 export default class TaxInvestigatorCommand extends Command {
     private taxRepository: UserTaxHistoryRepository;
     private userService: UserService;
     private messages: MessagesRepository;
     private eventLog: EventLogService;
+    private eventAggregator: EventAggregator;
 
     constructor() {
         super();
@@ -19,6 +21,7 @@ export default class TaxInvestigatorCommand extends Command {
         this.userService = BotContainer.get(UserService);
         this.messages = BotContainer.get(MessagesRepository);
         this.eventLog = BotContainer.get(EventLogService);
+        this.eventAggregator = BotContainer.get(EventAggregator);
         this.minimumUserLevel = UserLevels.Moderator;
     }
 
@@ -105,6 +108,9 @@ export default class TaxInvestigatorCommand extends Command {
         await this.twitchWebService.banUser(taxEvader, penalty, "Tax evasion", true);
 
         await this.eventLog.addTaxEvasion(user, penalty);
+
+        const count = await this.eventLog.getCount(EventLogType.TaxEvasion, user);
+        this.eventAggregator.publishAchievement({ user, type: AchievementType.TaxEvasion, count });
     }
 
     private async findTaxEvader(users: string[], oneMonthAgo: Date): Promise<string|undefined> {

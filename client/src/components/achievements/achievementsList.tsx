@@ -99,6 +99,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
         11: "Arenas won",
         12: "Unique cards upgraded",
         13: "Daily Taxes streak",
+        14: "Tax evasion",
     };
 
     const achievementTypesSorted = Object.entries(achievementTypes);
@@ -230,7 +231,6 @@ const AchievementsList: React.FC<any> = (props: any) => {
                                         id="achievement-points"
                                         label="Points rewarded"
                                         type="number"
-                                        InputProps={{ inputProps: { min: 0 } }}
                                         fullWidth
                                         value={achievementPoints}
                                         onChange={(e) => setAchievementPoints(parseInt(e.target.value, 10))}
