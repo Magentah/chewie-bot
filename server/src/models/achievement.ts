@@ -13,6 +13,7 @@ export enum AchievementType {
     ArenaWon = 11,
     UniqueCardUpgrades = 12,
     DailyTaxStreak = 13,
+    TaxEvasion = 14,
 }
 
 export default interface IAchievement {
