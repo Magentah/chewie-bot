@@ -494,6 +494,7 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("event").notNullable();
             table.dateTime("dateTimeTriggered").notNullable().index();
+            table.boolean("assumeInvalid").defaultTo(false);
         });
     }
 

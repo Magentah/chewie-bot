@@ -101,6 +101,7 @@ export default class TaxService {
         if (lastOnlineEvents.length === 2) {
             const sixHours = 6 * 60 * 60 * 1000;
             if (new Date(lastOnlineEvents[0].dateTimeTriggered).getTime() - new Date(lastOnlineEvents[1].dateTimeTriggered).getTime() < sixHours) {
+                await this.streamActivityRepository.markInvalid(lastOnlineEvents[0]);
                 return;
             }
         }
