@@ -5,6 +5,7 @@ export interface IDBStreamActivity {
     id?: number;
     event: string;
     dateTimeTriggered: number;
+    assumeInvalid: boolean;
 }
 
 @injectable()
@@ -61,6 +62,7 @@ export default class StreamActivityRepository {
             .select("*")
             .where("event", "like", eventType)
             .andWhere("dateTimeTriggered", ">=", start)
+            .andWhere("assumeInvalid", false)
             .orderBy("dateTimeTriggered", sortOrder)
             .limit(count);
 
@@ -79,6 +81,7 @@ export default class StreamActivityRepository {
             .select("*")
             .where("dateTimeTriggered", ">=", start)
             .andWhere("dateTimeTriggered", "<=", end)
+            .andWhere("assumeInvalid", false)
             .orderBy("dateTimeTriggered", "asc");
 
         return lastEvents as IDBStreamActivity[];
@@ -92,5 +95,15 @@ export default class StreamActivityRepository {
     public async add(eventType: string, dateTimeTriggered: Date): Promise<void> {
         const databaseService = await this.databaseProvider();
         await databaseService.getQueryBuilder(DatabaseTables.StreamActivity).insert({ event: eventType, dateTimeTriggered });
+    }
+
+    /**
+     * Marks an event as invalid.
+     * @param id The event that was triggered.
+     * @param dateTimeTriggered The dateTime that the event was triggered.
+     */
+    public async markInvalid(event: IDBStreamActivity): Promise<void> {
+        const databaseService = await this.databaseProvider();
+        await databaseService.getQueryBuilder(DatabaseTables.StreamActivity).where("id", event.id).update({ assumeInvalid: true });
     }
 }

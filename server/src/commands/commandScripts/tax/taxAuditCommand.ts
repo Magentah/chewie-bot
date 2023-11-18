@@ -37,6 +37,7 @@ export default class TaxAuditCommand extends Command {
         let lastTaxMissDate = 0;
         let lastTaxRedemptionId = 0;
         let lastTaxDate = 0;
+        const sixHours = 6 * 60 * 60 * 1000;
 
         const taxAuditHistory = await this.taxRepository.getTaxAudit(targetUser);
         for (const event of taxAuditHistory) {
@@ -51,10 +52,19 @@ export default class TaxAuditCommand extends Command {
                 lastTaxRedemptionId = event.id;
                 lastTaxDate = event.date;
             } else if (event.event === EventTypes.StreamOnline) {
-                if (!taxesPaidForStream) {
-                    const sixHours = 6 * 60 * 60 * 1000;
+                const restartedStream = new Date(event.date).getTime() - new Date(previousStreamDate).getTime() < sixHours;
+
+                if (taxesPaidForStream) {
+                    // Here: User paid taxes for first stream, then stream restarted after
+                    if (restartedStream) {
+                        // Don't set taxesPaidForStream to false
+                        continue;
+                    }
+                }
+                else {
                     // Reset streak only if stream didn't restart.
-                    if (new Date(event.date).getTime() - new Date(previousStreamDate).getTime() >= sixHours) {
+                    // Here: Considering second stream in a row before user got chance to pay taxes
+                    if (!restartedStream) {
                         longestStreak = Math.max(currentStreak, longestStreak);
                         currentStreak = 0;
                         lastTaxMissDate = previousStreamDate;
