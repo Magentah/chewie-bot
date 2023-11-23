@@ -124,7 +124,7 @@ const CommandList: React.FC<any> = (props: any) => {
                             )}}
                         value={editingCommand?.commandName ?? ""} onChange={(e) => setEditingCommand({...editingCommand, commandName: e.target.value})} />
                     <TextField margin="dense" id="edit-content" label="Content" fullWidth variant="standard" multiline
-                        helperText="Variables: uptime, time, count, username, userfromargument, useroruserfromargument, userlaststreaming, userfollowage, streamtotal[7|30], streamaverage7[7|30]"
+                        helperText="Variables: uptime, time, date, count, username, userfromargument, useroruserfromargument, userlaststreaming, userfollowage, streamtotal[7|30], streamaverage7[7|30]"
                         value={editingCommand?.content ?? ""} rows={4} onChange={(e) => setEditingCommand({...editingCommand, content: e.target.value})} />
                     <TextField disabled={editingCommand?.type === CommandType.Alias} margin="dense" type="number" id="edit-count" label="Use count" fullWidth variant="standard"
                         value={editingCommand?.useCount ?? 0} onChange={(e) => setEditingCommand({...editingCommand, useCount: Number(e.target.value)})} />
