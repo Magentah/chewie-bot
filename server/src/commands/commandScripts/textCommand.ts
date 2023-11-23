@@ -141,6 +141,12 @@ export class TextCommand extends Command {
             message = message.replace(/\{time\}/ig, time);
         }
 
+        if (message.indexOf("{date}") !== -1) {
+            const timezone = await this.settingsService.getValue(BotSettings.Timezone);
+            const date = new Intl.DateTimeFormat("en", { day: "2-digit", year: "numeric", month: "short", timeZone: timezone ? timezone : undefined }).format(new Date())
+            message = message.replace(/\{date\}/ig, date);
+        }
+
         message = message.replace(/\{username\}/ig, user.username);
 
         // Determine uptime of stream
