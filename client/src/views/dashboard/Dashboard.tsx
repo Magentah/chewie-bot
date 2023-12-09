@@ -1,11 +1,13 @@
 import React, { useContext, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { makeStyles } from "makeStyles";
-import { Grid, Typography, Divider, Theme, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from "@mui/material";
+import { Grid, Typography, Divider, Theme, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, IconButton, useTheme } from "@mui/material";
 import SideBar from "../../components/sidebar/SideBar";
 import NavBar from "../../components/navbar/NavBar";
 import { Route as RouteType, DashboardRoutes, NotFoundRoute } from "../../Routes";
 import { UserContext } from "../../contexts/userContext";
+import { Brightness7, Brightness4 } from "@mui/icons-material";
+import { ColorModeContext, SidebarWidth } from "defaultTheme";
 
 const useStyles = makeStyles()((theme: Theme) => ({
     root: {
@@ -40,6 +42,8 @@ const createRouteMap = (routes: RouteType[]): ((x: string) => RouteType) => {
 const Dashboard: React.FC<{}> = (props) => {
     const { classes } = useStyles();
     const location = useLocation();
+    const theme = useTheme();
+    const colorMode = useContext(ColorModeContext);
     const getRoute = createRouteMap(DashboardRoutes);
     const userContext = useContext(UserContext);
     const [dialogClosed, setDialogClosed] = useState(false);
@@ -102,6 +106,12 @@ const Dashboard: React.FC<{}> = (props) => {
                     </Grid>
                 </div>
             </main>
+
+            <div style={{position: "absolute", zIndex: 1200, width: SidebarWidth, textAlign: "center" }}>
+                <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit" title="Toggle dark mode">
+                    {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                </IconButton>
+            </div>
         </div>
     );
 };

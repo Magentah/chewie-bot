@@ -1,10 +1,20 @@
-import { createTheme } from "@mui/material/styles";
+import { PaletteMode } from "@mui/material";
+import { createContext } from "react";
 
 export const SidebarWidth = 230;
 
-export const theme = createTheme({
+export const getDesignTokens = (mode: PaletteMode) => ({
     palette: {
-        background: { default: "#FAFAFA" }
+      mode,
+      ...(mode === 'light'
+        ? {
+            background: {
+                default: "#FAFAFA",
+            },
+          }
+        : {
+            // palette values for dark mode
+          }),
     },
     components: {
         MuiAppBar: {
@@ -29,31 +39,31 @@ export const theme = createTheme({
         },
         MuiSelect: {
             defaultProps: {
-                variant: "standard"
+                variant: "standard" as "standard"
             },
         },
         MuiTextField: {
             defaultProps: {
-                variant: "standard"
+                variant: "standard" as "standard"
             },
         },
         MuiFormControl: {
             defaultProps: {
-                variant: "standard"
+                variant: "standard" as "standard"
             },
         },
         MuiAlert: {
             defaultProps: {
-                variant: "filled",
+                variant: "filled" as "filled",
                 elevation: 6
             },
         },
         MuiSnackbar: {
             defaultProps: {
-                anchorOrigin: { vertical: "bottom", horizontal: "center" }
+                anchorOrigin: { vertical: "bottom" as "bottom", horizontal: "center" as "center" }
             }
         }
     },
 });
 
-export default theme;
+export const ColorModeContext = createContext({ toggleColorMode: () => {} });

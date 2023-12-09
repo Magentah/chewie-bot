@@ -182,7 +182,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                             <TextField
                                             {...params}
                                             label={`Cards collected: ${cardlist.length} / ${cardcount}`}
-                                            InputLabelProps={{ style: {color: "black"} }}
+                                            InputLabelProps={{ style: {color: theme.palette.text.primary } }}
                                             inputProps={{
                                                 ...params.inputProps,
                                                 style: {"color": theme.palette.text.primary },
