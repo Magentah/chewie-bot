@@ -37,7 +37,7 @@ const useStyles = makeStyles()((theme: Theme) => ({
         textAlign: "center"
     },
     prizeHeader: {
-        background: "#E4E4E4",
+        background: theme.palette.action.disabledBackground,
         textTransform: "uppercase",
         textAlign: "center",
         padding: theme.spacing(1,4)
