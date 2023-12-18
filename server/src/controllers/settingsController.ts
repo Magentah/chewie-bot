@@ -42,6 +42,7 @@ class SettingsController {
         [BotSettings.TaxTimeoutMax]: { title: "Max duration for tax evasion timeouts", readonly: false },
         [BotSettings.OpenAiApiKey]: { title: "OpenAI API key", readonly: false },
         [BotSettings.OpenAiModel]: { title: "OpenAI default model", readonly: false },
+        [BotSettings.MaxPointsTrading]: { title: "Maximum allowed points for trading cards", readonly: false },
     };
 
     constructor(

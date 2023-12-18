@@ -35,6 +35,7 @@ export enum BotSettings {
     TaxTimeoutMax = "tax-timeout-max",
     OpenAiApiKey = "openai-api-key",
     OpenAiModel = "openai-api-model",
+    MaxPointsTrading = "max-points-trading"
 }
 
 @injectable()
@@ -72,6 +73,7 @@ export default class BotSettingsService {
         [BotSettings.TaxTimeoutMax]: 60 * 15,
         [BotSettings.OpenAiApiKey]: "",
         [BotSettings.OpenAiModel]: "",
+        [BotSettings.MaxPointsTrading]: 0,
     };
 
     private readonly settingCache: { [name: string] : any; } = {};

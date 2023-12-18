@@ -21,6 +21,7 @@ Lang.register("cards.trading.startforcard", "$1 wants to trade \"$2\" for the ca
 Lang.register("cards.trading.startforpoints.touser", "$4, $1 wants to trade \"$2\" for $3 chews with you. Use !acceptoffer to accept!");
 Lang.register("cards.trading.startforcard.touser", "$4, $1 wants to trade \"$2\" for the card \"$3\" with you. Use !acceptoffer to accept!");
 Lang.register("cards.trading.cardnotexists", "$1, the card \"$2\" does not exist.");
+Lang.register("cards.trading.maxpointsexceeded", "$1, you cannot trade for more than \"$2\" chews.");
 
 Lang.register("cards.trading.inprogess", "A trade is currently in progress, please wait until the transaction has been completed.");
 Lang.register("cards.trading.cooldown", "Trading currently is in cooldown.");
