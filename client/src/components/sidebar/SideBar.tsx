@@ -1,10 +1,12 @@
 import React, { useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon, Theme } from "@mui/material";
+import { List, ListItem, ListItemIcon, ListItemText, Divider, Drawer, Icon, Theme, useTheme, IconButton } from "@mui/material";
 
 import { Route, DashboardRoutes } from "../../Routes";
 import { UserContext } from "../../contexts/userContext";
+import { Brightness7, Brightness4 } from "@mui/icons-material";
+import { ColorModeContext } from "defaultTheme";
 
 const width = 235;
 const useStyles = makeStyles()((theme: Theme) => {
@@ -22,8 +24,9 @@ const useStyles = makeStyles()((theme: Theme) => {
         drawerPaper: {
             width,
         },
-        toolbar: {
-            marginTop: theme.mixins.toolbar.minHeight,
+        iconButtonContainer: {
+            minHeight: theme.mixins.toolbar.minHeight,
+            textAlign: "center"
         },
     };
 });
@@ -34,6 +37,8 @@ const SideBar: React.FC<any> = (props: any) => {
     const history = useNavigate();
     const { classes } = useStyles();
     const userContext = useContext(UserContext);
+    const theme = useTheme();
+    const colorMode = useContext(ColorModeContext);
 
     const reroute = (path: string) => {
         history(path);
@@ -61,16 +66,18 @@ const SideBar: React.FC<any> = (props: any) => {
             );
         });
 
-        return (
-            <div className={classes.toolbar}>
-                <List> {listItems} </List>
-            </div>
-        );
+        return (<List> {listItems} </List>);
     };
 
     return (
         <div className={classes.root}>
             <Drawer variant="persistent" open={isOpened} anchor="left" classes={{ paper: classes.drawerPaper }}>
+                <div className={classes.iconButtonContainer}>
+                    <IconButton style={{"margin": "0.3em auto"}} onClick={colorMode.toggleColorMode} color="inherit" title="Toggle dark mode">
+                        {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                    </IconButton>
+                </div>
+
                 {renderRoutes(DashboardRoutes)}
             </Drawer>
         </div>
