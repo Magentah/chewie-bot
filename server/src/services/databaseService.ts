@@ -41,6 +41,7 @@ export enum DatabaseTables {
     UserAchievements = "userAchievements",
     Seasons = "seasons",
     CommandRedemptions = "commandRedemptions",
+    CommandSettings = "commandSettings"
 }
 
 export type DatabaseProvider = () => Promise<DatabaseService>;
@@ -163,6 +164,7 @@ export class DatabaseService {
             await this.createSeasonsTable();
             await this.createPointArchiveTable();
             await this.createCommandRedemptionsTable();
+            await this.createCommandSettingsTable();
 
             // Need to add VIP levels first because of foreign key.
             await this.populateDatabase();
@@ -316,6 +318,16 @@ export class DatabaseService {
             table.increments("id").primary().notNullable();
             table.string("key").unique().notNullable();
             table.string("value").notNullable();
+        });
+    }
+
+    private async createCommandSettingsTable(): Promise<void> {
+        return this.createTable(DatabaseTables.CommandSettings, (table) => {
+            table.increments("id").primary().notNullable();
+            table.string("commandName").notNullable();
+            table.string("key").notNullable();
+            table.string("value").notNullable();
+            table.unique(["commandName", "key"]);
         });
     }
 

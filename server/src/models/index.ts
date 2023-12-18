@@ -57,3 +57,4 @@ export { default as IAchievement, AchievementType } from "./achievement";
 export { default as ISeason } from "./season";
 export { default as ICommandRedemption } from "./commandRedemption";
 export { IUserAuth, IUserPrincipal, ProviderType } from "./userPrincipal";
+export { default as ICommandSettings, CommandSettings } from "./commandSettings";

@@ -8,7 +8,7 @@ import { IUser } from "../models";
 import { UserService } from "./userService";
 import { TwitchService } from "./twitchService";
 import { CommandAliasesRepository } from "../database/commandAliases";
-import { TextCommand } from "src/commands/commandScripts";
+import { TextCommand } from "../commands/commandScripts";
 
 @injectable()
 export class CommandService {

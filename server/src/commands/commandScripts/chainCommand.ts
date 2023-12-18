@@ -20,7 +20,7 @@ export default class ChainCommand extends TextCommand {
 
     public async execute(channel: string, user: IUser, ...args: any[]): Promise<void> {
         // Restore original functionality
-        Command.prototype.execute.call(this, channel, user, args);
+        await Command.prototype.execute.call(this, channel, user, args);
     }
 
     public async executeInternal(channel: string, user: IUser, args: any[]): Promise<void> {

@@ -16,3 +16,4 @@ export { default as UserTaxStreakRepository } from "./userTaxStreakRepository";
 export { default as SeasonsRepository } from "./seasonsRepository";
 export { default as PointLogsRepository } from "./pointLogsRepository";
 export { default as MessagesRepository } from "./messagesRepository";
+export { default as CommandSettingsRepository } from "./commandSettings";

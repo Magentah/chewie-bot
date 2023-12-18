@@ -78,3 +78,5 @@ export { default as RedeemCommand } from "../commandScripts/redeemCommand";
 export { default as SudokuCommand } from "../commandScripts/sudokuCommand";
 export { default as AnnounceCommand } from "../commandScripts/announceCommand";
 export { default as ChainCommand } from "../commandScripts/chainCommand";
+export { default as DisableCommand } from "./disableCommand";
+export { default as EnableCommand } from "./enableCommand";
