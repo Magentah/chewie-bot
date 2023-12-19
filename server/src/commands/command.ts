@@ -1,7 +1,8 @@
 import { BotContainer } from "../inversify.config";
 import { BotSettingsService, TwitchService, TwitchWebService } from "../services";
-import { IUser, UserLevels, ICommandAlias } from "../models";
+import { IUser, UserLevels, ICommandAlias, CommandSettings } from "../models";
 import { BotSettings } from "../services/botSettingsService";
+import { CommandSettingsRepository } from "../database";
 
 export abstract class Command {
     protected isInternalCommand = false;
@@ -10,24 +11,32 @@ export abstract class Command {
     protected description = "";
     protected settingsService: BotSettingsService;
     protected twitchWebService;
+    protected commandSettings: CommandSettingsRepository;
+    private commandName = "";
 
     constructor() {
         this.twitchService = BotContainer.get(TwitchService);
         this.settingsService = BotContainer.get(BotSettingsService);
         this.twitchWebService = BotContainer.get(TwitchWebService);
+        this.commandSettings = BotContainer.get(CommandSettingsRepository);
     }
 
-    public execute(channel: string, user: IUser, ...args: any[]): void {
+    public async execute(channel: string, user: IUser, ...args: any[]): Promise<void> {
         if (user && user.userLevel && user.userLevel >= this.minimumUserLevel) {
+            if (await this.commandSettings.getValue(this.commandName, CommandSettings.Disabled) === "1") {
+                await this.twitchService.sendMessage(channel, `Command \"${this.commandName}\" is currently disabled.`);
+                return;
+            }
+
             this.executeInternal(channel, user, ...args);
         } else {
-            this.twitchService.sendMessage(channel, `${user.username}, you do not have permissions to execute this command.`);
+            await this.twitchService.sendMessage(channel, `${user.username}, you do not have permissions to execute this command.`);
         }
     }
 
     protected async isReadOnly(channel: string): Promise<boolean> {
         if (await this.settingsService.getBoolValue(BotSettings.ReadonlyMode)) {
-            this.twitchService.sendMessage(channel, "Command disabled because of read-only mode.");
+            await this.twitchService.sendMessage(channel, "Command disabled because of read-only mode.");
             return true;
         } else {
             return false;
@@ -36,6 +45,14 @@ export abstract class Command {
 
     protected executeInternal(channel: string, user: IUser, ...args: any[]): void {
         // Empty
+    }
+
+    public getName(): string {
+        return this.commandName;
+    }
+
+    public setName(commandName: string): void {
+        this.commandName = commandName;
     }
 
     public getAliases(): ICommandAlias[] {

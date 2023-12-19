@@ -496,10 +496,12 @@ export class SongService {
                 // Override title determined by URL if changed manually.
                 if (changeTitle) {
                     song.title = newSong.title;
+                    song.detailedTitle = undefined;
                 }
 
                 if (changeCleanTitle) {
                     song.cleanTitle = newSong.cleanTitle;
+                    song.detailedTitle = undefined;
                 }
 
                 song.comments = newSong.comments;

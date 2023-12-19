@@ -55,6 +55,7 @@ import StreamActivityRepository from "./database/streamActivityRepository";
 import AchievementsRepository from "./database/achievementsRepository";
 import SeasonsRepository from "./database/seasonsRepository";
 import RedemptionsRepository from "./database/redemptionsRepository";
+import CommandSettingsRepository from "./database/commandSettings";
 
 // Controllers
 import SongController from "./controllers/songController";
@@ -163,6 +164,7 @@ botContainer.bind<StreamActivityRepository>(StreamActivityRepository).toSelf();
 botContainer.bind<AchievementsRepository>(AchievementsRepository).toSelf();
 botContainer.bind<SeasonsRepository>(SeasonsRepository).toSelf();
 botContainer.bind<RedemptionsRepository>(RedemptionsRepository).toSelf();
+botContainer.bind<CommandSettingsRepository>(CommandSettingsRepository).toSelf();
 
 // Controllers
 botContainer.bind<SongController>(SongController).toSelf();
@@ -184,8 +186,9 @@ botContainer.bind<QuotelistController>(QuotelistController).toSelf();
 // Commands
 const commandList: Map<string, Command> = new Map<string, Command>();
 Object.keys(Commands).forEach((val, index) => {
-    const commandName = val.substr(0, val.toLowerCase().indexOf("command"));
-    const command = new (Object.values(Commands)[index])();
+    const commandName = val.substring(0, val.toLowerCase().indexOf("command"));
+    const command = new (Object.values(Commands)[index])() as Command;
+    command.setName(commandName);
     commandList.set(commandName.toLowerCase(), command);
     for (const alias of command.getAliases()) {
         commandList.set(alias.alias.toLowerCase(), command);

@@ -5,6 +5,7 @@ import { ICommandAlias, IUser } from "../../../models";
 import { BotContainer } from "../../../inversify.config";
 import { Lang } from "../../../lang";
 import CardTradingEvent from "../../../events/cardTradingEvent";
+import { BotSettings } from "../../../services/botSettingsService";
 
 /**
  * Trade a card for chews or a different card from another user.
@@ -56,6 +57,14 @@ export default class OfferCommand extends Command {
         if (cardWanted === undefined && isNaN(pointsWanted)) {
             await this.twitchService.sendMessage(channel, Lang.get("cards.trading.cardnotexists", user.username, cardNameOrChews));
             return;
+        }
+
+        if (!isNaN(pointsWanted)) {
+            const maxPoints =  await this.settingsService.getIntValue(BotSettings.MaxPointsTrading);
+            if (maxPoints > 0 && pointsWanted > maxPoints) {
+                await this.twitchService.sendMessage(channel, Lang.get("cards.trading.maxpointsexceeded", user.username, maxPoints));
+                return;
+            }
         }
 
         // Abort if card wanted is same as card offered.
