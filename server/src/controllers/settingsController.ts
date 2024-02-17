@@ -43,6 +43,7 @@ class SettingsController {
         [BotSettings.OpenAiApiKey]: { title: "OpenAI API key", readonly: false },
         [BotSettings.OpenAiModel]: { title: "OpenAI default model", readonly: false },
         [BotSettings.MaxPointsTrading]: { title: "Maximum allowed points for trading cards", readonly: false },
+        [BotSettings.TaxEvasionPenalty]: { title: "Amount of points for tax evasion penalty", readonly: false },
     };
 
     constructor(

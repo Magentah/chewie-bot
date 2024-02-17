@@ -76,20 +76,12 @@ export default class TaxInvestigatorCommand extends Command {
     }
 
     private async executePenalty(channel: string, taxEvader: string) {
-        let penalty = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
-
         // User names come from Twitch API so we can safely add it if user does not exist yet and log
         const user = await this.userService.addUser(taxEvader);
 
         // Increase penalty each time if desired
         const evasionCount = await this.eventLog.getCount(EventLogType.TaxEvasion, user);
-        if (evasionCount > 0) {
-            const penaltyIncrement = await this.settingsService.getIntValue(BotSettings.TaxTimeoutIncrement);
-            if (penaltyIncrement) {
-                const penaltyMax = await this.settingsService.getIntValue(BotSettings.TaxTimeoutMax);
-                penalty = Math.min(penalty + penaltyIncrement * evasionCount, penaltyMax);
-            }
-        }
+        const penalty = await this.settingsService.getTaxEvasionPenalty(evasionCount);
 
         let message = `${taxEvader} has not paid their taxes and is now given a penalty.`;
 
