@@ -37,6 +37,7 @@ export enum BotSettings {
     OpenAiModel = "openai-api-model",
     MaxPointsTrading = "max-points-trading",
     TaxEvasionPenalty = "tax-evasion-penalty",
+    TaxTimeoutDurationForInsubordination = "tax-timeout-duration-insubordination",
 }
 
 @injectable()
@@ -70,6 +71,7 @@ export default class BotSettingsService {
         [BotSettings.ModsSudokuExemption]: false,
         [BotSettings.SudokuDuration]: 120,
         [BotSettings.TaxTimeoutDuration]: 60 * 5,
+        [BotSettings.TaxTimeoutDurationForInsubordination]: 60 * 2,
         [BotSettings.TaxTimeoutIncrement]: 60,
         [BotSettings.TaxTimeoutMax]: 60 * 15,
         [BotSettings.OpenAiApiKey]: "",

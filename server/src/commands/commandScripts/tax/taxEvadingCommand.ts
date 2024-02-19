@@ -49,8 +49,7 @@ export default class TaxEvadingCommand extends Command {
                     await this.twitchService.sendMessage(channel, `${user.username} broke their back trying to dodge bullets (-${taxPenalty} chews) NOPERS`);
                 }
             } else {
-                const evasionCount = await this.eventLogService.getCount(EventLogType.TaxEvasion, user);
-                const penaltyDuration = await this.settingsService.getTaxEvasionPenalty(evasionCount);
+                const penaltyDuration = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDurationForInsubordination);
                 await this.twitchWebService.banUser(user.username, penaltyDuration, "Tax evasion", true);
                 await this.twitchService.sendMessage(channel, `Loud, broke, and shameless, ${user.username} was taken straight to jail chewieJail`);
             }
