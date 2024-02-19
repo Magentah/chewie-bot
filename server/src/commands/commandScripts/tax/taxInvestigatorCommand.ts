@@ -52,6 +52,14 @@ export default class TaxInvestigatorCommand extends Command {
     }
 
     private async findTaxEvaders(channel: string, oneMonthAgo: Date, userFilter: string[]) {
+        // Add extra users exempt from tax
+        const exemptUsers = await this.settingsService.getValue(BotSettings.TaxInspectorExemptUsers);
+        if (exemptUsers) {
+            for (const exemptUser of exemptUsers.split(",")) {
+                userFilter.push(exemptUser.trim().toLowerCase());
+            }
+        }
+
         // Start with people currently active in chat
         const activeChatters = this.twitchService.getActiveChatters().filter((el)  => !userFilter.includes(el.toLowerCase()));
         let taxEvader = await this.findTaxEvader(activeChatters, oneMonthAgo);
