@@ -38,11 +38,14 @@ class SettingsController {
         [BotSettings.SudokuDuration]: { title: "Duration for sudoku timeouts", readonly: false },
         [BotSettings.ModsSudokuExemption]: { title: "Exemption for mods from sudoku timeouts", readonly: false },
         [BotSettings.TaxTimeoutDuration]: { title: "Duration for tax evasion timeouts", readonly: false },
+        [BotSettings.TaxTimeoutDurationForInsubordination]: { title: "Duration for tax evasion timeouts after insubordination", readonly: false },
         [BotSettings.TaxTimeoutIncrement]: { title: "Amount of seconds tax timeout increases each time", readonly: false },
         [BotSettings.TaxTimeoutMax]: { title: "Max duration for tax evasion timeouts", readonly: false },
         [BotSettings.OpenAiApiKey]: { title: "OpenAI API key", readonly: false },
         [BotSettings.OpenAiModel]: { title: "OpenAI default model", readonly: false },
         [BotSettings.MaxPointsTrading]: { title: "Maximum allowed points for trading cards", readonly: false },
+        [BotSettings.TaxEvasionPenalty]: { title: "Amount of points for tax evasion penalty", readonly: false },
+        [BotSettings.TaxInspectorExemptUsers]: { title: "Users exempt from tax inspector", readonly: false },
     };
 
     constructor(

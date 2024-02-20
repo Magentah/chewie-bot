@@ -52,6 +52,14 @@ export default class TaxInvestigatorCommand extends Command {
     }
 
     private async findTaxEvaders(channel: string, oneMonthAgo: Date, userFilter: string[]) {
+        // Add extra users exempt from tax
+        const exemptUsers = await this.settingsService.getValue(BotSettings.TaxInspectorExemptUsers);
+        if (exemptUsers) {
+            for (const exemptUser of exemptUsers.split(",")) {
+                userFilter.push(exemptUser.trim().toLowerCase());
+            }
+        }
+
         // Start with people currently active in chat
         const activeChatters = this.twitchService.getActiveChatters().filter((el)  => !userFilter.includes(el.toLowerCase()));
         let taxEvader = await this.findTaxEvader(activeChatters, oneMonthAgo);
@@ -76,20 +84,12 @@ export default class TaxInvestigatorCommand extends Command {
     }
 
     private async executePenalty(channel: string, taxEvader: string) {
-        let penalty = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
-
         // User names come from Twitch API so we can safely add it if user does not exist yet and log
         const user = await this.userService.addUser(taxEvader);
 
         // Increase penalty each time if desired
         const evasionCount = await this.eventLog.getCount(EventLogType.TaxEvasion, user);
-        if (evasionCount > 0) {
-            const penaltyIncrement = await this.settingsService.getIntValue(BotSettings.TaxTimeoutIncrement);
-            if (penaltyIncrement) {
-                const penaltyMax = await this.settingsService.getIntValue(BotSettings.TaxTimeoutMax);
-                penalty = Math.min(penalty + penaltyIncrement * evasionCount, penaltyMax);
-            }
-        }
+        const penalty = await this.settingsService.getTaxEvasionPenalty(evasionCount);
 
         let message = `${taxEvader} has not paid their taxes and is now given a penalty.`;
 

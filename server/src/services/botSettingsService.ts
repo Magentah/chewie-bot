@@ -35,7 +35,10 @@ export enum BotSettings {
     TaxTimeoutMax = "tax-timeout-max",
     OpenAiApiKey = "openai-api-key",
     OpenAiModel = "openai-api-model",
-    MaxPointsTrading = "max-points-trading"
+    MaxPointsTrading = "max-points-trading",
+    TaxEvasionPenalty = "tax-evasion-penalty",
+    TaxTimeoutDurationForInsubordination = "tax-timeout-duration-insubordination",
+    TaxInspectorExemptUsers = "tax-exempt-users",
 }
 
 @injectable()
@@ -69,11 +72,14 @@ export default class BotSettingsService {
         [BotSettings.ModsSudokuExemption]: false,
         [BotSettings.SudokuDuration]: 120,
         [BotSettings.TaxTimeoutDuration]: 60 * 5,
+        [BotSettings.TaxTimeoutDurationForInsubordination]: 60 * 2,
         [BotSettings.TaxTimeoutIncrement]: 60,
         [BotSettings.TaxTimeoutMax]: 60 * 15,
         [BotSettings.OpenAiApiKey]: "",
         [BotSettings.OpenAiModel]: "",
         [BotSettings.MaxPointsTrading]: 0,
+        [BotSettings.TaxEvasionPenalty]: 10,
+        [BotSettings.TaxInspectorExemptUsers]: "",
     };
 
     private readonly settingCache: { [name: string] : any; } = {};
@@ -88,6 +94,21 @@ export default class BotSettingsService {
 
     public async getIntValue(key: BotSettings): Promise<number> {
         return parseInt(await this.getValue(key), 10);
+    }
+
+    public async getTaxEvasionPenalty(evasionCount: number) {
+        let penalty = await this.getIntValue(BotSettings.TaxTimeoutDuration);
+
+        // Increase penalty each time if desired
+        if (evasionCount > 0) {
+            const penaltyIncrement = await this.getIntValue(BotSettings.TaxTimeoutIncrement);
+            if (penaltyIncrement) {
+                const penaltyMax = await this.getIntValue(BotSettings.TaxTimeoutMax);
+                penalty = Math.min(penalty + penaltyIncrement * evasionCount, penaltyMax);
+            }
+        }
+
+        return penalty;
     }
 
     public async getValue(key: BotSettings): Promise<string> {
