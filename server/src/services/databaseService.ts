@@ -50,7 +50,7 @@ export type DatabaseProvider = () => Promise<DatabaseService>;
 declare module "knex" {
   namespace Knex {
     interface QueryBuilder {
-        fulltextSearch<TRecord, TResult>(value: string, columns: string[]): Knex.QueryBuilder<any, TResult>;
+        fulltextSearch<TRecord, TResult>(value: string, columns: string[]): Knex.QueryBuilder;
     }
   }
 }
