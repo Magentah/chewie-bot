@@ -14,7 +14,6 @@
         "moduleResolution": "Node",
         "importHelpers": true,
         "resolveJsonModule": true,
-        "skipLibCheck": true,
         "types": ["node"],
         "typeRoots": ["./src/types", "node_modules/@types"],
         "allowJs": true,

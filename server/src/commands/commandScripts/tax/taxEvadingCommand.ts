@@ -25,8 +25,9 @@ export default class TaxEvadingCommand extends Command {
         // Users who got caught this stream or are #1 on the leaderboard are not.
 
         let penalty = false;
-        const topTaxEvaders = await this.eventLogs.getTopTaxEvaders(1);
-        if (topTaxEvaders.length === 1 && topTaxEvaders[0].username === user.username) {
+        const leaderboardCount = await this.settingsService.getIntValue(BotSettings.TaxEvasionPenaltyLeaderboardCount);
+        const topTaxEvaders = await this.eventLogs.getTopTaxEvaders(leaderboardCount);
+        if (topTaxEvaders.length > 0 && topTaxEvaders.findIndex(x => x.username.toLowerCase() === user.username.toLowerCase()) >= 0) {
             penalty = true;
         } else {
             const lastOnline = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
