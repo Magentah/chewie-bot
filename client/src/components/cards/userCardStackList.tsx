@@ -127,7 +127,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
         );
     }
 
-    const filteredCardList = cardlist.filter(x => !selectedSeason || x.setName === selectedSeason);
+    const filteredCardList = cardlist.filter(x => !selectedSeason || x.setName === selectedSeason).sort((a, b) => a.name.localeCompare(b.name, undefined, {'sensitivity': 'base'}));
 
     return <Card>
             <Backdrop className={classes.backdrop} open={cardViewUrl !== ""} onClick={() => setCardViewUrl("")}>
@@ -169,7 +169,7 @@ const UserCardStackList: React.FC<any> = (props: any) => {
                                     <Autocomplete 
                                         sx={{ width: 250 }}
                                         openOnFocus
-                                        options={cardlist.sort((a, b) => -b.setName.localeCompare(a.setName))}
+                                        options={cardlist.sort((a, b) => -b.setName.localeCompare(a.setName) || -b.name.localeCompare(a.name, undefined, {'sensitivity': 'base'}))}
                                         groupBy={(option) => option.setName}
                                         getOptionLabel={(option) => option.name}
                                         onChange={(e, newValue) => { if (newValue) { setSelectedSeason(newValue.setName) } }}
