@@ -31,9 +31,10 @@ export default class TaxInvestigatorCommand extends Command {
         oneMonthAgo.setDate(oneMonthAgo.getDate() - 31);
 
         // Try finding a tax evader that has not recently been timed out first.
-        const last24Hours = new Date();
-        last24Hours.setHours(last24Hours.getHours() - 24);
-        let userFilter = (await this.eventLog.getTaxPenaltiesSince(last24Hours)).map(x => x.toLowerCase());
+        const penaltyCooldownInHours = await this.settingsService.getIntValue(BotSettings.TaxEvasionCooldown) / 60;
+        const penaltyCoolDownDate = new Date();
+        penaltyCoolDownDate.setHours(penaltyCoolDownDate.getHours() - penaltyCooldownInHours);
+        let userFilter = (await this.eventLog.getTaxPenaltiesSince(penaltyCoolDownDate)).map(x => x.toLowerCase());
 
         if (await this.findTaxEvaders(channel, oneMonthAgo, userFilter)) {
             return;
