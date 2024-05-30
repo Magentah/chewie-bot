@@ -37,6 +37,7 @@ export enum BotSettings {
     OpenAiModel = "openai-api-model",
     MaxPointsTrading = "max-points-trading",
     TaxEvasionPenalty = "tax-evasion-penalty",
+    TaxEvasionCooldown = "tax-evasion-cooldown",
     TaxEvasionPenaltyLeaderboardCount = "tax-evasion-penalty-leaderboard-count",
     TaxTimeoutDurationForInsubordination = "tax-timeout-duration-insubordination",
     TaxInspectorExemptUsers = "tax-exempt-users",
@@ -82,6 +83,7 @@ export default class BotSettingsService {
         [BotSettings.TaxEvasionPenalty]: 10,
         [BotSettings.TaxInspectorExemptUsers]: "",
         [BotSettings.TaxEvasionPenaltyLeaderboardCount]: 1,
+        [BotSettings.TaxEvasionCooldown]: 24 * 60,
     };
 
     private readonly settingCache: { [name: string] : any; } = {};

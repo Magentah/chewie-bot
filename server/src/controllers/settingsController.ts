@@ -47,6 +47,7 @@ class SettingsController {
         [BotSettings.TaxEvasionPenalty]: { title: "Amount of points for tax evasion penalty", readonly: false },
         [BotSettings.TaxInspectorExemptUsers]: { title: "Users exempt from tax inspector", readonly: false },
         [BotSettings.TaxEvasionPenaltyLeaderboardCount]: { title: "Number of top users from tax evasion leaderboard for penalty", readonly: false },
+        [BotSettings.TaxEvasionCooldown]: { title: "Number of minutes that tax evaders are safe after penalty", readonly: false },
     };
 
     constructor(
