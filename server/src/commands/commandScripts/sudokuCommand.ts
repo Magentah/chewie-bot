@@ -41,16 +41,21 @@ export class SudokuCommand extends Command {
         }
 
         const timeoutLength = await this.settingsService.getIntValue(BotSettings.SudokuDuration);
-        await this.twitchWebService.banUser(user.username, timeoutLength, `${user.username} just got their guts spilled chewieSudoku`, true);
-        await this.twitchService.sendMessage(channel, `${user.username} just got their guts spilled chewieSudoku`);
 
-        await this.eventLogService.addSudoku(user);
+        try {
+            await this.twitchWebService.banUser(user.username, timeoutLength, `${user.username} just got their guts spilled chewieSudoku`, true);
+            await this.twitchService.sendMessage(channel, `${user.username} just got their guts spilled chewieSudoku`);
 
-        const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
-        const count = await this.eventLogService.getCount(EventLogType.Sudoku, user);
-        const seasonalCount = await this.eventLogService.getCount(EventLogType.Sudoku, user, currentSeasonStart);
-        const msg = { user, type: AchievementType.Sudoku, count, seasonalCount };
-        this.eventAggregator.publishAchievement(msg);
+            await this.eventLogService.addSudoku(user);
+
+            const currentSeasonStart = (await this.seasonsRepository.getCurrentSeason()).startDate;
+            const count = await this.eventLogService.getCount(EventLogType.Sudoku, user);
+            const seasonalCount = await this.eventLogService.getCount(EventLogType.Sudoku, user, currentSeasonStart);
+            const msg = { user, type: AchievementType.Sudoku, count, seasonalCount };
+            this.eventAggregator.publishAchievement(msg);
+        } catch (err : any) {
+            // Trying to ban broadcaster?
+        }
     }
 
     /**

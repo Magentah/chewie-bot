@@ -102,21 +102,30 @@ export class CommandService {
      * @param {string} message The message to parse for a command.
      */
     public async handleMessage(channel: string, username: string, message: string): Promise<void> {
-        let commandName = TwitchHelper.getCommandName(message);
+        let commandName;
+        let args = TwitchHelper.getCommandArgs(message);
+
+        // Check for this first so that invoking commands cannot
+        // be used as a loophole to avoid triggering a keyword based command.
+        // (like !test sudoku).
+        for (const [key, value] of this.commandList) {
+            if (value.shouldExecuteOnMessage(message)) {
+                commandName = key;
+
+                // Clear arguments because this kind of command invocation
+                // does not supply any arguments to the command invoked.
+                args = [];
+                break;
+            }
+        }
 
         if (!commandName) {
-            for (const [key, value] of this.commandList) {
-                if (value.shouldExecuteOnMessage(message)) {
-                    commandName = key;
-                    break;
-                }
-            }
+            commandName = TwitchHelper.getCommandName(message);
         }
 
         if (commandName) {
             try {
                 const user = await this.users.addUser(username);
-                const args = TwitchHelper.getCommandArgs(message);
                 if (args) {
                     this.executeCommand(commandName, channel, user, ...args);
                 } else {
