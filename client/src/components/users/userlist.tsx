@@ -225,7 +225,7 @@ const UserList: React.FC<any> = (props: any) => {
                     pageSizeOptions: [10, 50, 100, 200],
                     padding: "dense"
                 }}
-                actions={userContext.user.userLevel < UserLevels.Broadcaster ? undefined : [
+                actions={userContext.user.userLevel < UserLevels.Broadcaster ? [] : [
                     {
                         icon: Star,
                         tooltip: "Add VIP gold",
