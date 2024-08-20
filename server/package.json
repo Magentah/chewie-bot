@@ -1,6 +1,6 @@
 {
     "name": "chewie-bot",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "main": "main.js",
     "author": "Magentah <Magentah@users.noreply.github.com>",
     "license": "MIT",
