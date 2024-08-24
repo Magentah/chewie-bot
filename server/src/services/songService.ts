@@ -49,6 +49,7 @@ export class SongService {
         // https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1
 
         const song: ISong = {} as ISong;
+        url = url.trimStart();
         const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
 
         const id = this.youtubeService.parseYoutubeUrl(fullurl);
@@ -76,6 +77,7 @@ export class SongService {
      */
     private async parseAnyUrl(url: string): Promise<ISong> {
         const song: ISong = {} as ISong;
+        url = url.trimStart();
         const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
 
         // Gets song details by using Open Graph meta information of the page
