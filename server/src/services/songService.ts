@@ -142,6 +142,15 @@ export class SongService {
     public async addSong(url: string, requestSource: RequestSource, username: string, comments: string, title = "", requestSourceDetails = ""): Promise<ISong> {
         const song: ISong = await this.getSong(url);
 
+        // Check for song already in queue
+        const existingSong = Object.values(this.songQueue).filter((s) => {
+            return s.sourceId === song.sourceId && s.source === song.source && s.sourceUrl === url;
+        })[0];
+
+        if (existingSong) {
+            throw new SongAlreadyInQueueError("Song has already been added to the queue.");
+        }
+
         try {
             song.id = this.nextSongId++;
             if (title) {
@@ -259,26 +268,8 @@ export class SongService {
 
         try {
             song = this.parseUrl(url);
-
-            const existingSong = Object.values(this.songQueue).filter((s) => {
-                return s.sourceId === song.sourceId && s.source === song.source;
-            })[0];
-
-            if (existingSong) {
-                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
-            }
-
             return await this.getSongDetails(song);
         } catch (err: any) {
-            // We can check for same URL before getting any details here.
-            const existingSong = Object.values(this.songQueue).filter((s) => {
-                return s.sourceUrl === url;
-            })[0];
-
-            if (existingSong) {
-                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
-            }
-
             return await this.parseAnyUrl(url);
         }
     }
