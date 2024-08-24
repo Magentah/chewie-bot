@@ -193,7 +193,7 @@ const CommandList: React.FC<any> = (props: any) => {
                     addRowPosition: "first",
                     padding: "dense"
                 }}
-                actions = {(userContext.user.userLevel < UserLevels.Moderator) ? undefined :
+                actions = {(userContext.user.userLevel < UserLevels.Moderator) ? [] :
                     [
                         {
                             icon: "add",
