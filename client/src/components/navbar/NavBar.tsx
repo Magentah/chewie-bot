@@ -82,7 +82,7 @@ const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
         axios.get("/api/twitch/status").then((response) => {
             setBotConnected(response?.data.status === "OPEN");
             setHasBroadcasterAuth(response?.data.hasBroadcasterAuth);
-        });
+        }).catch(() => {});
     }, []);
 
     const getStyle = (v: boolean | undefined) => v === undefined ? classes.loadingButton : v ? classes.connectedButton : classes.disconnectedButton;

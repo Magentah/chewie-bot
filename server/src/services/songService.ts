@@ -49,6 +49,7 @@ export class SongService {
         // https://www.youtube.com/watch?v=l0qWjHP1GQc&list=RDl0qWjHP1GQc&start_radio=1
 
         const song: ISong = {} as ISong;
+        url = url.trimStart();
         const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
 
         const id = this.youtubeService.parseYoutubeUrl(fullurl);
@@ -76,6 +77,7 @@ export class SongService {
      */
     private async parseAnyUrl(url: string): Promise<ISong> {
         const song: ISong = {} as ISong;
+        url = url.trimStart();
         const fullurl = /^https?:\/\//i.test(url) ? url: "https://" + url;
 
         // Gets song details by using Open Graph meta information of the page
@@ -139,6 +141,15 @@ export class SongService {
      */
     public async addSong(url: string, requestSource: RequestSource, username: string, comments: string, title = "", requestSourceDetails = ""): Promise<ISong> {
         const song: ISong = await this.getSong(url);
+
+        // Check for song already in queue
+        const existingSong = Object.values(this.songQueue).filter((s) => {
+            return s.sourceId === song.sourceId && s.source === song.source && s.sourceUrl === url;
+        })[0];
+
+        if (existingSong) {
+            throw new SongAlreadyInQueueError("Song has already been added to the queue.");
+        }
 
         try {
             song.id = this.nextSongId++;
@@ -257,26 +268,8 @@ export class SongService {
 
         try {
             song = this.parseUrl(url);
-
-            const existingSong = Object.values(this.songQueue).filter((s) => {
-                return s.sourceId === song.sourceId && s.source === song.source;
-            })[0];
-
-            if (existingSong) {
-                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
-            }
-
             return await this.getSongDetails(song);
         } catch (err: any) {
-            // We can check for same URL before getting any details here.
-            const existingSong = Object.values(this.songQueue).filter((s) => {
-                return s.sourceUrl === url;
-            })[0];
-
-            if (existingSong) {
-                throw new SongAlreadyInQueueError("Song has already been added to the queue.");
-            }
-
             return await this.parseAnyUrl(url);
         }
     }
