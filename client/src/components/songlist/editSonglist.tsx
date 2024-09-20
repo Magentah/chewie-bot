@@ -8,8 +8,7 @@ import {
 } from "@mui/material";
 import { Autocomplete, AutocompleteInputChangeReason } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
 
 // Use "condensed" display for rows
 const createCondensedTheme = (theme: any) => createTheme(theme, {
@@ -207,13 +206,13 @@ const EditSonglist: React.FC<any> = (props: any) => {
             }}
             actions={[
                 rowData => ({
-                    icon: ArrowUpwardIcon,
+                    icon: () => <ArrowUpward />,
                     tooltip: "Move up",
                     disabled: hasIndex(categories, rowData, 0),
                     onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], -1) : onCategoryMoved([ data as CategoryData ], -1)
                 }),
                 rowData => ({
-                    icon: ArrowDownwardIcon,
+                    icon: () => <ArrowDownward />,
                     tooltip: "Move down",
                     disabled: hasIndex(categories, rowData, categories.length - 1),
                     onClick: (event, data) => (data as CategoryData[]).length ? onCategoryMoved(data as CategoryData[], 1) : onCategoryMoved([ data as CategoryData ], 1)

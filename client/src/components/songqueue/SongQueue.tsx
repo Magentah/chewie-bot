@@ -17,7 +17,7 @@ import { UserContext } from "../../contexts/userContext";
 import SongHistory from "./SongHistory";
 import Song, { SongSource } from "./song";
 import RequestDateCell from "./RequestDateCell";
-import { Delete, OpenInNew, PlayCircleOutline, VerticalAlignTop, Check, AttachMoney } from "@mui/icons-material";
+import { Delete, OpenInNew, PlayCircleOutline, AttachMoney, VerticalAlignTop, Check, Remove } from "@mui/icons-material";
 import { UserLevels } from "components/common/userLevel";
 
 const useStyles = makeStyles()((theme: Theme) => ({
@@ -360,13 +360,13 @@ const SongQueue: React.FC<{onPlaySong: (id: string) => void}> = (props) => {
                 }
             },
             rowData => ({
-                icon: VerticalAlignTop,
+                icon: () => <VerticalAlignTop />,
                 tooltip: "Move to top",
                 hidden: songs.length > 0 && songs[0].id === rowData.id,
                 onClick: (event, data) => (data as Song[]).length ? onSongMovedToTop(data as Song[]) : onSongMovedToTop([ data as Song ])
             }),
             rowData => ({
-                icon: Check,
+                icon: () => <Check />,
                 tooltip: "Complete",
                 hidden: songs.length > 0 && songs[0].id !== rowData.id,
                 onClick: (evt, data) => (data as Song[]).length ? onSongCompleted(data as Song[]) : onSongCompleted([ data as Song ])

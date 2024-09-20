@@ -8,7 +8,7 @@ import { Image } from "react-bootstrap";
 import { DropzoneArea, DropzoneDialog, FileObject } from "mui-file-dropzone";
 import { AddToListState } from "../common/addToListState";
 import AddIcon from "@mui/icons-material/Add";
-import GroupIcon from "@mui/icons-material/Group";
+import { Group } from "@mui/icons-material";
 
 const useStyles = makeStyles()((theme: Theme) => ({
     addButton: {
@@ -344,7 +344,7 @@ const AchievementsList: React.FC<any> = (props: any) => {
                 data = {achievementlist}
                 actions={[
                     {
-                      icon: GroupIcon,
+                      icon: () => <Group />,
                       tooltip: "Users with this achievement",
                       onClick: (event, rowData) => {
                         const id = (rowData as RowData).id;

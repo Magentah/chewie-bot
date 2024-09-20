@@ -3,13 +3,13 @@ import { makeStyles } from "tss-react/mui";
 import axios from "axios";
 import MaterialTable from "@material-table/core";
 import { Button,  Grid, TextField, Popover, Box, CircularProgress, Typography, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Theme } from "@mui/material";
-import { Star, SettingsBackupRestore } from "@mui/icons-material";
 import { AddToListState } from "../common/addToListState";
 import { UserLevel, UserLevels } from "../common/userLevel";
 import AddIcon from "@mui/icons-material/Add";
 import UserStatusLog from "./userStatusLog";
 import { UserProfile } from "../common/userProfile";
 import { UserContext  } from "../../contexts/userContext";
+import { SettingsBackupRestore, Star } from "@mui/icons-material";
 
 type RowData = { username: string, vipExpiry: number, vipLastRequest: number, vipPermanentRequests: number; };
 
@@ -227,7 +227,7 @@ const UserList: React.FC<any> = (props: any) => {
                 }}
                 actions={userContext.user.userLevel < UserLevels.Broadcaster ? [] : [
                     {
-                        icon: Star,
+                        icon: () => <Star />,
                         tooltip: "Add VIP gold",
                         onClick: (event, rowData) => {
                             if ((rowData as RowData).username !== undefined) {
@@ -236,7 +236,7 @@ const UserList: React.FC<any> = (props: any) => {
                         }
                     },
                     {
-                        icon: SettingsBackupRestore,
+                        icon: () => <SettingsBackupRestore />,
                         tooltip: "Reset user",
                         onClick: (event, rowData) => {
                             if ((rowData as RowData).username !== undefined) {
