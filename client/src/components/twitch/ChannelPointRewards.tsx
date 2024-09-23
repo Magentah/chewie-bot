@@ -64,9 +64,7 @@ const ChannelPointRewards: React.FC<any> = (props: any) => {
                             }
                         });
                     },
-                }}>
-
-            </MaterialTable>
+                }} />
         </div>
     );
 };
