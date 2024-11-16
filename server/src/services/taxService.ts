@@ -1,4 +1,4 @@
-import { inject, injectable, LazyServiceIdentifer } from "inversify";
+import { inject, injectable, LazyServiceIdentifier } from "inversify";
 import { EventTypes, IEventSubNotification, IRewardRedemeptionEvent, ChannelPointRedemption, AchievementType, IUser, ITwitchChannelReward } from "../models";
 import UserTaxHistoryRepository from "../database/userTaxHistoryRepository";
 import UserTaxStreakRepository from "../database/userTaxStreakRepository";
@@ -23,7 +23,7 @@ export default class TaxService {
         @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
         @inject(TwitchChannelPointRewardService) private channelPointRewardService: TwitchChannelPointRewardService,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
-        @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
+        @inject(new LazyServiceIdentifier(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
         this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, () => this.streamOnline());
         this.twitchEventService.subscribeToEvent(EventTypes.ChannelPointsRedeemed, (e: IEventSubNotification) => this.channelPointsRedeemed(e));
