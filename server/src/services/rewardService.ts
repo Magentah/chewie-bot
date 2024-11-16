@@ -1,4 +1,4 @@
-import { inject, injectable, LazyServiceIdentifer } from "inversify";
+import { inject, injectable, LazyServiceIdentifier } from "inversify";
 import { EventTypes, IUser, RequestSource } from "../models";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import SongService from "./songService";
@@ -23,7 +23,7 @@ export default class RewardService {
         @inject(TaxService) private taxService: TaxService,
         @inject(BotSettingsService) private settings: BotSettingsService,
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
-        @inject(new LazyServiceIdentifer(() => TwitchEventService)) private twitchEventService: TwitchEventService
+        @inject(new LazyServiceIdentifier(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
         // TODO: Consider switching to Twitch Pub Sub events and removing this dependency.
         this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>

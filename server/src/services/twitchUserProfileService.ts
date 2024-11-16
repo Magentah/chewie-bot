@@ -1,11 +1,11 @@
-import { inject, injectable, LazyServiceIdentifer } from "inversify";
+import { inject, injectable, LazyServiceIdentifier } from "inversify";
 import { ITwitchUserProfile } from "../models";
 import { TwitchUserProfileRepository } from "../database/twitchUserProfileRepository";
 
 @injectable()
 export class TwitchUserProfileService {
     constructor(
-        @inject(new LazyServiceIdentifer(() => TwitchUserProfileRepository))
+        @inject(new LazyServiceIdentifier(() => TwitchUserProfileRepository))
         private twitchUserProfiles: TwitchUserProfileRepository
     ) {
         // Empty
