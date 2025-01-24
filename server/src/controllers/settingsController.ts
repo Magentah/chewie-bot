@@ -48,6 +48,8 @@ class SettingsController {
         [BotSettings.TaxInspectorExemptUsers]: { title: "Users exempt from tax inspector", readonly: false },
         [BotSettings.TaxEvasionPenaltyLeaderboardCount]: { title: "Number of top users from tax evasion leaderboard for penalty", readonly: false },
         [BotSettings.TaxEvasionCooldown]: { title: "Number of minutes that tax evaders are safe after penalty", readonly: false },
+        [BotSettings.GoldStatusRequestLimit]: { title: "Limit VIP gold requests by 1 per week or stream (Week|Stream)", readonly: false },
+        [BotSettings.GoldStatusPermanentRequests]: { title: "Grant permanent VIP gold requests for donations", readonly: false },
     };
 
     constructor(

@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import moment = require("moment");
 import { InvalidSongUrlError, SongAlreadyInQueueError } from "../errors";
 import { Logger, LogType } from "../logger";
-import { AchievementType, EventLogType, ISong, IUser, RequestSource, SocketMessageType, SongSource } from "../models";
+import { AchievementType, EventLogType, EventTypes, ISong, IUser, RequestSource, SocketMessageType, SongSource } from "../models";
 import SpotifyService from "./spotifyService";
 import WebsocketService from "./websocketService";
 import { YoutubeService } from "./youtubeService";
@@ -11,8 +11,10 @@ import { TwitchWebService } from "./twitchWebService";
 import OpenAiService from "./openAiService";
 import EventAggregator from "./eventAggregator";
 import SeasonsRepository from "../database/seasonsRepository";
+import StreamActivityRepository from "../database/streamActivityRepository";
 import UserService from "./userService";
 import { getLinkPreview } from "link-preview-js";
+import BotSettingsService, { BotSettings } from "./botSettingsService";
 
 @injectable()
 export class SongService {
@@ -27,8 +29,10 @@ export class SongService {
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(UserService) private userService: UserService,
         @inject(SeasonsRepository) private seasonsRepository: SeasonsRepository,
+        @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(TwitchWebService) private twitchWebService: TwitchWebService,
         @inject(OpenAiService) private openAiService: OpenAiService,
+        @inject(BotSettingsService) private settings: BotSettingsService,
     ) {
         //
     }
@@ -286,7 +290,8 @@ export class SongService {
             return `${user.username}, you need VIP gold status to request a song. Check !vipgold for details.`;
         }
 
-        const todayDate = new Date(new Date().toDateString());
+        const now = new Date();
+        const todayDate = new Date(now.toDateString());
 
         // Check if gold status has expired (expiration date is inclusive).
         if (!user.vipPermanentRequests && user.vipExpiry) {
@@ -297,14 +302,21 @@ export class SongService {
 
         // Check if gold song has been used this week.
         if (user.vipLastRequest && user.vipExpiry) {
-            const startOfWeek = this.getIndividualStartOfWeek(todayDate, user.vipExpiry);
-            if (user.vipLastRequest >= startOfWeek) {
-                return `Sorry ${user.username}, you already had a gold song request this week.`;
+            if (await this.settings.getValue(BotSettings.GoldStatusRequestLimit) === "Week") {
+                const startOfWeek = this.getIndividualStartOfWeek(todayDate, user.vipExpiry);
+                if (new Date(user.vipLastRequest.toDateString()) >= startOfWeek) {
+                    return `Sorry ${user.username}, you already had a gold song request this week.`;
+                }
+            } else {
+                const startOfStream = await this.streamActivityRepository.getLatestForEvent(EventTypes.StreamOnline);
+                if (startOfStream && user.vipLastRequest >= new Date(startOfStream.dateTimeTriggered)) {
+                    return `Sorry ${user.username}, you already had a gold song request this stream.`;
+                }
             }
         }
 
         const song = await this.addSong(url, RequestSource.GoldSong, user.username, comments);
-        user.vipLastRequest = todayDate;
+        user.vipLastRequest = now;
 
         // Any gold song used will always reduce the amount of permanent requests left.
         // Adding a permanent request will also extend the VIP period, so no request will be lost.

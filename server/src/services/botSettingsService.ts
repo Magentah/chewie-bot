@@ -41,6 +41,8 @@ export enum BotSettings {
     TaxEvasionPenaltyLeaderboardCount = "tax-evasion-penalty-leaderboard-count",
     TaxTimeoutDurationForInsubordination = "tax-timeout-duration-insubordination",
     TaxInspectorExemptUsers = "tax-exempt-users",
+    GoldStatusPermanentRequests = "gold-status-permanent-requests",
+    GoldStatusRequestLimit = "gold-status-request-limit",
 }
 
 @injectable()
@@ -84,6 +86,8 @@ export default class BotSettingsService {
         [BotSettings.TaxInspectorExemptUsers]: "",
         [BotSettings.TaxEvasionPenaltyLeaderboardCount]: 1,
         [BotSettings.TaxEvasionCooldown]: 24 * 60,
+        [BotSettings.GoldStatusPermanentRequests]: 0,
+        [BotSettings.GoldStatusRequestLimit]: "Week",
     };
 
     private readonly settingCache: { [name: string] : any; } = {};

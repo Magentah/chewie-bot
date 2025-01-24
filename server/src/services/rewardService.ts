@@ -125,10 +125,15 @@ export default class RewardService {
 
     private async addGoldStatus(user: IUser | undefined, donation: IDonationMessage): Promise<boolean> {
         const amountPerMonth = parseFloat(await this.settings.getValue(BotSettings.GoldStatusDonationAmount));
+        const usePermanentRequests = await this.settings.getBoolValue(BotSettings.GoldStatusPermanentRequests);
         const goldMonths = Math.floor(donation.amount / amountPerMonth);
         if (goldMonths > 0) {
             if (user) {
-                await this.userService.addVipGoldWeeks(user, goldMonths * 4, "Donation");
+                if (usePermanentRequests) {
+                    await this.userService.addPermanentVip(user, goldMonths * 4, "Donation");
+                } else {
+                    await this.userService.addVipGoldWeeks(user, goldMonths * 4, "Donation");
+                }
                 return true;
             }
         }
