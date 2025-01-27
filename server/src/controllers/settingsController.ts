@@ -11,7 +11,7 @@ import BotSettingsService, { BotSettings } from "../services/botSettingsService"
 class SettingsController {
     private readonly SettingDescriptions = {
         [BotSettings.DonationPointsPerDollar]: { title: "Donations: Points added per USD", readonly: false },
-        [BotSettings.GoldStatusDonationAmount]: { title: "VIP Gold: USD required per month", readonly: false },
+        [BotSettings.GoldStatusDonationAmount]: { title: "VIP Gold: USD required for 4 weeks / requests", readonly: false },
         [BotSettings.PointsPerBit]: { title: "Bits: Points added per Bit", readonly: false },
         [BotSettings.PruneLogsAfterDays]: { title: "Amount of days to retain logs", readonly: false },
         [BotSettings.RedeemCost]: { title: "Cost for !redeem command", readonly: false },
@@ -30,7 +30,7 @@ class SettingsController {
         [BotSettings.SongDonationLink]: { title: "URL for donations on song queue page", readonly: false },
         [BotSettings.CardsRequiredForUpgrade]: { title: "Number of cards required for redeeming an upgrade", readonly: false },
         [BotSettings.CommandCooldownInSeconds]: { title: "Cooldown for regular text commands (in seconds)", readonly: false },
-        [BotSettings.GoldWeeksPerT3Sub]: { title: "Amount of VIP gold weeks per T3 sub", readonly: false },
+        [BotSettings.GoldWeeksPerT3Sub]: { title: "VIP Gold: Amount of weeks / requests per T3 sub", readonly: false },
         [BotSettings.ReadonlyMode]: { title: "Read-only mode for points", readonly: false },
         [BotSettings.MaxSongRequestRedemptionsInQueue]: { title: "Maximum number of song requests through channel rewards in queue", readonly: false },
         [BotSettings.SubNotificationProvider]: { title: "Provider for subscription notifications (Twitch|Streamlabs)", readonly: false },
@@ -48,8 +48,8 @@ class SettingsController {
         [BotSettings.TaxInspectorExemptUsers]: { title: "Users exempt from tax inspector", readonly: false },
         [BotSettings.TaxEvasionPenaltyLeaderboardCount]: { title: "Number of top users from tax evasion leaderboard for penalty", readonly: false },
         [BotSettings.TaxEvasionCooldown]: { title: "Number of minutes that tax evaders are safe after penalty", readonly: false },
-        [BotSettings.GoldStatusRequestLimit]: { title: "Limit VIP gold requests by 1 per week or stream (Week|Stream)", readonly: false },
-        [BotSettings.GoldStatusPermanentRequests]: { title: "Grant permanent VIP gold requests for donations", readonly: false },
+        [BotSettings.GoldStatusRequestLimit]: { title: "VIP Gold: Limit requests to 1 per week or stream (Week|Stream)", readonly: false },
+        [BotSettings.GoldStatusPermanentRequests]: { title: "VIP Gold: Use permanent requests instead of time periods", readonly: false },
     };
 
     constructor(
