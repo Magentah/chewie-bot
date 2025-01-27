@@ -9,6 +9,7 @@ import { Logger, LogType } from "../logger";
 import PointLogsRepository from "../database/pointLogsRepository";
 import EventAggregator from "./eventAggregator";
 import WebsocketService from "../services/websocketService";
+import BotSettingsService, { BotSettings } from "../services/botSettingsService";
 
 @injectable()
 export class UserService {
@@ -17,7 +18,8 @@ export class UserService {
         @inject(EventLogService) private eventLog: EventLogService,
         @inject(EventAggregator) private eventAggregator: EventAggregator,
         @inject(WebsocketService) private websocketService: WebsocketService,
-        @inject(PointLogsRepository) private pointsLog: PointLogsRepository) {
+        @inject(PointLogsRepository) private pointsLog: PointLogsRepository,
+        @inject(BotSettingsService) private settings: BotSettingsService) {
         // Empty
     }
 
@@ -179,7 +181,15 @@ export class UserService {
      */
     public async addPermanentVip(user: IUser, amount: number, reason: string) {
         user.vipPermanentRequests = user.vipPermanentRequests ? (user.vipPermanentRequests + amount) : amount;
-        await this.addVipGoldWeeks(user, amount, reason);
+
+        const usePermanentRequests = await this.settings.getBoolValue(BotSettings.GoldStatusPermanentRequests);
+        if (usePermanentRequests) {
+            // Not changing VIP expiry date here to limit available requests to the permanent ones
+            await this.users.updateVipExpiry(user);
+            await this.eventLog.addVipGoldAdded(user, { weeksAdded: 0, newExpiry: user.vipExpiry, permanentRequests: user.vipPermanentRequests, reason });
+        } else {
+            await this.addVipGoldWeeks(user, amount, reason);
+        }
     }
 
     /**
