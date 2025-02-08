@@ -91,7 +91,12 @@ export default class RewardService {
 
         if (sub.sub_plan === SubscriptionPlan.Tier3) {
             const goldWeeksT3 = parseInt(await this.settings.getValue(BotSettings.GoldWeeksPerT3Sub), 10);
-            await this.userService.addVipGoldWeeks(user, goldWeeksT3, "T3 Resub");
+            const usePermanentRequests = await this.settings.getBoolValue(BotSettings.GoldStatusPermanentRequests);
+            if (usePermanentRequests) {
+                await this.userService.addPermanentVip(user, goldWeeksT3, "T3 Resub");
+            } else {
+                await this.userService.addVipGoldWeeks(user, goldWeeksT3, "T3 Resub");
+            }
         }
     }
 
@@ -104,7 +109,12 @@ export default class RewardService {
                 // Both gifter and receiver gets half the amount of VIP gold.
                 // We assume that the user on the receiving end will be covered by a streamlabs event.
                 if (giftingUser) {
-                    await this.userService.addVipGoldWeeks(giftingUser, giftedMonths, "Gifted T3 sub");
+                    const usePermanentRequests = await this.settings.getBoolValue(BotSettings.GoldStatusPermanentRequests);
+                    if (usePermanentRequests) {
+                        await this.userService.addPermanentVip(giftingUser, giftedMonths, "Gifted T3 sub");
+                    } else {
+                        await this.userService.addVipGoldWeeks(giftingUser, giftedMonths, "Gifted T3 sub");
+                    }
                 }
             }
         }
