@@ -1,5 +1,5 @@
 import { inject, injectable, LazyServiceIdentifier } from "inversify";
-import { EventTypes, IUser, RequestSource } from "../models";
+import { EventTypes, IUser, RequestSource, ISubscriptionEvent, IEventSubNotification, ISubscriptionMessageEvent } from "../models";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import SongService from "./songService";
 import { IBitsMessage, IDonationMessage, ISubscriptionMessage, SubscriptionPlan, SubType } from "./streamlabsService";
@@ -25,12 +25,61 @@ export default class RewardService {
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(new LazyServiceIdentifier(() => TwitchEventService)) private twitchEventService: TwitchEventService
     ) {
-        // TODO: Consider switching to Twitch Pub Sub events and removing this dependency.
+        // TODO: Consider switching to Twitch events subs and removing this dependency.
         this.twitchService.setAddGiftCallback((username: string, recipient: string, giftedMonths: number, plan: string | undefined) =>
             this.processGiftSub(username, giftedMonths, plan)
         );
 
         this.twitchEventService.subscribeToEvent(EventTypes.StreamOnline, () => this.extendGoldStatusForWeeksWithoutStream());
+
+        this.twitchEventService.subscribeToEvent(EventTypes.ChannelSubscribe, (e: IEventSubNotification) => this.handleSubscription(e));
+
+        this.twitchEventService.subscribeToEvent(EventTypes.ChannelResubscribeMessage, (e: IEventSubNotification) => this.handleResubscription(e));
+    }
+
+    private async handleSubscription(e: IEventSubNotification) {
+        const subEvent = e.event as ISubscriptionEvent;
+
+        let subscriptionPlan = SubscriptionPlan.Tier1;
+        if (subEvent.tier === "2000"){
+            subscriptionPlan = SubscriptionPlan.Tier2;
+        } else if (subEvent.tier === "3000") {
+            subscriptionPlan = SubscriptionPlan.Tier3;
+        }
+
+        // In case of sub gift, only gifter will receive points etc.
+        // Exception T3 sub, here gifter and recipient will get perks through IRC events,
+        // so we only need to take care of actual sub events here.
+        if (!subEvent.is_gift) {
+            await this.processSub({
+                sub_plan: subscriptionPlan,
+                message: "",
+                months: 1,
+                sub_type: SubType.Sub,
+                emotes: null,
+                name: subEvent.user_login
+            });
+        }
+    }
+
+    private async handleResubscription(e: IEventSubNotification) {
+        const subEvent = e.event as ISubscriptionMessageEvent;
+
+        let subscriptionPlan = SubscriptionPlan.Tier1;
+        if (subEvent.tier === "2000"){
+            subscriptionPlan = SubscriptionPlan.Tier2;
+        } else if (subEvent.tier === "3000") {
+            subscriptionPlan = SubscriptionPlan.Tier3;
+        }
+
+        await this.processSub({
+            sub_plan: subscriptionPlan,
+            message: subEvent.message?.text,
+            months: subEvent.cumulative_months,
+            sub_type: SubType.Resub,
+            emotes: null,
+            name: subEvent.user_login
+        });
     }
 
     public async processDonation(donation: IDonationMessage) {

@@ -8,7 +8,7 @@ import Constants from "../constants";
 import { BotContainer } from "../inversify.config";
 import { Logger, LogType } from "../logger";
 import { IUser, ProviderType, UserLevels } from "../models";
-import { SpotifyService, UserService, TwitchUserProfileService, UserPermissionService, StreamlabsService, TwitchService, TwitchPubSubService } from "../services";
+import { SpotifyService, UserService, TwitchUserProfileService, UserPermissionService, StreamlabsService, TwitchService } from "../services";
 import { TwitchStrategy, StreamlabsStrategy, SpotifyStrategy, DropboxStrategy } from "../strategy";
 import { APIHelper } from "../helpers";
 
@@ -219,8 +219,6 @@ authRouter.get("/api/auth/twitch/redirect", passport.authenticate("twitch", { fa
         if (auth?.accessToken) {
             BotContainer.get(StreamlabsService).startSocketConnect(auth.accessToken);
         }
-
-        BotContainer.get(TwitchPubSubService).subscribeEvents();
     }
     res.redirect("/");
 });

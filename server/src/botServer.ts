@@ -32,7 +32,6 @@ import { UsersRepository } from "./database";
 import { createDatabaseBackupJob } from "./cronjobs";
 import * as Config from "./config.json";
 import { IUser, ProviderType, UserLevels } from "./models";
-import TwitchPubSubService from "./services/twitchPubSubService";
 import DropboxService from "./services/dropboxService";
 import Constants from "./constants";
 
@@ -72,9 +71,6 @@ class BotServer extends Server {
 
             const twitchEventService = BotContainer.get<TwitchEventService>(TwitchEventService);
             twitchEventService.startup();
-
-            const twitchPubSub = BotContainer.get<TwitchPubSubService>(TwitchPubSubService);
-            twitchPubSub.connect();
         }
     }
 

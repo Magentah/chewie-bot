@@ -35,6 +35,9 @@ export {
     ChannelPointRedemptionStatus,
     IStreamOnlineEvent,
     IStreamOfflineEvent,
+    ISubscriptionEvent,
+    ISubscriptionGiftEvent,
+    ISubscriptionMessageEvent
 } from "./twitchEventSubEvents";
 export { default as ITwitchSubscription } from "./twitchSubscription";
 export { default as IDiscordSetting } from "./discordSetting";

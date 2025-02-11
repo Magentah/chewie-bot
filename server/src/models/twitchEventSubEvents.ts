@@ -61,6 +61,51 @@ export interface IStreamOfflineEvent {
     broadcaster_user_name: string;
 }
 
+export interface ISubscriptionEvent {
+    user_id: string;
+    user_login: string;
+    user_name: string;
+    broadcaster_user_id: string;
+    broadcaster_user_login: string;
+    broadcaster_user_name: string;
+    tier: "1000" | "2000" | "3000";
+    is_gift: boolean;
+}
+
+export interface ISubscriptionMessageEvent {
+    user_id: string;
+    user_login: string;
+    user_name: string;
+    broadcaster_user_id: string;
+    broadcaster_user_login: string;
+    broadcaster_user_name: string;
+    tier: "1000" | "2000" | "3000";
+    message: {
+        text: string;
+        emotes: {
+            begin: number;
+            end: number;
+            id: string;
+        }[];
+    };
+    cumulative_months: number;
+    streak_months: number | null;
+    duration_months: number;
+}
+
+export interface ISubscriptionGiftEvent {
+    user_id: string;
+    user_login: string;
+    user_name: string;
+    broadcaster_user_id: string;
+    broadcaster_user_login: string;
+    broadcaster_user_name: string;
+    total: number;
+    tier: string;
+    cumulative_total: number;
+    is_anonymous: boolean;
+}
+
 export interface IChannelReward {
     id: string;
     title: string;
@@ -74,6 +119,8 @@ export enum EventTypes {
     ChannelUpdate = "channel.update",
     ChannelFollow = "channel.follow",
     ChannelSubscribe = "channel.subscribe",
+    ChannelSubscribeGift = "channel.subscription.gift",
+    ChannelResubscribeMessage = "channel.subscription.message", // Resubscription message
     ChannelChear = "channel.cheer",
     ChannelRaid = "channel.raid",
     ChannelBan = "channel.ban",

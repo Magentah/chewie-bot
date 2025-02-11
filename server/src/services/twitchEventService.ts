@@ -11,8 +11,8 @@ import EventLogService from "./eventLogService";
 import StreamActivityRepository from "../database/streamActivityRepository";
 import ChannelPointRewardService from "./channelPointRewardService";
 import * as EventSub from "../models";
-import { EventTypes, ChannelPointRedemption, ITwitchChannelReward, RequestSource } from "../models";
-import { TwitchAuthService, UserPermissionService } from ".";
+import { EventTypes, ChannelPointRedemption, ITwitchChannelReward, RequestSource, EventLogType } from "../models";
+import { TwitchAuthService } from ".";
 import BotSettingsService, { BotSettings } from "./botSettingsService";
 import { PointLogType } from "../models/pointLog";
 import { TwitchWebService } from "./twitchWebService";
@@ -29,6 +29,9 @@ export default class TwitchEventService {
         EventSub.EventTypes.ChannelPointsRedeemedUpdate,
         EventSub.EventTypes.StreamOnline,
         EventSub.EventTypes.StreamOffline,
+        EventSub.EventTypes.ChannelSubscribe,
+        EventSub.EventTypes.ChannelResubscribeMessage,
+        EventSub.EventTypes.ChannelSubscribeGift,
     ];
     private broadcasterUserId = 0;
     private eventCallbacks: { [key: string]: Function[] } = {};
@@ -43,8 +46,7 @@ export default class TwitchEventService {
         @inject(StreamActivityRepository) private streamActivityRepository: StreamActivityRepository,
         @inject(SongService) private songService: SongService,
         @inject(TwitchService) private twitchService: TwitchService,
-        @inject(BotSettingsService) private settingsService: BotSettingsService,
-        @inject(UserPermissionService) private userPermissionService: UserPermissionService,
+        @inject(BotSettingsService) private settingsService: BotSettingsService
     ) {
         this.accessToken = {
             token: "",
@@ -107,6 +109,18 @@ export default class TwitchEventService {
             }
             case EventSub.EventTypes.StreamOffline: {
                 await this.channelOfflineEvent(notification.event);
+                break;
+            }
+            case EventSub.EventTypes.ChannelSubscribe: {
+                await this.channelSubscribeEvent(notification.event);
+                break;
+            }
+            case EventSub.EventTypes.ChannelResubscribeMessage: {
+                await this.channelSubscribeMessageEvent(notification.event);
+                break;
+            }
+            case EventSub.EventTypes.ChannelSubscribeGift: {
+                await this.channelSubscribeGiftEvent(notification.event);
                 break;
             }
             case EventSub.EventTypes.ChannelFollow: {
@@ -329,6 +343,25 @@ export default class TwitchEventService {
         await this.streamActivityRepository.add(EventTypes.StreamOffline, dateTimeOffline);
 
         await this.discord.sendStreamOffline();
+    }
+
+    private async channelSubscribeEvent(notificationEvent: EventSub.ISubscriptionEvent): Promise<void> {
+        Logger.info(LogType.Twitch, "Channel Subscription", notificationEvent);
+
+        await this.eventLogService.addStreamlabsEventReceived(notificationEvent.user_login,  notificationEvent.is_gift ? EventLogType.GiftSub : EventLogType.Sub, notificationEvent);
+    }
+
+    private async channelSubscribeMessageEvent(notificationEvent: EventSub.ISubscriptionMessageEvent): Promise<void> {
+        Logger.info(LogType.Twitch, "Channel Subscription Message (Resub)", notificationEvent);
+
+        await this.eventLogService.addStreamlabsEventReceived(notificationEvent.user_login, EventLogType.Sub, notificationEvent);
+    }
+
+
+    private async channelSubscribeGiftEvent(notificationEvent: EventSub.ISubscriptionEvent): Promise<void> {
+        Logger.info(LogType.Twitch, "Channel Subscription Gift", notificationEvent);
+
+        await this.eventLogService.addStreamlabsEventReceived(notificationEvent.user_login, EventLogType.GiftSub, notificationEvent);
     }
 
     public async createEventSubscription(event: EventSub.EventTypes, userId: string): Promise<void> {
