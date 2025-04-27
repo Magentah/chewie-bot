@@ -47,7 +47,7 @@ const SongHistory: React.FC = (props) => {
     }, []);
 
     const searchSongHistoryAsync = async (text: string): Promise<ISongHistory[]> => {
-        const result = (await axios.get("/api/songs/history", { params: { search: text, limit: 20 }}))?.data;
+        const result = (await axios.get("/api/songs/history", { params: { search: text, limit: 100 }}))?.data;
         setTotalResults(result.count);
         return result.songs;
     };

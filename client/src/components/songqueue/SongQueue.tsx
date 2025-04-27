@@ -17,7 +17,7 @@ import { UserContext } from "../../contexts/userContext";
 import SongHistory from "./SongHistory";
 import Song, { SongSource } from "./song";
 import RequestDateCell from "./RequestDateCell";
-import { Delete, OpenInNew, PlayCircleOutline, AttachMoney, VerticalAlignTop, Check, Remove } from "@mui/icons-material";
+import { Delete, OpenInNew, PlayCircleOutline, AttachMoney, VerticalAlignTop, Check } from "@mui/icons-material";
 import { UserLevels } from "components/common/userLevel";
 
 const useStyles = makeStyles()((theme: Theme) => ({
