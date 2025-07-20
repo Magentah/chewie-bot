@@ -43,8 +43,8 @@ export class EventLogService {
         await this.eventLogs.add(log);
     }
 
-    public async addTaxEvasion(user: IUser, duration: number) {
-        const log = this.createLog(EventLogType.TaxEvasion, user, { duration });
+    public async addTaxEvasion(user: IUser, duration: number, inspector: IUser) {
+        const log = this.createLog(EventLogType.TaxEvasion, user, { duration, taxinspector: inspector.username, taxinspectorId: inspector.id });
         await this.eventLogs.add(log);
     }
 

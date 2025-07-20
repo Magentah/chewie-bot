@@ -55,6 +55,7 @@ export { default as TaxAuditCommand } from "./tax/taxAuditCommand";
 export { default as TaxInspectorCommand } from "./tax/taxInvestigatorCommand";
 export { default as TaxevadersCommand } from "./tax/taxevadersCommand";
 export { default as TaxEvadingCommand } from "./tax/taxEvadingCommand";
+export { default as SelfReportCommand } from "./tax/selfReportCommand";
 
 // Songlist
 export { default as RandomCommand } from "./songlist/randomCommand";

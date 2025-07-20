@@ -36,7 +36,7 @@ export default class TaxInvestigatorCommand extends Command {
         penaltyCoolDownDate.setHours(penaltyCoolDownDate.getHours() - penaltyCooldownInHours);
         let userFilter = (await this.eventLog.getTaxPenaltiesSince(penaltyCoolDownDate)).map(x => x.toLowerCase());
 
-        if (await this.findTaxEvaders(channel, oneMonthAgo, userFilter)) {
+        if (await this.findTaxEvaders(channel, oneMonthAgo, user, userFilter)) {
             return;
         }
 
@@ -45,14 +45,14 @@ export default class TaxInvestigatorCommand extends Command {
         const penaltyDuration = await this.settingsService.getIntValue(BotSettings.TaxTimeoutDuration);
         dateMinusTimeout.setSeconds(dateMinusTimeout.getSeconds() - penaltyDuration);
         userFilter = (await this.eventLog.getTaxPenaltiesSince(dateMinusTimeout)).map(x => x.toLowerCase());
-        if (await this.findTaxEvaders(channel, oneMonthAgo, userFilter)) {
+        if (await this.findTaxEvaders(channel, oneMonthAgo, user, userFilter)) {
             return;
         }
 
         await this.twitchService.sendMessage(channel, "No tax evaders found, everyone is safe...for now.");
     }
 
-    private async findTaxEvaders(channel: string, oneMonthAgo: Date, userFilter: string[]) {
+    private async findTaxEvaders(channel: string, oneMonthAgo: Date, inspector: IUser, userFilter: string[]) {
         // Add extra users exempt from tax
         const exemptUsers = await this.settingsService.getValue(BotSettings.TaxInspectorExemptUsers);
         if (exemptUsers) {
@@ -66,7 +66,7 @@ export default class TaxInvestigatorCommand extends Command {
         let taxEvader = await this.findTaxEvader(activeChatters, oneMonthAgo);
 
         if (taxEvader) {
-            await this.executePenalty(channel, taxEvader);
+            await this.executePenalty(channel, taxEvader, inspector);
             return true;
         }
 
@@ -74,7 +74,7 @@ export default class TaxInvestigatorCommand extends Command {
             const chatters = (await this.twitchWebService.getChatters()).filter((el)  => !userFilter.includes(el.user_login.toLowerCase()));
             taxEvader = await this.findTaxEvader(chatters.map(x => x.user_name), oneMonthAgo);
             if (taxEvader) {
-                await this.executePenalty(channel, taxEvader);
+                await this.executePenalty(channel, taxEvader, inspector);
                 return true;
             }
         } catch (error : any) {
@@ -84,7 +84,7 @@ export default class TaxInvestigatorCommand extends Command {
         return false;
     }
 
-    private async executePenalty(channel: string, taxEvader: string) {
+    private async executePenalty(channel: string, taxEvader: string, inspector: IUser) {
         // User names come from Twitch API so we can safely add it if user does not exist yet and log
         const user = await this.userService.addUser(taxEvader);
 
@@ -108,7 +108,7 @@ export default class TaxInvestigatorCommand extends Command {
 
         await this.twitchWebService.banUser(taxEvader, penalty, "Tax evasion", true);
 
-        await this.eventLog.addTaxEvasion(user, penalty);
+        await this.eventLog.addTaxEvasion(user, penalty, inspector);
 
         const count = await this.eventLog.getCount(EventLogType.TaxEvasion, user);
         this.eventAggregator.publishAchievement({ user, type: AchievementType.TaxEvasion, count });
