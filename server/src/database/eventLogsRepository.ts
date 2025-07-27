@@ -11,6 +11,21 @@ export class EventLogsRepository {
         // Empty
     }
 
+    /**
+     * Returns the number of times a user caught themselves using !taxinspector (self-report).
+     */
+    public async getSelfReportCount(user: IUser): Promise<number> {
+        const databaseService = await this.databaseProvider();
+        // Self-report: EventLogType.TaxEvasion, userId matches, and taxinspectorId in data equals user.id
+        const result = await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
+            .select()
+            .where({ userId: user.id, type: EventLogType.TaxEvasion })
+            .whereRaw("json_extract(data, '$.taxinspectorId') = ?", [user.id])
+            .count("id as cnt")
+            .first();
+        return result?.cnt ?? 0;
+    }
+
     public async getLast(type: EventLogType, count: number | undefined): Promise<IEventLog[]> {
         const databaseService = await this.databaseProvider();
         const query = databaseService.getQueryBuilder(DatabaseTables.EventLogs).select().where("type", "=", type).orderBy("time", "desc");
