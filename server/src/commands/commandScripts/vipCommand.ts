@@ -3,6 +3,7 @@ import { IUser, UserLevels } from "../../models";
 import { BotContainer } from "../../inversify.config";
 import { UserService } from "../../services";
 import { Lang } from "../../lang";
+import { BotSettings } from "../../services/botSettingsService";
 
 export class VipCommand extends Command {
     private userService: UserService;
@@ -39,7 +40,10 @@ export class VipCommand extends Command {
         if (userToCheck.vipExpiry) {
             const expiryDate = new Date(userToCheck.vipExpiry);
             if (expiryDate < todayDate) {
-                vipInfo += `Expired on: ${dateFormat.format(expiryDate)}.`;
+                // Only show if time based gold status is currently in use. Otherwise expiry date is not relevant.
+                if (!await this.settingsService.getBoolValue(BotSettings.GoldStatusPermanentRequests)) {
+                    vipInfo += `Expired on: ${dateFormat.format(expiryDate)}.`;
+                }
             } else {
                 const renewDate = new Date(expiryDate);
                 renewDate.setDate(renewDate.getDate() + 1);
