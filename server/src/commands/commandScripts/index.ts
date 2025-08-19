@@ -17,6 +17,7 @@ export { default as MyStatsCommand } from "./myStatsCommand";
 
 // Songs
 export { default as AddSongCommand } from "./songs/addSongCommand";
+export { default as SongplayedCommand } from "./songs/songPlayedCommand";
 export { default as SongCommand } from "./songs/songCommand";
 export { default as LastSongCommand } from "./songs/lastSongCommand";
 export { default as PlayedTodayCommand } from "./songs/playedTodayCommand";
