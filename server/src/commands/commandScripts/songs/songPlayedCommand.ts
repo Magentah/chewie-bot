@@ -5,6 +5,8 @@ import { BotContainer } from "../../../inversify.config";
 
 export class SongPlayedCommand extends Command {
     private songService: SongService;
+    private static lastUsedTime = 0;
+    private static readonly cooldownMs = 10000; // 10 seconds in milliseconds
 
     constructor() {
         super();
@@ -15,6 +17,14 @@ export class SongPlayedCommand extends Command {
     }
 
     public async executeInternal(channel: string, user: IUser) {
+        const currentTime = Date.now();
+        const timeSinceLastUse = currentTime - SongPlayedCommand.lastUsedTime;
+
+        if (timeSinceLastUse < SongPlayedCommand.cooldownMs) {
+            // Prevent accidential duplicate execution
+            return;
+        }
+
         const queue = this.songService.getSongQueue();
         if (queue.length === 0) {
             await this.twitchService.sendMessage(
@@ -23,6 +33,8 @@ export class SongPlayedCommand extends Command {
             );
             return;
         }
+
+        SongPlayedCommand.lastUsedTime = currentTime;
 
         const firstSong = queue[0];
         await this.songService.songPlayed(firstSong);
