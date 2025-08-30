@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { library, IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faDiscord, faPatreon, faSpotify, faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
+import { faEarthAmericas } from "@fortawesome/free-solid-svg-icons";
 import { Box, Button, Card, CardContent, Divider, Grid, Typography, Theme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 import React, { useContext } from "react";
@@ -24,7 +25,8 @@ library.add(
     faSpotify as IconDefinition,
     faTwitch as IconDefinition,
     faYoutube as IconDefinition,
-    faDiscord as IconDefinition
+    faDiscord as IconDefinition,
+    faEarthAmericas as IconDefinition
 );
 
 const stubLinks: AffiliateLink[] = [
@@ -57,6 +59,12 @@ const stubLinks: AffiliateLink[] = [
         logo: <FontAwesomeIcon icon={['fab', 'discord']} />,
         color: "#7289da",
         name: "Discord",
+    },
+    {
+        link: "https://chewiemelodies.ca",
+        logo: <FontAwesomeIcon icon={['fas', 'earth-americas']} />,
+        color: "#BCAC9A",
+        name: "chewiemelodies.ca",
     },
 ];
 
