@@ -1,6 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
+        "ignoreDeprecations": "6.0",
         "module": "CommonJS",
         "strict": true,
         "baseUrl": "./",
