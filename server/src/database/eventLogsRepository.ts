@@ -20,7 +20,7 @@ export class EventLogsRepository {
         const result = await databaseService.getQueryBuilder(DatabaseTables.EventLogs)
             .select()
             .where({ userId: user.id, type: EventLogType.TaxEvasion })
-            .whereRaw("json_extract(data, '$.taxinspectorId') = ?", [user.id])
+            .whereRaw("json_extract(data, '$.taxinspectorId') = ?", [user.id ?? null])
             .count("id as cnt")
             .first();
         return result?.cnt ?? 0;
