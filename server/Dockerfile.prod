@@ -24,9 +24,8 @@ WORKDIR /usr/src/chewiebot/server
 # Copy only prod dependencies
 # Copy src
 COPY . .
-# Install and run typescript
-RUN npm install -g typescript
-RUN tsc
+# Run typescript (uses version pinned in package.json devDependencies)
+RUN npx tsc
 
 # --- Production ---
 FROM base AS prod
